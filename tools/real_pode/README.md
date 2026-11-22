@@ -101,6 +101,7 @@ Nav2 goal을 모는 컨트롤러(FollowPathGoal)의 속도는 `nav2_params.yaml`
 ```bash
 python3 -m pytest -q tools/test/test_real_pode.py   # ROS 필요 없음
 python3 -m pytest -q tools/test/test_step_probe.py  # 응답 측정 도구. rclpy가 있으면 도메인 63에서 안전 장치도 본다
+python3 -m pytest -q tools/test/test_eta_split.py   # ETA 오차 나누기. ROS 필요 없음
 ```
 
 ## 응답 측정 도구 (sim2real, 2026-11-21)
@@ -174,3 +175,60 @@ GUI=true SETS="linear" PROBE_ARGS="--repeats 1" tools/real_pode/gz_step_probe.sh
 ```
 
 probe는 `--use-sim-time`으로 Gazebo 시계에 맞춰 돈다. 다른 무거운 작업이 돌면 실시간 비율이 떨어져 걸리는 시간이 늘고, 메시지 전달 지연이 시뮬 시각으로 커 보일 수 있으므로 PC가 한가할 때 잰다. Gazebo 모델은 DiffDrive 속도 ±1.0, 가속 ±2.0(이 상한은 선속도 m/s와 각속도 rad/s 모두에 걸린다. 그래서 angular 1.5 계단은 1.0에서 멈춘다), odom 30 Hz이고, 라이다 기준값은 640빔, 360°, 0.05~12 m, 10 Hz다(`sim/fleet_gz_sim/urdf/pode_sim.urdf.xacro`). 실물 값은 `scan_info.py`로 잰다.
+
+## 실물 ETA 오차 재기 (2026-11-22)
+
+관제가 넓은 구역(nav_goal) Segment에 쓰는 남은 시간(ETA)이 실물에서 얼마나 맞는지, Gazebo와 같은 도구
+(`tools/eta_cause/eta_split.py`)로 잰다. 배경과 Gazebo 숫자는 `docs/worklog_eta_cause_2026-11-22.md`.
+
+### 기록 남기기
+
+관제 기록은 로봇이 아니라 **관제를 띄운 PC**에 생긴다. `pc.launch.py`의 `record:=PATH`가
+`fleet_manager_node --record PATH`로 넘어간다(기본은 빈 값이라 기록이 없다). 노드는 그 파일을 `open(PATH, "w")`로
+열기만 한다. 그래서 폴더를 먼저 만들고, 같은 이름이면 덮어쓰므로 판마다 새 이름을 주고, launch를 띄운 폴더에
+따라 달라지지 않게 절대 경로를 쓴다.
+
+```bash
+source tools/real_pode/pc_env.sh
+D=$HOME/real_runs/$(date +%F); mkdir -p $D
+ros2 launch iponic_bringup pc.launch.py use_fake:=true use_sim_clock:=false \
+    fake_robots:=none robots:="pode1 pode2" map_file:=v7 \
+    scenario:=real_two_orders monitor:=false dock_wait_robots:="pode1 pode2" \
+    record:=$D/fleet_record_$(date +%H%M).jsonl
+```
+
+관제를 다른 PC에서 띄웠다면 그 PC의 같은 경로에서 `scp`로 이 저장소가 있는 곳으로 가져온다. 저장소에 남길 때는
+`results/<날짜>/real_eta/`에 둔다.
+
+### 재기
+
+ROS가 필요 없다. 이 checkout의 코어로 재생하므로 기록을 만든 커밋과 같은 코드에서 돌린다. 경고
+`this code decides differently from t ...`가 나오면 그 시각 뒤 표본은 그 판의 것이 아니다.
+
+```bash
+python3 tools/eta_cause/eta_split.py real=$HOME/real_runs/2026-11-24/fleet_record_1530.jsonl
+python3 tools/eta_cause/eta_split.py real=$HOME/real_runs/2026-11-24        # 폴더 아래 기록 모두
+python3 tools/eta_cause/eta_split.py real=$HOME/real_runs/2026-11-24 --rows=results/2026-11-24/real_eta/rows.json
+```
+
+### 읽기
+
+오차 = ETA - 실제 남은 시간(그 Segment의 SEGMENT_DONE까지). -면 관제가 일찍 닿는다고 본 것이다.
+Gazebo 기준(nav2fleet 통합 9612003, 시뮬 0.12 m/s, 6판, 진짜 pode_fsm과 Nav2):
+
+| 줄 | Gazebo | 실물에서 보는 것 |
+|---|---|---|
+| `ALL` mean | −0.41 s | 전체 치우침 |
+| `dispatch (first sample per segment)` mean | −1.47 s | Segment 시작 때의 ETA. 순항 속도와 출발 회전의 몫이 가장 크게 보인다 |
+| `dispatch kind=pass` mean | −1.53 s | 다음 조각이 고정 경로나 Nav2 goal인 Segment |
+| `dispatch kind=turn` mean | −1.17 s | 후진이나 Route 끝 앞의 Segment |
+| `actual 0-1 kind=pass` mean | −0.06 s | 끝 무렵. 넘김 거리 0.15 m가 맞는지 |
+| `## causes`의 `dispatch kind=pass` | adj −1.25, length +1.17, speed −0.72, turn −0.67, wait −0.07 | 넘김, 순항 부족(가속 포함), 제자리 회전, 서 있음 |
+| 같은 줄의 `moving_mps` | 0.108 m/s | 움직이는 동안의 평균 속도. ETA는 `nav_speed_mps` 0.12로 본다 |
+| `pose at SEGMENT_DONE kind=pass`의 along | −0.132 m | 로봇이 끝 노드 몇 m 앞에서 넘어갔나(−0.15 근처면 맞다) |
+
+- `speed`가 Gazebo보다 더 -면 실물 순항이 더 느리다. `moving_mps` / `nav_speed_mps`가 "출처 속도 x 잰 비율"의 비율 후보다.
+- `dispatch kind=pass`의 `turn`이 크면 출발 회전이 길다. 끝 회전(`nav_turn_rps` 1.0)이 맞는지는 `kind=turn`의 `adj`와 `turn`을 견준다.
+- `wait`는 로봇이 서 있던 시간(다른 로봇, 구역 대기)이다. ETA 모델 탓이 아니다.
+- 원인 나누기는 위치 보고를 0.5 s 칸으로 평균해 움직임과 섬을 가르므로 칸 하나(0.5 s)만큼 틀릴 수 있다. 보고 위치에
+  잡음이 크면 `length`가 -로 치우치고 `wait`가 작게 나온다.
