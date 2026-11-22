@@ -137,7 +137,33 @@ python3 tools/eta_cause/eta_split.py fake=$HOME/fake_speed_out/pd-fake/tmp_fleet
 
 ## 7. Gazebo 확인 (G1)
 
-(Gazebo 판을 돌린 뒤 채운다.)
+2026-11-22 16:03~16:34, Isaac을 멈춘 틈. 잠금 `C:/Users/pjw/ros2camp/.heavy_run.lock`을 잡고 돌린 뒤 바로 풀었다.
+
+- 코드: main 092fdc4를 WSL `~/nf_src/pd-eta-092fdc4`에 풀어 `~/gg_build/pd-eta-092fdc4`로 빌드했다(15개 패키지 39 s,
+  `pode_rl_controller`는 RL override에서만 써서 뺐다). 판마다 `launch.out` 첫 줄이 이 install의 fleet_core다.
+- 묶음: `docs/baseline_sim_2026-11-19/sim_batch.sh`, `rviz:=none gui:=false nav_max_speed:=0.12`, 도메인 61,
+  rush1~3(gz_v7_rush), v7a~c(gz_v7). 결과 WSL `~/gz_runs/main_092fdc4_v012`.
+- 판정: 여섯 판 모두 통과. rush 12/12(305.3, 307.0, 306.6 s), v7 8/8(217.2, 217.7, 220.6 s).
+- 재생: `python3 tools/eta_cause/eta_split.py main=$HOME/gz_runs/main_092fdc4_v012`(출력 WSL `~/eta_cause/tool_gz_092fdc4.txt`).
+  재생 경고 없음, `unseen` +0.00.
+
+| | 9612003(nav2fleet 통합) | 092fdc4(pode-drive main) |
+|---|---|---|
+| 표본 / Segment | 2136 / 98 | 2094 / 98 |
+| 전체 평균 | −0.41 | −0.42 |
+| pass 평균 | −0.41 | −0.42 |
+| turn 평균 | −0.42 | −0.39 |
+| pass, 남은 0~1 s | −0.06 | −0.09 |
+| turn, 남은 0~1 s | +0.51 | +0.59 |
+| 시작(첫 표본) | −1.47 | −1.35 |
+| 시작 pass: 오차 / adj / 길이 / 속도 / 회전 / 서 있음 | −1.53 / −1.25 / +1.17 / −0.72 / −0.67 / −0.07 | −1.42 / −1.25 / +1.22 / −0.67 / −0.64 / −0.07 |
+| 시작 pass 움직일 때 속도 | 0.108 m/s | 0.109 m/s |
+| 시작 turn: 오차 / adj / 길이 / 속도 / 회전 / 서 있음 | −1.17 / +2.63 / +0.49 / −1.29 / −2.95 / −0.06 | −1.07 / +2.63 / +0.45 / −1.31 / −2.63 / −0.21 |
+| SEGMENT_DONE 때 끝 노드 앞(pass, 중앙값) | −0.132 m | −0.137 m |
+
+[확정] 나누기가 같다. 오차 평균의 차이는 모두 0.15 s 안이고 같은 방향이다. 시작 때 순항 부족과 출발 회전이 각각 약
+−0.65 s이고, 넘김은 실제로 일어나 −1.25를 지우며, 끝 무렵은 맞는다. 4절의 관제 쪽 결론은 지금 main에도 맞는다. 판 사이
+흩어짐보다 작은 차이라 092fdc4가 조금 낫다고 말하지는 않는다.
 
 ## 8. 알아야 할 포인트
 
