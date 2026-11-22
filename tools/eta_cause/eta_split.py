@@ -160,6 +160,8 @@ def parts(row: dict, seq: list) -> dict:
             continue
         dt = b[0] - a[0]
         d = math.dist(a[1:3], b[1:3])
+        if dt > 1.5 * BIN_S:
+            continue
         if d / dt >= STAND_MPS:
             driven += d * (hi - lo) / dt
             moving += hi - lo

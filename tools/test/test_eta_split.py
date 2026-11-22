@@ -89,6 +89,16 @@ def test_the_parts_add_up_to_the_error_for_every_sample(tmp_path):
         assert total == pytest.approx(p["err"], abs=1e-9)
 
 
+def test_a_gap_in_the_pose_reports_is_unseen_not_standing():
+    row = {"t": 0.0, "end_t": 12.0, "actual": 12.0, "err": -1.0, "used": 11.0, "adj": 0.0,
+           "v": SPEED}
+    seq = [(0.25, 0.0, 0.0, 0.0), (0.75, 0.0, 0.0, 0.0), (10.75, 0.0, 0.0, 0.0),
+           (11.25, 0.0, 0.0, 0.0), (11.75, 0.0, 0.0, 0.0)]
+    p = eta_split.parts(row, seq)
+    assert p["wait"] == pytest.approx(-1.5)
+    assert p["unseen"] == pytest.approx(-10.5)
+
+
 def test_a_folder_finds_named_records_each_under_its_own_name(tmp_path):
     a, _ = record(tmp_path, "fleet_record_1530.jsonl")
     shutil.copy(a, tmp_path / "fms.jsonl")
