@@ -232,3 +232,18 @@ Gazebo 기준(nav2fleet 통합 9612003, 시뮬 0.12 m/s, 6판, 진짜 pode_fsm�
 - `wait`는 위치도 방향도 거의 바뀌지 않은 시간일 뿐 까닭은 가르지 않는다. 다른 로봇이나 구역 대기가 흔하지만, 실물에서는 느린 회전이나 막힘일 수도 있으니 큰 값은 그 시각의 이벤트(`BLOCKED`, `RECOVERING`, 구역 대기)를 기록에서 찾아 확인한다. `unseen`은 위치 보고 칸이 덮지 못한 시간이다(보고가 끊기면 커진다).
 - 원인 나누기는 위치 보고를 0.5 s 칸으로 평균해 움직임과 섬을 가르므로 칸 하나(0.5 s)만큼 틀릴 수 있다. 보고 위치에
   잡음이 크면 `length`가 -로 치우치고 `wait`가 작게 나온다.
+- 한계(고치지 않음): 위치 보고 사이가 0.75 s(칸 1.5개)보다 길게 비면, 그 틈의 시간은 `unseen`으로 가지만 그 틈에 달린 거리가
+  빠져 같은 몫이 `length`에 +로 들어간다(ETA 거리가 길었던 것처럼 보인다). 전체 오차(`err`, 위 split 표)는 영향을 받지 않는다.
+  그래서 실물 기록은 원인 나누기를 읽기 전에 로봇마다 가장 긴 보고 틈(초, 그 시각)을 먼저 본다. 0.75 s를 넘는 틈이
+  nav_goal Segment 안에 있으면 그 판의 `length`, `unseen`은 믿지 않는다(Gazebo 9612003은 0.12 s).
+
+  ```bash
+  python3 -c 'import json,sys
+  last={}; gap={}
+  for x in open(sys.argv[1]):
+      e=json.loads(x)
+      if e.get("in")!="on_robot_state": continue
+      r=e["args"][0]; d=e["t"]-last.get(r,e["t"]); last[r]=e["t"]
+      if d>gap.get(r,(0,0))[0]: gap[r]=(round(d,2),round(e["t"],1))
+  print(gap)' $HOME/real_runs/2026-11-24/fleet_record_153012.jsonl
+  ```
