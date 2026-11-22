@@ -194,7 +194,7 @@ D=$HOME/real_runs/$(date +%F); mkdir -p $D
 ros2 launch iponic_bringup pc.launch.py use_fake:=true use_sim_clock:=false \
     fake_robots:=none robots:="pode1 pode2" map_file:=v7 \
     scenario:=real_two_orders monitor:=false dock_wait_robots:="pode1 pode2" \
-    record:=$D/fleet_record_$(date +%H%M).jsonl
+    record:=$D/fleet_record_$(date +%H%M%S).jsonl
 ```
 
 관제를 다른 PC에서 띄웠다면 그 PC의 같은 경로에서 `scp`로 이 저장소가 있는 곳으로 가져온다. 저장소에 남길 때는
@@ -206,7 +206,7 @@ ROS가 필요 없다. 이 checkout의 코어로 재생하므로 기록을 만든
 `this code decides differently from t ...`가 나오면 그 시각 뒤 표본은 그 판의 것이 아니다.
 
 ```bash
-python3 tools/eta_cause/eta_split.py real=$HOME/real_runs/2026-11-24/fleet_record_1530.jsonl
+python3 tools/eta_cause/eta_split.py real=$HOME/real_runs/2026-11-24/fleet_record_153012.jsonl
 python3 tools/eta_cause/eta_split.py real=$HOME/real_runs/2026-11-24        # 폴더 아래 기록 모두
 python3 tools/eta_cause/eta_split.py real=$HOME/real_runs/2026-11-24 --rows=results/2026-11-24/real_eta/rows.json
 ```
@@ -229,6 +229,6 @@ Gazebo 기준(nav2fleet 통합 9612003, 시뮬 0.12 m/s, 6판, 진짜 pode_fsm�
 
 - `speed`가 Gazebo보다 더 -면 실물 순항이 더 느리다. `moving_mps` / `nav_speed_mps`가 "출처 속도 x 잰 비율"의 비율 후보다.
 - `dispatch kind=pass`의 `turn`이 크면 출발 회전이 길다. 끝 회전(`nav_turn_rps` 1.0)이 맞는지는 `kind=turn`의 `adj`와 `turn`을 견준다.
-- `wait`는 로봇이 서 있던 시간(다른 로봇, 구역 대기)이다. ETA 모델 탓이 아니다.
+- `wait`는 위치도 방향도 거의 바뀌지 않은 시간일 뿐 까닭은 가르지 않는다. 다른 로봇이나 구역 대기가 흔하지만, 실물에서는 느린 회전이나 막힘일 수도 있으니 큰 값은 그 시각의 이벤트(`BLOCKED`, `RECOVERING`, 구역 대기)를 기록에서 찾아 확인한다. `unseen`은 위치 보고 칸이 덮지 못한 시간이다(보고가 끊기면 커진다).
 - 원인 나누기는 위치 보고를 0.5 s 칸으로 평균해 움직임과 섬을 가르므로 칸 하나(0.5 s)만큼 틀릴 수 있다. 보고 위치에
   잡음이 크면 `length`가 -로 치우치고 `wait`가 작게 나온다.

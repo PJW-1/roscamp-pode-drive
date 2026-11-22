@@ -8,6 +8,7 @@
 끝 종류: pass(다음 조각이 nav_goal, follow_path라 넘김 거리를 뺌), turn(후진이나 Route 끝이라 끝 회전을 더함).
 원인 나누기(위치 보고를 BIN_S마다 평균):
     오차 = 끝 보정 + 길이((ETA 거리 - 달린 거리)/v) + 속도(달린 거리/v - 움직인 시간) - 제자리 회전 - 서 있음
+         - 보고 없음(위치 보고 칸이 덮지 못한 시간). v는 그 기록의 nav_speed_mps다.
 읽기만 한다. 기록 형식은 tools/replay.py 머리에 있다.
 """
 from __future__ import annotations
@@ -27,8 +28,9 @@ replay = importlib.util.module_from_spec(_spec)
 sys.modules["replay"] = replay
 _spec.loader.exec_module(replay)
 
-from fleet_core.fleet_map import NAV_GOAL  # noqa: E402
-from fleet_core.traffic.zone.routes import PASS, nav_end_s, nav_stretch  # noqa: E402
+NAV_GOAL = importlib.import_module("fleet_core.fleet_map").NAV_GOAL
+_routes = importlib.import_module("fleet_core.traffic.zone.routes")
+PASS, nav_end_s, nav_stretch = _routes.PASS, _routes.nav_end_s, _routes.nav_stretch
 
 BIN_S = 0.5
 STAND_MPS = 0.03
@@ -36,21 +38,28 @@ TURN_RPS = 0.3
 FAR_M = 0.3
 NEAR_M = (0.04, 0.16)
 BINS = ((0.0, 1.0), (1.0, 2.0), (2.0, 4.0), (4.0, 8.0), (8.0, math.inf))
-RECORD_NAMES = ("fleet_record.jsonl", "fms.jsonl")
+RECORD_GLOBS = ("fleet_record*.jsonl", "fms*.jsonl")
+KINDS = ("pass", "turn", "none")
 
 
 # ---- 기록 찾기 ----
 
+def split_arg(arg: str) -> tuple[str, Path]:
+    if Path(arg).exists() or "=" not in arg:
+        return "", Path(arg)
+    name, _, path = arg.partition("=")
+    return name, Path(path)
+
+
 def records(args: list[str]) -> list[tuple[str, Path]]:
     out = []
     for arg in args:
-        name, _, path = arg.rpartition("=") if "=" in arg else ("", "", arg)
-        path = Path(path)
+        name, path = split_arg(arg)
         if path.is_dir():
-            found = sorted(p for n in RECORD_NAMES for p in path.rglob(n))
-            out += [(f"{name or path.name}/{p.parent.relative_to(path)}", p) for p in found]
+            found = sorted({p for g in RECORD_GLOBS for p in path.rglob(g)})
+            out += [(f"{name or path.name}/{p.relative_to(path).as_posix()}", p) for p in found]
         else:
-            out.append((name or path.stem, path))
+            out.append((name or path.name, path))
     return out
 
 
@@ -81,7 +90,7 @@ def sample(traffic, m, cut) -> dict:
             "from_distance": traffic._reported_end(m, route) is not None}
 
 
-def replay_rows(path: Path, every: float = 0.5) -> tuple[list[dict], float | None, dict]:
+def replay_rows(path: Path, every: float = 0.5) -> tuple[list[dict], float | None, dict, float]:
     lines, entries, _ = replay._read(path)
     head, *rest = entries
     now = [0.0]
@@ -122,7 +131,7 @@ def replay_rows(path: Path, every: float = 0.5) -> tuple[list[dict], float | Non
         if end is not None and end >= row["t"]:
             rows.append({**row, "end_t": end, "actual": end - row["t"],
                          "err": row["used"] - (end - row["t"])})
-    return rows, differ, averaged(poses)
+    return rows, differ, averaged(poses), core.traffic.params.nav_speed_mps
 
 
 def averaged(poses) -> dict:
@@ -141,7 +150,8 @@ def averaged(poses) -> dict:
 
 # ---- 원인 나누기 ----
 
-def parts(row: dict, seq: list, speed: float) -> dict:
+def parts(row: dict, seq: list) -> dict:
+    speed = row["v"]
     t0, t1 = row["t"], row["end_t"]
     driven = moving = turning = waiting = 0.0
     for a, b in zip(seq, seq[1:], strict=False):
@@ -160,6 +170,7 @@ def parts(row: dict, seq: list, speed: float) -> dict:
     geo = (row["used"] - row["adj"]) * speed
     return {"err": row["err"], "adj": row["adj"], "length": (geo - driven) / speed,
             "speed": driven / speed - moving, "turn": -turning, "wait": -waiting,
+            "unseen": -(row["actual"] - moving - turning - waiting),
             "actual": row["actual"], "mps": driven / moving if moving > 0 else math.nan}
 
 
@@ -172,7 +183,7 @@ def at_done(row: dict, seq: list) -> tuple[float, float]:
 
 
 def reach_to_done(row: dict, seq: list, near_m: float) -> float | None:
-    reach = next((p[0] for p in seq if row["t"] <= p[0] <= row["end_t"] + 3.0
+    reach = next((p[0] for p in seq if row["t"] <= p[0] <= row["end_t"] + BIN_S / 2
                   and math.dist(p[1:3], (row["nx"], row["ny"])) <= near_m), None)
     return None if reach is None else row["end_t"] - reach
 
@@ -188,11 +199,11 @@ def line_of(title: str, rows: list[dict]) -> str:
             f"mean_abs={st.mean(map(abs, e)):.2f} adj_mean={st.mean(r['adj'] for r in rows):+.2f}")
 
 
-def parts_line(title: str, rows: list[dict], poses: dict, speed: float) -> str:
+def parts_line(title: str, rows: list[dict], poses: dict) -> str:
     if not rows:
         return f"{title}: n=0"
-    p = [parts(r, poses[r["run"]][r["robot"]], speed) for r in rows]
-    keys = ("err", "adj", "length", "speed", "turn", "wait", "actual")
+    p = [parts(r, poses[r["run"]][r["robot"]]) for r in rows]
+    keys = ("err", "adj", "length", "speed", "turn", "wait", "unseen", "actual")
     mps = [q["mps"] for q in p if not math.isnan(q["mps"])]
     return (f"{title}: n={len(p)} " + " ".join(f"{k}={st.mean(q[k] for q in p):+.2f}" for k in keys)
             + (f" moving_mps={st.mean(mps):.3f}" if mps else ""))
@@ -205,35 +216,33 @@ def first_samples(rows: list[dict]) -> list[dict]:
     return list(first.values())
 
 
-def report(rows: list[dict], poses: dict, speed: float) -> list[str]:
+def report(rows: list[dict], poses: dict) -> list[str]:
+    kinds = [k for k in KINDS if any(r["kind"] == k for r in rows)]
     out = ["## split", line_of("ALL", rows)]
-    out += [line_of(f" kind={k}", [r for r in rows if r["kind"] == k]) for k in ("pass", "turn")]
+    out += [line_of(f" kind={k}", [r for r in rows if r["kind"] == k]) for k in kinds]
     out += [line_of(f" next={k}", [r for r in rows if r["next"] == k])
             for k in sorted({r["next"] for r in rows})]
     for robot in sorted({r["robot"] for r in rows}):
         out.append(line_of(f" robot={robot}", [r for r in rows if r["robot"] == robot]))
     for lo, hi in BINS:
-        for k in ("pass", "turn"):
+        for k in kinds:
             out.append(line_of(f" actual {lo:g}-{hi:g} kind={k}",
                                [r for r in rows if lo <= r["actual"] < hi and r["kind"] == k]))
     first = first_samples(rows)
     out.append(line_of("dispatch (first sample per segment)", first))
-    out += [line_of(f" dispatch kind={k}", [r for r in first if r["kind"] == k])
-            for k in ("pass", "turn")]
-    out += ["## causes", parts_line("all samples", rows, poses, speed)]
-    out += [parts_line(f" kind={k}", [r for r in rows if r["kind"] == k], poses, speed)
-            for k in ("pass", "turn")]
-    out.append(parts_line("dispatch", first, poses, speed))
-    for k in ("pass", "turn"):
-        out.append(parts_line(f" dispatch kind={k}", [r for r in first if r["kind"] == k],
-                              poses, speed))
+    out += [line_of(f" dispatch kind={k}", [r for r in first if r["kind"] == k]) for k in kinds]
+    out += ["## causes", parts_line("all samples", rows, poses)]
+    out += [parts_line(f" kind={k}", [r for r in rows if r["kind"] == k], poses) for k in kinds]
+    out.append(parts_line("dispatch", first, poses))
+    for k in kinds:
+        out.append(parts_line(f" dispatch kind={k}", [r for r in first if r["kind"] == k], poses))
         for robot in sorted({r["robot"] for r in rows}):
             out.append(parts_line(f"   dispatch kind={k} {robot}",
                                   [r for r in first if r["kind"] == k and r["robot"] == robot],
-                                  poses, speed))
+                                  poses))
     out.append("## end of segment")
     far = [r for r in first if math.dist((r["x"], r["y"]), (r["nx"], r["ny"])) > FAR_M]
-    for k in ("pass", "turn"):
+    for k in kinds:
         part = [r for r in far if r["kind"] == k]
         if not part:
             continue
@@ -245,7 +254,7 @@ def report(rows: list[dict], poses: dict, speed: float) -> list[str]:
             gaps = [g for g in (reach_to_done(r, poses[r["run"]][r["robot"]], near) for r in part)
                     if g is not None]
             if gaps:
-                out.append(f"  done - reached {near:g} m kind={k}: n={len(gaps)} "
+                out.append(f"  done - reached {near:g} m kind={k}: reached {len(gaps)}/{len(part)} "
                            f"median={st.median(gaps):+.2f} s mean={st.mean(gaps):+.2f} s")
     used = sum(r["from_distance"] for r in rows)
     out.append(f"samples using distance_remaining: {used}/{len(rows)}")
@@ -254,19 +263,18 @@ def report(rows: list[dict], poses: dict, speed: float) -> list[str]:
 
 # ---- 실행 ----
 
-def run(args: list[str], every: float = 0.5) -> tuple[list[dict], dict, list[str], float]:
-    rows, poses, warnings, speed = [], {}, [], None
+def run(args: list[str], every: float = 0.5) -> tuple[list[dict], dict, list[str], set]:
+    rows, poses, warnings, speeds = [], {}, [], set()
     for name, path in records(args):
-        got, differ, run_poses = replay_rows(path, every)
+        got, differ, run_poses, speed = replay_rows(path, every)
         if differ is not None:
             warnings.append(f"warning: {name}: this code decides differently from t {differ} s on")
-        head = json.loads(path.read_text(encoding="utf-8").splitlines()[0])
-        speed = speed or float(head["params"].get("nav_speed_mps", 0.12))
         for r in got:
-            r["run"] = name
+            r["run"], r["v"] = name, speed
         rows += got
         poses[name] = run_poses
-    return rows, poses, warnings, speed or 0.12
+        speeds.add(speed)
+    return rows, poses, warnings, speeds
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -276,11 +284,13 @@ def main(argv: list[str] | None = None) -> int:
     if not paths:
         print(__doc__)
         return 2
-    rows, poses, warnings, speed = run(paths, float(opts.get("every", 0.5)))
+    rows, poses, warnings, speeds = run(paths, float(opts.get("every", 0.5)))
     print("\n".join([*warnings, f"records: {len({r['run'] for r in rows})} with samples, "
-                     f"nav_speed_mps {speed}", *report(rows, poses, speed)]))
+                     f"nav_speed_mps {sorted(speeds)}", *report(rows, poses)]))
     if "rows" in opts:
-        Path(opts["rows"]).write_text(json.dumps(rows), encoding="utf-8")
+        out = Path(opts["rows"])
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(rows), encoding="utf-8")
     return 0
 
 
