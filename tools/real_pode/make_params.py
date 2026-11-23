@@ -17,6 +17,7 @@ FollowPathGoal(follow_path_goal)의 검사는 늘 그대로다.
 import argparse
 import copy
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -28,8 +29,23 @@ AVOID_NAME = "avoidance.yaml"
 NAV2_REL = Path("pode") / "pode_nav_config" / "params" / NAV2_NAME
 AVOID_REL = Path("pode") / "pode_avoidance" / "params" / AVOID_NAME
 SPEED_REL = Path("pode") / "pode_nav_config" / "params" / "nav_speed.yaml"
-# 저장소 안(PC)과 로봇(~/nav2fleet_ws/src, deploy.sh가 놓는 곳) 순서로 찾는다
-SOURCE_ROOTS = (HERE.parents[1], Path.home() / "nav2fleet_ws" / "src")
+WS_NAME_RE = re.compile(r"[a-z][a-z0-9_]*")
+
+
+def robot_ws_name(kit: Path = HERE) -> str:
+    """로봇 작업공간 이름: 옆의 ws_name(deploy.sh가 남김), 없으면 예전 자리 nav2fleet_ws."""
+    path = kit / "ws_name"
+    if not path.is_file():
+        return "nav2fleet_ws"
+    lines = path.read_text(encoding="utf-8").splitlines()
+    name = lines[0].strip() if lines else ""
+    if not WS_NAME_RE.fullmatch(name):
+        raise SystemExit(f"make_params: bad ws_name {name!r} in {path}")
+    return name
+
+
+# 저장소 안(PC)과 로봇(~/<작업공간>/src, deploy.sh가 놓는 곳) 순서로 찾는다
+SOURCE_ROOTS = (HERE.parents[1], Path.home() / robot_ws_name() / "src")
 NAV2_TARGETS = (("controller_server", "ros__parameters", "FollowPath", "desired_linear_vel"),
                 ("controller_server", "ros__parameters", "FollowPathThrough",
                  "desired_linear_vel"))

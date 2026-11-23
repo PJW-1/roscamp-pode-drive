@@ -2,14 +2,19 @@
 #   source tools/real_pode/pc_env.sh                         # 관제(pc.launch.py)
 #   SUPER=1 source tools/real_pode/pc_env.sh                 # ros2 명령 터미널
 #   DISCOVERY_SERVER=off source tools/real_pode/pc_env.sh    # 서버 없이 예전처럼
-# 경로는 ROS_SETUP, NAV2FLEET_WS_SETUP으로 바꿀 수 있다
+# 경로는 ROS_SETUP, NAV2FLEET_WS_SETUP으로 바꿀 수 있다. 작업공간을 주지 않으면 이 저장소가 든
+# 작업공간(<ws>/src/<저장소>, 링크를 따라간 실제 자리)의 install을 읽고, 없으면 예전 기본값을 읽는다
 # 실패(ROS setup 없음, setup 실패, net.sh 못 읽음)면 1. 작업공간 파일이 없을 때만 알리고 계속한다
 # ROS setup은 정의되지 않은 변수를 읽으므로 nounset을 잠시 끄고, 끝나면 원래 상태로 돌린다
 _pc_u=
 case $- in *u*) _pc_u=1; set +u ;; esac
 _pc_rc=0
 _pc_ros=${ROS_SETUP:-/opt/ros/jazzy/setup.bash}
-_pc_ws=${NAV2FLEET_WS_SETUP:-$HOME/ros2camp/nav2fleet_ws/install/setup.bash}
+_pc_ws=${NAV2FLEET_WS_SETUP:-}
+if [ -z "$_pc_ws" ]; then
+  _pc_ws="$(cd -P "$(dirname "${BASH_SOURCE[0]}")/../../../.." 2> /dev/null && pwd)/install/setup.bash"
+  [ -f "$_pc_ws" ] || _pc_ws=$HOME/ros2camp/nav2fleet_ws/install/setup.bash
+fi
 _pc_net="$(dirname "${BASH_SOURCE[0]}")/net.sh"
 if [ ! -f "$_pc_ros" ]; then
   echo "pc_env.sh: 없음 $_pc_ros" >&2; _pc_rc=1

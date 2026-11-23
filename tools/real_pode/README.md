@@ -2,6 +2,7 @@
 
 2026-11-10(free-floor 시절) 실물 시험의 묶음을 지금 패키지에 맞춰 옮긴 것이다. ROS 패키지가 아니라
 그냥 폴더다. 로봇에서는 `~/nav2fleet_real/`에 두고, 패키지는 `~/nav2fleet_ws`에서 빌드한다.
+다른 이름으로 나란히 둘 수도 있다(아래 "기준판과 나란히 두기").
 
 ## 파일
 
@@ -10,14 +11,14 @@
 | `real_pode.launch.py` | 제조사 bringup(`/<ns>` 안, `/tf` remap), `cmd_watchdog.py`, `pode_nav_config` `nav2.launch.py`, `pode_fsm`을 띄운다. 프로세스 하나라도 끝나면 전체를 내린다. 이 규칙은 프로세스만 본다: Nav2 노드는 컨테이너 한 프로세스 안의 컴포넌트라, 컴포넌트 하나가 뜨지 못해도 launch는 계속된다. 달리기 전에 기록에서 "Failed to load"나 lifecycle이 active가 되지 못한 노드가 없는지 본다 |
 | `cmd_watchdog.py` | 움직이는 cmd_vel이 0.4 s 넘게 새로 오지 않으면 속도 0을 보낸다(0.05 s 타이머로 보므로 마지막 움직이는 명령에서 약 0.40~0.45 s 뒤). 제조사 bringup은 마지막 명령을 끝없이 지킨다 |
 | `make_params.py --speed S --out DIR` | 저장소의 `nav2_params.yaml`과 `avoidance.yaml`을 베끼고 앞으로 가는 속도(FollowPath, FollowPathThrough, FollowPathGoal)만 S로 바꾼다. 0 < S ≤ 단일 출처(`pode_nav_config/params/nav_speed.yaml`, 0.12)를 반올림 전에 보고, 소수 넷째 자리로 반올림해 쓴다(반올림해서 0이 되는 값은 거부). 비교용 MPPI(FollowPathMPPI)는 실물 controller 목록에 없어 뜨지 않는다(로봇에 nav2_mppi_controller가 없어도 Nav2가 뜬다, 사용자 결정 2026-11-22). FollowPathReverse(0.05)는 그대로. 또 기본으로 고정 경로 컨트롤러 셋(FollowPath, FollowPathThrough, FollowPathReverse)의 `use_collision_detection`을 false로 쓰고, `--fixed-line-check`를 주면 true로 쓴다(마당 goal FollowPathGoal의 검사는 원본 값 그대로다. 저장소 원본은 true) |
-| `start.sh NS X Y YAW [SPEED]` | `params/`를 다시 만들고(SPEED 기본 0.12) launch를 뒤에서 띄운다. 기록은 `logs/launch_*.log`, 프로세스 그룹은 `logs/launch.pid`. `logs/start.lock`(flock)으로 동시에 두 번 시작하지 않는다. 5 s 안에 pid 파일이 생기지 않으면 그 launch에 TERM을 보내고 약 2 s 기다린 뒤 실패로 끝난다(그래도 남아 있으면 그렇다고 알린다. KILL은 쓰지 않는다) |
+| `start.sh NS X Y YAW [SPEED]` | `params/`를 다시 만들고(SPEED 기본 0.12) launch를 뒤에서 띄운다. 기록은 `logs/launch_*.log`, 프로세스 그룹은 `logs/launch.pid`. `logs/start.lock`(flock)으로 동시에 두 번 시작하지 않는다. 다른 실행 묶음의 `real_pode.launch.py`가 돌고 있으면(나란히 둔 기준판 등) 그 명령을 보여 주고 띄우지 않는다. 5 s 안에 pid 파일이 생기지 않으면 그 launch에 TERM을 보내고 약 2 s 기다린 뒤 실패로 끝난다(그래도 남아 있으면 그렇다고 알린다. KILL은 쓰지 않는다) |
 | `stop.sh` | start.sh가 띄운 그룹에 SIGTERM. 그룹 안에 `real_pode.launch.py` 명령이 없으면 내리지 않는다 |
-| `env.sh` | 로봇용: ROS, `~/pinky_pro`, `~/nav2fleet_ws`를 읽고 통신 설정은 `net.sh`를 읽는다. `start.sh`가 이 파일을 읽으므로 로봇 명령은 그대로다 |
+| `env.sh` | 로봇용: ROS, `~/pinky_pro`, 작업공간(옆의 `ws_name`, 없으면 `~/nav2fleet_ws`)을 읽고 통신 설정은 `net.sh`를 읽는다. `start.sh`가 이 파일을 읽으므로 로봇 명령은 그대로다 |
 | `net.sh` | source 전용. 통신 설정을 한곳에 모은다. `env.sh`와 `pc_env.sh`가 둘 다 읽는다. `ROS_DOMAIN_ID=12`, `RMW_IMPLEMENTATION=rmw_fastrtps_cpp`, `ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET`을 정하고, 먼저 `ROS_DISCOVERY_SERVER`, `ROS_SUPER_CLIENT`, `ROS_LOCALHOST_ONLY`, `ROS_STATIC_PEERS`를 지운다(다시 source해도 이 네 변수의 이전 값은 남지 않는다. `SUPER`, `DISCOVERY_SERVER`는 `SUPER=1 source ...`처럼 앞에 붙여 쓰고 `export`하지 않는다. export하면 다음 source에도 적용된다). `DISCOVERY_SERVER`로 서버 주소를 정한다(기본 `192.168.0.252:11811`, 관제 PC 유선 주소. 다른 주소는 `DISCOVERY_SERVER=IP:PORT`(포트를 바꾸면 `discovery_server.sh`는 늘 11811이므로 서버를 `fastdds discovery -i 0 -p PORT`로 직접 띄운다). `off`면 서버 없이 예전처럼 멀티캐스트). `SUPER=1`이면 `ROS_SUPER_CLIENT=TRUE`(ros2 명령, RViz처럼 전체 그래프를 봐야 하는 터미널용. `off`일 때는 무시). 도메인 번호는 팀이 아직 정하지 않았다(2026-11-19). 정해지면 `net.sh` 한 줄만 바꾼다 |
-| `pc_env.sh` | PC 터미널에서 source한다. `/opt/ros/jazzy/setup.bash`와 PC 작업공간 `~/ros2camp/nav2fleet_ws/install/setup.bash`를 읽고(`ROS_SETUP`, `NAV2FLEET_WS_SETUP`로 바꿀 수 있다) `net.sh`를 읽는다. 관제 터미널은 `source tools/real_pode/pc_env.sh`, ros2 명령 터미널은 `SUPER=1 source tools/real_pode/pc_env.sh`. 작업공간 setup 파일이 없으면 경고만 내고 ROS만 읽은 채 계속한다. 그 경고가 보이면 PC 작업공간을 먼저 빌드한다(ROS setup이 없거나 실패, 작업공간 setup이 있는데 실패, `net.sh`를 못 읽으면 `return 1`). 새 bash 터미널에서 쓴다(PC 작업공간 setup이 `/opt/ros/jazzy`, `~/pinky_pro`, `~/ros2_ws`를 같이 읽어서, 다른 작업공간을 읽은 터미널이면 섞일 수 있다) |
+| `pc_env.sh` | PC 터미널에서 source한다. `/opt/ros/jazzy/setup.bash`와 PC 작업공간 setup을 읽고(`ROS_SETUP`, `NAV2FLEET_WS_SETUP`로 바꿀 수 있다. 주지 않으면 이 저장소가 든 작업공간 `<ws>/src/<저장소>`의 `<ws>/install/setup.bash`, 그것이 없으면 `~/ros2camp/nav2fleet_ws/install/setup.bash`) `net.sh`를 읽는다. 관제 터미널은 `source tools/real_pode/pc_env.sh`, ros2 명령 터미널은 `SUPER=1 source tools/real_pode/pc_env.sh`. 작업공간 setup 파일이 없으면 경고만 내고 ROS만 읽은 채 계속한다. 그 경고가 보이면 PC 작업공간을 먼저 빌드한다(ROS setup이 없거나 실패, 작업공간 setup이 있는데 실패, `net.sh`를 못 읽으면 `return 1`). 새 bash 터미널에서 쓴다(PC 작업공간 setup이 `/opt/ros/jazzy`, `~/pinky_pro`, `~/ros2_ws`를 같이 읽어서, 다른 작업공간을 읽은 터미널이면 섞일 수 있다) |
 | `discovery_server.sh` | PC에서 실행한다. ROS를 읽고 `fastdds discovery -i 0 -p 11811`을 앞에서 돌린다. 끌 때는 Ctrl+C(이 도구는 sh, python, 서버 프로그램이 겹쳐 있어서 PID 하나에 TERM을 보내면 서버가 남을 수 있다) |
 | `rviz_pc.sh` | PC에서 `tools/real_pode/rviz_pc.sh pode1 pode2`로 RViz를 띄운다. 안에서 `SUPER=1`로 `pc_env.sh`를 읽는다. `DISCOVERY_SERVER=off tools/real_pode/rviz_pc.sh ...`도 된다 |
-| `deploy.sh ROBOT_HOST` | PC에서: 커밋된 HEAD의 패키지를 `ROBOT:~/nav2fleet_ws/src/<저장소 경로>/`에, 이 폴더(지도 포함)를 `ROBOT:~/nav2fleet_real/`에 복사한다. 빌드와 실행은 하지 않는다 |
+| `deploy.sh ROBOT_HOST` | PC에서: 커밋된 HEAD의 패키지를 `ROBOT:~/nav2fleet_ws/src/<저장소 경로>/`에, 이 폴더(지도 포함)를 `ROBOT:~/nav2fleet_real/`에 복사한다. `DEPLOY_NAME=podedrive`면 `~/podedrive_ws`, `~/podedrive_real`로 간다. 실행 묶음에 작업공간 이름 `ws_name`을 남긴다(`env.sh`, `make_params.py`가 읽는다). 빌드와 실행은 하지 않는다 |
 | `maps/` | `arena_real_slam`: 실물 경기장 SLAM 지도(2.5 cm, 2026-11-17 확정). AMCL(`map_fine`)의 기본이다. 나머지는 실측 진열대로 그린 v7 지도다(`python3 -m fleet_gz_sim.arena --layout v7 --real --out /tmp/real_v7`로 만들고 `/tmp/real_v7/maps/`의 지도를 복사한다. 2026-11-20부터 시뮬 지도는 진열대 A가 1 cm 얇아 `sim/fleet_gz_sim/maps/`와 다르다): `arena_v7_a`(전역 costmap 2.5 cm, 2026-11-17 결정), `arena_v7_keepout`, `arena_v7_fine`(1 cm 도면 지도, 이제 기본 아님). `arena_v7`(5 cm)은 비교용으로 남긴다 |
 
 ## 왜 속도 사본이 따로 있나
@@ -38,6 +39,18 @@ Nav2 goal을 모는 컨트롤러(FollowPathGoal)의 속도는 `nav2_params.yaml`
    `tail -f ~/nav2fleet_real/logs/launch_*.log`.
 7. PC에서 `source tools/real_pode/pc_env.sh`(도메인 12와 디스커버리 서버 설정이 들어 있다)로 관제를 띄워 시험한다. 아래 "디스커버리 서버 (기본)"을 본다.
 8. 끝나면(또는 이상하면) `~/nav2fleet_real/stop.sh`.
+
+### 기준판과 나란히 두기 (2026-11-23)
+
+nav2fleet 기준판(태그 `rpp-baseline-2026-11-21`)은 로봇의 `~/nav2fleet_ws`, `~/nav2fleet_real`을 쓴다. 이 저장소를 그 위에 덮지 않고 따로 시험하려면 다른 이름으로 배포한다.
+
+1. PC: `DEPLOY_NAME=podedrive tools/real_pode/deploy.sh pinky@<로봇 주소>` → `~/podedrive_ws/src/...`, `~/podedrive_real/`.
+2. 로봇: `cd ~/podedrive_ws && colcon build`.
+3. 로봇: 돌고 있는 다른 묶음을 먼저 내린다(`~/nav2fleet_real/stop.sh`). `start.sh`는 다른 묶음의 launch가 돌면 띄우지 않는다.
+4. 로봇: `~/podedrive_real/start.sh pode1 0.12 0.10 1.5708`, 끝나면 `~/podedrive_real/stop.sh`. ros2 명령은 `source ~/podedrive_real/env.sh` 뒤에 친다.
+5. PC: 이 저장소를 작업공간 안(`<ws>/src/<저장소>`)에 두고 빌드했으면 `source tools/real_pode/pc_env.sh`가 그 작업공간을 읽는다. 다른 작업공간을 읽은 터미널은 쓰지 않는다(새 터미널).
+
+기준판으로 돌아갈 때는 다시 배포할 필요 없이 `~/podedrive_real/stop.sh` 뒤 `~/nav2fleet_real/start.sh ...`를 쓴다.
 
 ### 옛 이름(pinky)으로 배포된 로봇에 다시 배포할 때 (2026-11-16 이름 변경)
 

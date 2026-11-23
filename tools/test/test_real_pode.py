@@ -466,8 +466,9 @@ def test_scripts_parse(name):
 def test_env_values():
     text = (KIT / "env.sh").read_text(encoding="utf-8")
     assert "net.sh" in text
+    # 작업공간은 ws_name으로 고르고 기본은 nav2fleet_ws다(동작은 아래 ws_name 시험이 본다)
     for path in ("/opt/ros/jazzy/setup.bash", "pinky_pro/install/local_setup.bash",
-                 "nav2fleet_ws/install/local_setup.bash"):
+                 "/install/local_setup.bash", "_env_ws=nav2fleet_ws"):
         assert path in text
     # 도메인은 net.sh 한곳에만 둔다
     assert "export ROS_DOMAIN_ID=12" in (KIT / "net.sh").read_text(encoding="utf-8")
@@ -1057,6 +1058,197 @@ def test_deploy_copies_only_the_kit_and_packages(tmp_path):
 def test_deploy_needs_a_host():
     run = subprocess.run(["bash", str(KIT / "deploy.sh")], capture_output=True, text=True)
     assert run.returncode == 2
+
+
+# ---- 기준판과 나란히 두기: DEPLOY_NAME, 실행 묶음의 ws_name ----
+def _deploy(tmp_path, extra=None):
+    """대역 ssh, rsync로 deploy.sh를 돌린다. 실행 묶음으로 간 내용은 tmp_path/kit_copy에 남는다."""
+    repo = _fake_repo(tmp_path)
+    fake = tmp_path / "bin"
+    fake.mkdir()
+    log = tmp_path / "calls.log"
+    copy = tmp_path / "kit_copy"
+    for tool in ("ssh", "scp", "colcon", "ros2"):
+        (fake / tool).write_text(f'#!/bin/bash\necho "{tool} $*" >> "{log}"\n')
+        (fake / tool).chmod(0o755)
+    (fake / "rsync").write_text(
+        f'#!/bin/bash\necho "rsync $*" >> "{log}"\n'
+        'src="${@: -2:1}"; dst="${@: -1}"\n'
+        f'case $dst in *_real/) mkdir -p "{copy}" && cp -a "$src." "{copy}/" ;; esac\n')
+    (fake / "rsync").chmod(0o755)
+    env = dict(os.environ, PATH=f"{fake}:{os.environ['PATH']}")
+    env.pop("DEPLOY_NAME", None)
+    env.update(extra or {})
+    run = subprocess.run(["bash", str(repo / "tools" / "real_pode" / "deploy.sh"),
+                          "pinky@robot"], capture_output=True, text=True, env=env, timeout=60)
+    calls = log.read_text().splitlines() if log.exists() else []
+    return run, calls, copy
+
+
+def test_deploy_under_another_name_leaves_the_baseline_alone(tmp_path):
+    run, calls, copy = _deploy(tmp_path, {"DEPLOY_NAME": "podedrive"})
+    assert run.returncode == 0, run.stdout + run.stderr
+    dests = [c.split()[-1] for c in calls if c.startswith("rsync")]
+    for pkg in PACKAGES:
+        assert f"pinky@robot:~/podedrive_ws/src/{pkg}/" in dests
+    assert "pinky@robot:~/podedrive_real/" in dests
+    assert not any("nav2fleet" in c for c in calls)
+    assert "cd ~/podedrive_ws && colcon build" in run.stdout
+    # 실행 묶음이 자기 작업공간 이름을 안다(env.sh, make_params.py가 읽는다)
+    assert (copy / "ws_name").read_text().strip() == "podedrive_ws"
+
+
+def test_deploy_default_name_is_the_old_place(tmp_path):
+    run, calls, copy = _deploy(tmp_path)
+    assert run.returncode == 0, run.stdout + run.stderr
+    assert "pinky@robot:~/nav2fleet_real/" in [c.split()[-1] for c in calls]
+    assert (copy / "ws_name").read_text().strip() == "nav2fleet_ws"
+
+
+@pytest.mark.parametrize("name", ["../x", "a b", "x/y", "Pode", "-x", "1x"])
+def test_deploy_refuses_a_bad_name_before_touching_the_robot(tmp_path, name):
+    run, calls, _ = _deploy(tmp_path, {"DEPLOY_NAME": name})
+    assert run.returncode == 2
+    assert calls == []
+
+
+def _robot_kit(tmp_path, ws_name=None):
+    """로봇 실행 묶음(env.sh, net.sh)과 두 작업공간 setup 대역. setup은 자기 이름을 남긴다."""
+    home = tmp_path / "home"
+    kit = home / "kit"
+    kit.mkdir(parents=True)
+    for name in ("env.sh", "net.sh"):
+        shutil.copy(KIT / name, kit)
+    if ws_name is not None:
+        (kit / "ws_name").write_text(ws_name + "\n")
+    (home / "pinky_pro" / "install").mkdir(parents=True)
+    (home / "pinky_pro" / "install" / "local_setup.bash").write_text("")
+    for ws in ("nav2fleet_ws", "podedrive_ws"):
+        (home / ws / "install").mkdir(parents=True)
+        (home / ws / "install" / "local_setup.bash").write_text(f"export WS_MARK={ws}\n")
+    ros = tmp_path / "ros_setup.bash"
+    ros.write_text("export ROS_STUB=1\n")
+    return kit, {"HOME": str(home), "ROS_SETUP": str(ros)}
+
+
+@pytest.mark.parametrize("ws_name, mark", [(None, "nav2fleet_ws"),
+                                           ("podedrive_ws", "podedrive_ws")])
+def test_env_reads_the_workspace_its_kit_was_deployed_with(tmp_path, ws_name, mark):
+    kit, env = _robot_kit(tmp_path, ws_name)
+    run, got = _sourced([f'source "{kit}/env.sh"', 'echo "MARK=${WS_MARK:-none}"'], env)
+    assert run.returncode == 0, run.stdout + run.stderr
+    assert f"MARK={mark}" in run.stdout
+    assert got == SERVER_MODE
+
+
+def test_env_refuses_a_bad_ws_name(tmp_path):
+    kit, env = _robot_kit(tmp_path, "../podedrive_ws")
+    run, _ = _sourced([f'source "{kit}/env.sh"', 'echo "RC=$?"',
+                       'echo "MARK=${WS_MARK:-none}"'], env)
+    assert "RC=1" in run.stdout
+    assert "MARK=none" in run.stdout
+
+
+def _make_params_on_robot(tmp_path, ws_name):
+    """로봇 자리(~/podedrive_real)에서 make_params.py를 돌린다. 원본은 ~/podedrive_ws/src에만 있다."""
+    home = tmp_path / "home"
+    kit = home / "podedrive_real"
+    kit.mkdir(parents=True, exist_ok=True)
+    shutil.copy(KIT / "make_params.py", kit)
+    (kit / "ws_name").unlink(missing_ok=True)
+    if ws_name is not None:
+        (kit / "ws_name").write_text(ws_name + "\n")
+    src = home / "podedrive_ws" / "src"
+    for rel in ("pode/pode_nav_config/params/nav2_params.yaml",
+                "pode/pode_avoidance/params/avoidance.yaml",
+                "pode/pode_nav_config/params/nav_speed.yaml"):
+        (src / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(ROOT / rel, src / rel)
+    env = dict(os.environ, HOME=str(home))
+    run = subprocess.run([sys.executable, str(kit / "make_params.py"), "--speed", "0.12",
+                          "--out", str(kit / "params")], capture_output=True, text=True,
+                         env=env, cwd=kit, timeout=30)
+    return run, kit
+
+
+def test_make_params_on_the_robot_reads_the_named_workspace(tmp_path):
+    run, kit = _make_params_on_robot(tmp_path, "podedrive_ws")
+    assert run.returncode == 0, run.stdout + run.stderr
+    assert any((kit / "params").iterdir())
+    # 이름 파일이 없으면 예전 자리(~/nav2fleet_ws/src)를 찾으므로 여기서는 못 찾는다
+    run, _ = _make_params_on_robot(tmp_path, None)
+    assert run.returncode != 0
+    assert "nav2fleet_ws" in run.stderr
+
+
+def test_make_params_refuses_a_bad_ws_name(tmp_path):
+    run, _ = _make_params_on_robot(tmp_path, "../podedrive_ws")
+    assert run.returncode != 0
+    assert "ws_name" in run.stderr
+
+
+def test_start_refuses_while_another_kit_runs_real_pode(tmp_path):
+    # 다른 실행 묶음(예: 기준판 ~/nav2fleet_real)의 launch가 돌면 같은 로봇에 겹쳐 띄우지 않는다
+    start = _stub_kit(tmp_path)
+    other = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)",
+                              "/elsewhere/nav2fleet_real/real_pode.launch.py"])
+    try:
+        time.sleep(0.3)
+        run = subprocess.run(["bash", str(start), "pode1", "0.12", "0.10", "1.5708"],
+                             capture_output=True, text=True, timeout=10)
+    finally:
+        other.kill()
+        other.wait()
+    assert run.returncode == 1
+    assert "real_pode.launch.py" in run.stdout and "stop.sh" in run.stdout
+    assert "params ok" not in run.stdout and "ENV_REACHED" not in run.stdout
+
+
+def _pc_tree(tmp_path, own_install=True):
+    """<작업공간>/src/<저장소>/tools/real_pode에 놓인 pc_env.sh와 두 작업공간 setup 대역."""
+    ws = tmp_path / "pod_ws"
+    kit = ws / "src" / "repo" / "tools" / "real_pode"
+    kit.mkdir(parents=True)
+    for name in ("pc_env.sh", "net.sh"):
+        shutil.copy(KIT / name, kit)
+    if own_install:
+        (ws / "install").mkdir()
+        (ws / "install" / "setup.bash").write_text("export WS_MARK=own\n")
+    home = tmp_path / "home"
+    old = home / "ros2camp" / "nav2fleet_ws" / "install"
+    old.mkdir(parents=True)
+    (old / "setup.bash").write_text("export WS_MARK=old\n")
+    ros = tmp_path / "ros_setup.bash"
+    ros.write_text("export ROS_STUB=1\n")
+    return kit, {"HOME": str(home), "ROS_SETUP": str(ros)}
+
+
+@pytest.mark.parametrize("own_install, mark", [(True, "own"), (False, "old")])
+def test_pc_env_reads_the_workspace_it_sits_in(tmp_path, own_install, mark):
+    kit, env = _pc_tree(tmp_path, own_install)
+    run, got = _sourced([f'source "{kit}/pc_env.sh"', 'echo "MARK=${WS_MARK:-none}"'], env)
+    assert run.returncode == 0, run.stderr
+    assert f"MARK={mark}" in run.stdout
+    assert got == SERVER_MODE
+
+
+def test_pc_env_follows_a_link_to_the_real_workspace(tmp_path):
+    # ~/pode-drive 같은 링크로 불러도 링크가 가리키는 작업공간을 읽는다
+    kit, env = _pc_tree(tmp_path)
+    link = tmp_path / "link_repo"
+    link.symlink_to(kit.parents[1])
+    run, _ = _sourced([f'source "{link}/tools/real_pode/pc_env.sh"',
+                       'echo "MARK=${WS_MARK:-none}"'], env)
+    assert "MARK=own" in run.stdout
+
+
+def test_pc_env_given_workspace_wins(tmp_path):
+    kit, env = _pc_tree(tmp_path)
+    given = tmp_path / "given.bash"
+    given.write_text("export WS_MARK=given\n")
+    run, _ = _sourced([f'source "{kit}/pc_env.sh"', 'echo "MARK=${WS_MARK:-none}"'],
+                      {**env, "NAV2FLEET_WS_SETUP": str(given)})
+    assert "MARK=given" in run.stdout
 
 
 # ---- 주석은 한국어로 ----

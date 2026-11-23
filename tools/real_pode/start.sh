@@ -33,6 +33,12 @@ flock -n 9 || { echo "another start.sh is running; try again"; exit 1; }
 if [ -s logs/launch.pid ] && pgrep -g "$(cat logs/launch.pid)" > /dev/null; then
   echo "already running (group $(cat logs/launch.pid)); run stop.sh first"; exit 1
 fi
+# 다른 실행 묶음(예: 나란히 둔 ~/nav2fleet_real)의 launch가 돌면 겹쳐 띄우지 않는다
+other=$(pgrep -af 'real_pode[.]launch[.]py' | head -n 1)
+if [ -n "$other" ]; then
+  echo "another real_pode.launch.py is running: $other"
+  echo "stop it with the stop.sh of its own kit first"; exit 1
+fi
 # 속도 사본을 먼저 만든다(틀린 속도면 아무것도 띄우지 않는다)
 python3 make_params.py --speed "$speed" --out params $fixed || exit 1
 source env.sh || exit 1
