@@ -27,7 +27,9 @@ def test_each_layout_has_its_arena_files(layout):
     for path in (found.world, found.nav_map, found.nav_map_fine, found.keepout_mask):
         arena = {"v7_bidir": "v7"}.get(layout, layout)  # 양방향 시험판은 v7 경기장 파일을 쓴다
         assert load_fleet_map(layout).name == f"arena_{arena}"
-        assert Path(path).is_file() and f"arena_{arena}" in Path(path).name
+        stem = Path(path).stem
+        assert Path(path).is_file() and (stem == f"arena_{arena}"
+                                         or stem.startswith(f"arena_{arena}_")), path
 
 
 def test_an_unknown_layout_or_missing_files_are_refused(tmp_path):

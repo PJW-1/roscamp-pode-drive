@@ -175,3 +175,16 @@ def test_the_horizon_to_the_dock_keeps_the_north_line_while_driving_to_m_e():
     assert not any("Q1" in d or "Q2" in d for d in changed), changed
     assert not {"Q1", "Q2"} & set(targets(world, "pode3")), world.log[-20:]
     assert not world.problems
+
+
+def test_any_way_to_w_that_enters_a_line_stays_in_that_line():
+    """WORK로 가는 로봇의 길 값: 줄 자리에 들어선 길은 그 줄 안이나 W로만 이어진다(어느 재계산에서도)."""
+    world, _ = work_busy({"pode1": "W", "pode2": "P-2", "pode3": "O_OUT"}, ["pode3"], True)
+    traffic = world.traffic
+    m = traffic._robots["pode3"]
+    cost = traffic._cost(m)
+    site = world.site
+    for a, b in (("M_E", "O_IN"), ("M_E", "Q2"), ("Q2", "M_E"), ("Q2", "E-3")):
+        assert cost(site.edge(a, b)) == math.inf, (a, b)
+    for a, b in (("M_E", "W"), ("Q2", "Q1"), ("Q1", "W"), ("O_IN", "M_E"), ("E-3", "Q2")):
+        assert cost(site.edge(a, b)) < math.inf, (a, b)

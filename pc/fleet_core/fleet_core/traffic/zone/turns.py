@@ -107,15 +107,18 @@ class Turns:
 
     @staticmethod
     def _cross_line(station, edge, own=None) -> float:
-        """줄이 둘 이상인 스테이션: 한 줄의 자리에서 다른 줄의 자리로 가는 이음은 막는다.
-        own(지금 선 줄)을 주면 마당을 돌아서라도 다른 줄의 자리로 드는 이음을 모두 막는다."""
+        """줄이 둘 이상인 스테이션으로 가는 길: 한 줄의 자리에서 다른 줄의 자리로, 또는 줄 자리에서 줄 밖
+        (도크 말고)으로 가는 이음을 막는다. own(지금 선 줄)을 주면 다른 줄의 자리로 드는 이음을 모두 막는다."""
         if len(station.lines) < 2:
             return 0.0
-        b = next((line for line in station.lines if edge.b in line), None)
-        if b is None:
-            return 0.0
         a = own or next((line for line in station.lines if edge.a in line), None)
-        return math.inf if a is not None and a is not b else 0.0
+        b = next((line for line in station.lines if edge.b in line), None)
+        if b is not None:
+            return math.inf if a is not None and a is not b else 0.0
+        # 줄 자리에 들어선 길은 그 줄 안이나 도크로만 이어진다(줄을 빠져나와 다른 줄로 돌지 않는다)
+        if own is None and a is not None and edge.b != station.dock:
+            return math.inf
+        return 0.0
 
     def _own_line(self, m, station):
         """m이 이 스테이션의 줄 자리에 서 있으면 그 줄."""
