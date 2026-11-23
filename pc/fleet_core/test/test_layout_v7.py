@@ -404,6 +404,8 @@ def test_v7_queue_is_entered_at_q2_and_flows_one_way(site):
 
 
 W_ENTRY_R = 0.17
+W_ENTRY_SHIFT = 0.021   # 원호가 접하는 줄은 W 줄(x 1.86)보다 이만큼 서쪽(2026-11-23)
+W_ENTRY_JOIN_Y = 0.44   # S자가 W 줄에 닿는 자리. 그 뒤로 W까지 곧게 북쪽
 
 
 def test_v7_w_entry_is_one_wide_arc_through_q1(site):
@@ -415,15 +417,27 @@ def test_v7_w_entry_is_one_wide_arc_through_q1(site):
     WORK_DOCK에서 놓기 거리(0.135) 밖이라 y 0.26이 끝이고, Q1-Q2는 노드 놓는 거리(0.20)보다 1.5 cm
     넘게 멀어야 한다(실물은 길 끝에서 1~2 cm 못 미쳐 선다). Q2 y 0.16이면 반지름 0.17에서 0.2102라
     Q2를 0.15로 내려 0.2187(못 미쳐 서도 2.4 cm까지 Q2를 놓는다).
-    Q1은 동쪽 벽(그림 1.98)에서 0.131."""
+    Q1은 동쪽 벽(그림 1.98)에서 0.131.
+    2026-11-23 실물 두 대(pode1, pode2): 로봇이 원호를 r 0.19~0.25로 돌아 원호 끝 뒤에서 동쪽으로
+    3.6~6.7 cm 밀렸고(시뮬 truth 0.5~2 cm), 한 번은 몸이 동쪽 벽에 닿았다. 원호와 Q1을 서쪽으로
+    2.1 cm(Q2는 1.8 cm: M_E-Q2 선과 진열대 사이 몸 원 규칙이 약 1.9 cm까지 허락한다. 원호는 Q1 2 cm
+    앞 규칙으로 Q2보다 0.3 cm쯤까지만 더 간다) 옮겨 원호가 x 1.839 줄에 접하게 하고, 원호 끝에서
+    (1.86, 0.44)까지 S자(가장 기울 때 75도)로 W 줄에 모은 뒤 W까지 곧게 북쪽으로 간다. 원호를 덜
+    돈 로봇의 방향(75~80도)이 S자 가운데 방향과 맞고, W 줄에는 북쪽을 보며 닿는다."""
     q_step, work_in = site.edge("Q2", "Q1"), site.edge("Q1", "W")
     q2, q1, w = site.node_pose("Q2"), site.node_pose("Q1"), site.node_pose("W")
     route_ = list(q_step.points) + list(work_in.points[1:])
-    centre = (w[0] - W_ENTRY_R, q2[1] + W_ENTRY_R)
-    # Q2에서 원호 시작까지 곧게 동쪽, 원호 끝에서 W까지 곧게 북쪽
+    centre = (w[0] - W_ENTRY_SHIFT - W_ENTRY_R, q2[1] + W_ENTRY_R)
+    # Q2에서 원호 시작까지 곧게 동쪽, 원호 끝에서 비스듬히 W 줄로, 그 뒤 W까지 곧게 북쪽
     assert route_[1] == pytest.approx((centre[0], q2[1]), abs=1e-4), route_[1]
-    assert route_[-2] == pytest.approx((w[0], centre[1]), abs=1e-4), route_[-2]
-    arc = route_[1:-1]
+    end = next(i for i, p in enumerate(route_) if p == pytest.approx((centre[0] + W_ENTRY_R, centre[1]), abs=1e-4))
+    assert route_[-2] == pytest.approx((w[0], W_ENTRY_JOIN_Y), abs=1e-4), route_[-2]
+    # S자: 동쪽으로만, 북쪽으로만 가고 방향은 75~90도. 처음과 끝은 북쪽에 가깝다
+    s_heads = [math.degrees(math.atan2(q[1] - p[1], q[0] - p[0])) for p, q in pairwise(route_[end:-1])]
+    assert all(74.5 <= h <= 90.0 for h in s_heads), s_heads
+    assert s_heads[0] >= 85.0 and s_heads[-1] >= 85.0, s_heads
+    assert w[1] - W_ENTRY_JOIN_Y >= 0.05, "W 앞 5 cm 넘게 곧게 북쪽"
+    arc = route_[1:end + 1]
     for p in arc:
         assert math.dist(p, centre) == pytest.approx(W_ENTRY_R, abs=1e-3), p
     heads = [math.degrees(math.atan2(q[1] - p[1], q[0] - p[0])) for p, q in pairwise(arc)]
@@ -440,7 +454,8 @@ def test_v7_w_entry_is_one_wide_arc_through_q1(site):
     at = math.atan2(q1[1] - centre[1], q1[0] - centre[0]) - 0.02 / W_ENTRY_R
     short = (centre[0] + W_ENTRY_R * math.cos(at), centre[1] + W_ENTRY_R * math.sin(at))
     assert math.dist(short, q2) >= load_params().node_clear_m, short
-    # 몸(경로 방향의 발자국)과 AMCL 동쪽 벽: 원호 끝 x 1.86에서 0.049, 원호 80도 근처가 가장 가깝다
+    # 몸(경로 방향의 발자국)과 AMCL 동쪽 벽: 예전 길은 원호 80도 근처에서 0.049였다. 지금은
+    # S자 끝(W 줄에 닿기 직전)이 가장 가깝다
     east, _, _ = _body_gaps(route_, 1.60)
     assert east >= 0.045, east
     assert site.warnings == (), site.warnings

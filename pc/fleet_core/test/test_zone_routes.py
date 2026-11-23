@@ -167,26 +167,29 @@ def test_the_v7_runs_through_e3_are_nav_goal_edges_joined_at_a_through_node():
 
 
 @pytest.mark.parametrize(("start", "x", "y", "left"), [
-    ("E-1", 0.15, 0.24, 12.6),
-    ("E-1", 0.60, 0.24, 8.9),
-    ("E-1", 1.15, 0.20, 4.3),
-    ("E-1", 1.60, 0.165, 0.5),
-    ("O_OUT", 0.25, 0.56, 12.7),
-    ("O_OUT", 0.55, 0.31, 9.5),
-    ("O_OUT", 1.0, 0.21, 5.5),
-    ("O_OUT", 1.6, 0.165, 0.5),
+    ("E-1", 0.15, 0.24, 12.5),
+    ("E-1", 0.60, 0.24, 8.7),
+    ("E-1", 1.15, 0.20, 4.1),
+    ("E-1", 1.60, 0.165, 0.4),
+    ("O_OUT", 0.25, 0.56, 12.6),
+    ("O_OUT", 0.55, 0.31, 9.3),
+    ("O_OUT", 1.0, 0.21, 5.4),
+    ("O_OUT", 1.6, 0.165, 0.4),
 ])
 def test_time_left_on_joined_nav_goal_edges_counts_from_the_edge_the_robot_is_on(
         start, x, y, left):
     assert routes.left_s(PARAMS, v7_way(start, "Q2"), x, y) == pytest.approx(left, abs=0.1)
 
 
-@pytest.mark.parametrize(("x", "y", "left"), [(0.9, 0.30, 6.46), (1.3, 0.10, 3.03)])
+Q2_XY = (1.642, 0.15)  # fleet_map_v7의 Q2(2026-11-23에 서쪽으로 1.8 cm)
+
+
+@pytest.mark.parametrize(("x", "y", "left"), [(0.9, 0.30, 6.31), (1.3, 0.10, 2.88)])
 def test_time_left_on_one_nav_goal_edge_is_the_straight_distance_to_its_end(x, y, left):
     edges = v7_way("E-3", "Q2")
     assert routes.left_s(PARAMS, edges, x, y) == pytest.approx(left, abs=0.1)
     assert routes.left_s(PARAMS, edges, x, y) == pytest.approx(
-        math.dist((x, y), (1.66, 0.15)) / NAV)
+        math.dist((x, y), Q2_XY) / NAV)
 
 
 def test_time_left_before_the_through_node_adds_the_later_edge_by_its_own_length():
@@ -199,9 +202,9 @@ def test_time_left_before_the_through_node_adds_the_later_edge_by_its_own_length
 def test_time_left_past_e3_adds_the_fixed_path_after_the_joined_run():
     edges = v7_way("E-1", "Q1")
     assert [edge.mode for edge in edges] == [NAV_GOAL, NAV_GOAL, FOLLOW_PATH]
-    assert routes.left_s(PARAMS, edges, 1.15, 0.20) == pytest.approx(6.2, abs=0.1)
+    assert routes.left_s(PARAMS, edges, 1.15, 0.20) == pytest.approx(6.06, abs=0.1)
     assert routes.left_s(PARAMS, edges, 1.15, 0.20) == pytest.approx(
-        math.dist((1.15, 0.20), (1.66, 0.15)) / NAV + edges[2].length / PARAMS.follow_speed_mps)
+        math.dist((1.15, 0.20), Q2_XY) / NAV + edges[2].length / PARAMS.follow_speed_mps)
 
 
 @pytest.mark.parametrize("start", ["E-1", "O_OUT"])
@@ -221,7 +224,7 @@ def test_time_left_never_grows_while_the_robot_drives_along_a_joined_run(start):
 
 def test_time_left_on_a_run_joined_at_a_node_that_is_not_through_counts_the_same_way():
     run = v7_way("O_IN", "Q2")
-    m_e, q2 = (1.645, 0.55), (1.66, 0.15)
+    m_e, q2 = (1.645, 0.55), Q2_XY
     before = routes.left_s(PARAMS, run, 1.0, 0.59)
     assert before == pytest.approx((math.dist((1.0, 0.59), m_e) + run[1].length) / NAV)
     assert routes.left_s(PARAMS, run, 1.65, 0.40) == pytest.approx(
@@ -231,7 +234,7 @@ def test_time_left_on_a_run_joined_at_a_node_that_is_not_through_counts_the_same
 def test_time_left_on_a_fixed_path_or_a_retreat_is_unchanged():
     fixed = v7_way("Q2", "W")
     assert [edge.mode for edge in fixed] == [FOLLOW_PATH, FOLLOW_PATH]
-    assert routes.left_s(PARAMS, fixed, 1.75, 0.16) == pytest.approx(3.1736922120633286)
+    assert routes.left_s(PARAMS, fixed, 1.75, 0.16) == pytest.approx(3.033220329774121)
     back = [V7.edge("E-3", "P-3")]
     assert back[0].mode == RETREAT
     assert routes.left_s(PARAMS, back, 0.64, 0.18) == pytest.approx(1.6)
@@ -241,7 +244,7 @@ def test_time_left_on_a_fixed_path_or_a_retreat_is_unchanged():
 
 def test_the_distance_along_a_fixed_path_is_unchanged():
     q_step = v7_way("Q2", "W")[0]
-    assert routes.along(q_step, 1.75, 0.16) == pytest.approx(0.09082939335088909, abs=1e-12)
-    assert routes.along(q_step, 1.8202, 0.2107) == pytest.approx(
-        0.17810845532961123, abs=1e-12), "on a bend point the earlier piece is taken"
+    assert routes.along(q_step, 1.75, 0.16) == pytest.approx(0.10687368341312883, abs=1e-12)
+    assert routes.along(q_step, 1.7992, 0.2107) == pytest.approx(
+        0.17510845532961117, abs=1e-12), "on a bend point the earlier piece is taken"
     assert routes.along(V7.edge("E-3", "P-3"), 0.64, 0.18) == pytest.approx(0.06, abs=1e-12)
