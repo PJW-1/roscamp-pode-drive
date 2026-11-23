@@ -8,7 +8,7 @@ INSTALL=$1; OUT=$2
 RUNS="rush1:gz_v7_rush rush2:gz_v7_rush rush3:gz_v7_rush v7a:gz_v7 v7b:gz_v7 v7c:gz_v7"
 export SIM_BATCH_INSTALL=$INSTALL SIM_BATCH_DOMAIN=64 SIM_BATCH_PAUSE_S=10
 export SIM_BATCH_ARGS="rviz:=none gui:=false nav_max_speed:=0.12"
-for layout in v7 v7_bidir; do
+for layout in ${COMPARE_LAYOUTS:-v7 v7_bidir}; do  # 한쪽만 다시: COMPARE_LAYOUTS=v7_bidir
   mkdir -p "$OUT/$layout"
   SIM_BATCH_LAYOUT=$layout bash "$BATCH" "$OUT/$layout" - $RUNS 2>&1 | tee "$OUT/$layout/batch.log"
 done
