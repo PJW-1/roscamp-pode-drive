@@ -1,0 +1,1 @@
+scenario gz_v7_rush, layout v7, use_order_model true, sim_dock_stub true, fleet_record true, rviz:=none gui:=false nav_max_speed:=0.12, domain 64, overlay -, start 22:32:33

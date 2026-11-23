@@ -13,6 +13,7 @@
 import csv
 import json
 import math
+import re
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -142,6 +143,9 @@ def one_run(run: Path) -> dict:
     out["early_release_true_lt_008"] = early_true
     out["min_work_dock_release_true_m"] = min((a for a, _ in releases), default=None)
     out["violations"] = summary.get("violations", [])
+    # fleet_check가 마지막에 찍은 두 로봇 중심 사이 최소 거리
+    gaps = re.findall(r"min distance ([0-9.]+) m", (run / "launch.out").read_text(errors="replace"))
+    out["min_robot_gap_m"] = float(gaps[-1]) if gaps else None
     return out
 
 
@@ -175,6 +179,7 @@ def table(groups: dict) -> str:
             ("조기 해제: 보고 < 0.135 / 실제 < 0.08", lambda rs: f"{sum(r['early_release_reported_lt_0135'] for r in rs)} / "
                                                     f"{sum(r['early_release_true_lt_008'] for r in rs)}"),
             ("WORK_DOCK 해제 실제 거리 최소(m)", lambda rs: f"{min(r['min_work_dock_release_true_m'] for r in rs if r['min_work_dock_release_true_m'] is not None):.3f}"),
+            ("로봇 중심 최소 거리(m, fleet_check)", lambda rs: f"{min(r['min_robot_gap_m'] for r in rs if r['min_robot_gap_m'] is not None):.3f}"),
             ("실패 판", lambda rs: ", ".join(r["run"] for r in rs if not r["pass"]) or "없음")]
     names = list(groups)
     lines = ["| 지표 | " + " | ".join(names) + " |", "|---|" + "---|" * len(names)]

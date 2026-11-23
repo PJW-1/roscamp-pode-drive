@@ -1,0 +1,13 @@
+== rush1 gz_v7_rush start 22:32:33
+== rush1 exit 1 end 22:37:55 summary: True 12 / 12 311.2 s
+== rush2 gz_v7_rush start 22:38:12
+== rush2 exit 1 end 22:43:31 summary: True 12 / 12 309.9 s
+== rush3 gz_v7_rush start 22:43:48
+== rush3 exit 1 end 22:49:21 summary: True 12 / 12 316.0 s
+== v7a gz_v7 start 22:49:37
+== v7a exit 1 end 22:53:24 summary: True 8 / 8 216.6 s
+== v7b gz_v7 start 22:53:40
+== v7b exit 1 end 22:57:33 summary: True 8 / 8 223.5 s
+== v7c gz_v7 start 22:57:49
+== v7c exit 1 end 23:01:37 summary: True 8 / 8 218.5 s
+batch done
