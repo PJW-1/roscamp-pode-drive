@@ -3,8 +3,15 @@ from __future__ import annotations
 
 import math
 
-from fleet_core.fleet_map import AT_DOCK, LANE
+from fleet_core.fleet_map import AT_DOCK, LANE, shortest_path
 from fleet_core.traffic.mission import TO_OUTBOUND, TO_WORK
+
+from .routes import speed
+
+
+def line_of(station, spot: str) -> tuple:
+    """spot이 선 줄. 줄이 하나면 queue 전체다."""
+    return next((line for line in station.lines if spot in line), station.queue)
 
 
 # ---- 스테이션 도크, 대기 지점, 주차 지점 후보 내기 ----
@@ -49,10 +56,11 @@ class Turns:
     def _line_step(self, m, station):
         if not station.line:
             return None
-        at = station.queue.index(m.node)
-        if at == 0 or self.grants.node_holder(station.queue[at - 1]) not in ("", m.name):
+        line = line_of(station, m.node)
+        at = line.index(m.node)
+        if at == 0 or self.grants.node_holder(line[at - 1]) not in ("", m.name):
             return None
-        return station.queue[at - 1]
+        return line[at - 1]
 
     def _open_spots(self, m, station) -> list:
         mine = ("", m.name)
@@ -65,11 +73,46 @@ class Turns:
             return sorted(free, key=lambda spot: self._price(m, spot, cost))
         # 줄에 선 로봇(이 스테이션으로 가는 로봇)이 쥔 자리만 센다:
         # 줄을 떠나는 로봇의 자리는 꼬리가 아니다
-        taken = [i for i, spot in enumerate(station.queue)
-                 if self.grants.node_holder(spot) not in mine
-                 and self._in_line(self.grants.node_holder(spot), station.id)]
-        free = [spot for spot in station.queue if self.grants.node_holder(spot) in mine]
-        return [spot for spot in station.queue[max(taken) + 1 if taken else 0:] if spot in free]
+        sides = []
+        for line in station.lines or (station.queue,):
+            taken = self._taken(line, station, mine)
+            free = [spot for spot in line if self.grants.node_holder(spot) in mine]
+            tail = [spot for spot in line[max(taken) + 1 if taken else 0:] if spot in free]
+            if tail:
+                sides.append(tail)
+        if len(sides) > 1:
+            # 줄마다 맨 앞 빈 자리의 값으로 줄을 고른다(줄 안 순서는 그대로)
+            cost = self._cost(m)
+            sides.sort(key=lambda tail: self._side_price(m, station, tail[0], cost))
+        return [spot for tail in sides for spot in tail]
+
+    def _taken(self, line, station, mine) -> list[int]:
+        return [i for i, spot in enumerate(line)
+                if self.grants.node_holder(spot) not in mine
+                and self._in_line(self.grants.node_holder(spot), station.id)]
+
+    # ---- 양쪽 줄: 길 값(거리 + 회전 extra_m) + 앞에 선 로봇 수로 들어갈 쪽을 고른다 ----
+    def _side_price(self, m, station, spot: str, cost) -> float:
+        line = line_of(station, spot)
+        ahead = len(self._taken(line[:line.index(spot)], station, ("", m.name)))
+        p = self.params
+
+        def plain(edge) -> float:
+            return edge.price_m / speed(p, edge.mode) + self._cross_line(station, edge)
+        way = shortest_path(self.site, spot, station.dock, plain)
+        if way is None:
+            return math.inf
+        return (self._price(m, spot, cost) + sum(plain(edge) for edge in way)
+                + ahead * p.dock_wait_estimate_s)
+
+    @staticmethod
+    def _cross_line(station, edge) -> float:
+        """줄이 둘 이상인 스테이션에서 한 줄의 자리에서 다른 줄의 자리로 가는 이음은 막는다."""
+        if len(station.lines) < 2:
+            return 0.0
+        a = next((line for line in station.lines if edge.a in line), None)
+        b = next((line for line in station.lines if edge.b in line), None)
+        return math.inf if a is not None and b is not None and a is not b else 0.0
 
     def _in_line(self, name: str, station_id: str) -> bool:
         r = self._robots.get(name)
@@ -84,9 +127,9 @@ class Turns:
             spots = [edge.b for edge in route.edges[route.done:route.granted]
                      if edge.b in station.queue]
             if spots:
-                return station.queue.index(spots[0])
+                return line_of(station, spots[0]).index(spots[0])
         if r.node in station.queue:
-            return station.queue.index(r.node)
+            return line_of(station, r.node).index(r.node)
         return len(station.queue)
 
     # ---- 대기 지점에서 기다리기와 머물 수 있는지 판단 ----

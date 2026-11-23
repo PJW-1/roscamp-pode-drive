@@ -25,7 +25,7 @@ def test_each_layout_has_its_arena_files(layout):
     found = fleet_setup.arena_for(layout, PKG)
     assert found.layout == layout
     for path in (found.world, found.nav_map, found.nav_map_fine, found.keepout_mask):
-        assert Path(path).is_file() and f"arena_{layout}" in Path(path).name
+        assert Path(path).is_file() and load_fleet_map(layout).name in Path(path).name
 
 
 def test_an_unknown_layout_or_missing_files_are_refused(tmp_path):

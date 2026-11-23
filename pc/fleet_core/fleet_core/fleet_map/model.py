@@ -77,3 +77,4 @@ class Station:
     arms: tuple[str, ...]
     action: str
     line: bool = False  # 대기 자리가 줄이다: 앞자리 먼저, 빈 앞자리로 당기기, 새 로봇은 꼬리로
+    lines: tuple[tuple[str, ...], ...] = ()  # 줄들(앞자리 먼저). 줄이 둘이면 도크 양쪽에서 들어간다

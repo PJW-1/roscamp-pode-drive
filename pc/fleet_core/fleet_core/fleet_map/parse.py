@@ -236,10 +236,12 @@ def read_edges(paths: dict, nav: list, nodes: dict[str, Node], zones: dict[str, 
         if reverse and two_way:
             raise FleetMapError(f"{what}: a reverse path runs one way")
         mode = RETREAT if reverse else FOLLOW_PATH
+        extra = _extra_m(entry, what)
         for (a, _), (b, bends) in pairwise(stops):
-            add(_edge(nodes, zones, a, b, mode, str(name), bends=bends), what)
+            add(_edge(nodes, zones, a, b, mode, str(name), bends=bends, extra_m=extra), what)
             if two_way:
-                add(_edge(nodes, zones, b, a, mode, str(name), bends=bends[::-1]), what)
+                add(_edge(nodes, zones, b, a, mode, str(name), bends=bends[::-1], extra_m=extra),
+                    what)
 
     for index, group in enumerate(nav or ()):
         what = f"nav group {index + 1}"
@@ -326,12 +328,28 @@ def read_stations(raw: dict, nodes: dict[str, Node]) -> dict[str, Station]:
         if not isinstance(line, bool):
             raise FleetMapError(f"station {name}: line must be true or false")
         stations[str(name)] = Station(str(name), dock, queue, str(entry.get("server", "")),
-                                      tuple(entry.get("arms") or ()), entry["action"], line)
+                                      tuple(entry.get("arms") or ()), entry["action"], line,
+                                      _read_lines(name, entry.get("lines"), queue, line))
     actions = sorted(station.action for station in stations.values())
     if actions != [FILL, SWAP]:
         raise FleetMapError("the map needs exactly one fill station and one swap station, got "
                             f"{actions}")
     return stations
+
+
+# ---- 줄 나누기: 없으면 queue 하나가 줄이다 ----
+def _read_lines(name, raw, queue: tuple, line: bool) -> tuple:
+    if raw is None:
+        return (queue,) if line else ()
+    if not line:
+        raise FleetMapError(f"station {name}: lines needs line: true")
+    if not isinstance(raw, list) or not all(isinstance(part, list) and part for part in raw):
+        raise FleetMapError(f"station {name}: lines is a list of queue spot lists, got {raw!r}")
+    lines = tuple(tuple(str(spot) for spot in part) for part in raw)
+    spots = [spot for part in lines for spot in part]
+    if sorted(spots) != sorted(queue) or len(spots) != len(set(spots)):
+        raise FleetMapError(f"station {name}: lines must hold every queue spot once, got {raw!r}")
+    return lines
 
 
 # ---- 주차 노드 목록 읽기와 검사 ----

@@ -10,6 +10,7 @@ from fleet_core.fleet_map import NAV_GOAL, SHARED, load_fleet_map  # noqa: E402
 from fleet_gz_sim import arena, arena_maps, arena_world  # noqa: E402
 
 PKG = Path(__file__).resolve().parents[1]
+BIDIR_TEXT = load_fleet_map("v7_bidir").source_text
 
 
 @pytest.fixture(params=arena.KNOWN_LAYOUTS)
@@ -17,10 +18,19 @@ def site(request):
     return load_fleet_map(request.param)
 
 
+def _no_paths(text: str) -> str:
+    return "".join(line for line in text.splitlines(True) if '<visual name="path_' not in line)
+
+
 def test_committed_worlds_and_maps_match_the_generator(tmp_path, site):
     written = arena.generate(tmp_path, site)
     assert len(written) == 7
     for name in written:
+        if site.source_text == BIDIR_TEXT and name.startswith("worlds/"):
+            # 양방향 시험판은 v7 경기장 파일을 쓴다. 월드는 바닥에 그린 고정 경로(충돌 없음)만 다르다
+            assert _no_paths((tmp_path / name).read_text(encoding="utf-8")) == _no_paths(
+                (PKG / name).read_text(encoding="utf-8")), name
+            continue
         assert (tmp_path / name).read_bytes() == (PKG / name).read_bytes(), name
 
 

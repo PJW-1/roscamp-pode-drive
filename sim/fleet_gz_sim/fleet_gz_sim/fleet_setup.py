@@ -85,11 +85,14 @@ def arena_for(layout: str, gz_share: str | Path, nav_map_variant: str = "") -> A
     if nav_map_variant and nav_map_variant not in (*NAV_VARIANTS, BASE_NAV_VARIANT):
         raise ScenarioUnfit(f"nav_map_variant must be empty, {BASE_NAV_VARIANT} or one of"
                             f" {', '.join(NAV_VARIANTS)}, got {nav_map_variant!r}")
+    # 같은 경기장을 쓰는 시험 배치(v7_bidir)는 그 경기장 배치의 갈래 지도를 쓴다
+    base = next((known for known in NAV_VARIANT_LAYOUTS if load_fleet_map(known).name == name),
+                layout)
     if nav_map_variant == BASE_NAV_VARIANT:
         nav_map_variant = ""
     elif not nav_map_variant:
-        nav_map_variant = DEFAULT_NAV_VARIANT.get(layout, "")
-    if nav_map_variant and layout not in NAV_VARIANT_LAYOUTS:
+        nav_map_variant = DEFAULT_NAV_VARIANT.get(base, "")
+    if nav_map_variant and base not in NAV_VARIANT_LAYOUTS:
         raise ScenarioUnfit(f"nav_map_variant {nav_map_variant!r} exists only for layout"
                             f" {', '.join(NAV_VARIANT_LAYOUTS)}, not {layout!r}")
     gz = Path(gz_share)
@@ -126,7 +129,8 @@ def check_fits(data: dict, name: str, layout: str, seed: int | None = None) -> N
     """배치가 맞고 로봇 고장이 없어야 한다. random 블록은 seed로 풀어 본다(None이면 파일의 seed)."""
     from fake_robots.scenario import ROBOT_FAULTS
     wants = scenario_layout(data)
-    if wants != layout:
+    # 같은 경기장(지도 name)이면 돌린다: v7 시나리오를 v7_bidir에서
+    if wants != layout and load_fleet_map(wants).name != load_fleet_map(layout).name:
         raise ScenarioUnfit(f"{name} is for layout {wants!r}, the launch runs {layout!r}")
     faults = sorted({str(f.get("type")) for f in _faults(data, seed)
                      if f.get("type") in ROBOT_FAULTS and f.get("type") not in ARENA_FAULTS})

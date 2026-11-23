@@ -8,7 +8,7 @@ from fleet_core.traffic.mission import TO_OUTBOUND, TO_PARK, TO_WORK
 
 from .base import HERE
 from .lane_policy import Want
-from .routes import ARRIVE, Route, back_edge, free_edge, needs, speed, stretch_end
+from .routes import ARRIVE, Route, back_edge, free_edge, heading, needs, speed, stretch_end
 
 TRANSIT_WAIT_S = 6.0
 STANDING_WAIT_S = 300.0
@@ -18,11 +18,18 @@ STANDING_WAIT_S = 300.0
 class Goals:
     def _cost(self, m):
         now, p, site, grants = self._clock(), self.params, self.site, self.grants
+        station = site.stations.get(m.dest) if m.phase in (TO_WORK, TO_OUTBOUND) else None
+        turn_from = m.node if site.exit_turn_cost and m.node in site.docks and self._on_node(m) \
+            else None
 
         def cost(edge) -> float:
             if self._blocked.get((edge.a, edge.b), 0.0) > now:
                 return math.inf
             seconds = edge.price_m / speed(p, edge.mode)
+            if station is not None:
+                seconds += self._cross_line(station, edge)
+            if edge.a == turn_from:
+                seconds += self._exit_turn_s(m, edge)
             for zone in edge.zones:
                 holders = grants.holders(zone)
                 others = [name for name in holders if name != m.name]
@@ -41,8 +48,24 @@ class Goals:
             return seconds + self._node_wait(m, edge.b)
         return cost
 
+    def _exit_turn_s(self, m, edge) -> float:
+        """도크에 선 로봇이 이 이음의 첫 방향으로 제자리에서 도는 시간."""
+        if self.params.nav_turn_rps <= 0.0:
+            return 0.0
+        first = heading(edge.points[0], edge.points[1])
+        return abs(math.remainder(first - m.yaw, math.tau)) / self.params.nav_turn_rps
+
+    def _waits_for_my_dock(self, m, holder, node: str) -> bool:
+        """줄이 둘 이상인 스테이션의 도크에 선 m에게, node가 그 줄 자리이고 holder가 줄에 서 있다.
+        그쪽으로 나가면 기다리는 로봇과 마주 본다(그 로봇은 m이 도크를 비우기를 기다린다)."""
+        station = next((s for s in self.site.stations.values() if s.dock == m.node), None)
+        return (station is not None and len(station.lines) > 1 and node in station.queue
+                and self._on_node(m) and self._in_line(holder.name, station.id))
+
     def _node_wait(self, m, node: str) -> float:
         holder = self._robots.get(self.grants.node_holder(node))
+        if holder is not None and holder is not m and self._waits_for_my_dock(m, holder, node):
+            return math.inf
         if (holder is None or holder is m or holder.goal is not None
                 or self.site.nodes[node].kind == AT_DOCK):
             return 0.0

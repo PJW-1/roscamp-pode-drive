@@ -30,7 +30,7 @@ from .parse import (
 DATA = Path(__file__).parents[1] / "data"
 DEFAULT_LAYOUT = "v7"  # 확정된 실제 경기장
 LAYOUTS = ("d2", "d", "c", "v7")
-TEST_LAYOUTS = ("d2_shelf",)
+TEST_LAYOUTS = ("d2_shelf", "v7_bidir")  # v7_bidir: WORK 양방향 진입 시험(2026-11-23)
 KNOWN_LAYOUTS = (*LAYOUTS, *TEST_LAYOUTS)
 BODY_CLEARANCE_M = 0.06
 SHELF_END_CLEAR_M = 0.15
@@ -59,6 +59,11 @@ class FleetMap:
         self.stations = read_stations(data.get("stations"), self.nodes)
         self.parking = read_parking(data.get("parking"), self.nodes)
         self.docks = {station.dock for station in self.stations.values()}
+        # 도크에서 나가는 첫 이음에 지금 방향에서 도는 시간을 더한다(양방향 배치만)
+        self.exit_turn_cost = data.get("exit_turn_cost", False)
+        if not isinstance(self.exit_turn_cost, bool):
+            raise FleetMapError(
+                f"exit_turn_cost must be true or false, got {self.exit_turn_cost!r}")
         check_lane_waits(self)
         check_clearance(self, float(data.get("clearance_m", BODY_CLEARANCE_M)))
         check_reach(self)
