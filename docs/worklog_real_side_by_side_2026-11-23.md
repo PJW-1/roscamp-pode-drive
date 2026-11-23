@@ -14,7 +14,7 @@
 | `tools/real_pode/deploy.sh` | `DEPLOY_NAME`(기본 `nav2fleet`)으로 로봇 폴더를 정한다: `~/<이름>_ws/src/...`, `~/<이름>_real/`. 이름은 `^[a-z][a-z0-9_]*$`만 받고, 틀리면 로봇에 닿기 전에 exit 2. 실행 묶음에 `ws_name`(작업공간 이름)을 남긴다 |
 | `tools/real_pode/env.sh` | 옆의 `ws_name`이 가리키는 `~/<작업공간>/install/local_setup.bash`를 읽는다. 없으면 예전대로 `~/nav2fleet_ws`. 이상한 이름이면 아무것도 읽지 않고 `return 1` |
 | `tools/real_pode/make_params.py` | 로봇에서 원본을 찾는 자리를 `~/<ws_name>/src`로(없으면 `~/nav2fleet_ws/src`). 이상한 이름이면 멈춘다 |
-| `tools/real_pode/start.sh` | 다른 실행 묶음의 `real_pode.launch.py`가 돌고 있으면 그 명령을 보여 주고 띄우지 않는다(같은 로봇에 두 묶음이 겹쳐 뜨지 않게) |
+| `tools/real_pode/start.sh` | 나란히 둔 다른 실행 묶음(`~/<이름>_real`)의 pid 파일 그룹에서 `real_pode.launch.py`가 돌면 띄우지 않는다(`stop.sh`와 같은 규칙). 기준판의 옛 `start.sh`는 이 검사가 없고 동시 시작 경합도 막지 못하므로, 다른 묶음은 먼저 손으로 내린다 |
 | `tools/real_pode/pc_env.sh` | `NAV2FLEET_WS_SETUP`을 주지 않으면 이 저장소가 든 작업공간(`<ws>/src/<저장소>`, 링크를 따라간 실제 자리)의 `install/setup.bash`를 읽는다. 없으면 예전 기본값 `~/ros2camp/nav2fleet_ws/install/setup.bash` |
 | `tools/real_pode/README.md` | 위 설명과 "기준판과 나란히 두기" 절 |
 
@@ -26,6 +26,16 @@
 - 고치기 전: 배포 시험과 `pc_env.sh` 시험 둘이 실패하는 것을 보았다. 나머지 새 시험은 시험을 돌리는 도중에 코드를 고쳐서, 고치기 전 실패는 보지 못했다.
 - `test_env_values`는 `env.sh` 글자에 `nav2fleet_ws/install/local_setup.bash`가 있는지 보던 시험이라, 기본값 `_env_ws=nav2fleet_ws`와 `/install/local_setup.bash`를 보게 바꿨다. 기본 작업공간을 실제로 읽는지는 새 동작 시험(`test_env_reads_the_workspace_its_kit_was_deployed_with[None-nav2fleet_ws]`)이 본다.
 - 결과: 고친 뒤 `tools/test` 전체 283개 중 `test_env_values` 하나만 실패. 그것을 고친 뒤 관련 시험 113개 통과.
+
+## 리뷰 반영 (Codex, f64a30b)
+
+- 처음 검사는 `pgrep -af real_pode.launch.py`로 명령줄 글자를 찾았다. 전체 시험을 Codex 리뷰와 같은 시각에 돌리자 `start` 시험 5개가 실패했고, 따로 돌리면 40개 모두 통과했다. 리뷰가 띄운 검색 명령이 같은 글자를 담아 검사에 걸린 것으로 본다(리뷰 지적 P1과 같은 일). 그래서 옆 묶음의 pid 파일 그룹만 보게 바꿨다.
+- `ws_name`: 첫 줄을 공백으로 나눠 정확히 한 단어여야 받는다. CR과 앞뒤 공백은 무시한다. `env.sh`와 `make_params.py`가 같은 규칙을 쓴다.
+- README가 검사를 실제보다 강하게 적었던 것을 고쳤다.
+- 고치지 않은 것:
+  - 스크립트 파일 하나를 다른 곳에 링크해 source하는 경우: 지원하지 않는 사용법이고, `net.sh`도 원래 같은 방식으로 찾는다.
+  - `ws_name`이 틀리면 `make_params.py` import가 멈추는 것: import 때 원본 파일을 읽어 실패하는 동작은 원래 있었다(`nav_speed.yaml`).
+  - 크기와 mtime이 같은 묵은 `ws_name`을 rsync가 남길 가능성: 배포마다 새로 쓰는 파일이라 같은 초에 두 번 배포하지 않으면 일어나지 않는다.
 
 ## PC에서 한 것 (이 브랜치와 별개)
 
