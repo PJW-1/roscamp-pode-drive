@@ -145,3 +145,18 @@ def test_with_the_express_shut_it_waits_at_w_instead_of_facing_the_waiting_robot
     assert left_by(world, "pode1") == "W_X" and "M_E" not in targets(world, "pode1")
     assert math.degrees(world.bots["pode2"].yaw) == pytest.approx(-90.0)
     assert not world.problems
+
+
+@ORDER
+def test_a_robot_in_the_north_line_never_goes_round_through_the_south_line(order):
+    """M_E -> W가 막혔다고 표시돼도 M_E의 로봇은 마당을 돌아 Q2, Q1로 들어가지 않는다(자기 줄로만)."""
+    world, (north,) = work_busy({"pode1": "W", "pode2": "M_E", "pode3": "P-1"}, ["pode2"], order)
+    world.run(3.0)
+    world.traffic._blocked[("M_E", "W")] = world.now + 20.0
+    world.traffic.on_release("pode1")
+    world.call("OUTBOUND", "pode1")
+    world.run(15.0)
+    assert not {"Q1", "Q2", "O_IN", "E-3"} & set(targets(world, "pode2")), world.log[-20:]
+    assert world.run_until(lambda: world.result_of(north) is not None, 120.0), world.log[-20:]
+    assert targets(world, "pode2") == ["W"]
+    assert not world.problems

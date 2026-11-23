@@ -19,6 +19,7 @@ class Goals:
     def _cost(self, m):
         now, p, site, grants = self._clock(), self.params, self.site, self.grants
         station = site.stations.get(m.dest) if m.phase in (TO_WORK, TO_OUTBOUND) else None
+        own = self._own_line(m, station)
         turn_from = m.node if site.exit_turn_cost and m.node in site.docks and self._on_node(m) \
             else None
 
@@ -27,7 +28,7 @@ class Goals:
                 return math.inf
             seconds = edge.price_m / speed(p, edge.mode)
             if station is not None:
-                seconds += self._cross_line(station, edge)
+                seconds += self._cross_line(station, edge, own)
             if edge.a == turn_from:
                 seconds += self._exit_turn_s(m, edge)
             for zone in edge.zones:

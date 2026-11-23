@@ -25,7 +25,8 @@ def test_each_layout_has_its_arena_files(layout):
     found = fleet_setup.arena_for(layout, PKG)
     assert found.layout == layout
     for path in (found.world, found.nav_map, found.nav_map_fine, found.keepout_mask):
-        assert Path(path).is_file() and load_fleet_map(layout).name in Path(path).name
+        arena = {"v7_bidir": "v7"}.get(layout, layout)  # 양방향 시험판은 v7 경기장 파일을 쓴다
+        assert Path(path).is_file() and f"arena_{arena}" in Path(path).name
 
 
 def test_an_unknown_layout_or_missing_files_are_refused(tmp_path):
@@ -119,6 +120,14 @@ def test_a_scenario_for_another_layout_is_refused():
     data = fleet_setup.read_scenario(SCENARIOS / "gz_c.yaml")
     with pytest.raises(fleet_setup.ScenarioUnfit, match="layout 'c'"):
         fleet_setup.check_fits(data, "gz_c.yaml", "d2")
+
+
+def test_a_v7_scenario_runs_on_v7_bidir_but_not_the_other_way():
+    """v7_bidir는 v7 경기장을 쓰는 시험 배치다. v7 시나리오는 돌리고, 거꾸로는 돌리지 않는다."""
+    data = fleet_setup.read_scenario(SCENARIOS / "gz_v7_rush.yaml")
+    fleet_setup.check_fits(data, "gz_v7_rush", "v7_bidir")
+    with pytest.raises(fleet_setup.ScenarioUnfit, match="layout 'v7_bidir'"):
+        fleet_setup.check_fits({**data, "map": "v7_bidir"}, "s.yaml", "v7")
 
 
 def test_a_scenario_without_a_map_is_for_v7():

@@ -98,7 +98,7 @@ class Turns:
         p = self.params
 
         def plain(edge) -> float:
-            return edge.price_m / speed(p, edge.mode) + self._cross_line(station, edge)
+            return edge.price_m / speed(p, edge.mode) + self._cross_line(station, edge, line)
         way = shortest_path(self.site, spot, station.dock, plain)
         if way is None:
             return math.inf
@@ -106,13 +106,23 @@ class Turns:
                 + ahead * p.dock_wait_estimate_s)
 
     @staticmethod
-    def _cross_line(station, edge) -> float:
-        """줄이 둘 이상인 스테이션에서 한 줄의 자리에서 다른 줄의 자리로 가는 이음은 막는다."""
+    def _cross_line(station, edge, own=None) -> float:
+        """줄이 둘 이상인 스테이션: 한 줄의 자리에서 다른 줄의 자리로 가는 이음은 막는다.
+        own(지금 선 줄)을 주면 마당을 돌아서라도 다른 줄의 자리로 드는 이음을 모두 막는다."""
         if len(station.lines) < 2:
             return 0.0
-        a = next((line for line in station.lines if edge.a in line), None)
         b = next((line for line in station.lines if edge.b in line), None)
-        return math.inf if a is not None and b is not None and a is not b else 0.0
+        if b is None:
+            return 0.0
+        a = own or next((line for line in station.lines if edge.a in line), None)
+        return math.inf if a is not None and a is not b else 0.0
+
+    def _own_line(self, m, station):
+        """m이 이 스테이션의 줄 자리에 서 있으면 그 줄."""
+        if station is None or len(station.lines) < 2 or m.node not in station.queue \
+                or not self._on_node(m):
+            return None
+        return line_of(station, m.node)
 
     def _in_line(self, name: str, station_id: str) -> bool:
         r = self._robots.get(name)

@@ -52,8 +52,12 @@ class MoveOrders:
         return tuple(self._segment(m, route, cut, False) for cut in mo.cuts[mo.given:])
 
     def _through(self, m, route):
-        dock = self.site.stations[m.dest].dock
-        rest = shortest_path(self.site, route.goal, dock, self._cost(m))
+        station = self.site.stations[m.dest]
+        dock, cost = station.dock, self._cost(m)
+        # 줄이 둘이면 대기 자리의 줄로만 도크까지 잇는다
+        own = next((line for line in station.lines if route.goal in line), None)
+        rest = shortest_path(self.site, route.goal, dock,
+                             lambda edge: cost(edge) + self._cross_line(station, edge, own))
         return Route(dock, [*route.edges, *rest]) if rest else route
 
     # ---- 첫 주문 보내기와 갱신 보내기 ----

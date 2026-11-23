@@ -129,8 +129,8 @@ def check_fits(data: dict, name: str, layout: str, seed: int | None = None) -> N
     """배치가 맞고 로봇 고장이 없어야 한다. random 블록은 seed로 풀어 본다(None이면 파일의 seed)."""
     from fake_robots.scenario import ROBOT_FAULTS
     wants = scenario_layout(data)
-    # 같은 경기장(지도 name)이면 돌린다: v7 시나리오를 v7_bidir에서
-    if wants != layout and load_fleet_map(wants).name != load_fleet_map(layout).name:
+    # 시험 배치는 자기 경기장 배치의 시나리오를 돌린다: v7 시나리오를 v7_bidir에서(거꾸로는 안 된다)
+    if wants != layout and load_fleet_map(layout).name != f"arena_{wants}":
         raise ScenarioUnfit(f"{name} is for layout {wants!r}, the launch runs {layout!r}")
     faults = sorted({str(f.get("type")) for f in _faults(data, seed)
                      if f.get("type") in ROBOT_FAULTS and f.get("type") not in ARENA_FAULTS})
