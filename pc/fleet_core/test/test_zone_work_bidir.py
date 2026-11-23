@@ -160,3 +160,18 @@ def test_a_robot_in_the_north_line_never_goes_round_through_the_south_line(order
     assert world.run_until(lambda: world.result_of(north) is not None, 120.0), world.log[-20:]
     assert targets(world, "pode2") == ["W"]
     assert not world.problems
+
+
+def test_the_horizon_to_the_dock_keeps_the_north_line_while_driving_to_m_e():
+    """order 모델: M_E로 가는 동안 M_E -> W가 막혔다고 표시돼도 horizon을 남쪽 줄로 바꾸지 않는다."""
+    world, (_, north) = work_busy({"pode1": "W", "pode2": "Q1", "pode3": "O_OUT"},
+                                  ["pode2", "pode3"], True)
+    assert world.run_until(lambda: world.traffic._robots["pode3"].route is not None
+                           and world.traffic._robots["pode3"].route.goal == "W", 30.0)
+    world.traffic._blocked[("M_E", "W")] = world.now + 60.0
+    world.run(40.0)
+    changed = [e.detail for e in world.events
+               if e.code == "HORIZON_CHANGED" and e.robot == "pode3"]
+    assert not any("Q1" in d or "Q2" in d for d in changed), changed
+    assert not {"Q1", "Q2"} & set(targets(world, "pode3")), world.log[-20:]
+    assert not world.problems

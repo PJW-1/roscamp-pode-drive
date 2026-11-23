@@ -203,11 +203,19 @@ class MoveOrders:
         if now - mo.horizon_at < HORIZON_HOLD_S:
             return False
         old = route.edges[route.granted:]
-        fresh = shortest_path(self.site, route.edges[route.granted - 1].b, route.goal,
-                              self._cost(m))
+        station = self.site.stations.get(m.dest) if m.dest else None
+        cost = self._cost(m)
+        if station is not None and len(station.lines) > 1:
+            # 줄이 둘이면 이 route가 지나는 대기 자리의 줄로만 다시 짠다
+            spot = next((k.b for k in route.edges if k.b in station.queue), None)
+            own = next((line for line in station.lines if spot in line), None)
+            plain = cost
+
+            def cost(edge):
+                return plain(edge) + self._cross_line(station, edge, own)
+        fresh = shortest_path(self.site, route.edges[route.granted - 1].b, route.goal, cost)
         if not fresh or [(k.a, k.b) for k in fresh] == [(k.a, k.b) for k in old]:
             return False
-        station = self.site.stations.get(m.dest) if m.dest else None
         if station is not None and station.line:
             spots = [[k.b for k in edges if k.b in station.queue] for edges in (old, fresh)]
             if spots[0] and spots[0] != spots[1]:
