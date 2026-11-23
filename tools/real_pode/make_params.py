@@ -37,11 +37,9 @@ def robot_ws_name(kit: Path = HERE) -> str:
     path = kit / "ws_name"
     if not path.is_file():
         return "nav2fleet_ws"
-    # 첫 줄을 공백으로 나눠 정확히 한 단어여야 한다(env.sh와 같은 규칙)
-    lines = path.read_text(encoding="utf-8").splitlines()
-    words = lines[0].split() if lines else []
-    name = words[0] if len(words) == 1 else " ".join(words)
-    if len(words) != 1 or not WS_NAME_RE.fullmatch(name):
+    # 파일 전체가 이름 하나여야 한다(끝 줄바꿈만 허용. env.sh와 같은 규칙, CR도 그대로 본다)
+    name = path.read_bytes().decode("utf-8", "replace").rstrip("\n")
+    if not WS_NAME_RE.fullmatch(name):
         raise SystemExit(f"make_params: bad ws_name {name!r} in {path}")
     return name
 

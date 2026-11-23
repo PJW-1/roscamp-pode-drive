@@ -1133,8 +1133,7 @@ def _robot_kit(tmp_path, ws_name=None):
 
 @pytest.mark.parametrize("nounset", [True, False])
 @pytest.mark.parametrize("ws_name, mark", [(None, "nav2fleet_ws"),
-                                           ("podedrive_ws", "podedrive_ws"),
-                                           (" podedrive_ws \r", "podedrive_ws")])
+                                           ("podedrive_ws", "podedrive_ws")])
 def test_env_reads_the_workspace_its_kit_was_deployed_with(tmp_path, ws_name, mark, nounset):
     kit, env = _robot_kit(tmp_path, ws_name)
     run, got = _sourced((["set -u"] if nounset else []) + [
@@ -1144,7 +1143,12 @@ def test_env_reads_the_workspace_its_kit_was_deployed_with(tmp_path, ws_name, ma
     assert got == SERVER_MODE
 
 
-@pytest.mark.parametrize("bad", ["../podedrive_ws", "pode drive_ws", ""])
+# 파일 전체가 이름 하나여야 한다(끝 줄바꿈만 허용). make_params.py와 같은 목록
+BAD_WS_NAMES = ["../podedrive_ws", "pode drive_ws", "", " podedrive_ws", "podedrive_ws\r",
+                "pode\rdrive_ws", "podedrive_ws\nx", "pode\x0bdrive_ws"]
+
+
+@pytest.mark.parametrize("bad", BAD_WS_NAMES)
 def test_env_refuses_a_bad_ws_name(tmp_path, bad):
     kit, env = _robot_kit(tmp_path, bad)
     run, _ = _sourced([f'source "{kit}/env.sh"', 'echo "RC=$?"',
@@ -1176,8 +1180,7 @@ def _make_params_on_robot(tmp_path, ws_name):
 
 
 def test_make_params_on_the_robot_reads_the_named_workspace(tmp_path):
-    # env.sh와 같은 규칙: 첫 줄의 앞뒤 공백과 CR은 무시한다
-    run, kit = _make_params_on_robot(tmp_path, " podedrive_ws \r")
+    run, kit = _make_params_on_robot(tmp_path, "podedrive_ws")
     assert run.returncode == 0, run.stdout + run.stderr
     assert any((kit / "params").iterdir())
     # 이름 파일이 없으면 예전 자리(~/nav2fleet_ws/src)를 찾으므로 여기서는 못 찾는다
@@ -1186,7 +1189,7 @@ def test_make_params_on_the_robot_reads_the_named_workspace(tmp_path):
     assert "nav2fleet_ws" in run.stderr
 
 
-@pytest.mark.parametrize("bad", ["../podedrive_ws", "pode drive_ws", ""])
+@pytest.mark.parametrize("bad", BAD_WS_NAMES)
 def test_make_params_refuses_a_bad_ws_name(tmp_path, bad):
     run, _ = _make_params_on_robot(tmp_path, bad)
     assert run.returncode != 0
@@ -1211,6 +1214,27 @@ def _session(*argv):
         capture_output=True, text=True, check=True).stdout)
 
 
+LAUNCH_LIKE = (sys.executable, "-c", "'import time; time.sleep(30)'", "real_pode.launch.py")
+
+
+def _wait_named(pgrep_args):
+    """pgrep이 real_pode.launch.py 이름을 볼 때까지 기다린다(exec 전 bash 명령줄을 피한다)."""
+    for _ in range(100):
+        if subprocess.run(["pgrep", *pgrep_args, "-f", "real_pode.launch.py"],
+                          capture_output=True).returncode == 0:
+            return
+        time.sleep(0.05)
+    raise AssertionError(f"no real_pode.launch.py process for pgrep {pgrep_args}")
+
+
+def _kill_all(pids):
+    for pid in pids:
+        try:
+            os.kill(pid, 9)
+        except ProcessLookupError:
+            pass
+
+
 def _start_in(home, start):
     env = dict(os.environ, HOME=str(home))
     return subprocess.run(["bash", str(start), "pode1", "0.12", "0.10", "1.5708"],
@@ -1220,33 +1244,55 @@ def _start_in(home, start):
 def test_start_refuses_while_a_sibling_kit_runs_its_launch(tmp_path):
     # 옆 묶음(예: 기준판 ~/nav2fleet_real)의 launch가 돌면 같은 로봇에 겹쳐 띄우지 않는다
     home, start, other = _sibling_kits(tmp_path)
-    pid = _session(sys.executable, "-c", "'import time; time.sleep(30)'", "real_pode.launch.py")
-    (other / "logs" / "launch.pid").write_text(f"{pid}\n")
+    pids = []
     try:
-        time.sleep(0.3)
+        pids.append(_session(*LAUNCH_LIKE))
+        _wait_named(["-g", str(pids[0])])
+        (other / "logs" / "launch.pid").write_text(f"{pids[0]}\n")
         run = _start_in(home, start)
     finally:
-        os.kill(pid, 9)
+        _kill_all(pids)
     assert run.returncode == 1
     assert str(other) in run.stdout and "stop.sh" in run.stdout
     assert "params ok" not in run.stdout and "ENV_REACHED" not in run.stdout
 
 
 def test_start_ignores_unrelated_processes_and_stale_sibling_pid_files(tmp_path):
-    # 이름에 real_pode.launch.py가 든 다른 프로세스(검색, 편집기)는 막지 않는다
-    home, start, other = _sibling_kits(tmp_path)
-    grep_like = _session(sys.executable, "-c", "'import time; time.sleep(30)'",
-                         "real_pode.launch.py")
+    # 이름에 real_pode.launch.py가 든 다른 프로세스(검색, 편집기)는 막지 않는다.
     # 옆 묶음의 pid 파일이 launch가 아닌 그룹을 가리키면 오래된 파일로 본다
-    stale = _session("sleep", "30")
-    (other / "logs" / "launch.pid").write_text(f"{stale}\n")
+    home, start, other = _sibling_kits(tmp_path)
+    pids = []
     try:
-        time.sleep(0.3)
+        pids.append(_session(*LAUNCH_LIKE))
+        _wait_named(["-g", str(pids[0])])
+        pids.append(_session("sleep", "30"))
+        (other / "logs" / "launch.pid").write_text(f"{pids[1]}\n")
         run = _start_in(home, start)
     finally:
-        os.kill(grep_like, 9)
-        os.kill(stale, 9)
+        _kill_all(pids)
     assert run.returncode == 1 and "ENV_REACHED" in run.stdout  # 대역 env까지 갔다
+
+
+@pytest.mark.parametrize("content", ["0\n", "{gid}\njunk\n", "abc\n", " {gid}\n"])
+def test_start_ignores_garbage_sibling_pid_files(tmp_path, content):
+    # pid 파일 전체가 1 이상의 숫자가 아니면 본다고 치지 않는다(0은 지금 그룹을 뜻한다)
+    home, start, other = _sibling_kits(tmp_path)
+    pids = []
+    try:
+        # 이 시험의 그룹 안에도 같은 이름을 하나 둔다(0을 그대로 쓰면 걸린다)
+        here = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)",
+                                 "real_pode.launch.py"])
+        pids.append(here.pid)
+        pids.append(_session(*LAUNCH_LIKE))
+        _wait_named(["-g", str(pids[1])])
+        _wait_named(["-g", str(os.getpgid(0))])
+        (other / "logs" / "launch.pid").write_text(content.format(gid=pids[1]))
+        run = _start_in(home, start)
+    finally:
+        _kill_all(pids)
+        here.wait()
+    assert run.returncode == 1 and "ENV_REACHED" in run.stdout, run.stdout
+
 
 
 def _pc_tree(tmp_path, own_install=True):

@@ -3,12 +3,10 @@
 _env_ws=nav2fleet_ws
 _env_name="$(dirname "${BASH_SOURCE[0]}")/ws_name"
 if [ -f "$_env_name" ]; then
-  # 첫 줄을 공백으로 나눠 정확히 한 단어여야 한다(CR은 지운다. make_params.py와 같은 규칙)
-  _env_ws= _env_rest=
-  read -r _env_ws _env_rest < <(head -n 1 "$_env_name" | tr -d '\r')
-  [[ -z $_env_rest && $_env_ws =~ ^[a-z][a-z0-9_]*$ ]] || {
-    echo "env.sh: 이상한 ws_name ($_env_name)"; unset _env_ws _env_name _env_rest; return 1; }
-  unset _env_rest
+  # 파일 전체가 이름 하나여야 한다(끝 줄바꿈만 허용. make_params.py와 같은 규칙)
+  _env_ws=$(< "$_env_name")
+  [[ $_env_ws =~ ^[a-z][a-z0-9_]*$ ]] || {
+    echo "env.sh: 이상한 ws_name ($_env_name)"; unset _env_ws _env_name; return 1; }
 fi
 for f in "${ROS_SETUP:-/opt/ros/jazzy/setup.bash}" "$HOME/pinky_pro/install/local_setup.bash" \
     "$HOME/$_env_ws/install/local_setup.bash"; do

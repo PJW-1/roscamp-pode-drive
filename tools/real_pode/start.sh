@@ -40,8 +40,9 @@ for pidfile in "$HOME"/*_real/logs/launch.pid; do
   [ -s "$pidfile" ] || continue
   kit=$(cd -P "$(dirname "$pidfile")/.." && pwd) || continue
   [ "$kit" = "$here" ] && continue
-  gid=$(head -n 1 "$pidfile")
-  [[ $gid =~ ^[0-9]+$ ]] || continue
+  # 파일 전체가 1 이상의 숫자일 때만 본다(0은 지금 그룹을 뜻한다)
+  gid=$(< "$pidfile")
+  [[ $gid =~ ^[1-9][0-9]*$ ]] || continue
   if pgrep -g "$gid" -f real_pode.launch.py > /dev/null; then
     echo "another kit is running: $kit (group $gid)"
     echo "stop it first: $kit/stop.sh"; exit 1
