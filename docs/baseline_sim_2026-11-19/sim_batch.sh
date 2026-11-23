@@ -26,7 +26,7 @@ for run in "$@"; do
   for i in $(seq 24); do [ -z "$(left61 | grep -v "^$$\$")" ] && break; sleep 5; done
   rest=$(left61 | grep -v "^$$\$"); if [ -n "$rest" ]; then echo "$name: domain $DOM processes left: $rest, stop"; exit 1; fi
   sleep "${SIM_BATCH_PAUSE_S:-0}"
-  mkdir -p $R
+  mkdir -p $R/result  # fleet_manager가 기록 파일을 열기 전에 폴더가 있어야 한다
   ovl_line=""; [ "$OVL" != - ] && ovl_line="source $OVL"
   echo "scenario $scen, layout $LAYOUT, use_order_model true, sim_dock_stub true, fleet_record true, $LAUNCH_ARGS, domain $DOM, overlay $OVL, start $(date +%T)" > $R/run_info.txt
   echo "== $name $scen start $(date +%T)"
