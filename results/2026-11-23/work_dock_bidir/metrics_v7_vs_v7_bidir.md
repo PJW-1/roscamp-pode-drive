@@ -16,7 +16,7 @@
 | WORK_DOCK 해제 | 60 | 60 |
 | 조기 해제: 보고 < 0.135 / 실제 < 0.08 | 11 / 0 | 19 / 0 |
 | WORK_DOCK 해제 실제 거리 최소(m) | 0.130 | 0.125 |
-| 로봇 중심 최소 거리(m, fleet_check) | 0.255 | 0.176 |
+| 로봇 중심 최소 거리(m, fleet_check) | 0.181 | 0.176 |
 | 실패 판 | 없음 | 없음 |
 
 {
@@ -77,7 +77,7 @@
    "early_release_true_lt_008": 0,
    "min_work_dock_release_true_m": 0.132,
    "violations": [],
-   "min_robot_gap_m": 0.26
+   "min_robot_gap_m": 0.196
   },
   {
    "run": "rush2",
@@ -135,7 +135,7 @@
    "early_release_true_lt_008": 0,
    "min_work_dock_release_true_m": 0.139,
    "violations": [],
-   "min_robot_gap_m": 0.26
+   "min_robot_gap_m": 0.189
   },
   {
    "run": "rush3",
@@ -192,7 +192,7 @@
    "early_release_true_lt_008": 0,
    "min_work_dock_release_true_m": 0.141,
    "violations": [],
-   "min_robot_gap_m": 0.26
+   "min_robot_gap_m": 0.207
   },
   {
    "run": "v7a",
@@ -240,7 +240,7 @@
    "early_release_true_lt_008": 0,
    "min_work_dock_release_true_m": 0.13,
    "violations": [],
-   "min_robot_gap_m": 0.26
+   "min_robot_gap_m": 0.195
   },
   {
    "run": "v7b",
@@ -287,7 +287,7 @@
    "early_release_true_lt_008": 0,
    "min_work_dock_release_true_m": 0.135,
    "violations": [],
-   "min_robot_gap_m": 0.255
+   "min_robot_gap_m": 0.206
   },
   {
    "run": "v7c",
@@ -336,7 +336,7 @@
    "early_release_true_lt_008": 0,
    "min_work_dock_release_true_m": 0.146,
    "violations": [],
-   "min_robot_gap_m": 0.26
+   "min_robot_gap_m": 0.181
   }
  ],
  "v7_bidir": [
@@ -565,7 +565,7 @@
    "early_release_true_lt_008": 0,
    "min_work_dock_release_true_m": 0.126,
    "violations": [],
-   "min_robot_gap_m": 0.206
+   "min_robot_gap_m": 0.198
   },
   {
    "run": "v7b",
@@ -614,7 +614,7 @@
    "early_release_true_lt_008": 0,
    "min_work_dock_release_true_m": 0.132,
    "violations": [],
-   "min_robot_gap_m": 0.215
+   "min_robot_gap_m": 0.199
   },
   {
    "run": "v7c",

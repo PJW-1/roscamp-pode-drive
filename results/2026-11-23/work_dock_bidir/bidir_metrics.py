@@ -143,9 +143,13 @@ def one_run(run: Path) -> dict:
     out["early_release_true_lt_008"] = early_true
     out["min_work_dock_release_true_m"] = min((a for a, _ in releases), default=None)
     out["violations"] = summary.get("violations", [])
-    # fleet_check가 마지막에 찍은 두 로봇 중심 사이 최소 거리
-    gaps = re.findall(r"min distance ([0-9.]+) m", (run / "launch.out").read_text(errors="replace"))
-    out["min_robot_gap_m"] = float(gaps[-1]) if gaps else None
+    # 두 로봇 중심 사이 최소 거리: 판이 끝날 때 쓴 fleet_check.json(로그의 주기 출력은 판 끝 전에 멈출 수 있다)
+    check = res / "fleet_check.json"
+    if check.is_file():
+        out["min_robot_gap_m"] = json.loads(check.read_text(encoding="utf-8")).get("min_distance_m")
+    else:
+        gaps = re.findall(r"min distance ([0-9.]+) m", (run / "launch.out").read_text(errors="replace"))
+        out["min_robot_gap_m"] = float(gaps[-1]) if gaps else None
     return out
 
 
