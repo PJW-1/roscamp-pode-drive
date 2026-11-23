@@ -26,6 +26,7 @@
 - 고치기 전: 배포 시험과 `pc_env.sh` 시험 둘이 실패하는 것을 보았다. 나머지 새 시험은 시험을 돌리는 도중에 코드를 고쳐서, 고치기 전 실패는 보지 못했다.
 - `test_env_values`는 `env.sh` 글자에 `nav2fleet_ws/install/local_setup.bash`가 있는지 보던 시험이라, 기본값 `_env_ws=nav2fleet_ws`와 `/install/local_setup.bash`를 보게 바꿨다. 기본 작업공간을 실제로 읽는지는 새 동작 시험(`test_env_reads_the_workspace_its_kit_was_deployed_with[None-nav2fleet_ws]`)이 본다.
 - 결과: 고친 뒤 `tools/test` 전체 283개 중 `test_env_values` 하나만 실패. 그것을 고친 뒤 관련 시험 113개 통과.
+- 리뷰 반영 뒤: cd3b243에서 `tools/test` 전체 292개 통과(skip 3), 7c39457에서 `test_real_pode.py` 160개 통과(skip 3).
 
 ## 리뷰 반영 (Codex, f64a30b)
 
@@ -38,6 +39,7 @@
   - `ws_name`이 틀리면 `make_params.py` import가 멈추는 것: import 때 원본 파일을 읽어 실패하는 동작은 원래 있었다(`nav_speed.yaml`).
   - 크기와 mtime이 같은 묵은 `ws_name`을 rsync가 남길 가능성: 배포마다 새로 쓰는 파일이라 같은 초에 두 번 배포하지 않으면 일어나지 않는다.
   - 자기 묶음의 묵은 pid가 다른 그룹에 다시 쓰이면 시작을 거절하는 것: 원래 있던 `start.sh` 검사이고 이번 변경과 상관없다.
+  - 3차 리뷰(7c39457) 지적: NUL 바이트가 든 `ws_name`/pid 파일, 앞자리 0이 붙은 pid, `pgrep -f` 패턴의 점이 아무 글자와 맞는 것. `ws_name`은 `deploy.sh`가 검사한 이름 한 줄로, pid 파일은 `start.sh`가 `echo $$`로 쓰므로 이런 내용이 생기지 않고, pid 그룹 안에는 그 묶음의 launch만 있다. 실제 동작을 깨지 않아 고치지 않았다.
 
 ## PC에서 한 것 (이 브랜치와 별개)
 
