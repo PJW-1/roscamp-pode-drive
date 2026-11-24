@@ -72,6 +72,8 @@ class TaskSpec:
     lidar_sectors: int = 36  # 10 deg 섹터별 최솟값
     lidar_min_range: float = 0.05  # m; 레이 시작 거리 (RPLIDAR C1 최소와 같음)
     lidar_obs_max: float = 2.0  # m; [0, 1] 로 스케일하기 전 클리핑
+    # 관측 거리 = s × 실제 거리, s 는 에피소드마다 이 범위에서 균등 (로봇별 라이다 배율 오차)
+    lidar_scale_range: tuple[float, float] = (1.0, 1.0)
     goal_obs_max: float = 3.0  # m; 목표 거리 클리핑
     # ---- 플릿 intent (4c): 가까운 intent_robots 대마다 존재 마스크와 경로점 intent_points 개 ----
     # 0 대 = goal-reach, 4a, 4b 정책의 41차원 배치
@@ -119,6 +121,7 @@ OVERRIDABLE = (
     "goal_dist_range",
     "success_radius",
     "out_of_bounds",
+    "lidar_scale_range",
     "goal_obs_max",
     "collision_force",
     "w_progress",
@@ -273,6 +276,19 @@ def sample_speed_cap(n: int, device, spec: TaskSpec = SPEC) -> torch.Tensor:
     if lo == hi:
         return torch.full((n,), float(lo), device=device)
     return lo + (hi - lo) * torch.rand(n, device=device)
+
+
+def sample_lidar_scale(n: int, device, spec: TaskSpec = SPEC) -> torch.Tensor:
+    """에피소드별 라이다 거리 배율 (n,), lidar_scale_range 균등 (한 값이면 뽑지 않음)."""
+    lo, hi = spec.lidar_scale_range
+    if lo == hi:
+        return torch.full((n,), float(lo), device=device)
+    return lo + (hi - lo) * torch.rand(n, device=device)
+
+
+def scale_ranges(ranges: torch.Tensor, scale: torch.Tensor) -> torch.Tensor:
+    """(N, rays) 거리에 env 별 배율 (N,) 을 곱한다. 섹터 최솟값·자르기 전에 부름 (관측 전용)."""
+    return ranges * scale[:, None]
 
 
 def flip_step(w: torch.Tensor, last_sign: torch.Tensor, deadband: float):

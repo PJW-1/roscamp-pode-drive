@@ -238,6 +238,47 @@ def test_speed_cap_draw_stays_in_range_and_a_single_value_draws_nothing():
     assert torch.equal(state, torch.random.get_rng_state())  # 고정 상한: 난수 흐름 그대로
 
 
+def test_lidar_scale_draw_stays_in_range_and_a_single_value_draws_nothing():
+    spec = ts.make_spec(ts.parse_overrides(["lidar_scale_range=0.95,1.03"]))
+    assert spec.lidar_scale_range == (0.95, 1.03)
+    torch.manual_seed(0)
+    s = ts.sample_lidar_scale(10000, "cpu", spec)
+    assert s.min() >= 0.95 and s.max() <= 1.03 and abs(s.mean().item() - 0.99) < 0.002
+    state = torch.random.get_rng_state()
+    assert torch.equal(ts.sample_lidar_scale(4, "cpu"), torch.ones(4))
+    fixed = dataclasses.replace(ts.SPEC, lidar_scale_range=(0.958, 0.958))
+    assert torch.equal(ts.sample_lidar_scale(3, "cpu", fixed), torch.full((3,), 0.958))
+    assert torch.equal(state, torch.random.get_rng_state())  # 한 값: 난수 흐름 그대로
+
+
+def test_lidar_scale_multiplies_ranges_before_the_sector_clip():
+    # 레이 360 개, 섹터 0 에 1.0 m, 섹터 1 에 1.95 m, 나머지는 inf (자르기로 2.0 m)
+    r = torch.full((2, 360), float("inf"))
+    r[:, 0] = 1.0
+    r[:, 10] = 1.95
+    scale = torch.tensor([0.958, 1.03])
+    lid = ts.lidar_sectors(ts.scale_ranges(r, scale)) / ts.SPEC.lidar_obs_max
+    assert torch.allclose(lid[:, 0], scale * 1.0 / 2.0)
+    # 1.95 × 1.03 = 2.0085 는 자르기 뒤 1, 1.95 × 0.958 은 그대로
+    assert torch.allclose(lid[:, 1], torch.tensor([1.95 * 0.958 / 2.0, 1.0]))
+    assert torch.equal(lid[:, 2:], torch.ones(2, 34))
+    obs = ts.build_observation(
+        ts.scale_ranges(r, scale), torch.ones(2), torch.zeros(2), torch.zeros(2, 2)
+    )
+    assert torch.equal(obs[:, : ts.OBS_LIDAR], lid)
+
+
+def test_lidar_scale_default_leaves_the_observation_unchanged():
+    torch.manual_seed(1)
+    r = 0.05 + 3.0 * torch.rand(5, 360)
+    r[0, 7] = float("nan")
+    one = ts.sample_lidar_scale(5, "cpu")
+    args = (torch.rand(5), torch.rand(5), torch.rand(5, 2))
+    spec = dataclasses.replace(ts.SPEC, lidar_frames=3)
+    got = ts.build_observation(ts.scale_ranges(r, one), *args, spec)
+    assert torch.equal(got, ts.build_observation(r, *args, spec))
+
+
 def test_flip_step_counts_like_nav_bench_sign_changes():
     here = os.path.dirname(os.path.abspath(__file__))
     sys.path.insert(0, os.path.join(here, "..", "..", "tools", "nav_bench"))

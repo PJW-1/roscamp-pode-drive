@@ -778,7 +778,7 @@ class StoreArenaEnv(GoalReachEnv):
         xy, yaw = self.robot_pose()
         if self.spec.intent_robots:
             intent, mask, prio = self.robot_intent(xy, yaw)
-        ranges = self.lidar_ranges()
+        ranges = self.obs_lidar_ranges()
         obs = ts.build_observation(
             ranges,
             self.la_dist,
