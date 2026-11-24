@@ -68,7 +68,7 @@ python3 tools/coverage_report.py map bags/clean_run1 --ns pode3 --out cov.png [-
 ## 시험
 
 ```bash
-cd <작업 트리> && . /opt/ros/jazzy/setup.bash && PYTHONPATH=pc/fleet_core:sim/fake_robots:tools ROS_DOMAIN_ID=93 python3 -m pytest -q tools/test -p no:cacheprovider
+cd <작업 트리> && . /opt/ros/jazzy/setup.bash && PYTHONPATH=pc/fleet_core:sim/fake_robots:tools:$PYTHONPATH ROS_DOMAIN_ID=93 python3 -m pytest -q -rs tools/test -p no:cacheprovider
 ```
 
 - 새 시험 `test_coverage_report.py` 10개: 줄 지표와 빈틈 손 계산, AMCL과 참값 차이, 계획과 같은 궤적의 빈틈 0, 짧은 줄 앞뒤 회전, 연장선 위에서 끝나지 않는 회전, 같은 시각 표본의 순서, 다시 지나감 세기, 명령줄(md, json, PNG, relocalize 2), `-h`, 시뮬 녹화 명령(가짜 ros2로 인자 확인, 실물 토픽 + sim/truth + /clock).
