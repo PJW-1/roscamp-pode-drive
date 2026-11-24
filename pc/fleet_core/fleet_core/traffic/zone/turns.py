@@ -30,7 +30,9 @@ class Turns:
                 self._stay(m, station)
                 return
         cost = self._cost(m)
-        free = [spot for spot in site.parking if self.grants.node_holder(spot) in ("", m.name)]
+        reserved = self._reserved(m)
+        free = [spot for spot in site.parking if self.grants.node_holder(spot) in ("", m.name)
+                and spot not in reserved]
         for spot in sorted(free, key=lambda spot: (self._price(m, spot, cost), spot)):
             yield spot, False
 

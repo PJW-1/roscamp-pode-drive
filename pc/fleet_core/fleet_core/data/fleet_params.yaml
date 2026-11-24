@@ -87,3 +87,10 @@ check_radius_m: 0.10          # 가정: CheckClear의 r. 보고한 칸(가장 �
 check_interval_s: 5.0         # 제안: 한 표시에 이만큼마다 한 번을 넘게 묻지 않는다
 clear_confirm: 2              # 제안: clear 답이 이만큼 이어지면 표시를 지운다(BLOCK_CLEARED)
 blocked_retry_max_s: 300.0    # 제안: 보내 본 로봇이 다시 막히면 다음 지우기까지 시간을 두 배로, 이 값까지
+# 청소 로봇(cleaners). 모두 제안값이다
+clean_reach_m: 0.18           # 청소 경로가 지도 지점이나 다른 로봇에서 이 안을 지나면 겹친다(몸 지름 + 여유)
+clean_blocked_s: 2.0          # 청소 로봇이 줄에서 BLOCKED로 이만큼 서 있으면 우회하거나 미룬다
+clean_retry_s: 5.0            # 미룬 줄은 마지막으로 미룬 뒤 이만큼 지나 다시 본다
+clean_defer_limit: 3          # 한 바퀴에서 이만큼 넘게 미뤄진 줄은 그 바퀴에서 포기한다
+clean_detour_margin_m: 0.20   # 우회 여유: 복귀점은 장애물 자리에서 몸 반지름 + 이만큼 앞, 점유 띠 폭은 몸 지름 + 이만큼
+clean_block_look_m: 0.5       # 장애물 좌표가 없을 때 진행점에서 이만큼 앞을 장애물 자리로 본다(Pode block_lookahead_m)

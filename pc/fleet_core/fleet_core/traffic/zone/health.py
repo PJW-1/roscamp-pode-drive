@@ -126,6 +126,7 @@ class Health:
         self._robots[robot] = Robot(robot, x=old.x, y=old.y, yaw=old.yaw,
                                     report=Report(heard.robot_state, heard.battery, heard.charge,
                                                   heard.last_seen))
+        self._join_role(self._robots[robot])
         self._wants.pop(robot, None)
         self._joining.add(robot)
         return True

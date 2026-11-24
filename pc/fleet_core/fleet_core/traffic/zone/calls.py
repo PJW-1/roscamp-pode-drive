@@ -41,7 +41,7 @@ class Calls:
         m = self._robots.get(robot_id)
         if m is None:
             self._out.append(DispatchResult(goal_id, False, robot_id, "NO_SUCH_ROBOT"))
-        elif not self.available(robot_id):
+        elif robot_id in self._cleaners or not self.available(robot_id):
             self._out.append(DispatchResult(goal_id, False, robot_id, "NOT_AVAILABLE"))
         elif m.dispatch:
             self._out.append(DispatchResult(goal_id, False, robot_id, "BUSY"))
@@ -80,7 +80,8 @@ class Calls:
 
     # ---- 열린 호출에 응할 로봇 고르기 ----
     def tick_pick(self, stopped: frozenset = frozenset()) -> None:
-        pool = [m for m in self._robots.values() if m.placed and m.health.fault != OUT_OF_SERVICE]
+        pool = [m for m in self._robots.values() if m.placed and m.health.fault != OUT_OF_SERVICE
+                and m.name not in self._cleaners]
         self._warn_if_no_robot()
         chosen = self.selector.pick(len(self._open_calls),
                                     [self._robot_info(m, m.name in stopped) for m in pool])
@@ -102,7 +103,8 @@ class Calls:
         return m.phase == TO_WORK and self.site.nodes[dock].zone in self.grants.held_by(m.name)
 
     def _warn_if_no_robot(self) -> None:
-        stalled = bool(self._open_calls) and not any(m.live for m in self._robots.values())
+        stalled = bool(self._open_calls) and not any(
+            m.live for m in self._robots.values() if m.name not in self._cleaners)
         if stalled and not self._no_robot_warned:
             self._out.append(DispatchFeedback(self._open_calls[0], "", NO_ROBOT))
         self._no_robot_warned = stalled

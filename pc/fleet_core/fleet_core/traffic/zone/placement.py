@@ -41,6 +41,9 @@ class Placement:
                   or site.nearest_node(m.x, m.y, inside) or "")
         m.phase = PARKED if node in site.parking else IDLE
         self._joining.discard(m.name)
+        if node in self._reserved(m):
+            self._event("WARN", "CLEAN_HOME_TAKEN", f"starts on {node}, the cleaner's home; "
+                        "it is kept from transports once this robot leaves", m.name)
 
     # ---- 노드 빈 여부와 겹치는 로봇 찾기 ----
     def _free(self, m, node: str) -> bool:

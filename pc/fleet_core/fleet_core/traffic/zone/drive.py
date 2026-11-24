@@ -26,6 +26,9 @@ class Drive:
         if self._localizing(m):
             self._wait_localizing(m)
             return
+        if robot in self._cleaners:
+            self._clean_step(m)
+            return
         for _ in range(4):
             before = (m.phase, m.dest)
             self._step_phase(m)

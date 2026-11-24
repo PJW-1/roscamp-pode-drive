@@ -34,8 +34,10 @@ class ManagerRecord:
         if self._fed:
             raise RuntimeError("a record has to start before the first input")
         self._write = write
-        write(json.dumps({"recorded": True, "robots": self.traffic.robots,
-                          "params": asdict(self.params), "map": self.site.source_text}))
+        head = {"recorded": True, "robots": self.traffic.robots}
+        if self.cleaners:
+            head["cleaners"] = list(self.cleaners)
+        write(json.dumps({**head, "params": asdict(self.params), "map": self.site.source_text}))
 
     def _input(self, method, *args) -> None:
         self._fed = True

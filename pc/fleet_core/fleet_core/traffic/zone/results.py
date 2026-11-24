@@ -30,6 +30,9 @@ class Results:
 
     def on_move_result(self, robot, goal_id, success, reason, last_done_seq=0) -> None:
         m = self._robots.get(robot)
+        if robot in self._cleaners:
+            self._clean_result(m, goal_id, success, reason)
+            return
         if m is not None and m.move_order is not None and self._old_goal_result(m, goal_id, reason):
             return
         m = self._active(robot, goal_id, MOVE)
@@ -44,6 +47,9 @@ class Results:
 
     # ---- 물러나기 결과와 도킹 결과 ----
     def on_retreat_result(self, robot, goal_id, success, reason="") -> None:
+        if robot in self._cleaners:
+            self._clean_result(self._robots[robot], goal_id, success, reason or "RETREAT_FAILED")
+            return
         m = self._active(robot, goal_id, RETREAT)
         if m is None:
             return
@@ -71,6 +77,9 @@ class Results:
 
     # ---- goal 거절, 미전송, 잃음 처리 ----
     def on_goal_rejected(self, robot, goal_id) -> None:
+        if robot in self._cleaners:
+            self._clean_rejected(self._robots[robot], goal_id, "REJECTED")
+            return
         m = self._active(robot, goal_id, MOVE, RETREAT, DOCK)
         if m is None or self._update_unclear(m, "the goal was rejected or lost its result"):
             return
@@ -81,6 +90,9 @@ class Results:
             self._move_failed(m, "REJECTED")
 
     def on_goal_not_sent(self, robot, goal_id) -> None:
+        if robot in self._cleaners:
+            self._clean_not_sent(self._robots[robot], goal_id)
+            return
         m = self._active(robot, goal_id, MOVE, RETREAT, DOCK)
         if m is None or self._update_lost(m, "the goal was not sent"):
             return
@@ -92,6 +104,9 @@ class Results:
                         m.name)
 
     def on_goal_lost(self, robot, goal_id) -> None:
+        if robot in self._cleaners:
+            self._clean_lost(self._robots[robot], goal_id)
+            return
         m = self._active(robot, goal_id, MOVE, RETREAT, DOCK)
         if m is not None and not self._update_unclear(m, "the goal was lost"):
             self._forget_goal(m)

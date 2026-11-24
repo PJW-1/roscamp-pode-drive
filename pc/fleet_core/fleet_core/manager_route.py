@@ -59,7 +59,8 @@ class ManagerRoute:
             self.traffic.on_robot_fault(item.robot, item.reason)
         elif isinstance(item, RobotIsolated):
             self._note("inside", item)
-            self.orchestrator.on_robot_isolated(item.robot, item.reason)
+            if item.robot not in self.cleaners:
+                self.orchestrator.on_robot_isolated(item.robot, item.reason)
         elif isinstance(item, DispatchFeedback):
             self._note("inside", item)
             self.orchestrator.on_dispatch_feedback(item.goal_id, item.robot_id, item.phase)

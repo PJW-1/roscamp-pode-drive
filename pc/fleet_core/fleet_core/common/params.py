@@ -107,6 +107,12 @@ class FleetParams:
     check_interval_s: float = 5.0
     clear_confirm: int = 2
     blocked_retry_max_s: float = 300.0
+    clean_reach_m: float = 0.18
+    clean_blocked_s: float = 2.0
+    clean_retry_s: float = 5.0
+    clean_defer_limit: int = 3
+    clean_detour_margin_m: float = 0.20
+    clean_block_look_m: float = 0.5
 
     # ---- 파라미터 값 검사 ----
     def __post_init__(self):
