@@ -11,7 +11,7 @@ rsync -a --delete --exclude .git /mnt/c/Users/pjw/ros2camp/$W/ "$SRC/"
 P=$SRC/pode/pode_rl_controller/policies
 # 내보내기(export_policy.py)로 spec과 fixture를 worktree에 두고 CMake parity 목록에 acd3를 더한 뒤 돌린다
 [ -f "$P/store_arena_acd3/policy_spec.json" ] || { echo "no store_arena_acd3/policy_spec.json; export it first"; exit 2; }
-grep -qE "^ *foreach\(policy [^)]*store_arena_acd3[ )]""$SRC/pode/pode_rl_controller/CMakeLists.txt" || { echo "add store_arena_acd3 to the parity list in CMakeLists.txt"; exit 2; }
+grep -qE "^ *foreach\(policy [^)]*store_arena_acd3[ )]" "$SRC/pode/pode_rl_controller/CMakeLists.txt" || { echo "add store_arena_acd3 to the parity list in CMakeLists.txt"; exit 2; }
 cp "$ACD2" "$P/store_arena_acd2/policy.onnx"
 cp "$ACD3" "$P/store_arena_acd3/policy.onnx"
 # ---- 빌드(onnxruntime은 ort_probe 묶음) ----
