@@ -152,8 +152,8 @@ protected:
     rpp_->cleanup();
   }
 
-  // 지도: 칸 0.01 m, 왼쪽 벽 면 wall_y(없으면 빈 지도)
-  nav_msgs::msg::OccupancyGrid makeMap(double wall_y) const
+  // 지도: 칸 0.01 m, 벽 칸 줄 [wall_y, wall_y + 0.03)(없으면 빈 지도), 그 아래 unknown_band만큼 미지 칸
+  nav_msgs::msg::OccupancyGrid makeMap(double wall_y, double unknown_band = 0.0) const
   {
     nav_msgs::msg::OccupancyGrid g;
     g.header.frame_id = "map";
@@ -167,6 +167,12 @@ protected:
       for (int r = row; r < row + 3; ++r) {
         for (int c = 0; c < 500; ++c) {
           g.data[r * 500 + c] = 100;
+        }
+      }
+      const int band = static_cast<int>(std::lround(unknown_band / 0.01));
+      for (int r = row - band; r < row; ++r) {
+        for (int c = 0; c < 500; ++c) {
+          g.data[r * 500 + c] = -1;
         }
       }
     }
@@ -404,6 +410,61 @@ TEST_F(FollowWallTest, WallLostReturnsToRpp)
     ASSERT_DOUBLE_EQ(c.fw.angular.z, c.rpp.angular.z) << k;
     EXPECT_FALSE(fw_->shifted());
     EXPECT_DOUBLE_EQ(fw_->filtered(), 0.0);
+  }
+}
+
+TEST_F(FollowWallTest, UnknownBeforeWallSameAsRpp)
+{
+  // 지도 벽 앞에 미지 칸 띠: 기대 거리가 없어 위치 추정 오차가 있어도 보정하지 않는다
+  fw_->feedMap(makeMap(kPathY + 0.08, 0.02));
+  for (double x = 1.05; x < 2.0; x += 0.006) {
+    const auto c = step({x, kPathY, 0.0}, {x, kPathY - 0.02, 0.0}, kPathY + 0.08);
+    ASSERT_DOUBLE_EQ(c.fw.linear.x, c.rpp.linear.x) << x;
+    ASSERT_DOUBLE_EQ(c.fw.angular.z, c.rpp.angular.z) << x;
+    EXPECT_FALSE(fw_->shifted());
+    EXPECT_DOUBLE_EQ(fw_->filtered(), 0.0);
+  }
+}
+
+TEST_F(FollowWallTest, WallLostNearUTurnSameAsRpp)
+{
+  // U자 경로(이웃 줄 간격 0.10 m): 동쪽 줄 y = 2.0, 북쪽으로 0.10 m, 서쪽 줄 y = 2.1
+  nav_msgs::msg::Path u;
+  u.header.frame_id = "map";
+  auto add = [&](double x, double y) {
+      geometry_msgs::msg::PoseStamped p;
+      p.header.frame_id = "map";
+      p.pose.position.x = x;
+      p.pose.position.y = y;
+      p.pose.orientation.w = 1.0;
+      u.poses.push_back(p);
+    };
+  for (int i = 0; i <= 20; ++i) {add(1.0 + 0.05 * i, kPathY);}
+  add(2.0, kPathY + 0.05);
+  for (int i = 0; i <= 20; ++i) {add(2.0 - 0.05 * i, kPathY + 0.10);}
+  rpp_->setPlan(u);
+  fw_->setPlan(u);
+
+  // 오른쪽(남쪽) 벽: 지도 면 y = 1.92, 실제는 2 cm 멀다(e = +0.02)
+  fw_->feedMap(makeMap(kPathY - 0.11));
+  const double scan_wall = kPathY - 0.10;
+  auto same = [&](const Cmds & c, const std::string & tag) {
+      ASSERT_DOUBLE_EQ(c.fw.linear.x, c.rpp.linear.x) << tag;
+      ASSERT_DOUBLE_EQ(c.fw.angular.z, c.rpp.angular.z) << tag;
+    };
+  for (double x = 1.05; x < 1.40; x += 0.006) {
+    step({x, kPathY, 0.0}, {x, kPathY, 0.0}, scan_wall);
+  }
+  // 서쪽 줄 쪽으로 흔들린 한 주기: RPP는 가까운 점을 서쪽 줄에서 찾고 동쪽 줄을 잘라 낸다
+  step({1.45, kPathY + 0.065, 0.0}, {1.45, kPathY + 0.065, 0.0}, scan_wall);
+  ASSERT_TRUE(fw_->shifted());
+
+  // U턴 앞에서 벽을 잃는다: 그 뒤 주기마다 RPP와 같아야 한다
+  for (int k = 0; k < 40; ++k) {
+    const Pose p{1.46 + 0.006 * k, kPathY + 0.01, 0.0};
+    const auto c = step(p, p, kNone);
+    same(c, "k=" + std::to_string(k));
+    EXPECT_FALSE(fw_->shifted());
   }
 }
 

@@ -193,6 +193,19 @@ TEST(Raycast, UnknownIsNotWall)
   EXPECT_LT(pode_follow_wall::raycast(g, 0.5, 0.92, M_PI / 2, 0.5, 65), 0.0);
 }
 
+TEST(Raycast, UnknownStopsRay)
+{
+  // 미지 칸 띠(y 0.95~0.97) 뒤의 벽은 기대 거리로 쓰지 않는다
+  auto g = emptyGrid();
+  addRow(g, 100);
+  addRow(g, 95, 3, -1);
+  EXPECT_LT(pode_follow_wall::raycast(g, 0.5, 0.92, M_PI / 2, 0.5, 65), 0.0);
+  const Pose2 estimate{0.5, 0.92, 0.0};
+  const Pose2 truth{0.5, 0.90, 0.0};
+  const auto m = pode_follow_wall::measureWall(scanHorizontalWall(truth, 1.0), g, estimate, WallParams{});
+  EXPECT_FALSE(m.valid);
+}
+
 TEST(ExpectedPoints, FollowsEstimatedYaw)
 {
   auto g = emptyGrid();
@@ -443,14 +456,18 @@ TEST(ShiftPath, CornerStaysSmooth)
   }
 }
 
-TEST(NearestIndex, MonotonicAndBounded)
+TEST(RppClosestIndex, SameRuleAsRpp)
 {
-  // 갔다가 돌아오는 경로: 이미 지난 앞쪽 점으로 되돌아가지 않는다
+  // 갔다가 돌아오는 경로: 이미 잘라 낸 앞쪽 점으로 되돌아가지 않는다
   const auto path = makePath({{0.0, 0.0}, {1.0, 0.0}, {1.0, 0.1}, {0.0, 0.1}});
-  const std::size_t back = path.poses.size() - 3;  // 돌아오는 줄의 x = 0.1 근처
-  EXPECT_EQ(pode_follow_wall::nearestIndex(path, 0.1, 0.1, back - 2, 1.0), back);
+  const std::size_t back = path.poses.size() - 3;  // 돌아오는 줄의 x = 0.1
+  EXPECT_EQ(pode_follow_wall::rppClosestIndex(path, back - 2, 0.1, 0.1, 1.4875), back);
   // 처음부터 찾으면 가는 줄의 점을 고른다
-  EXPECT_EQ(pode_follow_wall::nearestIndex(path, 0.1, 0.02, 0, 1.0), 2u);
-  // 찾는 길이 밖은 보지 않는다
-  EXPECT_EQ(pode_follow_wall::nearestIndex(path, 0.9, 0.0, 0, 0.3), 6u);
+  EXPECT_EQ(pode_follow_wall::rppClosestIndex(path, 0, 0.1, 0.02, 1.4875), 2u);
+  // 같은 거리면 뒤의 점(min_by의 <=)
+  EXPECT_EQ(pode_follow_wall::rppClosestIndex(path, 0, 0.125, 0.0, 1.4875), 3u);
+  // 찾는 끝 바로 앞 점이 고르면 한 칸 앞으로(점 두 개를 남김): 0.3 m면 끝은 7번, 6번 대신 5번
+  EXPECT_EQ(pode_follow_wall::rppClosestIndex(path, 0, 0.9, 0.0, 0.3), 5u);
+  // 찾는 길이 안에 돌아오는 줄이 들어오면 그쪽이 더 가까울 때 넘어간다
+  EXPECT_GT(pode_follow_wall::rppClosestIndex(path, 10, 0.6, 0.07, 1.4875), 21u);
 }

@@ -1,6 +1,7 @@
 #include "pode_follow_wall/follow_wall.hpp"
 
 #include <cmath>
+#include <limits>
 #include <stdexcept>
 
 #include "nav2_util/node_utils.hpp"
@@ -62,7 +63,6 @@ void FollowWall::configure(
   declare("occupied_threshold", ParameterValue(65));
   declare("shift_full_length", ParameterValue(0.30));
   declare("shift_taper_length", ParameterValue(0.20));
-  declare("path_search_length", ParameterValue(1.0));
   declare("scan_timeout", ParameterValue(0.3));
   declare("transform_tolerance", ParameterValue(0.2));
 
@@ -88,7 +88,6 @@ void FollowWall::configure(
   wall_params_.occupied_threshold = get_i("occupied_threshold");
   shift_full_length_ = get_d("shift_full_length");
   shift_taper_length_ = get_d("shift_taper_length");
-  path_search_length_ = get_d("path_search_length");
   scan_timeout_ = get_d("scan_timeout");
   transform_tolerance_ = get_d("transform_tolerance");
 
@@ -105,6 +104,14 @@ void FollowWall::configure(
   const std::string primary_name = name + "." + get_s("primary_namespace");
   primary_ = loader_.createSharedInstance(primary_type);
   primary_->configure(parent, primary_name, tf, costmap_ros);
+  // 가까운 점 찾기 범위는 품은 RPP와 같게(RPP처럼 음수면 끝까지)
+  robot_search_dist_ = std::numeric_limits<double>::max();
+  if (node->has_parameter(primary_name + ".max_robot_pose_search_dist")) {
+    const double d = node->get_parameter(primary_name + ".max_robot_pose_search_dist").as_double();
+    if (d >= 0.0) {
+      robot_search_dist_ = d;
+    }
+  }
 
   // 입력과 진단 토픽
   scan_sub_ = node->create_subscription<sensor_msgs::msg::LaserScan>(
@@ -162,14 +169,14 @@ void FollowWall::setPlan(const nav_msgs::msg::Path & path)
 {
   // 원래 경로를 그대로 넘기고, 옮긴 경로는 주기마다 다시 만든다
   plan_ = path;
-  nearest_ = 0;
+  rpp_start_ = 0;
   shifted_ = false;
   primary_->setPlan(path);
 }
 
 double FollowWall::updateCorrection(
   const geometry_msgs::msg::PoseStamped & pose, msg::FollowWallState & state,
-  double & normal_x, double & normal_y, std::size_t & nearest)
+  double & normal_x, double & normal_y, std::size_t & start, std::size_t & nearest)
 {
   // 보정하지 않을 때는 거른 값을 비운다
   auto none = [&]() {
@@ -177,21 +184,24 @@ double FollowWall::updateCorrection(
       filter_side_ = 0;
       return 0.0;
     };
-  nearest = nearest_;
+  start = rpp_start_;
+  nearest = rpp_start_;
   if (plan_.poses.empty()) {
     return none();
   }
 
   // 추정 자세(AMCL, 경로 틀)
-  geometry_msgs::msg::PoseStamped map_pose;
-  if (!nav2_util::transformPoseInTargetFrame(
+  geometry_msgs::msg::PoseStamped map_pose = pose;
+  if (pose.header.frame_id != plan_.header.frame_id &&
+    !nav2_util::transformPoseInTargetFrame(
       pose, map_pose, *tf_, plan_.header.frame_id, transform_tolerance_))
   {
     return none();
   }
-  nearest_ = nearestIndex(
-    plan_, map_pose.pose.position.x, map_pose.pose.position.y, nearest_, path_search_length_);
-  nearest = nearest_;
+  // 따로 띄운 RPP라면 이번 주기에 고를 점과 잘라 낸 뒤의 시작(옮기지 않은 경로 기준)
+  nearest = rppClosestIndex(
+    plan_, rpp_start_, map_pose.pose.position.x, map_pose.pose.position.y, robot_search_dist_);
+  rpp_start_ = nearest;
 
   sensor_msgs::msg::LaserScan::ConstSharedPtr scan;
   nav_msgs::msg::OccupancyGrid::ConstSharedPtr map;
@@ -277,11 +287,10 @@ geometry_msgs::msg::TwistStamped FollowWall::computeVelocityCommands(
   state.header.stamp = clock_->now();
   state.header.frame_id = costmap_ros_->getBaseFrameID();
   double nx = 0.0, ny = 0.0;
-  std::size_t nearest = 0;
-  const double shift = updateCorrection(pose, state, nx, ny, nearest);
+  std::size_t start = 0, nearest = 0;
+  const double shift = updateCorrection(pose, state, nx, ny, start, nearest);
 
-  // 보정이 있으면 옮긴 경로를, 보정이 끝나면 원래 경로를 넘긴다
-  const std::size_t start = nearest >= 2 ? nearest - 2 : 0;
+  // 보정이 있으면 옮긴 경로를, 보정이 끝나면 원래 경로를 RPP가 쥐고 있었을 시작부터 넘긴다
   if (shift != 0.0) {
     primary_->setPlan(shiftPath(
         plan_, start, nearest, shift * nx, shift * ny, shift_full_length_, shift_taper_length_));

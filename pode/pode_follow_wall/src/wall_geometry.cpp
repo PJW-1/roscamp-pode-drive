@@ -155,13 +155,11 @@ double raycast(
   const double dy = std::sin(theta - oyaw);
   int ix = static_cast<int>(std::floor(gx));
   int iy = static_cast<int>(std::floor(gy));
-  auto occupied = [&](int cx, int cy) {
-      return grid.data[static_cast<std::size_t>(cy) * w + cx] >= occupied_threshold;
-    };
-  if (ix < 0 || iy < 0 || ix >= w || iy >= h) {
+  auto cell = [&](int cx, int cy) {return grid.data[static_cast<std::size_t>(cy) * w + cx];};
+  if (ix < 0 || iy < 0 || ix >= w || iy >= h || cell(ix, iy) < 0) {
     return -1.0;
   }
-  if (occupied(ix, iy)) {
+  if (cell(ix, iy) >= occupied_threshold) {
     return 0.0;
   }
   // 칸 경계를 하나씩 넘는다(DDA)
@@ -184,10 +182,11 @@ double raycast(
       tmax_y += tdy;
       iy += sy;
     }
-    if (t > tlimit || ix < 0 || iy < 0 || ix >= w || iy >= h) {
+    // 지도 밖이나 미지 칸을 만나면 기대 거리 없음
+    if (t > tlimit || ix < 0 || iy < 0 || ix >= w || iy >= h || cell(ix, iy) < 0) {
       return -1.0;
     }
-    if (occupied(ix, iy)) {
+    if (cell(ix, iy) >= occupied_threshold) {
       return t * res;
     }
   }
@@ -266,31 +265,39 @@ double shapeCorrection(double filtered_error, double deadband, double max_correc
 
 // ---- 경로 ----
 
-std::size_t nearestIndex(
-  const nav_msgs::msg::Path & path, double x, double y, std::size_t from, double search_length)
+std::size_t rppClosestIndex(
+  const nav_msgs::msg::Path & path, std::size_t start, double x, double y, double search_dist)
 {
   const auto & ps = path.poses;
   if (ps.empty()) {
     return 0;
   }
-  from = std::min(from, ps.size() - 1);
-  std::size_t best = from;
-  double best_d = std::numeric_limits<double>::max();
-  double acc = 0.0;
-  for (std::size_t i = from; i < ps.size(); ++i) {
-    if (i > from) {
-      acc += std::hypot(
-        ps[i].pose.position.x - ps[i - 1].pose.position.x,
-        ps[i].pose.position.y - ps[i - 1].pose.position.y);
-      if (acc > search_length) {
-        break;
-      }
+  start = std::min(start, ps.size() - 1);
+  // 찾는 끝: 적분 거리가 search_dist를 처음 넘는 점(그 점은 빼고)
+  std::size_t upper = ps.size();
+  double dist = 0.0;
+  for (std::size_t i = start; i + 1 < ps.size(); ++i) {
+    dist += std::hypot(
+      ps[i].pose.position.x - ps[i + 1].pose.position.x,
+      ps[i].pose.position.y - ps[i + 1].pose.position.y);
+    if (dist > search_dist) {
+      upper = i + 1;
+      break;
     }
-    const double d = std::hypot(ps[i].pose.position.x - x, ps[i].pose.position.y - y);
-    if (d < best_d) {
-      best_d = d;
+  }
+  // 가장 가까운 점, 같으면 뒤의 것
+  std::size_t best = start;
+  double lowest = std::hypot(x - ps[start].pose.position.x, y - ps[start].pose.position.y);
+  for (std::size_t i = start + 1; i < upper; ++i) {
+    const double d = std::hypot(x - ps[i].pose.position.x, y - ps[i].pose.position.y);
+    if (d <= lowest) {
+      lowest = d;
       best = i;
     }
+  }
+  // 끝 방향을 구할 점 두 개를 남긴다
+  if (ps.size() - start > 1 && best + 1 == upper) {
+    best = upper >= start + 2 ? upper - 2 : start;
   }
   return best;
 }

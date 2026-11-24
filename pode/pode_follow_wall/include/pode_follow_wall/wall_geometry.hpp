@@ -107,9 +107,9 @@ WallMeasurement measureWall(
 // 데드밴드와 상한을 건 보정량
 double shapeCorrection(double filtered_error, double deadband, double max_correction);
 
-// from부터 search_length 안에서 가장 가까운 경로 점
-std::size_t nearestIndex(
-  const nav_msgs::msg::Path & path, double x, double y, std::size_t from, double search_length);
+// 품은 RPP(Jazzy 1.3 PathHandler)와 같은 규칙으로 고른 가까운 점, RPP는 이 점 앞을 잘라 낸다
+std::size_t rppClosestIndex(
+  const nav_msgs::msg::Path & path, std::size_t start, double x, double y, double search_dist);
 
 // start부터의 경로를 옮긴다: nearest 뒤 full_length까지 모두, taper_length 동안 줄여 0
 nav_msgs::msg::Path shiftPath(

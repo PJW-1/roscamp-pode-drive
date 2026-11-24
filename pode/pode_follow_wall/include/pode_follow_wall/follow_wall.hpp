@@ -47,7 +47,7 @@ protected:
   // 이번 주기의 보정량을 구하고 진단 값을 채운다
   double updateCorrection(
     const geometry_msgs::msg::PoseStamped & pose, msg::FollowWallState & state,
-    double & normal_x, double & normal_y, std::size_t & nearest);
+    double & normal_x, double & normal_y, std::size_t & start, std::size_t & nearest);
 
   rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
@@ -75,13 +75,13 @@ protected:
   double filter_alpha_{0.1};
   double shift_full_length_{0.30};
   double shift_taper_length_{0.20};
-  double path_search_length_{1.0};
   double scan_timeout_{0.3};
   double transform_tolerance_{0.2};
 
   // 주기 사이 상태
   nav_msgs::msg::Path plan_;
-  std::size_t nearest_{0};
+  double robot_search_dist_{1.0};
+  std::size_t rpp_start_{0};  // 따로 띄운 RPP가 잘라 낸 뒤 경로의 시작
   int filter_side_{0};
   double filtered_error_{0.0};
   bool shifted_{false};

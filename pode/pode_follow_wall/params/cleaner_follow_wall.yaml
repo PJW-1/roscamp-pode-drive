@@ -36,7 +36,6 @@ controller_server:
       # 경로 옮기기: 로봇 앞 0.3 m까지 모두, 다음 0.2 m 동안 줄여 0
       shift_full_length: 0.30
       shift_taper_length: 0.20
-      path_search_length: 1.0
       scan_timeout: 0.3
       transform_tolerance: 0.2
       # 품은 RPP: FollowPath와 같은 값(through_controller_id를 비우므로 접근 감속은 FollowPath 값)
