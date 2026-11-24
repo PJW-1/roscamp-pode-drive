@@ -115,7 +115,8 @@ def test_seeds_that_used_to_stick_finish_their_orders(seed):
     w = ZoneWorld(layout="v7", seed=seed, robots=dict(STARTS), cleaners=(CLEANER,))
     w.run_until(w.orders_done, 600)
     assert w.orders_done()
-    assert not [v for v in w.violations if v.robot == CLEANER]
+    # 두 로봇 사이 위반(접촉, 근접)은 robot 칸이 비어 detail에 이름이 든다
+    assert not [v for v in w.violations if v.robot == CLEANER or CLEANER in v.detail]
 
 
 # ---- 청소 로봇이 없으면 비키기 파라미터는 아무것도 바꾸지 않는다 ----

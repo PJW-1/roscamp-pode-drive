@@ -507,7 +507,10 @@ class Cleaning:
             return True
         other, why = self._clean_meeting(m, job)
         if other is None:
-            job.yield_for, job.yield_since = "", None
+            # 비켜 준 로봇의 남은 길에서 벗어났을 때만 만남 시계를 지운다(선 채 만남과 같은 기준)
+            last = self._robots.get(job.yield_for)
+            if last is None or self._clear_of(m, last):
+                job.yield_for, job.yield_since = "", None
             return False
         self._clean_make_way(m, other, why)
         return True
@@ -618,14 +621,17 @@ class Cleaning:
             if min(point_segment_distance(pos, a, b)
                    for a, b in pairwise(sent)) < min(body, start_gap) - 1e-6:
                 continue
+            if any(_path_gap((o.x, o.y), sent) <= p.clean_conflict_reach_m for o in rest):
+                continue
             leg = self._leg(YIELD, "clean_yield", sent, None)
             if any(site.nodes[n].zone is None or site.zones[site.nodes[n].zone].kind != SHARED
                    for n in leg.nodes):
                 continue
-            # 남이 쥔 지점은 경로가 지금 자리보다 그 지점에 다가가고, 쥔 로봇이 그 지점에서
-            # clean_conflict_ahead_m 안일 때만 막는다. 나머지는 쥐지 않고 지난다
+            # 남이 쥔 지점은 경로가 지금 자리보다 그 지점에 다가가면 막는다. 다만 비켜 주는
+            # 그 로봇이 쥔 지점은 그 로봇이 지점에서 clean_conflict_ahead_m 밖이면 쥐지 않고 지난다
             held = [(n, self.grants.node_holder(n)) for n in leg.nodes]
-            if any(h not in ("", m.name) and self._near_its_node(h, n)
+            if any(h not in ("", m.name)
+                   and (h != other.name or self._near_its_node(h, n))
                    and _path_gap(site.node_pose(n), sent) < math.dist(site.node_pose(n), here) - 1e-6
                    for n, h in held):
                 continue
@@ -929,7 +935,8 @@ class Cleaning:
     def _clean_cancel(self, m, job) -> None:
         """지금 goal(줄이든 우회든)을 거둔다. 늦게 온 결과는 goal 번호로 버려진다."""
         self._cancel_goal(m)
-        job.goal_id, job.blocked_since, job.blocked_at = None, None, None
+        job.goal_id, job.arrival_by = None, None
+        job.blocked_since, job.blocked_at = None, None
         self._clean_release(m, job, ended=True)
 
     # ---- 줄 위 진행점: 줄 축에 내린 거리 ----

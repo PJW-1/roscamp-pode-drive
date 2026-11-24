@@ -6,11 +6,12 @@ from __future__ import annotations
 
 import math
 from dataclasses import replace
+from types import SimpleNamespace
 
 from fleet_core.common.commands import CancelCmd, RetreatCmd
 from fleet_core.common.params import load_params
 from fleet_core.traffic.mission import RUN, STOP
-from fleet_core.traffic.zone.cleaning import BACK, BAY_IN, HOME, LINE, YIELD
+from fleet_core.traffic.zone.cleaning import BACK, BAY_IN, HOME, LINE, YIELD, _path_gap
 from fleet_core.traffic.zone.robots import Dispatch, Goal
 from fleet_core.traffic.zone.routes import Route
 from test_zone_cleaning import CLEANER_NAME, World, _blocked
@@ -72,7 +73,6 @@ def test_the_stuck_form_is_undone_by_yielding_before_the_transport_comes():
     end, p = (move.x, move.y), w.params
     band = w.t._clean_band(w.t._robots["pode1"], full=True)
     assert [w.site.node_pose(n) for n in ("Q2", "Q1", "W")] == band[1:]
-    from fleet_core.traffic.zone.cleaning import _path_gap
     assert _path_gap(end, band) > p.clean_yield_band_m / 2 + p.footprint_radius_m
     # Q2는 pode1이 멀리 있어 쥐지 않고 지난다
     assert "Q2" not in w.job.leg.nodes and w.t.grants.node_holder("Q2") == "pode1"
@@ -146,6 +146,61 @@ def test_already_clear_of_the_way_just_stops_and_keeps_progress():
     assert w.job.goal_id is None and w.job.queue[0] == k
     assert math.dist(w.job.segs[k][0], w.at(a, b, 0.3)) < 1e-6
     assert len(w.events("CLEAN_YIELD")) == 1
+
+
+def test_a_yield_asked_during_the_arrival_wait_drops_the_wait():
+    w = World({"pode1": "P-2", CLEANER_NAME: "P-1"})
+    k, a, b, line = w.to_line()
+    w.pos[CLEANER_NAME] = w.at(a, b, 0.3)
+    w.step()
+    w.finish(line.goal_id)
+    assert w.job.arrival_by is not None
+    t = w.t
+    assert t._clean_make_way(t._robots[CLEANER_NAME], t._robots["pode1"], "test")
+    w.out += t.take_output()
+    assert w.job.arrival_by is None and w.job.goal_id is None
+    w.report()
+    w.out += t.take_output()
+    assert not w.events("CLEAN_LINE_DONE")
+
+
+def test_the_yield_path_keeps_off_other_robots_and_their_nodes():
+    w = _at_q1("E-3")
+    t, site = w.t, w.site
+    c, pode1 = t._robots[CLEANER_NAME], t._robots["pode1"]
+    plain = t._clean_yield_leg(c, pode1)
+    assert plain is not None
+    # 경로 한가운데에 다른 로봇이 서 있으면 그 경로를 쓰지 않는다
+    mid = plain.points[len(plain.points) // 2]
+    third = SimpleNamespace(name="pode9", x=mid[0], y=mid[1], placed=True)
+    t._robots["pode9"] = third
+    try:
+        leg = t._clean_yield_leg(c, pode1)
+        assert leg is None or _path_gap((third.x, third.y), leg.points) > w.params.clean_conflict_reach_m
+    finally:
+        del t._robots["pode9"]
+    # 비켜 주는 상대가 아닌 로봇이 쥔 지점은 멀리 있어도 쥐지 않고 지나지 않는다
+    t.grants.release_node("pode1", "Q2")
+    t._robots["pode2"] = SimpleNamespace(name="pode2", x=0.12, y=0.62, placed=True)
+    try:
+        assert t.grants.force("pode2", [], ["Q2"])
+        leg = t._clean_yield_leg(c, pode1)
+        assert leg is None or "Q2" not in [n for n in site.nodes
+                                           if _path_gap(site.node_pose(n), leg.points)
+                                           < math.dist(site.node_pose(n), AT_Q1) - 1e-6]
+    finally:
+        del t._robots["pode2"]
+
+
+def test_the_meeting_clock_stays_while_on_the_rest_of_the_route():
+    w = _at_q1("E-3")
+    t, job = w.t, w.job
+    c, pode1 = t._robots[CLEANER_NAME], t._robots["pode1"]
+    assert t._clean_meeting(c, job)[0] is None  # base 띠(E-3 -> Q2) 밖
+    assert not t._clear_of(c, pode1)  # 남은 route(Q1 -> W) 위
+    job.yield_for, job.yield_since = "pode1", 0.0
+    assert not t._clean_watch_meeting(c, job, w.now)
+    assert job.yield_for == "pode1" and job.yield_since == 0.0
 
 
 def test_no_yield_point_sends_the_cleaner_home_and_the_lap_goes_on(monkeypatch):
