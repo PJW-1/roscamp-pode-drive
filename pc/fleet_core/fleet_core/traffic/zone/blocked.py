@@ -236,6 +236,13 @@ class Blocked:
             if self._to_parking(other, "INFO", "HALL_YIELD",
                                 f"out of the way of {m.name}, goes to", clear_of=m):
                 return True
+        # 길 위의 청소 로봇은 청소 실행부가 비키게 한다(4-6)
+        for name in self._cleaners:
+            c = self._robots[name]
+            if (c is not m and c.available and c.placed
+                    and point_segment_distance((c.x, c.y), here, end) <= self.params.near_m
+                    and self._clean_make_way(c, m, f"stands on {m.name}'s way to {node}")):
+                return True
         return False
 
     # ---- 로봇단 양보 기록과 막힘 만료 ----

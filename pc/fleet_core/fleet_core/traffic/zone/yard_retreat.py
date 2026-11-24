@@ -81,6 +81,14 @@ class YardRetreat:
 
     # ---- 다른 로봇에게 길 양보 ----
     def _yield_to_robot(self, m, other, now: float) -> bool:
+        # 막은 것이 청소 로봇이면 청소 쪽이 비키고 운반 로봇은 goal을 쥔 채 기다린다(4-6)
+        if (other.name in self._cleaners and m.name not in self._cleaners
+                and self._clean_make_way(other, m, f"{m.name} is blocked by it")):
+            m.watch.blocked.since = None
+            m.avoid.robot_yield_at = now
+            self._event("INFO", "HALL_YIELD", f"waits for {other.name} to clear the way, "
+                        "nothing marked", m.name)
+            return True
         edge = m.route.edges[m.route.done]
         zone = self.site.zone_at(m.x, m.y)
         in_lane = edge.a and zone is not None and self.site.zones[zone].kind != SHARED

@@ -107,3 +107,25 @@ def test_detour_that_cannot_run_defers_the_line(obstacle_run):
     assert failed
     assert [e for _, e in w.events if e.code in ("CLEAN_LINE_DEFERRED", "CLEAN_LINE_SKIPPED")]
     assert not w.violations
+
+
+# ---- 비키기(4-6): 청소 로봇이 Q1을 쥐고 운반 로봇이 Q2에서 기다리던 seed도 주문을 끝낸다 ----
+@pytest.mark.parametrize("seed", [2, 5])
+def test_seeds_that_used_to_stick_finish_their_orders(seed):
+    w = ZoneWorld(layout="v7", seed=seed, robots=dict(STARTS), cleaners=(CLEANER,))
+    w.run_until(w.orders_done, 600)
+    assert w.orders_done()
+    assert not [v for v in w.violations if v.robot == CLEANER]
+
+
+# ---- 청소 로봇이 없으면 비키기 파라미터는 아무것도 바꾸지 않는다 ----
+def test_yield_parameters_do_nothing_without_a_cleaner():
+    def run(overrides):
+        w = ZoneWorld(layout="v7", seed=1, robots={"pode1": "P-2", "pode2": "P-3"},
+                      overrides=overrides)
+        w.run_until(w.orders_done, 400)
+        return [(t, e.code, e.detail, e.robot) for t, e in w.events], w.commands
+
+    odd = {"clean_yield_band_m": 2.0, "clean_yield_near_m": 2.0, "clean_yield_wait_s": 0.1,
+           "clean_stuck_s": 0.1}
+    assert run({}) == run(odd)

@@ -59,10 +59,13 @@ NAMES = [c[0] for c in CONDITIONS]
 # ---- 미룸 이유 문자열 → 원인 ----
 CAUSES = [("R1", "not a shared zone"), ("R2", " is held by "), ("R3", " stands near"),
           ("R4", "'s base passes near"), ("take", "cannot take"),
-          ("path", "the joined path is not clear"), ("blocked", "blocked for")]
+          ("path", "the joined path is not clear"), ("blocked", "blocked for"),
+          ("meet", "meets "), ("wait", " waits for ")]
 CAUSE_NAMES = [c for c, _ in CAUSES] + ["other"]
 TRANSPORT_BLOCK = {"BLOCKED", "BLOCKED_WAIT", "BLOCK_CONFIRMED", "ZONE_MARKED_BLOCKED"}
 TRANSPORT_YIELD = {"HALL_YIELD", "LOCAL_YIELD", "ZONE_WAIT", "RETREAT_WAIT", "BASE_END_WAIT"}
+# 청소 로봇 비키기(4-6) 사건: 판 전체에서 센다
+CLEAN_YIELD_CODES = ("CLEAN_YIELD", "CLEAN_HOME", "CLEAN_STUCK")
 LAP = re.compile(r"lap 1 in ([\d.]+) s: (\d+)/(\d+) lines, (\d+) deferrals, skipped \[([^\]]*)\]"
                  r".*covered ([\d.]+)")
 
@@ -165,6 +168,8 @@ def run_one(name: str, layout: str, kind: str, extra: dict, seed: int, maps=None
     out["transport_blocked_onsets"] = sum(blocked_onsets.values())
     if not cleaning:
         return out
+    cev = Counter(e.code for _, e in w.events if e.robot == CLEANER)
+    out["clean_yield_events"] = {c: cev[c] for c in CLEAN_YIELD_CODES}
 
     # ---- 첫 바퀴: 끝, 미룸 원인, 덮은 비율 ----
     lap, done = first_lap([(t, e) for t, e in w.events if e.robot == CLEANER])
@@ -239,6 +244,8 @@ def summarize(runs: list[dict]) -> list[dict]:
             row["laps_unfinished"] = sum(r["lap_s"] is None for r in rs)
             gaps = [r.get("min_gap") for r in rs]
             row["min_gap"] = min((g for g in gaps if g is not None), default=None)
+            row["clean_yield_events"] = {c: sum(r["clean_yield_events"][c] for r in rs)
+                                         for c in CLEAN_YIELD_CODES}
         rows.append(row)
     return rows
 
@@ -252,10 +259,12 @@ def _span(values) -> str:
 
 
 def markdown(rows: list[dict]) -> str:
-    lines = ["| 조건 | 바꾼 값 | 끝낸 줄 | 미룸 | R1 | R2 | R3 | R4 | take | path | BLOCKED | 기타 "
+    lines = ["| 조건 | 바꾼 값 | 끝낸 줄 | 미룸 | R1 | R2 | R3 | R4 | take | path | BLOCKED | meet "
+             "| wait | 기타 "
              "| 포기 줄 | 덮은 비율(받은 위치) | 첫 바퀴 s | 주문 끝 s | 지연 평균/최대 s "
-             "| 최소 거리 m | 위반(청소) | I5 | 운반 BLOCKED 사건/멈춤 | 운반 양보·기다림 |",
-             "|" + "---|" * 22]
+             "| 최소 거리 m | 위반(청소) | I5 | 운반 BLOCKED 사건/멈춤 | 운반 양보·기다림 "
+             "| 비키기/집/STUCK |",
+             "|" + "---|" * 25]
     for r in rows:
         changed = ", ".join(f"{k.replace('clean_', '')}={v}" for k, v in r["overrides"].items())
         changed = changed or "-"
@@ -264,10 +273,10 @@ def markdown(rows: list[dict]) -> str:
             + (f" 막힘 seed {r['stalled']}" if r["stalled"] else "")
                 + f" | {_f(r['delay_mean'])}/{_f(r['delay_max'])} ")
         if r["kind"] == NO_CLEANER:
-            lines.append(f"| {r['condition']} | {changed} |" + " - |" * 13 + tail[1:]
+            lines.append(f"| {r['condition']} | {changed} |" + " - |" * 15 + tail[1:]
                          + f"| - | {r['violations']}(-) | {r['i5_standing']} "
                          f"| {r['transport_blocked_events']}/{r['transport_blocked_onsets']} "
-                         f"| {r['transport_yield_events']} |")
+                         f"| {r['transport_yield_events']} | - |")
             continue
         c = r["causes"]
         lines.append(
@@ -277,7 +286,8 @@ def markdown(rows: list[dict]) -> str:
             + (f" ({r['laps_unfinished']} 못 끝냄)" if r["laps_unfinished"] else "")
             + f" {tail}| {_f(r['min_gap'], 3)} | {r['violations']}({r['violations_cleaner']}) "
             f"| {r['i5_standing']} | {r['transport_blocked_events']}/"
-            f"{r['transport_blocked_onsets']} | {r['transport_yield_events']} |")
+            f"{r['transport_blocked_onsets']} | {r['transport_yield_events']} "
+            f"| {'/'.join(str(v) for v in r['clean_yield_events'].values())} |")
     return "\n".join(lines)
 
 

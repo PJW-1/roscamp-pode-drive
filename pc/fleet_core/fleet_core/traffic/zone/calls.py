@@ -27,6 +27,8 @@ class Calls:
             for m in self._robots.values():
                 if m.goal and not m.health.comm:
                     self._cancel_goal(m)
+            # 청소 로봇은 거둔 줄의 도착 대기와 기록을 바로 지우고, RUN이면 진행점부터 잇는다
+            self._clean_on_stop()
         if run_mode != self._run_mode:
             for m in self._robots.values():
                 self._reset_stall(m)

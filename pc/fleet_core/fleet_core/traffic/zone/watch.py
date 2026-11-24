@@ -25,7 +25,8 @@ class Watch:
         waiting = m.move_order is not None and m.move_order.waiting
         rests = m.report.robot_state in (BLOCKED, SELF_RECOVERING)
         if (m.goal is None or self._run_mode != RUN or m.arrival_by is not None or waiting
-                or (rests and m.goal.kind != DOCK) or m.report.robot_state == LOCALIZING):
+                or (rests and m.goal.kind != DOCK) or m.report.robot_state == LOCALIZING
+                or self._clean_waits_arrival(m)):
             self._reset_stall(m)
             return
         here, ep = (m.x, m.y), m.watch.stall
@@ -101,6 +102,25 @@ class Watch:
                     low, other = sorted((a, b), key=lambda m: (self._priority(m), m.name))
                     self._cancel_goal(low)
                     self._stand_aside(low, other, now)
+                    del self._near[key]
+        # 청소 로봇 곁에서 못 나아가는 운반 로봇: 청소 쪽이 비킨다(4-6)
+        for c in self._robots.values():
+            if c.name not in self._cleaners or not c.available or not c.placed:
+                continue
+            for a in moving:
+                spots = ((a.x, a.y), (c.x, c.y))
+                if math.dist(*spots) > p.near_m:
+                    continue
+                key = (a.name, c.name)
+                seen.add(key)
+                since, before = self._near.get(key, (now, spots))
+                if any(math.dist(old, new) >= p.stall_move_m
+                       for old, new in zip(before, spots, strict=True)):
+                    since, before = now, spots
+                self._near[key] = (since, before)
+                if now - since >= p.near_stuck_s:
+                    self._clean_make_way(c, a, f"{a.name} has not moved near it for "
+                                         f"{now - since:.0f} s")
                     del self._near[key]
         for key in [key for key in self._near if key not in seen]:
             del self._near[key]
