@@ -77,9 +77,16 @@ Codex 세 번(67cfb85..b73f4d4, 수정 1 ce543f6, 수정 2 19496eb). 고친 것:
 
 - 4-6 운반 로봇에게 비키기, 4-9 STOP 뒤 이어 하기(단계 3).
 - 우회 구동의 controller 비교(RL, MPPI)는 청소 로봇 Nav2 설정으로 판마다 바꾼다.
-- d2처럼 줄이 모두 막힌 판에서 바퀴를 쉬게 할지(사건이 계속 나온다).
+- d2처럼 줄이 모두 막힌 판에서 바퀴를 쉬게 할지(사건이 계속 나온다). 계획 Q15, 미룸 원인을 고친 뒤 다시 본다(11-24 사용자 결정).
 - 실물·Gazebo로 우회와 빈틈을 본 적 없다.
-- **남은 결함(사용자 결정 대기):** 청소 goal이 바깥에서 거둬지면(STOP의 `on_run_mode` → `_cancel_goal`, 멈춤 감시 `_watch_stall` → `_cancel_goal`) `m.goal`만 지워지고 `job.goal_id`, `job.arrival_by`는 남는다.
+- **남은 결함(11-24 사용자 결정: 단계 3의 4-9 STOP 처리와 같이 고친다):** 청소 goal이 바깥에서 거둬지면(STOP의 `on_run_mode` → `_cancel_goal`, 멈춤 감시 `_watch_stall` → `_cancel_goal`) `m.goal`만 지워지고 `job.goal_id`, `job.arrival_by`는 남는다.
   - 도착을 기다리는 중(일찍 온 성공 뒤 `arrival_settle_s` 안)에 STOP이 오면, 다음 위치 보고 때 `_clean_report`(`cleaning.py:479-482`)가 `m.goal`을 보지 않고 `_clean_arrival`을 불러 거둔 다리를 완료나 NOT_AT_TARGET으로 처리할 수 있다. bay_in이면 STOP 중 바퀴 끝이 기록될 수 있다.
   - 도착 대기는 `job.arrival_by`에만 적히고 멈춤 감시는 `m.arrival_by`만 보고 건너뛴다(`watch.py:27`). 그래서 대기 중에도 멈춤 판정이 돌아 goal을 거둘 수 있다.
-  - 둘 다 일찍 온 성공 뒤 몇 초 안에 STOP이나 멈춤이 겹쳐야 생긴다.
+  - 둘 다 일찍 온 성공 뒤 몇 초 안에 STOP이나 멈춤이 겹쳐야 생긴다. 첫째는 다음 tick이 남은 상태를 지우기 전에 위치 보고가 먼저 올 때만 생긴다(`_clean_step`).
+
+## 9. 사용자 결정(11-24)
+
+- 위 남은 결함 두 건은 단계 3의 4-9에서 고친다.
+- 단계 3·4에서 먼저 줄 미루기가 잦은 원인을 표로 본다. 표는 브랜치 `feat/cleaner-defer-2026-11-24`의 `docs/worklog_cleaner_defer_2026-11-24.md`에 있다.
+- Q15(줄을 하나도 못 끝낸 바퀴 뒤 쉼)는 미룸 원인을 고친 뒤, Q16(우회 여유 `clean_detour_margin_m`)은 Gazebo 사람 판 뒤에 정한다.
+- 이 브랜치는 사용자가 말할 때 main에 합친다.
