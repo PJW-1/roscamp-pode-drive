@@ -4,6 +4,7 @@
 #include <limits>
 #include <stdexcept>
 
+#include "nav2_core/controller_exceptions.hpp"
 #include "nav2_util/node_utils.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "pluginlib/class_list_macros.hpp"
@@ -198,8 +199,10 @@ double FollowWall::updateCorrection(
       tf_->transform(pose, map_pose, plan_.header.frame_id,
         tf2::durationFromSec(transform_tolerance_));
     } catch (const tf2::TransformException & ex) {
-      RCLCPP_WARN_THROTTLE(logger_, *clock_, 5000, "%s: %s", plugin_name_.c_str(), ex.what());
-      return none();
+      // 품은 RPP를 부르지 않고 RPP와 같은 예외를 낸다(RPP 경로 상태가 앞서 나가지 않게)
+      none();
+      throw nav2_core::ControllerTFError(
+              std::string("Unable to transform robot pose into global plan's frame: ") + ex.what());
     }
   }
   // 따로 띄운 RPP라면 이번 주기에 고를 점과 잘라 낸 뒤의 시작(옮기지 않은 경로 기준)

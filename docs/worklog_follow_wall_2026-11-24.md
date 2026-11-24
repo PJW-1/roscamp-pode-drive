@@ -70,7 +70,7 @@ colcon test-result --test-result-base build_fw/pode_follow_wall --verbose
 - 가까운 점: RPP와 같은 규칙(되돌아가지 않음, 같은 거리면 뒤의 점, 찾는 끝 바로 앞이면 한 칸 앞, 찾는 길이 안의 이웃 줄로 넘어감)
 - 경로: 곧은 줄(앞 0.3 m 모두, 줄이는 구간 기울기 ≤ atan(0.02/0.2)), 줄 끝(남은 점이 같이 옮겨져 모양·간격·끝 방향 그대로), 모서리(어느 점도 2 cm 넘게 안 옮겨짐, 점이 거꾸로 가지 않음)
 
-`test_follow_wall`(16개, RPP와 견주기):
+`test_follow_wall`(16개, RPP와 견주기, 시간에 기대는 것은 진단 토픽 수신 대기뿐):
 - 같은 노드에 RPP를 하나 더 띄우고(`RPP.*`), FollowWall 안의 RPP(`FollowWall.rpp.*`)와 같은 파라미터를 준다. 같은 경로, 같은 costmap, 같은 TF, 같은 pose와 속도로 매 주기 둘을 부르고 `linear.x`, `angular.z`가 **정확히 같은지**(`ASSERT_DOUBLE_EQ`) 본다. 줄을 따라 260주기 가까이 돌며 yaw를 흔들고 로봇을 경로 옆에 둔다. 견줄 값이 0만이 아닌지(움직이는 주기 절반 넘게, 도는 주기 1/4 넘게)도 본다.
 - 라이다 틀은 몸 뒤 2 cm, 180° 돌아 있다. scan은 참 자세에서 지도 벽까지 광선을 계산해 만든다.
 - RPP와 같아야 하는 판: scan·지도 없음, 벽 없음, 지도에 없는 벽(물체), 창 밖 벽, 오래된 scan, 추정 자세는 맞고 로봇만 경로에서 1.5 cm 벗어남(e = 0), 벽을 잃은 뒤(원래 경로로 돌아감), 지도 벽 앞 미지 칸 띠(위치 추정 오차가 있어도 보정 0), U자 경로(이웃 줄 0.10 m)에서 서쪽 줄로 흔들려 RPP가 동쪽 줄을 잘라 낸 뒤 U턴 앞에서 벽을 잃음, 속도 제한 넘김
@@ -90,7 +90,10 @@ colcon test-result --test-result-base build_fw/pode_follow_wall --verbose
 ## Codex 검수 뒤 고친 것 (fix 커밋)
 
 - 벽을 잃은 뒤 경로 복원: 전에는 FollowWall이 따로 찾은 가까운 점(1.0 m 안, 같은 거리면 앞의 점) − 2부터 원래 경로를 넘겨, RPP가 이미 잘라 낸 점을 되살릴 수 있었다. U자 시험에서 고치기 전 FollowWall 0.12 m/s, RPP 0 m/s로 갈렸다. 지금은 RPP와 같은 규칙으로 RPP의 잘라 낸 시작을 따라가고 그 시작부터 넘긴다. RPP 코드를 부르지 않고 규칙을 옮겨 쓴 것은 RPP의 `PathHandler`가 RPP 객체 안에 숨어 있어 꺼내 볼 수 없기 때문이다. Nav2를 올리면 규칙이 바뀌었는지 다시 본다(시험 `WallLostNearUTurnSameAsRpp`가 잡는다). `max_robot_pose_search_dist`와 `transform_tolerance`는 configure 때 한 번 읽는다(실행 중 바꾸면 따라가지 않는다).
-- 자세 변환(재검수): FollowWall이 자기 `transform_tolerance`(0.2)와 `nav2_util::transformPoseInTargetFrame`(늦으면 마지막 TF로 대신함)으로 변환해, 품은 RPP와 변환 성공 여부가 갈릴 수 있었다. FollowWall만 실패하면 RPP는 경로를 자르는데 따라가는 시작은 머물렀다. 시험 `FollowWallLateTfTest.LateTfThenWallLostSameAsRpp`(RPP 허용 0.5 s, map->odom 0.3 s 늦음, U자 경로)에서 고치기 전 FollowWall 0.12 m/s, RPP 0 m/s로 갈렸다. 지금은 FollowWall 자기 파라미터를 없애고 `FollowWall.rpp.transform_tolerance`를 읽으며, 변환도 RPP `PathHandler::transformPose`와 같은 방법(같은 틀이면 그대로, 아니면 `tf_->transform`에 같은 허용 시간, 대신 쓰기 없음)으로 한다. 허용 시간만 맞추고 `transformPoseInTargetFrame`을 그대로 두면, 대신 쓰기 때문에 FollowWall만 성공하는 경우가 남는다. 남는 한계: FollowWall이 먼저 기다리다 실패한 직후, RPP가 기다리는 동안 TF가 들어오면 여전히 갈릴 수 있다(타이밍 경계).
+- 자세 변환(재검수 두 번): FollowWall이 자기 `transform_tolerance`(0.2)와 `nav2_util::transformPoseInTargetFrame`(늦으면 마지막 TF로 대신함)으로 변환해, 품은 RPP와 변환 성공 여부가 갈릴 수 있었다. FollowWall만 실패하면 RPP는 경로를 자르는데 따라가는 시작은 머물렀다. 지금은
+  - FollowWall 자기 파라미터를 없애고 `FollowWall.rpp.transform_tolerance`를 읽으며, 변환도 RPP `PathHandler::transformPose`와 같은 방법(같은 틀이면 그대로, 아니면 `tf_->transform`에 같은 허용 시간, 대신 쓰기 없음)으로 한다. 품은 RPP 값이 0.2보다 크면 FollowWall이 예전보다 그만큼 오래 기다린다.
+  - 변환에 실패하면 품은 RPP를 부르지 않고 바로 `nav2_core::ControllerTFError`를 낸다. 단독 RPP도 같은 허용 시간 안에 변환하지 못하면 같은 예외를 내므로 결과가 같고, RPP 경로 상태가 앞서 나가지 않는다. 그래서 FollowWall이 실패한 뒤 RPP가 기다리는 동안 TF가 들어와 갈리는 경우도 없어졌다.
+  - 시험 `FollowWallOdomTest.TfFailureThrowsWithoutCallingRppThenSameAsRpp`(시간에 기대지 않음): 보정 중 map->odom이 없는 먼 미래 시각의 자세로 부르면 FollowWall과 RPP 대조군이 모두 `ControllerTFError`를 내고, 품은 RPP의 `computeVelocityCommands`와 `setPlan`이 불리지 않는다(감싼 controller로 횟수를 셈). TF를 되살린 뒤 U자 경로에서 흔들림, 보정, 벽 잃음을 거쳐 매 주기 RPP와 출력이 같다. 고치기 전 코드에서는 실패 주기에 품은 RPP가 불려 횟수 시험이 실패했다. 이 시험이 sleep과 스레드로 TF를 늦게 넣던 `FollowWallLateTfTest`를 대신한다. 옛 시험은 실행 순서에 따라 고치기 전 코드도 통과하거나 고친 코드도 실패할 수 있었다.
 - 미지 칸: 광선이 미지 칸을 만나면 기대 거리 없음으로 멈춘다. 그러면 지도 직선을 못 맞춰 보정하지 않는다.
 
 고치지 않은 지적:

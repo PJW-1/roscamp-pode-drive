@@ -11,6 +11,7 @@
 
 #include "nav2_costmap_2d/costmap_2d_ros.hpp"
 #include "nav2_regulated_pure_pursuit_controller/regulated_pure_pursuit_controller.hpp"
+#include "nav2_core/controller_exceptions.hpp"
 #include "pode_follow_wall/follow_wall.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
@@ -20,10 +21,51 @@
 namespace
 {
 
+// 품은 controller를 감싸 부른 횟수를 센다
+class CountingController : public nav2_core::Controller
+{
+public:
+  explicit CountingController(nav2_core::Controller::Ptr inner)
+  : inner_(inner) {}
+  void configure(
+    const rclcpp_lifecycle::LifecycleNode::WeakPtr & p, std::string n,
+    std::shared_ptr<tf2_ros::Buffer> t, std::shared_ptr<nav2_costmap_2d::Costmap2DROS> c) override
+  {
+    inner_->configure(p, n, t, c);
+  }
+  void cleanup() override {inner_->cleanup();}
+  void activate() override {inner_->activate();}
+  void deactivate() override {inner_->deactivate();}
+  void setPlan(const nav_msgs::msg::Path & path) override
+  {
+    ++set_plans;
+    inner_->setPlan(path);
+  }
+  geometry_msgs::msg::TwistStamped computeVelocityCommands(
+    const geometry_msgs::msg::PoseStamped & pose, const geometry_msgs::msg::Twist & vel,
+    nav2_core::GoalChecker * gc) override
+  {
+    ++computes;
+    return inner_->computeVelocityCommands(pose, vel, gc);
+  }
+  void setSpeedLimit(const double & l, const bool & p) override {inner_->setSpeedLimit(l, p);}
+  int computes{0};
+  int set_plans{0};
+
+private:
+  nav2_core::Controller::Ptr inner_;
+};
+
 // 보호 멤버를 시험에서 본다
 class FollowWallProbe : public pode_follow_wall::FollowWall
 {
 public:
+  std::shared_ptr<CountingController> wrapPrimary()
+  {
+    auto c = std::make_shared<CountingController>(primary_);
+    primary_ = c;
+    return c;
+  }
   void feedScan(const sensor_msgs::msg::LaserScan & s)
   {
     scanCallback(std::make_shared<sensor_msgs::msg::LaserScan>(s));
@@ -287,10 +329,10 @@ protected:
     return u;
   }
 
-  // 자세를 odom 틀로 넣는 한 주기: map->odom(제자리)은 tf_delay 초 늦게 들어온다
-  Cmds stepOdom(const Pose & est, const Pose & truth, double scan_wall_y, double tf_delay)
+  // 자세를 odom 틀로 넣는다: with_tf가 거짓이면 map->odom이 없는 먼 미래 시각의 자세
+  geometry_msgs::msg::PoseStamped poseOdom(const Pose & est, bool with_tf)
   {
-    const rclcpp::Time stamp = node_->now();
+    rclcpp::Time stamp = node_->now();
     geometry_msgs::msg::TransformStamped ob;
     ob.header.frame_id = "odom";
     ob.child_frame_id = "base_link";
@@ -298,35 +340,35 @@ protected:
     ob.transform.translation.y = est.y;
     ob.transform.rotation = yawQ(est.yaw);
     tf_->setTransform(ob, "test", true);
-    geometry_msgs::msg::TransformStamped mo;
-    mo.header.frame_id = "map";
-    mo.header.stamp = stamp;
-    mo.child_frame_id = "odom";
-    mo.transform.rotation.w = 1.0;
-    std::thread late;
-    if (tf_delay > 0.0) {
-      late = std::thread([this, mo, tf_delay]() {
-            std::this_thread::sleep_for(std::chrono::duration<double>(tf_delay));
-            tf_->setTransform(mo, "test", false);
-          });
-    } else {
+    if (with_tf) {
+      geometry_msgs::msg::TransformStamped mo;
+      mo.header.frame_id = "map";
+      mo.header.stamp = stamp;
+      mo.child_frame_id = "odom";
+      mo.transform.rotation.w = 1.0;
       tf_->setTransform(mo, "test", false);
+    } else {
+      stamp = stamp + rclcpp::Duration::from_seconds(100.0);
     }
-    fw_->feedScan(makeScan(truth, scan_wall_y));
     geometry_msgs::msg::PoseStamped pose;
     pose.header.frame_id = "odom";
     pose.header.stamp = stamp;
     pose.pose.position.x = est.x;
     pose.pose.position.y = est.y;
     pose.pose.orientation = yawQ(est.yaw);
+    return pose;
+  }
+
+  // odom 틀 자세로 한 주기
+  Cmds stepOdom(const Pose & est, const Pose & truth, double scan_wall_y)
+  {
+    const auto pose = poseOdom(est, true);
+    fw_->feedScan(makeScan(truth, scan_wall_y));
     geometry_msgs::msg::Twist vel;
     vel.linear.x = 0.12;
     Cmds c;
     c.fw = fw_->computeVelocityCommands(pose, vel, &checker_).twist;
     c.rpp = rpp_->computeVelocityCommands(pose, vel, &checker_).twist;
-    if (late.joinable()) {
-      late.join();
-    }
     return c;
   }
 
@@ -520,41 +562,52 @@ TEST_F(FollowWallTest, WallLostNearUTurnSameAsRpp)
   }
 }
 
-// 품은 RPP의 transform_tolerance가 0.5이고 map->odom이 0.3 s 늦는 판
-class FollowWallLateTfTest : public FollowWallTest
+// 자세를 odom 틀로 받는 판(품은 RPP의 변환 허용 시간 0.05 s)
+class FollowWallOdomTest : public FollowWallTest
 {
 protected:
-  FollowWallLateTfTest()
+  FollowWallOdomTest()
   {
-    rpp_tolerance_ = 0.5;
+    rpp_tolerance_ = 0.05;
     costmap_frame_ = "odom";
   }
 };
 
-TEST_F(FollowWallLateTfTest, LateTfThenWallLostSameAsRpp)
+TEST_F(FollowWallOdomTest, TfFailureThrowsWithoutCallingRppThenSameAsRpp)
 {
   const auto u = makeUPath();
   rpp_->setPlan(u);
   fw_->setPlan(u);
+  auto counter = fw_->wrapPrimary();
   fw_->feedMap(makeMap(kPathY - 0.11));
   const double scan_wall = kPathY - 0.10;
   for (double x = 1.05; x < 1.40; x += 0.006) {
-    stepOdom({x, kPathY, 0.0}, {x, kPathY, 0.0}, scan_wall, 0.0);
+    stepOdom({x, kPathY, 0.0}, {x, kPathY, 0.0}, scan_wall);
   }
   ASSERT_TRUE(fw_->shifted());
-  // TF가 0.3 s 늦는 주기에 서쪽 줄 쪽으로 흔들린다: RPP는 기다려 변환하고 동쪽 줄을 잘라 낸다.
-  // 그 전 0.25 s 동안 map->odom이 없어 마지막 값으로 대신 쓸 수도 없다(0.2 s보다 오래됨)
-  std::this_thread::sleep_for(std::chrono::milliseconds(250));
-  stepOdom({1.45, kPathY + 0.065, 0.0}, {1.45, kPathY + 0.065, 0.0}, scan_wall, 0.3);
-  // 다시 벽을 봐 보정한 뒤 잃는다: 그 뒤 주기마다 RPP와 같아야 한다
+
+  // map->odom이 없는 시각: 둘 다 변환 예외, FollowWall은 품은 RPP를 부르지 않는다
+  const int computes = counter->computes;
+  const int set_plans = counter->set_plans;
+  const auto bad = poseOdom({1.45, kPathY + 0.065, 0.0}, false);
+  fw_->feedScan(makeScan({1.45, kPathY + 0.065, 0.0}, scan_wall));
+  geometry_msgs::msg::Twist vel;
+  vel.linear.x = 0.12;
+  EXPECT_THROW(fw_->computeVelocityCommands(bad, vel, &checker_), nav2_core::ControllerTFError);
+  EXPECT_THROW(rpp_->computeVelocityCommands(bad, vel, &checker_), nav2_core::ControllerTFError);
+  EXPECT_EQ(counter->computes, computes);
+  EXPECT_EQ(counter->set_plans, set_plans);
+
+  // TF를 되살려 서쪽 줄 쪽으로 흔들린 주기(RPP가 동쪽 줄을 잘라 냄), 다시 보정한 뒤 벽을 잃는다
+  stepOdom({1.45, kPathY + 0.065, 0.0}, {1.45, kPathY + 0.065, 0.0}, scan_wall);
   for (int k = 0; k < 10; ++k) {
     const Pose p{1.451 + 0.001 * k, kPathY + 0.01, 0.0};
-    stepOdom(p, p, scan_wall, 0.0);
+    stepOdom(p, p, scan_wall);
   }
   ASSERT_TRUE(fw_->shifted());
   for (int k = 0; k < 40; ++k) {
     const Pose p{1.46 + 0.006 * k, kPathY + 0.01, 0.0};
-    const auto c = stepOdom(p, p, kNone, 0.0);
+    const auto c = stepOdom(p, p, kNone);
     ASSERT_DOUBLE_EQ(c.fw.linear.x, c.rpp.linear.x) << "k=" << k;
     ASSERT_DOUBLE_EQ(c.fw.angular.z, c.rpp.angular.z) << "k=" << k;
   }
