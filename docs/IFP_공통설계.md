@@ -77,7 +77,7 @@ FMS는 컴포넌트 1개 = 프로세스 1개 = 노드 1개(`fleet_manager`, 실�
 | `RECOVERING` | `fault` | 보고가 돌아왔고 `recover_check_s` 뒤에 위치를 확인한다(`fault_reason` CHECKING_POSE). 또는 레인을 벗어나 세웠고 돌아오기를 기다린다(`fault_reason` OFF_LANE, 5절). 둘이 겹치면 통신 쪽을 보인다. 로봇 상태 `RECOVERING`(`fsm_state`, 자가 복구)과 이름만 같다 |
 | `OUT_OF_SERVICE` | `fault` | 관리자가 치웠다(`confirm_clear`). `/fleet/reinstate`로 되돌린다(4절, 5절) |
 | `IDLE`, `MOVING`, `WAITING`, `DOCKING`, `DOCKED`, `ERROR`, `BLOCKED`, `LOCALIZING`, `RECOVERING` | `fsm_state` | Pode가 보고한 값 그대로. 임무 단계와 이름이 같아도 다른 값이다. `BLOCKED`는 경로 앞 물체로 섰다, `LOCALIZING`은 위치를 아직 못 잡았다는 뜻이다(Pode 계약 3·4절). `RECOVERING`은 Pode FSM이 쥔 구역 안에서 짧게 후진하고 다시 가는 자가 복구 중이다(11-09, 제안, Pode 계약 4절). 이때 `fault`는 NONE이고, `fault`의 `RECOVERING`과는 다른 값이다 |
-| `TO_WORK`, `FILL`, `TO_OUTBOUND`, `SWAP`, `WAIT` | `task_type` | `/fleet/assignments`와 `/fleet/robots`의 일 종류 |
+| `TO_WORK`, `FILL`, `TO_OUTBOUND`, `SWAP`, `WAIT`, `CLEAN` | `task_type` | `/fleet/assignments`와 `/fleet/robots`의 일 종류. `CLEAN`은 청소 로봇(팀 합의 전 제안, 2026-11-24) |
 | `PENDING`, `BOUND`, `FILLING`, `TO_OUTBOUND`, `SWAPPING`, `SHIPPED`, `PARTIAL`, `HELD` | 주문 상태 | 5-1절 |
 | `EMPTY`, `FULL`, `NONE` | `basket[robot]` | 빈 바구니, 담긴 바구니, 바구니 없음 |
 | `RUN`, `PAUSE`, `STOP` | run_mode | 5절, 5-1절 |
