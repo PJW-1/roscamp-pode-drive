@@ -1,0 +1,31 @@
+pair,scenario,metric,se,fisher_p,diff
+RL+shim acd3 - RL+shim acd2,c_moving,success_pp,0.0,1.0,0.0
+RL+shim acd3 - RL+shim acd2,c_moving,time_s (successful),1.61,,-0.439
+RL+shim acd3 - RL+shim acd2,c_moving,flips_per_min,2.592,,4.611
+RL+shim acd3 - RL+shim acd2,c_moving,leg_min_clearance_m,0.004,,0.006
+RL+shim acd3 - RL+shim acd2,c_moving,early_handovers,0.275,,-0.3
+RL+shim acd3 - RL+shim acd2,q2e3,success_pp,0.0,1.0,0.0
+RL+shim acd3 - RL+shim acd2,q2e3,time_s (successful),0.655,,-0.455
+RL+shim acd3 - RL+shim acd2,q2e3,flips_per_min,2.49,,-13.5
+RL+shim acd3 - RL+shim acd2,q2e3,leg_min_clearance_m,0.007,,-0.011
+RL+shim acd3 - RL+shim acd2,q2e3,early_handovers,0.336,,-0.4
+RL+shim acd3 - RL+shim 4b,c_moving,success_pp,0.0,1.0,0.0
+RL+shim acd3 - RL+shim 4b,c_moving,time_s (successful),1.935,,-2.18
+RL+shim acd3 - RL+shim 4b,c_moving,flips_per_min,3.413,,-12.489
+RL+shim acd3 - RL+shim 4b,c_moving,leg_min_clearance_m,0.006,,0.0
+RL+shim acd3 - RL+shim 4b,c_moving,early_handovers,0.255,,0.2
+RL+shim acd3 - RL+shim 4b,q2e3,success_pp,0.0,1.0,0.0
+RL+shim acd3 - RL+shim 4b,q2e3,time_s (successful),0.925,,-2.127
+RL+shim acd3 - RL+shim 4b,q2e3,flips_per_min,3.018,,-17.994
+RL+shim acd3 - RL+shim 4b,q2e3,leg_min_clearance_m,0.005,,-0.021
+RL+shim acd3 - RL+shim 4b,q2e3,early_handovers,0.557,,-1.45
+RL+shim acd2 - RL+shim 4b,c_moving,success_pp,0.0,1.0,0.0
+RL+shim acd2 - RL+shim 4b,c_moving,time_s (successful),1.934,,-1.741
+RL+shim acd2 - RL+shim 4b,c_moving,flips_per_min,2.987,,-17.101
+RL+shim acd2 - RL+shim 4b,c_moving,leg_min_clearance_m,0.007,,-0.006
+RL+shim acd2 - RL+shim 4b,c_moving,early_handovers,0.24,,0.5
+RL+shim acd2 - RL+shim 4b,q2e3,success_pp,0.0,1.0,0.0
+RL+shim acd2 - RL+shim 4b,q2e3,time_s (successful),0.89,,-1.672
+RL+shim acd2 - RL+shim 4b,q2e3,flips_per_min,3.154,,-4.495
+RL+shim acd2 - RL+shim 4b,q2e3,leg_min_clearance_m,0.007,,-0.011
+RL+shim acd2 - RL+shim 4b,q2e3,early_handovers,0.596,,-1.05

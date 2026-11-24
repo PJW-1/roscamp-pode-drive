@@ -1,0 +1,7 @@
+scenario,name,runs,successes,collision_runs,timeouts,mean_time_s,flips_per_min,min_clearance_m,median_leg_clearance_m,early_handovers_per_run
+c_moving,RL+shim 4b,20,20,2,0,26.004,46.239,0.0,0.0699,0.55
+c_moving,RL+shim acd2,20,20,0,0,24.263,29.139,0.0168,0.0568,1.05
+c_moving,RL+shim acd3,20,20,0,0,23.824,33.75,0.0063,0.0591,0.75
+q2e3,RL+shim 4b,20,20,0,0,15.409,59.457,0.0263,0.0577,3.05
+q2e3,RL+shim acd2,20,20,2,0,13.738,54.962,0.0,0.0326,2.0
+q2e3,RL+shim acd3,20,20,2,0,13.282,41.462,0.0,0.0236,1.6
