@@ -72,7 +72,7 @@ def _setup(context):
                 "map_file": map_file,
                 "params_file": get("params_file"),
                 "contract_file": get("contract_file"),
-                "cleaners": get("cleaners"),
+                "cleaners": LaunchConfiguration("cleaners", default="").perform(context),
                 **_order_params(lambda name: LaunchConfiguration(name, default="").perform(
                     context)),
             }],

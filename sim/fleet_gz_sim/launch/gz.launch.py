@@ -357,7 +357,7 @@ def _start(context):
             return [LogInfo(msg="fleet_gz_sim: 로봇이 IDLE이 되지 않아 끝낸다"), Shutdown()]
         return fleet(scenario_file, robots, value("result_dir"), monitor, layout,
                      params_file, obstacles_file, check, scenario_seed, order, record,
-                     value("cleaners"))
+                     LaunchConfiguration("cleaners", default="").perform(context))
 
     actions += [wait, RegisterEventHandler(OnProcessExit(target_action=wait, on_exit=after_wait))]
     return actions
