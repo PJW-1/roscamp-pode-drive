@@ -410,3 +410,84 @@ def test_the_record_head_names_the_cleaner():
     written = []
     plain.record_to(written.append)
     assert "cleaners" not in json.loads(written[0])
+
+
+# ---- 성공 결과의 도착 확인: 운반과 같은 arrival_tolerance_m, arrival_settle_s ----
+KINDS = ("out", "line", "detour", "back_nav", "back", "bay_in")
+
+
+def _leg_of(w, kind):
+    """kind 다리를 보낸 상태로 만들고 (goal 번호, 끝 점, 결과 넣는 함수)를 돌려준다."""
+    if kind == "out":
+        w.step()
+        cmd = w.moves()[-1]
+        return cmd.goal_id, (cmd.x, cmd.y), w.finish
+    k, a, b, line = w.to_line()
+    if kind == "line":
+        return line.goal_id, b, w.finish
+    if kind == "detour":
+        w.pos[CLEANER_NAME] = w.at(a, b, 0.1)
+        _blocked(w, 2.3, obstacle=(*w.at(a, b, 0.2), "unknown"))
+        nav = w.moves("nav_goal")[-1]
+        w.state[CLEANER_NAME] = "MOVING"
+        return nav.goal_id, (nav.x, nav.y), w.finish
+    w.job.queue, w.job.waiting = [], []
+    w.job.back_nav = kind == "back_nav"
+    w.pos[CLEANER_NAME] = b
+    w.finish(line.goal_id)
+    w.step()
+    assert w.job.leg.kind == ("back_nav" if kind == "back_nav" else "back")
+    back = w.moves()[-1]
+    if kind != "bay_in":
+        return back.goal_id, (back.x, back.y), w.finish
+    w.pos[CLEANER_NAME] = (back.x, back.y)
+    w.finish(back.goal_id)
+    w.step()
+    assert w.job.leg.kind == "bay_in"
+
+    def retreat(goal_id, success=True, reason=""):
+        w.t.on_retreat_result(CLEANER_NAME, goal_id, success, reason)
+        w.out += w.t.take_output()
+    return w.job.goal_id, w.job.leg.points[-1], retreat
+
+
+def _short_of(end):
+    return (end[0] - 0.12, end[1] - 0.12)
+
+
+@pytest.mark.parametrize("kind", KINDS)
+def test_an_early_success_waits_for_the_arrival_report(kind):
+    w = World()
+    goal_id, end, result = _leg_of(w, kind)
+    w.state[CLEANER_NAME] = "IDLE"
+    w.pos[CLEANER_NAME] = _short_of(end)
+    w.step()
+    done = len(w.events("CLEAN_LINE_DONE")) + len(w.events("CLEAN_LAP_DONE"))
+    result(goal_id)
+    for _ in range(3):
+        w.step()
+    assert w.job.goal_id == goal_id
+    assert len(w.events("CLEAN_LINE_DONE")) + len(w.events("CLEAN_LAP_DONE")) == done
+    w.pos[CLEANER_NAME] = end
+    w.step()
+    assert w.job.goal_id != goal_id
+    assert not w.events("GOAL_RETRY") and not [
+        e for e in w.events("CLEAN_LINE_DEFERRED") if "NOT_AT_TARGET" in e.detail]
+
+
+@pytest.mark.parametrize("kind", KINDS)
+def test_an_early_success_without_arrival_fails_as_not_at_target(kind):
+    w = World()
+    goal_id, end, result = _leg_of(w, kind)
+    w.state[CLEANER_NAME] = "IDLE"
+    w.pos[CLEANER_NAME] = _short_of(end)
+    w.step()
+    result(goal_id)
+    for _ in range(round(w.params.arrival_settle_s / 0.1) + 2):
+        w.step()
+    assert w.job.goal_id != goal_id
+    if kind in ("line", "detour"):
+        assert any("NOT_AT_TARGET" in e.detail for e in w.events("CLEAN_LINE_DEFERRED"))
+    else:
+        assert any("NOT_AT_TARGET" in e.detail for e in w.events("GOAL_RETRY"))
+        assert not w.events("CLEAN_LAP_DONE")

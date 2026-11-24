@@ -44,8 +44,8 @@
 
 ## 5. 시험
 
-- fleet_core: `cd pc/fleet_core && ROS_DOMAIN_ID=92 python3 -m pytest -q test -p no:cacheprovider` → `1350 passed, 7 xfailed in 166.08s`(같음 비교 실행 안에서, 09e3092). 새 시험만: `25 passed`
-- 새 시험 `pc/fleet_core/test/test_zone_cleaning.py`(25개): 역할, 우선순위, 청소 로봇 하나만, 집 자리, dock·lane 거절, 배치 거절, 줄 FOLLOW_PATH, 못 보낸 줄 다시 보냄, 늦은 거절 버림, 못 보냄 때 지점 놓기, 짧은 BLOCKED, hold 중 진행, RECOVERING 안 셈, 우회와 빈틈(덮인 칸 뺌, 늦은 결과 버림, 남은 줄 이음), 빈틈이 다음 바퀴 줄, 장애물 좌표 없음, 복귀점 없음, 우회 실패, 다시 막힘 한 번 옮김 뒤 미룸, 운반 로봇이 막음, 띠 금지 구역, 기록 머리.
+- fleet_core: `cd pc/fleet_core && ROS_DOMAIN_ID=92 python3 -m pytest -q test -p no:cacheprovider` → `1350 passed, 7 xfailed in 166.08s`(같음 비교 실행 안에서, 09e3092). 도착 확인을 고친 뒤 `1362 passed, 7 xfailed in 104.34s`. 새 시험만: `37 passed`
+- 새 시험 `pc/fleet_core/test/test_zone_cleaning.py`(37개): 역할, 우선순위, 청소 로봇 하나만, 집 자리, dock·lane 거절, 배치 거절, 줄 FOLLOW_PATH, 못 보낸 줄 다시 보냄, 늦은 거절 버림, 못 보냄 때 지점 놓기, 짧은 BLOCKED, hold 중 진행, RECOVERING 안 셈, 우회와 빈틈(덮인 칸 뺌, 늦은 결과 버림, 남은 줄 이음), 빈틈이 다음 바퀴 줄, 장애물 좌표 없음, 복귀점 없음, 우회 실패, 다시 막힘 한 번 옮김 뒤 미룸, 운반 로봇이 막음, 띠 금지 구역, 기록 머리, 다리마다(out, line, detour, back_nav, back, bay_in) 끝에서 먼 성공은 도착 보고를 기다리고 `arrival_settle_s` 안에 없으면 NOT_AT_TARGET 실패.
 - 새 시험 `sim/fake_robots/test/test_world_cleaner.py`(8개): v7 운반 2 + 청소 1(seed 1), 바닥 물체(0.35, 0.4875) 하나로 우회·빈틈·미룸.
 - fake_robots 전체: `996 passed, 12 skipped, 30 xfailed in 1046.95s`, tools: `274 passed, 15 skipped`(같음 비교 실행 안에서, 09e3092)
 - fleet_manager + launch_wiring(스크래치 colcon install): `3 failed, 172 passed, 34 skipped`. launch_args 2개는 `cleaners` 인자가 없는 launch 맥락에서 깨졌고 09e3092로 고쳐 `75 passed`(test_launch_args + test_launch_wiring). 나머지 1개(scenario reinstate, cleaners 없음)는 시험 셋을 함께 돌려 CPU가 붐빌 때 들어낸 로봇의 바닥 밖 보고 하나가 `INPUT_REJECTED`로 세어진 것이고, 혼자 다시 돌리면 통과했다(`4 passed`, launch_args 포함)
@@ -69,7 +69,7 @@
 
 ## 7. 리뷰
 
-Codex 세 번(67cfb85..b73f4d4, 수정 1 ce543f6, 수정 2 19496eb). 고친 것: 결과 없이 끝난 줄이 빠짐, 거둔 goal의 늦은 거절·유실 소식, 못 보냄·유실 때 지점이 남음, dock·lane 구역 배치(지점 구역과 선 자리 구역 모두), 스테이션 대기 자리와 줄 당기기에서 집 자리. 고치지 않은 것: 성공 결과를 도착 확인 없이 받음(운반 로봇의 FOLLOW_PATH 성공도 로봇 답을 믿는다), 기록 머리의 params에 새 값이 들어감(값을 더할 때마다 같고 replay는 아는 값만 쓴다), 지도 밖 위치 또는 쥔 dock 지점 옆 공유 구역 위치의 배치(공유 구역 지점·자리에 섰으면 계약을 어기지 않는다).
+Codex 세 번(67cfb85..b73f4d4, 수정 1 ce543f6, 수정 2 19496eb). 고친 것: 결과 없이 끝난 줄이 빠짐, 거둔 goal의 늦은 거절·유실 소식, 못 보냄·유실 때 지점이 남음, dock·lane 구역 배치(지점 구역과 선 자리 구역 모두), 스테이션 대기 자리와 줄 당기기에서 집 자리, 성공 결과를 도착 확인 없이 받음(운반 로봇의 `_succeeded`·`_judge_arrival`과 같은 기준으로: 끝에서 `arrival_tolerance_m`보다 멀면 goal과 점유를 그대로 두고 `arrival_settle_s` 동안 새 보고를 기다리고, 그래도 멀면 NOT_AT_TARGET 실패. 줄·우회는 미루고 나머지 다리는 `_goal_failed` 뒤 다시 보낸다). 고치지 않은 것: 기록 머리의 params에 새 값이 들어감(값을 더할 때마다 같고 replay는 아는 값만 쓴다), 지도 밖 위치 또는 쥔 dock 지점 옆 공유 구역 위치의 배치(공유 구역 지점·자리에 섰으면 계약을 어기지 않는다).
 
 ## 8. 남은 일
 

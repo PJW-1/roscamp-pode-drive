@@ -18,6 +18,7 @@ from fleet_core.traffic.mission import (
     CLEAN,
     CLEANING,
     HEARTBEAT_LOST,
+    NOT_AT_TARGET,
     OUT_OF_SERVICE,
     PARKED,
 )
@@ -75,6 +76,7 @@ class CleanJob:
     entered: set = field(default_factory=set)
     blocked_since: float | None = None
     blocked_at: float | None = None
+    arrival_by: float | None = None
     detour: Detour | None = None
     back_nav: bool = False
     not_home_warned: bool = False
@@ -165,9 +167,11 @@ class Cleaning:
         job, now = self._cleaners[m.name], self._clock()
         if job.goal_id is not None:
             if m.goal is not None and m.goal.id == job.goal_id:
+                if job.arrival_by is not None:
+                    self._clean_arrival(m, job, now)
                 return
             # 결과 없이 거둔 goal(멈춤, STOP, 통신 복구): 같은 다리를 다시 보낸다
-            job.goal_id = None
+            job.goal_id, job.arrival_by = None, None
             self._clean_release(m, job, ended=True)
         if m.goal is not None or now < m.retry_at:
             return
@@ -355,7 +359,7 @@ class Cleaning:
                                      end_yaw, path, True, FOLLOW_PATH, self._goal_priority(m)))
             mode = FOLLOW_PATH
         self._set_goal(m, Goal(CLEAN, goal_id, 0, leg.target, mode))
-        job.goal_id, job.leg, job.blocked_since = goal_id, leg, None
+        job.goal_id, job.leg, job.blocked_since, job.arrival_by = goal_id, leg, None, None
         m.phase = CLEANING
         what = f"{leg.kind} {leg.line}" if leg.kind in (LINE, DETOUR) else leg.kind
         self._event("INFO", "CLEAN_SENT", f"{what} to {leg.target}, holds {list(leg.nodes)}",
@@ -364,11 +368,28 @@ class Cleaning:
     # ---- 결과 ----
     def _clean_result(self, m, goal_id, success: bool, reason: str) -> None:
         job = self._cleaners[m.name]
-        if not self._live(m, job, goal_id):
+        if not self._live(m, job, goal_id) or job.arrival_by is not None:
             return
+        far = math.dist((m.x, m.y), job.leg.points[-1]) > self.params.arrival_tolerance_m
+        if success and far:
+            # 운반 로봇과 같다: 끝에서 먼 성공은 도착 보고를 arrival_settle_s 기다린다
+            job.arrival_by = self._clock() + self.params.arrival_settle_s
+            m.heard_since_success = False
+            return
+        self._clean_end(m, job, success, reason)
+
+    def _clean_arrival(self, m, job, now: float) -> None:
+        """성공 뒤 도착 기다림: 끝 둘레에서 새 보고가 오면 끝내고, 시간이 지나면 실패로 본다."""
+        if (m.heard_since_success
+                and math.dist((m.x, m.y), job.leg.points[-1]) <= self.params.arrival_tolerance_m):
+            self._clean_end(m, job, True, "")
+        elif now >= job.arrival_by:
+            self._clean_end(m, job, False, NOT_AT_TARGET)
+
+    def _clean_end(self, m, job, success: bool, reason: str) -> None:
         leg = job.leg
         self._clear_goal(m)
-        job.goal_id = None
+        job.goal_id, job.arrival_by = None, None
         self._clean_release(m, job, ended=True)
         if success:
             job.leg = None
@@ -457,6 +478,10 @@ class Cleaning:
         if (job.detour is not None and leg is not None and leg.kind == DETOUR
                 and job.detour.trail[-1] != (m.x, m.y)):
             job.detour.trail.append((m.x, m.y))
+        if job.arrival_by is not None:
+            if job.goal_id is not None:
+                self._clean_arrival(m, job, now)
+            return
         # BLOCKED 보고 때부터 센다. 스스로 비키는 중(RECOVERING)이면 세지 않는다
         if m.report.robot_state != BLOCKED or job.goal_id is None:
             job.blocked_since = job.blocked_at = None
