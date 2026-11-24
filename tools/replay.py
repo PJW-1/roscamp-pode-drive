@@ -111,7 +111,7 @@ def start_core(head: dict, clock) -> FleetManager:
     except TypeError as error:
         raise ValueError(f"these parameters do not fit this code: {error}") from error
     site = site_from_text(head["map"])
-    return FleetManager(site, params, head["robots"], clock)
+    return FleetManager(site, params, head["robots"], clock, head.get("cleaners", ()))
 
 
 def replay(path) -> Result:

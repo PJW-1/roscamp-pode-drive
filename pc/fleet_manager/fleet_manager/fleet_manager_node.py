@@ -56,6 +56,7 @@ class FleetManagerNode(Node):
         self.declare_parameter("map_file", "")
         self.declare_parameter("params_file", "")
         self.declare_parameter("tick_hz", 10.0)
+        self.declare_parameter("cleaners", "")  # 청소 로봇 이름(띄어 쓰거나 쉼표). 비면 모두 운반
         unset = ParameterDescriptor(dynamic_typing=True)
         self.declare_parameter("use_order_model", None, unset)
         self.declare_parameter("lookahead_s", None, unset)
@@ -71,7 +72,8 @@ class FleetManagerNode(Node):
             self.get_parameter("lookahead_s").value)
         for text in timing_warnings(params):
             self.get_logger().warning(text)
-        self.core = FleetManager(self.site, params, robots, self._now)
+        cleaners = str(self.get_parameter("cleaners").value).replace(",", " ").split()
+        self.core = FleetManager(self.site, params, robots, self._now, cleaners)
         self._record_file = None
         if record:
             self.core.check_recordable()

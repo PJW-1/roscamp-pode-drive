@@ -72,6 +72,7 @@ def _setup(context):
                 "map_file": map_file,
                 "params_file": get("params_file"),
                 "contract_file": get("contract_file"),
+                "cleaners": get("cleaners"),
                 **_order_params(lambda name: LaunchConfiguration(name, default="").perform(
                     context)),
             }],
@@ -117,6 +118,7 @@ def generate_launch_description():
         "lookahead_s": "",  # 초. 비우면 params 파일의 값
         "monitor": "true",  # 시나리오 감시 노드(가짜 실행에서만)
         "dock_wait_robots": "",  # PC가 도킹을 대신 받을 실물 로봇
+        "cleaners": "",  # 청소 로봇 이름(띄어 씀). 비면 모두 운반
     }
     declared = [DeclareLaunchArgument(k, default_value=v) for k, v in defaults.items()]
     return LaunchDescription([*declared, OpaqueFunction(function=_setup)])
