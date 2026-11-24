@@ -72,6 +72,19 @@ def cause(detail: str) -> str:
     return next((name for name, key in CAUSES if key in why), "other")
 
 
+# ---- 첫 바퀴 사건: 시각이 아니라 사건 순서로 자른다(같은 걸음에 다음 바퀴가 시작될 수 있다) ----
+def first_lap(ev):
+    start = next((i for i, (_, e) in enumerate(ev)
+                  if e.code == "CLEAN_LAP_START" and "lap 1," in e.detail), None)
+    if start is None:
+        return [], None
+    end = next((i for i in range(start, len(ev)) if ev[i][1].code == "CLEAN_LAP_DONE"
+                and ev[i][1].detail.startswith("lap 1 ")), None)
+    if end is None:
+        return ev[start:], None
+    return ev[start:end + 1], ev[end]
+
+
 # ---- 판 하나 ----
 def run_one(name: str, layout: str, kind: str, extra: dict, seed: int, maps=None) -> dict:
     from fake_robots.world.world import ZoneWorld
@@ -107,9 +120,9 @@ def run_one(name: str, layout: str, kind: str, extra: dict, seed: int, maps=None
         if cleaning and not lap_done:
             lap_done = any(e.code == "CLEAN_LAP_DONE" for _, e in w.events[seen:])
             seen = len(w.events)
-        # 청소 로봇: 첫 바퀴 줄·우회 중 받은 위치, 운반 로봇과의 최소 거리
+        # 청소 로봇: 첫 바퀴 줄·우회 중 관제가 받은 위치, 운반 로봇과의 실제 최소 거리
         if cleaning:
-            c = w.robots[CLEANER]
+            c, got = w.robots[CLEANER], w.traffic._robots[CLEANER]
             for n in transports:
                 r = w.robots[n]
                 if not r.removed:
@@ -117,8 +130,8 @@ def run_one(name: str, layout: str, kind: str, extra: dict, seed: int, maps=None
             on_line = (job.lap == 1 and job.goal_id is not None and job.leg is not None
                        and job.leg.kind in ("line", "detour"))
             if on_line:
-                if not trail or math.dist(trail[-1], (c.x, c.y)) >= TRAIL_STEP_M:
-                    trail.append((c.x, c.y))
+                if not trail or math.dist(trail[-1], (got.x, got.y)) >= TRAIL_STEP_M:
+                    trail.append((got.x, got.y))
             elif trail:
                 trails.append(trail)
                 trail = []
@@ -154,23 +167,17 @@ def run_one(name: str, layout: str, kind: str, extra: dict, seed: int, maps=None
         return out
 
     # ---- 첫 바퀴: 끝, 미룸 원인, 덮은 비율 ----
-    ev = [(t, e) for t, e in w.events if e.robot == CLEANER]
-    start = next((t for t, e in ev if e.code == "CLEAN_LAP_START" and "lap 1," in e.detail), None)
-    done = next(((t, e) for t, e in ev if e.code == "CLEAN_LAP_DONE"
-                 and e.detail.startswith("lap 1 ")), None)
-    end_t = done[0] if done else math.inf
+    lap, done = first_lap([(t, e) for t, e in w.events if e.robot == CLEANER])
     causes, lines = Counter(), Counter()
-    for t, e in ev:
-        if start is not None and start <= t <= end_t and e.code in (
-                "CLEAN_LINE_DEFERRED", "CLEAN_LINE_SKIPPED"):
+    for _, e in lap:
+        if e.code in ("CLEAN_LINE_DEFERRED", "CLEAN_LINE_SKIPPED"):
             reason = cause(e.detail)
             causes[reason] += 1
             lines[(int(e.detail.split()[1]), reason)] += 1
     out["defer_causes"] = {c: causes[c] for c in CAUSE_NAMES}
     out["deferrals"] = sum(causes.values())
     out["defer_lines"] = {f"{k}:{r}": v for (k, r), v in sorted(lines.items())}
-    out["cleaner_blocked_wait"] = sum(e.code == "BLOCKED_WAIT" and start is not None
-                                      and start <= t <= end_t for t, e in ev)
+    out["cleaner_blocked_wait"] = sum(e.code == "BLOCKED_WAIT" for _, e in lap)
     plan = w.traffic._clean_plan
     hit = covered_by(plan.grid, plan.params, trails) if trails else None
     out["covered_received"] = (round(float((hit & plan.free).sum() / plan.free.sum()), 4)
