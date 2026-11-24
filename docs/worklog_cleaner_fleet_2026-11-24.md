@@ -82,7 +82,7 @@ Codex 세 번(67cfb85..b73f4d4, 수정 1 ce543f6, 수정 2 19496eb). 고친 것:
 - **남은 결함(11-24 사용자 결정: 단계 3의 4-9 STOP 처리와 같이 고친다):** 청소 goal이 바깥에서 거둬지면(STOP의 `on_run_mode` → `_cancel_goal`, 멈춤 감시 `_watch_stall` → `_cancel_goal`) `m.goal`만 지워지고 `job.goal_id`, `job.arrival_by`는 남는다.
   - 도착을 기다리는 중(일찍 온 성공 뒤 `arrival_settle_s` 안)에 STOP이 오면, 다음 위치 보고 때 `_clean_report`(`cleaning.py:479-482`)가 `m.goal`을 보지 않고 `_clean_arrival`을 불러 거둔 다리를 완료나 NOT_AT_TARGET으로 처리할 수 있다. bay_in이면 STOP 중 바퀴 끝이 기록될 수 있다.
   - 도착 대기는 `job.arrival_by`에만 적히고 멈춤 감시는 `m.arrival_by`만 보고 건너뛴다(`watch.py:27`). 그래서 대기 중에도 멈춤 판정이 돌아 goal을 거둘 수 있다.
-  - 둘 다 일찍 온 성공 뒤 몇 초 안에 STOP이나 멈춤이 겹쳐야 생긴다. 남은 상태는 다음 RUN tick의 `_clean_step`이 지운다. 멈춤 감시 뒤에는 그 tick 전에 위치 보고가 먼저 와야 생기지만, STOP 중에는 tick이 청소 단계를 돌리지 않아(`controller.py:56-60`) 상태가 계속 남으므로 STOP 동안 오는 위치 보고 어느 것으로도 생길 수 있다.
+  - 둘 다 일찍 온 성공 뒤 몇 초 안에 STOP이나 멈춤이 겹쳐야 생긴다. 남은 상태는 `_clean_step`이 돌 때에야 지워진다. 그런데 `_clean_step`은 STOP 중, 모든 로봇이 아직 모이지 않았을 때, 그 tick에 멈춤 판정을 받은 로봇, 위치 추정 중인 로봇에는 돌지 않는다(`controller.py:56-60`, `drive.py:21-30`). 그동안 오는 위치 보고 어느 것으로도 생길 수 있다.
 
 ## 9. 사용자 결정(11-24)
 
