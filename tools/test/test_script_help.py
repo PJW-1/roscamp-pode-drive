@@ -8,7 +8,7 @@ import pytest
 TOOLS = Path(__file__).resolve().parents[1]
 
 
-@pytest.mark.parametrize("script", ["situations.py", "order_situations.py"])
+@pytest.mark.parametrize("script", ["situations.py", "order_situations.py", "cleaner_defer_sweep.py"])
 def test_script_help_runs_from_checkout(script):
     result = subprocess.run(
         [sys.executable, str(TOOLS / script), "-h"],

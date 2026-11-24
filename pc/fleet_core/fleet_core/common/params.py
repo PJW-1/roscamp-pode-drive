@@ -9,6 +9,8 @@ import yaml
 
 DEFAULT_PARAMS = Path(__file__).parents[1] / "data" / "fleet_params.yaml"
 COMM_LOSS_POLICIES = ("stop", "base_end")
+# 청소 로봇 겹침 검사 대상: 전부, 가까운 앞쪽만, 끔
+CLEAN_CHECK_MODES = ("all", "ahead", "off")
 # yaml에서 일부러 빼는 키. zone_clear_m은 0이면 footprint_radius_m + release_margin_m로 놓는다
 OPTIONAL = frozenset({"zone_clear_m"})
 # 0이 '끔'(zone_clear_m은 '식을 씀')인 키. 다른 시간·거리 키는 0보다 커야 한다
@@ -113,12 +115,20 @@ class FleetParams:
     clean_defer_limit: int = 3
     clean_detour_margin_m: float = 0.20
     clean_block_look_m: float = 0.5
+    clean_conflict_reach_m: float = 0.18
+    clean_hold_check: str = "all"
+    clean_base_check: str = "all"
+    clean_conflict_ahead_m: float = 1.0
 
     # ---- 파라미터 값 검사 ----
     def __post_init__(self):
         if self.comm_loss_policy not in COMM_LOSS_POLICIES:
             raise ValueError(f"comm_loss_policy must be one of {COMM_LOSS_POLICIES}, "
                              f"got {self.comm_loss_policy!r}")
+        for name in ("clean_hold_check", "clean_base_check"):
+            if getattr(self, name) not in CLEAN_CHECK_MODES:
+                raise ValueError(f"{name} must be one of {CLEAN_CHECK_MODES}, "
+                                 f"got {getattr(self, name)!r}")
         ratio = self.nav_eta_speed_ratio
         if (isinstance(ratio, bool) or not isinstance(ratio, (int, float))
                 or not _finite(ratio) or not 0.0 < ratio <= 1.0):

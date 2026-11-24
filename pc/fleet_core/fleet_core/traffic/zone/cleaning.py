@@ -31,6 +31,8 @@ CLEANER, TRANSPORT = "cleaner", "transport"
 HOME, OUT, LINES, BACK, BAY_IN = "home", "out", "lines", "back", "bay_in"
 LINE, DETOUR, BACK_NAV = "line", "detour", "back_nav"
 PROGRESS_M = 0.02  # BLOCKED 기다림 중 진행점이 이만큼 앞으로 가면 기다림을 끝낸다
+# ---- 겹침 검사 대상(clean_hold_check, clean_base_check): 전부, 가까운 앞쪽만, 끔 ----
+ALL, AHEAD, OFF = "all", "ahead", "off"
 
 
 # ---- 보낼 goal 하나: 나가기, 줄, 돌아오기, 집 자리 후진 ----
@@ -147,6 +149,44 @@ def _path_gap(point, pts) -> float:
     return min(point_segment_distance(point, a, b) for a, b in pairwise(pts))
 
 
+# ---- 점을 선분에 내린 자리 ----
+def _foot(q, a, b) -> tuple:
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    span2 = dx * dx + dy * dy
+    t = 0.0 if span2 <= 1e-12 else ((q[0] - a[0]) * dx + (q[1] - a[1]) * dy) / span2
+    t = min(max(t, 0.0), 1.0)
+    return (a[0] + t * dx, a[1] + t * dy)
+
+
+# ---- 쥔 base에서 지금 위치에 가장 가까운 첫 구간 위 점부터 limit만큼만 자른 꺾은선 ----
+def _ahead(here, edges, limit: float) -> list:
+    if not edges:
+        return []
+    pts = []
+    for edge in edges:
+        for p in edge.points:
+            if not pts or math.dist(pts[-1], p) > 1e-9:
+                pts.append(tuple(p))
+    if len(pts) < 2:
+        return []
+    # 가까운 점은 첫 구간 안에서만 찾는다(되돌아오는 길로 건너뛰지 않게)
+    first = max(1, len(edges[0].points) - 1)
+    i = min(range(min(first, len(pts) - 1)),
+            key=lambda j: point_segment_distance(here, pts[j], pts[j + 1]))
+    out, left = [_foot(here, pts[i], pts[i + 1])], limit
+    for p in pts[i + 1:]:
+        d = math.dist(out[-1], p)
+        if d >= left:
+            if d > 1e-9:
+                t = left / d
+                out.append((out[-1][0] + t * (p[0] - out[-1][0]),
+                            out[-1][1] + t * (p[1] - out[-1][1])))
+            break
+        out.append(p)
+        left -= d
+    return out
+
+
 class Cleaning:
     # ---- 역할 조회와 운반 로봇에 닫힌 집 자리 ----
     def role(self, robot) -> str:
@@ -236,14 +276,17 @@ class Cleaning:
                 job.queue, job.waiting = sorted(job.waiting), []
             k = job.queue.pop(0)
             leg = self._line_leg(m, job, k)
-            why = "the joined path is not clear after rounding" if leg is None else (
-                self._clean_conflict(m, leg) or self._clean_take(m, leg))
+            if leg is None:
+                why = "the joined path is not clear after rounding"
+            else:
+                leg, why = self._clean_admit(m, leg)
             if not why:
                 return leg
             self._clean_defer(m, job, k, why)
 
     def _clean_ready(self, m, leg):
-        return None if self._clean_conflict(m, leg) or self._clean_take(m, leg) else leg
+        leg, why = self._clean_admit(m, leg)
+        return None if why else leg
 
     # ---- 다리 만들기 ----
     def _line_leg(self, m, job, k: int):
@@ -287,15 +330,25 @@ class Cleaning:
                       if _path_gap(self.site.node_pose(name), out) <= reach)
         return Leg(kind, target, tuple(out), nodes, end_yaw, line)
 
+    # ---- 겹침 검사와 쥐기: 볼 대상이 아닌 남의 지점은 다리에서 빼고 쥐지 않는다 ----
+    def _clean_admit(self, m, leg) -> tuple:
+        why = self._clean_conflict(m, leg)
+        if why:
+            return leg, why
+        if self.params.clean_hold_check != ALL:
+            held = self.grants.node_holder
+            leg = replace(leg, nodes=tuple(n for n in leg.nodes if held(n) in ("", m.name)))
+        return leg, self._clean_take(m, leg)
+
     # ---- 겹침 검사: 막힌 구역, 남이 쥔 지점, 남의 자리와 base ----
     def _clean_conflict(self, m, leg) -> str:
-        site, grants, reach = self.site, self.grants, self.params.clean_reach_m
+        site, grants, reach = self.site, self.grants, self.params.clean_conflict_reach_m
         for node in leg.nodes:
             zone = site.nodes[node].zone
             if zone is None or site.zones[zone].kind != SHARED:
                 return f"{node} is in {zone}, not a shared zone"
             holder = grants.node_holder(node)
-            if holder not in ("", m.name):
+            if holder not in ("", m.name) and self._hold_counts(holder, node):
                 return f"{node} is held by {holder}"
         for other in self._robots.values():
             if other is m or not other.placed or other.health.fault == OUT_OF_SERVICE:
@@ -306,12 +359,27 @@ class Cleaning:
                 return f"{other.name}'s base passes near"
         return ""
 
-    @staticmethod
-    def _base_near(other, pts, reach: float) -> bool:
-        route = other.route
-        if route is None or len(pts) < 2:
+    def _hold_counts(self, holder: str, node: str) -> bool:
+        """남이 쥔 지점을 볼 대상인가. ahead면 그 로봇 지금 위치에서 직선 clean_conflict_ahead_m 안만."""
+        mode, other = self.params.clean_hold_check, self._robots.get(holder)
+        if mode == OFF:
             return False
-        for edge in route.edges[route.done:route.granted]:
+        if mode == ALL or other is None:
+            return True
+        gap = math.dist((other.x, other.y), self.site.node_pose(node))
+        return gap <= self.params.clean_conflict_ahead_m
+
+    def _base_near(self, other, pts, reach: float) -> bool:
+        route, mode = other.route, self.params.clean_base_check
+        if route is None or len(pts) < 2 or mode == OFF:
+            return False
+        edges = route.edges[route.done:route.granted]
+        if mode == AHEAD:
+            # 지금 위치에서 base를 따라 clean_conflict_ahead_m까지만 본다
+            near = _ahead((other.x, other.y), edges, self.params.clean_conflict_ahead_m)
+            return any(_segments_gap(a, b, c, d) <= reach
+                       for c, d in pairwise(near) for a, b in pairwise(pts))
+        for edge in edges:
             for c, d in pairwise(edge.points):
                 if any(_segments_gap(a, b, c, d) <= reach for a, b in pairwise(pts)):
                     return True
@@ -595,8 +663,9 @@ class Cleaning:
         leg = replace(leg, nodes=tuple(dict.fromkeys(
             (*leg.nodes, *(name for name in self.site.nodes
                            if _path_gap(self.site.node_pose(name), strip) <= half)))))
-        refusal = (self._strip_refusal(strip, half) or self._clean_conflict(m, leg)
-                   or self._clean_take(m, leg))
+        refusal = self._strip_refusal(strip, half)
+        if not refusal:
+            leg, refusal = self._clean_admit(m, leg)
         if refusal:
             job.detour = None
             self._event("WARN", "CLEAN_DETOUR_FAILED", f"line {k}: {refusal}", m.name)
