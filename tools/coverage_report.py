@@ -90,7 +90,8 @@ def read_tracks(bag: Path, topics: dict[str, str]) -> dict[str, Track]:
     out = {}
     for key, data in rows.items():
         if data:
-            arr = np.array(sorted(data))
+            # 같은 시각은 bag 순서를 지킨다
+            arr = np.array(sorted(data, key=lambda r: r[0]))
             out[key] = Track(topics[key], arr[:, 0], arr[:, 1], arr[:, 2], arr[:, 3])
     return out
 
@@ -247,7 +248,8 @@ def assign(track: Track, plan: Plan) -> np.ndarray:
         s, lat = ln.along(track.x, track.y)
         off = np.maximum(np.maximum(-s, s - ln.length), 0.0)
         d = np.hypot(off, lat)
-        ok = (np.abs(_wrap(track.yaw - ln.heading)) < LINE_HEADING_RAD) & (d <= near) & (d < best_d)
+        aligned = np.abs(_wrap(track.yaw - ln.heading)) < LINE_HEADING_RAD
+        ok = aligned & (d <= near + _EPS) & (d < best_d)
         best[ok], best_d[ok] = k, d[ok]
     return best
 
@@ -277,23 +279,32 @@ def rates(track: Track) -> tuple[np.ndarray, np.ndarray]:
     return v, w
 
 
-def turns(track: Track, plan: Plan, idx: list[np.ndarray]) -> list[dict]:
-    """줄 끝 회전: 줄 끝을 지난 때부터 다음 줄 방향 오차가 ALIGN_RAD 안에 들 때까지."""
+def turns(track: Track, plan: Plan, own: np.ndarray, idx: list[np.ndarray]) -> list[dict]:
+    """줄 끝 회전: 줄 끝을 지난 때부터 다음 줄 방향 오차가 ALIGN_RAD 안에 들 때까지.
+    시작 기준은 곧은 부분의 마지막 표본, 짧은 줄이라 없으면 그 줄에 붙은 첫 표본."""
     v, w = rates(track)
     near = plan.line_spacing_m / 2.0
     out = []
     for k in range(len(plan.lines) - 1):
         a, b = plan.lines[k], plan.lines[k + 1]
-        if len(idx[k]) == 0 or len(idx[k + 1]) == 0 or idx[k + 1][0] <= idx[k][-1]:
+        mine = np.nonzero(own == k)[0]
+        if len(mine) == 0:
             continue
-        lo, hi = idx[k][-1], idx[k + 1][-1]
+        lo = int(idx[k][-1]) if len(idx[k]) else int(mine[0])
+        nxt = np.nonzero(own == k + 1)[0]
+        nxt = nxt[nxt > lo]
+        if len(nxt) == 0:
+            continue
+        hi = int(nxt[-1])
         s_a, _ = a.along(track.x[lo:hi + 1], track.y[lo:hi + 1])
-        first = idx[k + 1][0] - lo
+        first = int(nxt[0]) - lo
         past = np.nonzero(s_a[:first + 1] >= a.length - _EPS)[0]
         leave = lo + (int(past[0]) if len(past) else int(np.argmax(s_a[:first + 1])))
+        # 다음 줄 선분(연장선이 아님)에서 반 줄 간격 안이어야 한다
         s_b, lat_b = b.along(track.x[leave:hi + 1], track.y[leave:hi + 1])
+        d_b = np.hypot(np.maximum(np.maximum(-s_b, s_b - b.length), 0.0), lat_b)
         aligned = np.abs(_wrap(track.yaw[leave:hi + 1] - b.heading)) < ALIGN_RAD
-        ok = aligned & (np.abs(lat_b) <= near)
+        ok = aligned & (d_b <= near + _EPS)
         hits = np.nonzero(ok)[0]
         row = {"from": k, "to": k + 1,
                "overshoot_m": float(s_a[:first + 1].max() - a.length)}
@@ -375,7 +386,7 @@ def source_metrics(track: Track, plan: Plan, grid: Grid, target: np.ndarray, hal
         "lap_time_s": lap, "path_length_m": length,
         "mean_speed_mps": length / lap if lap > 0 else 0.0,
         "lateral": lateral_stats(np.concatenate(lat_all) if lat_all else np.array([])),
-        "lines": rows, "spacing": spacing, "turns": turns(track, plan, idx),
+        "lines": rows, "spacing": spacing, "turns": turns(track, plan, own, idx),
         "coverage": {
             "target_m2": float(target.sum() * grid.cell_m2),
             "covered_ratio": float(done.sum() / target.sum()) if target.any() else 0.0,

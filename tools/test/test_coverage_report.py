@@ -75,7 +75,7 @@ def plan_track(over=0.0):
 
 
 # ---- 합성 bag ----
-def write_bag(path, truth=None, amcl=None):
+def write_bag(path, truth=None, amcl=None, same_stamp=False):
     from builtin_interfaces.msg import Time
     from geometry_msgs.msg import PoseWithCovarianceStamped
     from nav_msgs.msg import Odometry
@@ -95,7 +95,8 @@ def write_bag(path, truth=None, amcl=None):
     for i in range(count):
         t = T0 + i * DT
         ns = round(t * 1e9)
-        stamp = Time(sec=ns // 10**9, nanosec=ns % 10**9)
+        head_ns = round(T0 * 1e9) if same_stamp else ns
+        stamp = Time(sec=head_ns // 10**9, nanosec=head_ns % 10**9)
         writer.write("/clock", serialize_message(Clock(clock=stamp)), ns)
         for name, _, pts, cls in topics:
             if pts is None or i >= len(pts):
@@ -151,9 +152,10 @@ def test_lateral_spacing_turns_and_gap_match_hand_values(tmp_path, plan_file):
     # 실제 중심선 간격: 0.19 -> 0.315, 0.315 -> 0.42
     assert [s["planned_m"] for s in m["spacing"]] == pytest.approx([0.1, 0.1])
     assert [s["actual_m"] for s in m["spacing"]] == pytest.approx([0.125, 0.105])
-    # 줄 끝 회전: 끝 지남(0.005 넘음) - 5칸 - 회전 10 - 직진 10 - 회전 10 = 35칸
+    # 줄 끝 회전: 끝 지남(0.005 넘음) - 5칸 - 회전 10 - 직진 10 - 회전 10 = 35칸, 그 뒤
+    # 다음 줄 선분에서 0.05 안까지: 0-1은 x 1.045(1칸), 1-2는 x 0.165(2칸, 0.155는 y 0.43)
+    assert [t["time_s"] for t in m["turns"]] == pytest.approx([36 * DT, 37 * DT])
     for turn in m["turns"]:
-        assert turn["time_s"] == pytest.approx(35 * DT)
         assert turn["max_w_radps"] == pytest.approx((math.pi / 20) / DT)
         assert turn["in_place"] is True
         assert turn["overshoot_m"] == pytest.approx(0.055)
@@ -200,6 +202,56 @@ def test_track_equal_to_plan_leaves_no_gap(tmp_path, plan_file):
     assert m["coverage"]["covered_ratio"] == 1.0
     assert all(r["start_uncovered_m2"] == 0.0 and r["end_uncovered_m2"] == 0.0 for r in m["lines"])
     assert [t["overshoot_m"] for t in m["turns"]] == pytest.approx([0.0, 0.0], abs=1e-9)
+
+
+SHORT_PLAN = """params: {line_spacing_m: 0.1}
+lines:
+- {cell: 0, start: [0.2, 0.2], end: [1.0, 0.2]}
+- {cell: 0, start: [1.0, 0.3], end: [0.85, 0.3]}
+- {cell: 0, start: [0.85, 0.4], end: [1.0, 0.4]}
+"""
+
+
+def test_short_line_still_reports_both_turns(tmp_path):
+    # 줄 1은 0.15 m라 곧은 부분(양 끝 0.10 m 뺌) 표본이 없다
+    pts = [(0.2 + 0.01 * k, 0.2, 0.0) for k in range(81)]
+    _rotate(pts, 1.0, 0.2, 0.0, math.pi / 2)
+    _move(pts, 1.0, 0.2, 1.0, 0.3, math.pi / 2)
+    _rotate(pts, 1.0, 0.3, math.pi / 2, math.pi)
+    pts += [(1.0 - 0.01 * k, 0.3, math.pi) for k in range(1, 16)]
+    _rotate(pts, 0.85, 0.3, math.pi, math.pi / 2)
+    _move(pts, 0.85, 0.3, 0.85, 0.4, math.pi / 2)
+    _rotate(pts, 0.85, 0.4, math.pi / 2, 0.0)
+    pts += [(0.85 + 0.01 * k, 0.4, 0.0) for k in range(1, 16)]
+    plan = tmp_path / "plan.yaml"
+    plan.write_text(SHORT_PLAN, encoding="utf-8")
+    m = run(write_bag(tmp_path / "bag", truth=pts), plan)["sources"]["truth"]
+    assert m["lines"][1]["samples"] == 0
+    # 끝 지남 - 회전 10 - 직진 10 - 회전 10 = 30칸
+    assert [t["time_s"] for t in m["turns"]] == pytest.approx([30 * DT, 30 * DT])
+    assert [t["overshoot_m"] for t in m["turns"]] == pytest.approx([0.0, 0.0], abs=1e-9)
+
+
+def test_turn_ends_on_the_next_line_not_on_its_extension(tmp_path, plan_file):
+    # 줄 0 끝에서 x 1.5까지 가서 줄 1 연장선(y 0.3) 위에서 서쪽을 본 뒤 줄 1로 들어간다
+    pts = [(0.2 + 0.01 * k, 0.2, 0.0) for k in range(81)]
+    _move(pts, 1.0, 0.2, 1.5, 0.2, 0.0)
+    _rotate(pts, 1.5, 0.2, 0.0, math.pi / 2)
+    _move(pts, 1.5, 0.2, 1.5, 0.3, math.pi / 2)
+    _rotate(pts, 1.5, 0.3, math.pi / 2, math.pi)
+    pts += [(round(1.5 - 0.01 * k, 3), 0.3, math.pi) for k in range(1, 131)]
+    m = run(write_bag(tmp_path / "bag", truth=pts), plan_file)["sources"]["truth"]
+    turn = m["turns"][0]
+    # 줄 1 시작에서 반 줄 간격(0.05) 안인 x 1.05에서 끝: 10 + 10 + 10 + 10 + 45칸
+    assert turn["time_s"] == pytest.approx(85 * DT)
+    assert turn["overshoot_m"] == pytest.approx(0.5)
+
+
+def test_same_stamp_samples_keep_bag_order(tmp_path, plan_file):
+    bag = write_bag(tmp_path / "bag", truth=[(0.5, 0.2, 0.0), (0.4, 0.2, 0.0), (0.6, 0.2, 0.0)],
+                    same_stamp=True)
+    tracks = cr.read_tracks(bag, cr.default_topics(NS))
+    assert list(tracks["truth"].x) == [0.5, 0.4, 0.6]
 
 
 # ---- 겹침 횟수 ----
