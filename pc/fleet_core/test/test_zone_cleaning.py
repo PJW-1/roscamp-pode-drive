@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import math
+from types import SimpleNamespace
 
 import pytest
 from fleet_core.common.commands import CancelCmd, DispatchResult, EventOut, MoveCmd, MoveOrderCmd
@@ -192,6 +193,23 @@ def test_the_cleaner_is_not_placed_in_a_dock_or_lane_zone():
     w.step()
     m = w.t._robots[CLEANER_NAME]
     assert not m.placed and not w.t.grants.nodes_of(CLEANER_NAME)
+
+
+def test_the_cleaner_is_not_placed_when_it_stands_in_a_dock_zone_near_a_shared_node():
+    w = World()
+    w.pos[CLEANER_NAME] = (0.49, 0.77)
+    zone = w.site.zone_at(0.49, 0.77)
+    assert zone is not None and w.site.zones[zone].kind != "shared"
+    w.step()
+    assert not w.t._robots[CLEANER_NAME].placed
+
+
+def test_a_transport_does_not_step_up_onto_the_cleaner_home():
+    w = World({"pode1": "P-2", CLEANER_NAME: "P-1"})
+    m = w.t._robots["pode1"]
+    m.node = "P-2"
+    station = SimpleNamespace(line=True, queue=("P-1", "P-2"))
+    assert w.t._line_step(m, station) is None
 
 
 # ---- BLOCKED 기다림 ----

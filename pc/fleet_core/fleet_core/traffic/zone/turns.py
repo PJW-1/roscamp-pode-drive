@@ -52,7 +52,8 @@ class Turns:
         if not station.line:
             return None
         at = station.queue.index(m.node)
-        if at == 0 or self.grants.node_holder(station.queue[at - 1]) not in ("", m.name):
+        if (at == 0 or self.grants.node_holder(station.queue[at - 1]) not in ("", m.name)
+                or station.queue[at - 1] in self._reserved(m)):
             return None
         return station.queue[at - 1]
 
