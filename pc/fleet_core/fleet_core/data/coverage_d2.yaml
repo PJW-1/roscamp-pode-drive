@@ -1,0 +1,115 @@
+# 청소 로봇 커버리지 경로(배치 d2). 손으로 고치지 않는다.
+# 다시 만들기: cd pc/fleet_core && python3 -m fleet_core.coverage --layout d2 --write
+layout: d2
+command: python3 -m fleet_core.coverage --layout d2 --write
+params: {grid_m: 0.025, robot_radius_m: 0.083, margin_m: 0.01, line_spacing_m: 0.1, clean_width_m: 0.112,
+  turn_radius_m: 0.1, speed_mps: 0.12, line_direction: x}
+home:
+  node: P-1
+  pose: [0.13, 0.15]
+  start: [0.13, 0.15]
+  moved_to_nearest_free: false
+summary: {cells: 3, lines: 9, line_length_m: 12.95, transit_length_m: 2.227, lap_time_s: 126.5, coverage_hall_floor: 0.8248,
+  coverage_clean_grid: 1.0, unreachable_free_cells: 0}
+cells:
+- id: 0
+  box: [0.113, 0.113, 1.863, 0.663]
+  lines: 7
+- id: 1
+  box: [1.513, 0.688, 1.863, 0.688]
+  lines: 1
+- id: 2
+  box: [0.113, 0.688, 0.463, 0.688]
+  lines: 1
+lines:
+- cell: 0
+  start: [0.113, 0.113]
+  end: [1.863, 0.113]
+- cell: 0
+  start: [1.863, 0.213]
+  end: [0.113, 0.213]
+- cell: 0
+  start: [0.113, 0.288]
+  end: [1.863, 0.288]
+- cell: 0
+  start: [1.863, 0.388]
+  end: [0.113, 0.388]
+- cell: 0
+  start: [0.113, 0.488]
+  end: [1.863, 0.488]
+- cell: 0
+  start: [1.863, 0.562]
+  end: [0.113, 0.562]
+- cell: 0
+  start: [0.113, 0.663]
+  end: [1.863, 0.663]
+- cell: 1
+  start: [1.863, 0.688]
+  end: [1.513, 0.688]
+- cell: 2
+  start: [0.463, 0.688]
+  end: [0.113, 0.688]
+transits:
+- from: home
+  to: line 0
+  points:
+  - [0.13, 0.15]
+  - [0.113, 0.113]
+  length_m: 0.041
+- from: line 0
+  to: line 1
+  points:
+  - [1.863, 0.113]
+  - [1.863, 0.213]
+  length_m: 0.1
+- from: line 1
+  to: line 2
+  points:
+  - [0.113, 0.213]
+  - [0.113, 0.288]
+  length_m: 0.075
+- from: line 2
+  to: line 3
+  points:
+  - [1.863, 0.288]
+  - [1.863, 0.388]
+  length_m: 0.1
+- from: line 3
+  to: line 4
+  points:
+  - [0.113, 0.388]
+  - [0.113, 0.488]
+  length_m: 0.1
+- from: line 4
+  to: line 5
+  points:
+  - [1.863, 0.488]
+  - [1.863, 0.562]
+  length_m: 0.075
+- from: line 5
+  to: line 6
+  points:
+  - [0.113, 0.562]
+  - [0.113, 0.663]
+  length_m: 0.1
+- from: line 6
+  to: line 7
+  points:
+  - [1.863, 0.663]
+  - [1.863, 0.688]
+  length_m: 0.025
+- from: line 7
+  to: line 8
+  points:
+  - [1.513, 0.688]
+  - [1.488, 0.663]
+  - [1.463, 0.663]
+  - [0.463, 0.663]
+  - [0.463, 0.688]
+  length_m: 1.085
+- from: line 8
+  to: home
+  points:
+  - [0.113, 0.688]
+  - [0.13, 0.15]
+  length_m: 0.538

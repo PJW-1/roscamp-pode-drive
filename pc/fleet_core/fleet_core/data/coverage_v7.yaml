@@ -1,0 +1,201 @@
+# 청소 로봇 커버리지 경로(배치 v7). 손으로 고치지 않는다.
+# 다시 만들기: cd pc/fleet_core && python3 -m fleet_core.coverage --layout v7 --write
+layout: v7
+command: python3 -m fleet_core.coverage --layout v7 --write
+params: {grid_m: 0.025, robot_radius_m: 0.083, margin_m: 0.01, line_spacing_m: 0.1, clean_width_m: 0.112,
+  turn_radius_m: 0.1, speed_mps: 0.12, line_direction: x}
+home:
+  node: P-1
+  pose: [0.12, 0.1]
+  start: [0.113, 0.263]
+  moved_to_nearest_free: true
+summary: {cells: 7, lines: 16, line_length_m: 8.775, transit_length_m: 3.879, lap_time_s: 105.5, coverage_hall_floor: 0.6303,
+  coverage_clean_grid: 1.0, unreachable_free_cells: 0}
+cells:
+- id: 0
+  box: [0.113, 0.263, 0.138, 0.288]
+  lines: 1
+- id: 1
+  box: [0.113, 0.312, 0.588, 0.488]
+  lines: 3
+- id: 2
+  box: [0.113, 0.513, 1.688, 0.688]
+  lines: 3
+- id: 3
+  box: [1.613, 0.288, 1.863, 0.488]
+  lines: 2
+- id: 4
+  box: [0.663, 0.113, 1.863, 0.263]
+  lines: 3
+- id: 5
+  box: [1.038, 0.288, 1.188, 0.488]
+  lines: 3
+- id: 6
+  box: [0.363, 0.288, 0.413, 0.288]
+  lines: 1
+lines:
+- cell: 0
+  start: [0.113, 0.288]
+  end: [0.138, 0.288]
+- cell: 1
+  start: [0.113, 0.312]
+  end: [0.562, 0.312]
+- cell: 1
+  start: [0.537, 0.413]
+  end: [0.113, 0.413]
+- cell: 1
+  start: [0.113, 0.488]
+  end: [0.588, 0.488]
+- cell: 2
+  start: [0.562, 0.688]
+  end: [0.638, 0.688]
+- cell: 2
+  start: [1.663, 0.613]
+  end: [0.113, 0.613]
+- cell: 2
+  start: [0.113, 0.513]
+  end: [1.663, 0.513]
+- cell: 3
+  start: [1.663, 0.488]
+  end: [1.613, 0.488]
+- cell: 3
+  start: [1.613, 0.288]
+  end: [1.863, 0.288]
+- cell: 4
+  start: [1.863, 0.263]
+  end: [0.663, 0.263]
+- cell: 4
+  start: [0.688, 0.188]
+  end: [1.863, 0.188]
+- cell: 4
+  start: [1.863, 0.113]
+  end: [0.688, 0.113]
+- cell: 5
+  start: [1.062, 0.288]
+  end: [1.188, 0.288]
+- cell: 5
+  start: [1.137, 0.388]
+  end: [1.088, 0.388]
+- cell: 5
+  start: [1.038, 0.488]
+  end: [1.188, 0.488]
+- cell: 6
+  start: [0.413, 0.288]
+  end: [0.363, 0.288]
+transits:
+- from: home
+  to: line 0
+  points:
+  - [0.113, 0.263]
+  - [0.113, 0.288]
+  length_m: 0.025
+- from: line 0
+  to: line 1
+  points:
+  - [0.138, 0.288]
+  - [0.113, 0.312]
+  length_m: 0.035
+- from: line 1
+  to: line 2
+  points:
+  - [0.562, 0.312]
+  - [0.537, 0.312]
+  - [0.537, 0.413]
+  length_m: 0.125
+- from: line 2
+  to: line 3
+  points:
+  - [0.113, 0.413]
+  - [0.113, 0.488]
+  length_m: 0.075
+- from: line 3
+  to: line 4
+  points:
+  - [0.588, 0.488]
+  - [0.562, 0.688]
+  length_m: 0.202
+- from: line 4
+  to: line 5
+  points:
+  - [0.638, 0.688]
+  - [0.638, 0.663]
+  - [1.663, 0.613]
+  length_m: 1.051
+- from: line 5
+  to: line 6
+  points:
+  - [0.113, 0.613]
+  - [0.113, 0.513]
+  length_m: 0.1
+- from: line 6
+  to: line 7
+  points:
+  - [1.663, 0.513]
+  - [1.663, 0.488]
+  length_m: 0.025
+- from: line 7
+  to: line 8
+  points:
+  - [1.613, 0.488]
+  - [1.663, 0.438]
+  - [1.663, 0.413]
+  - [1.663, 0.312]
+  - [1.613, 0.288]
+  length_m: 0.252
+- from: line 8
+  to: line 9
+  points:
+  - [1.863, 0.288]
+  - [1.863, 0.263]
+  length_m: 0.025
+- from: line 9
+  to: line 10
+  points:
+  - [0.663, 0.263]
+  - [0.688, 0.188]
+  length_m: 0.079
+- from: line 10
+  to: line 11
+  points:
+  - [1.863, 0.188]
+  - [1.863, 0.113]
+  length_m: 0.075
+- from: line 11
+  to: line 12
+  points:
+  - [0.688, 0.113]
+  - [1.062, 0.263]
+  - [1.062, 0.288]
+  length_m: 0.429
+- from: line 12
+  to: line 13
+  points:
+  - [1.188, 0.288]
+  - [1.137, 0.312]
+  - [1.137, 0.388]
+  length_m: 0.131
+- from: line 13
+  to: line 14
+  points:
+  - [1.088, 0.388]
+  - [1.088, 0.488]
+  - [1.062, 0.488]
+  - [1.038, 0.488]
+  length_m: 0.15
+- from: line 14
+  to: line 15
+  points:
+  - [1.188, 0.488]
+  - [0.863, 0.513]
+  - [0.588, 0.513]
+  - [0.413, 0.288]
+  length_m: 0.886
+- from: line 15
+  to: home
+  points:
+  - [0.363, 0.288]
+  - [0.338, 0.312]
+  - [0.312, 0.312]
+  - [0.138, 0.312]
+  - [0.113, 0.263]
+  length_m: 0.291
