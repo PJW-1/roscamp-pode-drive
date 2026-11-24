@@ -22,6 +22,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 
 # 진단 메시지
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -50,6 +51,7 @@ target_link_libraries(pode_follow_wall_plugin PUBLIC
   nav2_costmap_2d::nav2_costmap_2d_core
   tf2::tf2
   tf2_ros::tf2_ros
+  tf2_geometry_msgs::tf2_geometry_msgs
   ${nav_msgs_TARGETS} ${sensor_msgs_TARGETS} ${geometry_msgs_TARGETS})
 
 target_include_directories(pode_follow_wall_plugin PUBLIC ${nav2_core_INCLUDE_DIRS})

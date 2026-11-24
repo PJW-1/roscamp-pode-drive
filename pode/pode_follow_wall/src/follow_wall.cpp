@@ -5,7 +5,7 @@
 #include <stdexcept>
 
 #include "nav2_util/node_utils.hpp"
-#include "nav2_util/robot_utils.hpp"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "pluginlib/class_list_macros.hpp"
 #include "tf2/utils.h"
 
@@ -64,7 +64,6 @@ void FollowWall::configure(
   declare("shift_full_length", ParameterValue(0.30));
   declare("shift_taper_length", ParameterValue(0.20));
   declare("scan_timeout", ParameterValue(0.3));
-  declare("transform_tolerance", ParameterValue(0.2));
 
   auto get_d = [&](const std::string & key) {return node->get_parameter(name + "." + key).as_double();};
   auto get_i = [&](const std::string & key) {
@@ -89,7 +88,6 @@ void FollowWall::configure(
   shift_full_length_ = get_d("shift_full_length");
   shift_taper_length_ = get_d("shift_taper_length");
   scan_timeout_ = get_d("scan_timeout");
-  transform_tolerance_ = get_d("transform_tolerance");
 
   // 보정 상한은 목표 틈보다 1 cm 이상 작게
   const double cap = std::max(0.0, target_gap_ - 0.01);
@@ -104,13 +102,16 @@ void FollowWall::configure(
   const std::string primary_name = name + "." + get_s("primary_namespace");
   primary_ = loader_.createSharedInstance(primary_type);
   primary_->configure(parent, primary_name, tf, costmap_ros);
-  // 가까운 점 찾기 범위는 품은 RPP와 같게(RPP처럼 음수면 끝까지)
+  // 가까운 점 찾기 범위와 자세 변환 허용 시간은 품은 RPP와 같게(RPP처럼 음수 범위면 끝까지)
   robot_search_dist_ = std::numeric_limits<double>::max();
   if (node->has_parameter(primary_name + ".max_robot_pose_search_dist")) {
     const double d = node->get_parameter(primary_name + ".max_robot_pose_search_dist").as_double();
     if (d >= 0.0) {
       robot_search_dist_ = d;
     }
+  }
+  if (node->has_parameter(primary_name + ".transform_tolerance")) {
+    transform_tolerance_ = node->get_parameter(primary_name + ".transform_tolerance").as_double();
   }
 
   // 입력과 진단 토픽
@@ -190,13 +191,16 @@ double FollowWall::updateCorrection(
     return none();
   }
 
-  // 추정 자세(AMCL, 경로 틀)
+  // 추정 자세(AMCL, 경로 틀): RPP PathHandler::transformPose와 같은 방법으로 변환한다
   geometry_msgs::msg::PoseStamped map_pose = pose;
-  if (pose.header.frame_id != plan_.header.frame_id &&
-    !nav2_util::transformPoseInTargetFrame(
-      pose, map_pose, *tf_, plan_.header.frame_id, transform_tolerance_))
-  {
-    return none();
+  if (pose.header.frame_id != plan_.header.frame_id) {
+    try {
+      tf_->transform(pose, map_pose, plan_.header.frame_id,
+        tf2::durationFromSec(transform_tolerance_));
+    } catch (const tf2::TransformException & ex) {
+      RCLCPP_WARN_THROTTLE(logger_, *clock_, 5000, "%s: %s", plugin_name_.c_str(), ex.what());
+      return none();
+    }
   }
   // 따로 띄운 RPP라면 이번 주기에 고를 점과 잘라 낸 뒤의 시작(옮기지 않은 경로 기준)
   nearest = rppClosestIndex(

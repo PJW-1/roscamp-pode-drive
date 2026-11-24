@@ -76,7 +76,7 @@ protected:
   double shift_full_length_{0.30};
   double shift_taper_length_{0.20};
   double scan_timeout_{0.3};
-  double transform_tolerance_{0.2};
+  double transform_tolerance_{0.1};  // 품은 RPP 값을 읽어 쓴다
 
   // 주기 사이 상태
   nav_msgs::msg::Path plan_;

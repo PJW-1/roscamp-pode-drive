@@ -60,7 +60,7 @@ constexpr double kLaserX = -0.02;  // 몸 중심 뒤 라이다
 constexpr double kPathY = 2.0;
 
 // 두 RPP(따로 띄운 것, FollowWall 안의 것)에 같은 값을 준다
-std::vector<rclcpp::Parameter> rppParams(const std::string & ns)
+std::vector<rclcpp::Parameter> rppParams(const std::string & ns, double tolerance)
 {
   return {
     {ns + ".desired_linear_vel", 0.12},
@@ -76,7 +76,7 @@ std::vector<rclcpp::Parameter> rppParams(const std::string & ns)
     {ns + ".max_robot_pose_search_dist", 1.4875},
     {ns + ".approach_velocity_scaling_dist", 0.10},
     {ns + ".min_approach_linear_velocity", 0.08},
-    {ns + ".transform_tolerance", 0.2},
+    {ns + ".transform_tolerance", tolerance},
   };
 }
 
@@ -104,8 +104,8 @@ class FollowWallTest : public ::testing::Test
 protected:
   void SetUp() override
   {
-    std::vector<rclcpp::Parameter> params = rppParams("RPP");
-    const auto fw = rppParams("FollowWall.rpp");
+    std::vector<rclcpp::Parameter> params = rppParams("RPP", rpp_tolerance_);
+    const auto fw = rppParams("FollowWall.rpp", rpp_tolerance_);
     params.insert(params.end(), fw.begin(), fw.end());
     rclcpp::NodeOptions opts;
     opts.parameter_overrides(params);
@@ -113,6 +113,7 @@ protected:
     tf_ = std::make_shared<tf2_ros::Buffer>(node_->get_clock());
     tf_->setUsingDedicatedThread(true);
     costmap_ = std::make_shared<nav2_costmap_2d::Costmap2DROS>("fake_costmap");
+    costmap_->set_parameter(rclcpp::Parameter("global_frame", costmap_frame_));
     costmap_->on_configure(rclcpp_lifecycle::State());
 
     // 라이다는 180도 돌아 있다(rplidar_link와 같게)
@@ -267,6 +268,70 @@ protected:
     EXPECT_GT(turning, cycles / 4);
   }
 
+  // U자 경로(이웃 줄 간격 0.10 m): 동쪽 줄 y = 2.0, 북쪽으로 0.10 m, 서쪽 줄 y = 2.1
+  nav_msgs::msg::Path makeUPath() const
+  {
+    nav_msgs::msg::Path u;
+    u.header.frame_id = "map";
+    auto add = [&](double x, double y) {
+        geometry_msgs::msg::PoseStamped p;
+        p.header.frame_id = "map";
+        p.pose.position.x = x;
+        p.pose.position.y = y;
+        p.pose.orientation.w = 1.0;
+        u.poses.push_back(p);
+      };
+    for (int i = 0; i <= 20; ++i) {add(1.0 + 0.05 * i, kPathY);}
+    add(2.0, kPathY + 0.05);
+    for (int i = 0; i <= 20; ++i) {add(2.0 - 0.05 * i, kPathY + 0.10);}
+    return u;
+  }
+
+  // 자세를 odom 틀로 넣는 한 주기: map->odom(제자리)은 tf_delay 초 늦게 들어온다
+  Cmds stepOdom(const Pose & est, const Pose & truth, double scan_wall_y, double tf_delay)
+  {
+    const rclcpp::Time stamp = node_->now();
+    geometry_msgs::msg::TransformStamped ob;
+    ob.header.frame_id = "odom";
+    ob.child_frame_id = "base_link";
+    ob.transform.translation.x = est.x;
+    ob.transform.translation.y = est.y;
+    ob.transform.rotation = yawQ(est.yaw);
+    tf_->setTransform(ob, "test", true);
+    geometry_msgs::msg::TransformStamped mo;
+    mo.header.frame_id = "map";
+    mo.header.stamp = stamp;
+    mo.child_frame_id = "odom";
+    mo.transform.rotation.w = 1.0;
+    std::thread late;
+    if (tf_delay > 0.0) {
+      late = std::thread([this, mo, tf_delay]() {
+            std::this_thread::sleep_for(std::chrono::duration<double>(tf_delay));
+            tf_->setTransform(mo, "test", false);
+          });
+    } else {
+      tf_->setTransform(mo, "test", false);
+    }
+    fw_->feedScan(makeScan(truth, scan_wall_y));
+    geometry_msgs::msg::PoseStamped pose;
+    pose.header.frame_id = "odom";
+    pose.header.stamp = stamp;
+    pose.pose.position.x = est.x;
+    pose.pose.position.y = est.y;
+    pose.pose.orientation = yawQ(est.yaw);
+    geometry_msgs::msg::Twist vel;
+    vel.linear.x = 0.12;
+    Cmds c;
+    c.fw = fw_->computeVelocityCommands(pose, vel, &checker_).twist;
+    c.rpp = rpp_->computeVelocityCommands(pose, vel, &checker_).twist;
+    if (late.joinable()) {
+      late.join();
+    }
+    return c;
+  }
+
+  double rpp_tolerance_{0.2};
+  std::string costmap_frame_{"map"};
   rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
   std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_;
@@ -428,20 +493,7 @@ TEST_F(FollowWallTest, UnknownBeforeWallSameAsRpp)
 
 TEST_F(FollowWallTest, WallLostNearUTurnSameAsRpp)
 {
-  // U자 경로(이웃 줄 간격 0.10 m): 동쪽 줄 y = 2.0, 북쪽으로 0.10 m, 서쪽 줄 y = 2.1
-  nav_msgs::msg::Path u;
-  u.header.frame_id = "map";
-  auto add = [&](double x, double y) {
-      geometry_msgs::msg::PoseStamped p;
-      p.header.frame_id = "map";
-      p.pose.position.x = x;
-      p.pose.position.y = y;
-      p.pose.orientation.w = 1.0;
-      u.poses.push_back(p);
-    };
-  for (int i = 0; i <= 20; ++i) {add(1.0 + 0.05 * i, kPathY);}
-  add(2.0, kPathY + 0.05);
-  for (int i = 0; i <= 20; ++i) {add(2.0 - 0.05 * i, kPathY + 0.10);}
+  const auto u = makeUPath();
   rpp_->setPlan(u);
   fw_->setPlan(u);
 
@@ -465,6 +517,46 @@ TEST_F(FollowWallTest, WallLostNearUTurnSameAsRpp)
     const auto c = step(p, p, kNone);
     same(c, "k=" + std::to_string(k));
     EXPECT_FALSE(fw_->shifted());
+  }
+}
+
+// 품은 RPP의 transform_tolerance가 0.5이고 map->odom이 0.3 s 늦는 판
+class FollowWallLateTfTest : public FollowWallTest
+{
+protected:
+  FollowWallLateTfTest()
+  {
+    rpp_tolerance_ = 0.5;
+    costmap_frame_ = "odom";
+  }
+};
+
+TEST_F(FollowWallLateTfTest, LateTfThenWallLostSameAsRpp)
+{
+  const auto u = makeUPath();
+  rpp_->setPlan(u);
+  fw_->setPlan(u);
+  fw_->feedMap(makeMap(kPathY - 0.11));
+  const double scan_wall = kPathY - 0.10;
+  for (double x = 1.05; x < 1.40; x += 0.006) {
+    stepOdom({x, kPathY, 0.0}, {x, kPathY, 0.0}, scan_wall, 0.0);
+  }
+  ASSERT_TRUE(fw_->shifted());
+  // TF가 0.3 s 늦는 주기에 서쪽 줄 쪽으로 흔들린다: RPP는 기다려 변환하고 동쪽 줄을 잘라 낸다.
+  // 그 전 0.25 s 동안 map->odom이 없어 마지막 값으로 대신 쓸 수도 없다(0.2 s보다 오래됨)
+  std::this_thread::sleep_for(std::chrono::milliseconds(250));
+  stepOdom({1.45, kPathY + 0.065, 0.0}, {1.45, kPathY + 0.065, 0.0}, scan_wall, 0.3);
+  // 다시 벽을 봐 보정한 뒤 잃는다: 그 뒤 주기마다 RPP와 같아야 한다
+  for (int k = 0; k < 10; ++k) {
+    const Pose p{1.451 + 0.001 * k, kPathY + 0.01, 0.0};
+    stepOdom(p, p, scan_wall, 0.0);
+  }
+  ASSERT_TRUE(fw_->shifted());
+  for (int k = 0; k < 40; ++k) {
+    const Pose p{1.46 + 0.006 * k, kPathY + 0.01, 0.0};
+    const auto c = stepOdom(p, p, kNone, 0.0);
+    ASSERT_DOUBLE_EQ(c.fw.linear.x, c.rpp.linear.x) << "k=" << k;
+    ASSERT_DOUBLE_EQ(c.fw.angular.z, c.rpp.angular.z) << "k=" << k;
   }
 }
 
