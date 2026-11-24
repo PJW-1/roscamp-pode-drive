@@ -1,0 +1,94 @@
+repo: /home/pjw/nf_src/pd-cleaner-yield
+maps: {}
+coverage:
+  v7_spacing_0.1:
+    home_moved: true
+    start:
+    - 0.1125
+    - 0.2625
+    cells: 8
+    lines: 17
+    line_length_m: 10.45
+    transit_length_m: 3.56
+    lap_time_s: 116.8
+    coverage_hall_floor: 0.6752
+    coverage_clean_grid: 1.0
+    unreachable_free_cells: 0
+    problems: 0
+    clearance_sampled_2mm: 0.0933
+    clearance_exact: 0.0933
+    line_starts_y:
+    - 0.1125
+    - 0.1875
+    - 0.2625
+    - 0.2875
+    - 0.3125
+    - 0.3875
+    - 0.4125
+    - 0.4875
+    - 0.5125
+    - 0.5875
+    - 0.6625
+  v7_spacing_0.068:
+    home_moved: true
+    start:
+    - 0.1125
+    - 0.2625
+    cells: 8
+    lines: 24
+    line_length_m: 14.325
+    transit_length_m: 5.614
+    lap_time_s: 166.2
+    coverage_hall_floor: 0.6777
+    coverage_clean_grid: 1.0
+    unreachable_free_cells: 0
+    problems: 0
+  d2_spacing_0.1:
+    home_moved: false
+    start:
+    - 0.13
+    - 0.15
+    cells: 3
+    lines: 9
+    line_length_m: 12.95
+    transit_length_m: 2.222
+    lap_time_s: 126.4
+    coverage_hall_floor: 0.8248
+    coverage_clean_grid: 1.0
+    unreachable_free_cells: 0
+    problems: 0
+    clearance_sampled_2mm: 0.0933
+    clearance_exact: 0.0933
+    line_starts_y:
+    - 0.1125
+    - 0.2125
+    - 0.2875
+    - 0.3875
+    - 0.4875
+    - 0.5625
+    - 0.6625
+    - 0.6875
+  d2_spacing_0.068:
+    home_moved: false
+    start:
+    - 0.13
+    - 0.15
+    cells: 3
+    lines: 14
+    line_length_m: 21.7
+    transit_length_m: 3.497
+    lap_time_s: 210.0
+    coverage_hall_floor: 0.8264
+    coverage_clean_grid: 1.0
+    unreachable_free_cells: 0
+    problems: 0
+obstacle_run:
+  lap_done: 'lap 1 in 270.5 s: 13/17 lines, 18 deferrals, skipped [2, 3, 7, 8], 1 gaps, covered 0.556 of the clean grid'
+  lap2_start: lap 2, 18 lines (1 gaps)
+  gaps:
+  - line 6 (0.203, 0.513)-(0.778, 0.513), 0.58 m left for the next lap
+  blocked_wait: 39
+  detours: 2
+  detour_failed: 18
+  violations: []
+

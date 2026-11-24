@@ -1,0 +1,55 @@
+fleet map arena_d2: the corner of path work_in from N_W to X_W, then express at X_W passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path out_in from N_E to X_E, then express at X_E passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path express from X_W to X_E, then j_e_down at X_E passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path express from X_E to X_W, then j_w_down at X_W passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path work_in from N_W to X_W, then express at X_W passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path out_in from N_E to X_E, then express at X_E passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path express from X_W to X_E, then j_e_down at X_E passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path express from X_E to X_W, then j_w_down at X_W passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path work_in from N_W to X_W, then express at X_W passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path out_in from N_E to X_E, then express at X_E passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path express from X_W to X_E, then j_e_down at X_E passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path express from X_E to X_W, then j_w_down at X_W passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path work_in from N_W to X_W, then express at X_W passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path out_in from N_E to X_E, then express at X_E passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path express from X_W to X_E, then j_e_down at X_E passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path express from X_E to X_W, then j_w_down at X_W passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d: path work_in from N_W to X_W passes 0.100 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d: path out_in from N_E to X_E passes 0.100 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d: path j_w_down from X_W to N_W passes 0.100 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d: path j_e_down from X_E to N_E passes 0.100 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d: the corner of path work_in from N_W to X_W, then work_in at X_W passes 0.101 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d: the corner of path work_in from N_W to X_W, then express at X_W passes 0.100 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d: the corner of path out_in from N_E to X_E, then out_in at X_E passes 0.101 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d: the corner of path out_in from N_E to X_E, then express at X_E passes 0.100 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d: the corner of path express from X_W to X_E, then j_e_down at X_E passes 0.100 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d: the corner of path express from X_E to X_W, then j_w_down at X_W passes 0.100 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d: path work_out ends at X_W inside J_W: the robot would turn in place in a narrow strip
+fleet map arena_d: path out_out ends at X_E inside J_E: the robot would turn in place in a narrow strip
+fleet map arena_d2: the corner of path work_in from N_W to X_W, then express at X_W passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path out_in from N_E to X_E, then express at X_E passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path express from X_W to X_E, then j_e_down at X_E passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+fleet map arena_d2: the corner of path express from X_E to X_W, then j_w_down at X_W passes 0.115 m from the end of the shelf (0.5, 0.775, 1.48, 0.79), wants 0.15
+........................................................................ [  4%]
+........................................................................ [  9%]
+........................................................................ [ 13%]
+........................................................................ [ 18%]
+........................................................................ [ 22%]
+........................................................................ [ 27%]
+........................................................................ [ 32%]
+........................................................................ [ 36%]
+........................................................................ [ 41%]
+........................................................................ [ 45%]
+........................................................................ [ 50%]
+........................................................................ [ 54%]
+........................................................................ [ 59%]
+........................................................................ [ 64%]
+........................................................x............... [ 68%]
+........................................................................ [ 73%]
+....................................................xxxx................ [ 77%]
+........................................................................ [ 82%]
+........................................................................ [ 87%]
+....................................xx.................................. [ 91%]
+........................................................................ [ 96%]
+...........................................................              [100%]
+1564 passed, 7 xfailed in 61.15s (0:01:01)
