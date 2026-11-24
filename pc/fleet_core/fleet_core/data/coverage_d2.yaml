@@ -9,7 +9,7 @@ home:
   pose: [0.13, 0.15]
   start: [0.13, 0.15]
   moved_to_nearest_free: false
-summary: {cells: 3, lines: 9, line_length_m: 12.95, transit_length_m: 2.227, lap_time_s: 126.5, coverage_hall_floor: 0.8248,
+summary: {cells: 3, lines: 9, line_length_m: 12.95, transit_length_m: 2.222, lap_time_s: 126.4, coverage_hall_floor: 0.8248,
   coverage_clean_grid: 1.0, unreachable_free_cells: 0}
 cells:
 - id: 0
@@ -102,11 +102,10 @@ transits:
   to: line 8
   points:
   - [1.513, 0.688]
-  - [1.488, 0.663]
-  - [1.463, 0.663]
+  - [1.438, 0.663]
   - [0.463, 0.663]
   - [0.463, 0.688]
-  length_m: 1.085
+  length_m: 1.079
 - from: line 8
   to: home
   points:

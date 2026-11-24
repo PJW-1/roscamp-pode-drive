@@ -4,12 +4,17 @@ import math
 import sys
 from pathlib import Path
 
+from types import SimpleNamespace
+
 import pytest
+from fleet_core import coverage as cov
 from fleet_core.coverage import (
+    CleanGrid,
     Params,
     coverage,
     data_path,
     make_plan,
+    path_clear,
     rounded,
     rounded_problems,
     to_yaml,
@@ -58,11 +63,49 @@ def test_rounded_paths_with_narrow_spacing():
         assert rounded_problems(plan) == []
 
 
-# ---- 커버율: 키운 격자 빈칸 기준 90 % 이상 ----
+# ---- 커버율: 키운 격자 빈칸 기준 99 % 이상 ----
 def test_clean_grid_coverage(layout_plan):
     _, plan = layout_plan
     _, on_grid = coverage(plan)
-    assert on_grid >= 0.90
+    assert on_grid >= 0.99
+
+
+# ---- 정확한 거리 검사: 칸 중심이 아니라 경로의 모든 점 ----
+def _fake_site():
+    zones = {"HALL": SimpleNamespace(id="HALL", rects=((0.0, 0.0, 2.0, 0.79),)),
+             "NORTH": SimpleNamespace(id="NORTH", rects=((0.0, 0.79, 2.0, 1.0),))}
+    return SimpleNamespace(bounds=lambda: (0.0, 0.0, 2.0, 1.0), zones=zones, shelves=(),
+                           sim_shelves=(), keepout_extra=((1.0, 0.3, 1.2, 0.5),))
+
+
+def test_path_clear_sees_points_off_cell_centre():
+    grid = CleanGrid(_fake_site(), Params())
+    # 칸 중심(0.6875)은 0.1025 떨어지지만 y 0.699는 0.091
+    assert not path_clear(grid, [(0.3, 0.699), (0.8, 0.699)])
+    assert path_clear(grid, [(0.3, 0.69), (0.8, 0.69)])
+
+
+def test_path_clear_sees_segment_between_samples():
+    grid = CleanGrid(_fake_site(), Params())
+    # 양 끝은 모서리 (1.0, 0.3)에서 0.117, 가운데는 0.085
+    c, d, t = (1.0, 0.3), 0.085 / math.sqrt(2.0), 0.08 / math.sqrt(2.0)
+    a = (c[0] - d - t, c[1] - d + t)
+    b = (c[0] - d + t, c[1] - d - t)
+    assert not path_clear(grid, [a, b])
+
+
+# ---- 줄 간격이 격자보다 작으면 거절, 검사 실패면 파일을 쓰지 않음 ----
+def test_spacing_below_grid_is_rejected():
+    with pytest.raises(ValueError):
+        make_plan(load_fleet_map("v7"), Params(line_spacing_m=0.01))
+
+
+def test_write_refuses_when_paths_fail(monkeypatch, tmp_path):
+    target = tmp_path / "coverage_v7.yaml"
+    monkeypatch.setattr(cov, "rounded_problems", lambda plan: ["bad path"])
+    monkeypatch.setattr(cov, "data_path", lambda layout: target)
+    assert cov.main(["--layout", "v7", "--write"]) == 1
+    assert not target.exists()
 
 
 # ---- pode_fsm rounded와 같은 점, 같은 반지름 ----

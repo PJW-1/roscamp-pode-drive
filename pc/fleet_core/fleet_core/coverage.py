@@ -42,6 +42,10 @@ class Params:
     turn_radius_m: float = TURN_RADIUS_M
     speed_mps: float = SPEED_MPS
 
+    def __post_init__(self):
+        if self.line_spacing_m < self.grid_m:
+            raise ValueError(f"line spacing {self.line_spacing_m} m is below the grid {self.grid_m} m")
+
 
 # ---- 모서리 둥글게 바꾸기: pode_fsm geometry.rounded와 같은 계산 ----
 def _dedup(points: Sequence[Point]) -> list[Point]:
@@ -112,6 +116,7 @@ class CleanGrid:
         self.reach = params.robot_radius_m + params.margin_m
         x0, y0, x1, y1 = site.bounds()
         self.x0, self.y0 = x0, y0
+        self.box = (x0, y0, x1, y1)
         self.w = math.ceil((x1 - x0) / self.res - _EPS)
         self.h = math.ceil((y1 - y0) / self.res - _EPS)
         self.xs = x0 + (np.arange(self.w) + 0.5) * self.res
@@ -125,6 +130,8 @@ class CleanGrid:
         blocked = [rect for zone in sorted(site.zones.values(), key=lambda z: z.id)
                    if zone.id != FLOOR_ZONE for rect in zone.rects]
         blocked += list(site.keepout_extra) + shelves
+        self.blocked = tuple(blocked)
+        self.hall_rects = tuple(site.zones[FLOOR_ZONE].rects)
         # 키운 격자: 벽, 다른 구역, keepout_extra, 진열대에서 reach 이상
         wall = np.minimum(np.minimum(xs - x0, x1 - xs), np.minimum(ys - y0, y1 - ys))
         free = hall & (wall >= self.reach - _EPS)
@@ -137,7 +144,7 @@ class CleanGrid:
             floor &= ~_inside(rect, xs, ys)
         self.floor = floor
 
-    # ---- 칸과 좌표 변환, 점·선 빈칸 판정 ----
+    # ---- 칸과 좌표 변환 ----
     def centre(self, cell: Cell) -> Point:
         return (float(self.xs[cell[0]]), float(self.ys[cell[1]]))
 
@@ -148,29 +155,81 @@ class CleanGrid:
             return (i, j)
         return None
 
-    def point_free(self, p: Point) -> bool:
-        c = self.cell(p)
-        return c is not None and bool(self.free[c[1], c[0]])
-
-    def line_free(self, a: Point, b: Point) -> bool:
-        count = max(1, math.ceil(math.dist(a, b) / (self.res * 0.25)))
-        t = np.linspace(0.0, 1.0, count + 1)
-        i = np.floor((a[0] + (b[0] - a[0]) * t - self.x0) / self.res).astype(int)
-        j = np.floor((a[1] + (b[1] - a[1]) * t - self.y0) / self.res).astype(int)
-        if i.min() < 0 or j.min() < 0 or i.max() >= self.w or j.max() >= self.h:
-            return False
-        return bool(self.free[j, i].all())
-
-    def polyline_free(self, points: Sequence[Point]) -> bool:
-        if len(points) == 1:
-            return self.point_free(points[0])
-        return all(self.line_free(a, b) for a, b in pairwise(points))
-
     def nearest_free(self, p: Point) -> Cell:
         js, iz = np.nonzero(self.free)
         gaps = np.hypot(self.xs[iz] - p[0], self.ys[js] - p[1])
         k = int(np.argmin(gaps))
         return (int(iz[k]), int(js[k]))
+
+
+# ---- 정확한 거리 검사: 경로 선분과 벽·막힌 사각형 사이 최소 거리 ----
+def _point_rect(p: Point, rect) -> float:
+    return math.hypot(max(rect[0] - p[0], 0.0, p[0] - rect[2]),
+                      max(rect[1] - p[1], 0.0, p[1] - rect[3]))
+
+
+def _point_segment(p: Point, a: Point, b: Point) -> float:
+    ux, uy = b[0] - a[0], b[1] - a[1]
+    span = ux * ux + uy * uy
+    t = 0.0 if span <= _EPS else min(1.0, max(0.0, ((p[0] - a[0]) * ux + (p[1] - a[1]) * uy) / span))
+    return math.hypot(p[0] - a[0] - t * ux, p[1] - a[1] - t * uy)
+
+
+def _segment_hits_rect(a: Point, b: Point, rect) -> bool:
+    t0, t1 = 0.0, 1.0
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    for p, q in ((-dx, a[0] - rect[0]), (dx, rect[2] - a[0]),
+                 (-dy, a[1] - rect[1]), (dy, rect[3] - a[1])):
+        if abs(p) <= _EPS:
+            if q < 0.0:
+                return False
+            continue
+        t = q / p
+        if p < 0.0:
+            t0 = max(t0, t)
+        else:
+            t1 = min(t1, t)
+        if t0 > t1:
+            return False
+    return True
+
+
+def _segment_rect(a: Point, b: Point, rect) -> float:
+    # 겹치지 않으면 최소 거리는 선분 끝점과 사각형, 또는 사각형 꼭짓점과 선분 사이에 있다
+    if _segment_hits_rect(a, b, rect):
+        return 0.0
+    corners = ((rect[0], rect[1]), (rect[2], rect[1]), (rect[0], rect[3]), (rect[2], rect[3]))
+    return min(_point_rect(a, rect), _point_rect(b, rect),
+               *(_point_segment(c, a, b) for c in corners))
+
+
+def _wall(box, p: Point) -> float:
+    return min(p[0] - box[0], box[2] - p[0], p[1] - box[1], box[3] - p[1])
+
+
+def segment_clearance(grid: CleanGrid, a: Point, b: Point) -> float:
+    # 벽 거리는 선분 위에서 끝점이 가장 작다
+    return min(_wall(grid.box, a), _wall(grid.box, b),
+               *(_segment_rect(a, b, rect) for rect in grid.blocked))
+
+
+def _on_hall(grid: CleanGrid, a: Point, b: Point, step: float = 0.002) -> bool:
+    n = max(1, math.ceil(math.dist(a, b) / step))
+    for k in range(n + 1):
+        p = (a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n)
+        if not any(rect[0] - _EPS <= p[0] <= rect[2] + _EPS and rect[1] - _EPS <= p[1] <= rect[3] + _EPS
+                   for rect in grid.hall_rects):
+            return False
+    return True
+
+
+def path_clear(grid: CleanGrid, points: Sequence[Point]) -> bool:
+    """경로의 모든 점이 HALL 안이고 막힌 것과 벽에서 (반지름 + 여유) 이상."""
+    pts = _dedup(points)
+    if len(pts) == 1:
+        pts = [pts[0], pts[0]]
+    return all(segment_clearance(grid, a, b) >= grid.reach - _EPS and _on_hall(grid, a, b)
+               for a, b in pairwise(pts))
 
 
 # ---- 격자 탐색: 8방향, 모서리 자르기 없음 ----
@@ -238,13 +297,13 @@ def _shorten(grid: CleanGrid, pts: list[Point], radius: float) -> list[Point]:
     while i < len(pts) - 1:
         j = i + 1
         for k in range(len(pts) - 1, i + 1, -1):
-            if grid.line_free(pts[i], pts[k]) and grid.polyline_free(
-                    rounded([*out, pts[k]], radius)):
+            if path_clear(grid, [pts[i], pts[k]]) and path_clear(
+                    grid, rounded([*out, pts[k]], radius)):
                 j = k
                 break
         out.append(pts[j])
         i = j
-    if grid.polyline_free(rounded(out, radius)):
+    if path_clear(grid, rounded(out, radius)):
         return out
     return pts
 
@@ -385,8 +444,9 @@ def rounded_problems(plan: Plan) -> list[str]:
     """둥글게 바꾼 뒤 빈칸을 벗어나는 경로. 비면 통과."""
     bad = []
     for k, path in enumerate(plan.paths()):
-        if not plan.grid.polyline_free(rounded(path, plan.params.turn_radius_m)):
-            bad.append(f"path {k} leaves the clean grid after rounding: {path}")
+        if not path_clear(plan.grid, rounded(path, plan.params.turn_radius_m)):
+            bad.append(f"path {k} comes closer than {plan.grid.reach} m or leaves HALL "
+                       f"after rounding: {path}")
     return bad
 
 
@@ -490,10 +550,12 @@ def main(argv=None) -> int:
                           **summary(plan)}, sort_keys=False), end="")
     for problem in problems:
         print(problem)
+    if problems:
+        return 1
     if args.write:
         data_path(args.layout).write_text(to_yaml(plan, args.layout), encoding="utf-8")
         print(f"wrote {data_path(args.layout)}")
-    return 1 if problems else 0
+    return 0
 
 
 if __name__ == "__main__":
