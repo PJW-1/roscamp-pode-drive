@@ -51,6 +51,15 @@ FAKE_FAIL=f1 bash "$Q" "$T/fail.txt" > "$T/fail/q2.log" 2>&1; r2=$?
 check "failed eval stops the queue" '[ $r1 -ne 0 ]'
 check "rerun runs the failed eval again" '[ "$(count f1)" -eq 2 ] && [ $r2 -eq 0 ]'
 
+# ---- 끝남은 그 작업의 마지막 기록으로, 이름은 글자 그대로 본다 ----
+setup last
+mkdir -p "$R/g1" "$R/a.b"; echo '{}' > "$R/g1/eval.json"; echo '{}' > "$R/a.b/eval.json"
+printf 'g1 exit=0 wall_s=1 x\ng1 exit=1 wall_s=1 x\naxb exit=0 wall_s=1 x\n' > "$R/queue_status.txt"
+printf 'g1|eval|--checkpoint none\na.b|eval|--checkpoint none\n' > "$T/last.txt"
+bash "$Q" "$T/last.txt" > "$T/last/q.log" 2>&1
+check "an older exit=0 does not hide a later failure" '[ "$(count g1)" -eq 1 ]'
+check "a regex tag does not match another tag" '[ "$(count a.b)" -eq 1 ]'
+
 # ---- 이어 쓸 모델이 없으면 python을 부르지 않고 멈추며 잠금을 놓는다 ----
 setup nomodel
 printf 'e9|eval:nope|x\n' > "$T/nomodel.txt"

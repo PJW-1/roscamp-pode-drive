@@ -4,7 +4,7 @@
 # 사용: bash docs/rl_acd_2026-11-24/queue.sh <작업 목록 파일>
 # 한 줄에 작업 하나: tag|kind|args. kind: train, resume:<tag>(그 tag 마지막 모델에서 이어 학습),
 # eval:<tag>(그 tag 마지막 모델로 play.py), eval(args에 --checkpoint).
-# 결과 파일(run.json·eval.json)이 있고 queue_status.txt에 exit=0으로 남은 작업만 끝난 것으로 보고 건너뛴다.
+# 결과 파일(run.json·eval.json)이 있고 queue_status.txt의 마지막 기록이 exit=0인 작업만 끝난 것으로 보고 건너뛴다.
 set -u
 LIST=${1:?job list}
 HERE=$(cd "$(dirname "$0")/../.." && pwd)/learning/store_arena
@@ -19,8 +19,11 @@ mkdir -p "$R"
 cd "${ISAAC_DIR:-/d/isaac/IsaacLab}" || exit 1
 release() { [ "$(cut -d' ' -f1-2 "$LOCK/owner" 2>/dev/null)" = "rl-acd3 $1" ] && rm -rf "$LOCK"; }
 last_model() { ls -1v "$R/$1"/model_*.pt 2>/dev/null | tail -1; }
-# play.py는 eval.json을 다른 결과보다 먼저 쓰므로, 파일만 있고 성공 기록이 없으면 끝난 것이 아니다
-done_ok() { { [ -f "$R/$1/run.json" ] || [ -f "$R/$1/eval.json" ]; } && grep -q "^$1 exit=0 " "$R/queue_status.txt" 2>/dev/null; }
+# play.py는 eval.json을 다른 결과보다 먼저 쓰므로, 파일만 있고 그 작업의 마지막 기록이 exit=0이 아니면 끝난 것이 아니다
+done_ok() {
+  { [ -f "$R/$1/run.json" ] || [ -f "$R/$1/eval.json" ]; } &&
+    awk -v t="$1" '$1 == t { s = $2 } END { exit !(s == "exit=0") }' "$R/queue_status.txt" 2>/dev/null
+}
 first=1
 while IFS='|' read -r tag kind rest; do
   [ -z "$tag" ] && continue
