@@ -90,9 +90,13 @@ clear_confirm: 2              # clear 답이 이만큼 이어지면 표시를 �
 blocked_retry_max_s: 300.0    # 다시 막히면 다음 지우기까지 시간을 두 배로, 이 값까지
 plan_split: false             # 해결안 B: 켜면 지도 splits의 출발 자리에서 가는 Nav2 goal을 중간 지점을 거쳐 둘로 나눈다. 기본 끔
 # 청소 로봇(cleaners). 모두 제안값이다
-clean_reach_m: 0.18           # 청소 경로가 지도 지점이나 다른 로봇에서 이 안을 지나면 겹친다(몸 지름 + 여유)
+clean_reach_m: 0.18           # 청소 경로에서 이 안의 지도 지점을 다리에 넣어 쥐고 구역 검사를 하며, 몸이 이 밖으로 나간 지점은 놓는다(몸 지름 + 여유). 다른 로봇 검사는 clean_conflict_reach_m
 clean_blocked_s: 2.0          # 청소 로봇이 줄에서 BLOCKED로 이만큼 서 있으면 우회하거나 미룬다
 clean_retry_s: 5.0            # 미룬 줄은 마지막으로 미룬 뒤 이만큼 지나 다시 본다
 clean_defer_limit: 3          # 한 바퀴에서 이만큼 넘게 미뤄진 줄은 그 바퀴에서 포기한다
 clean_detour_margin_m: 0.20   # 우회 여유: 복귀점은 장애물 자리에서 몸 반지름 + 이만큼 앞, 점유 띠 폭은 몸 지름 + 이만큼
 clean_block_look_m: 0.5       # 장애물 좌표가 없을 때 진행점에서 이만큼 앞을 장애물 자리로 본다(Pode block_lookahead_m)
+clean_conflict_reach_m: 0.18  # 청소 경로가 다른 로봇의 지금 자리나 쥔 base에서 이 안을 지나면 겹친다. 지도 지점 고르기는 clean_reach_m
+clean_hold_check: all         # 남이 쥔 지점 보기: all(전부) / ahead(그 로봇에서 clean_conflict_ahead_m 안만) / off. 안 보는 지점은 쥐지 않는다
+clean_base_check: all         # 남의 쥔 base 보기: all(전부) / ahead(지금 위치부터 base를 따라 clean_conflict_ahead_m까지) / off
+clean_conflict_ahead_m: 1.0   # ahead일 때 보는 앞 거리
