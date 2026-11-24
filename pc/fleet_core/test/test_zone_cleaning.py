@@ -139,6 +139,61 @@ def test_lines_are_follow_path_in_the_floor_zone():
         assert w.site.zones[w.site.nodes[node].zone].kind == "shared"
 
 
+def test_a_line_goal_not_sent_is_sent_again():
+    w = World()
+    k, a, b, line = w.to_line()
+    w.t.on_goal_not_sent(CLEANER_NAME, line.goal_id)
+    for _ in range(round(w.params.move_retry_wait_s / 0.1) + 2):
+        w.step()
+    again = w.moves("follow_path")[-1]
+    assert again.goal_id != line.goal_id and again.target_id == f"clean_line_{k}"
+
+
+def test_a_rejected_detour_puts_its_line_back():
+    w = World()
+    k, a, b, line = w.to_line()
+    w.pos[CLEANER_NAME] = w.at(a, b, 0.1)
+    _blocked(w, 2.3, obstacle=(*w.at(a, b, 0.2), "unknown"))
+    nav = w.moves("nav_goal")[-1]
+    w.t.on_goal_rejected(CLEANER_NAME, nav.goal_id)
+    w.state[CLEANER_NAME] = "IDLE"
+    for _ in range(round(w.params.move_retry_wait_s / 0.1) + 2):
+        w.step()
+    assert w.job.detour is None
+    assert w.moves("follow_path")[-1].target_id == f"clean_line_{k}"
+
+
+def test_a_late_answer_of_a_withdrawn_goal_is_dropped():
+    w = World()
+    k, a, b, line = w.to_line()
+    m = w.t._robots[CLEANER_NAME]
+    w.t._cancel_goal(m)
+    w.t.on_goal_rejected(CLEANER_NAME, line.goal_id)
+    w.out += w.t.take_output()
+    assert m.attempts == 0 and not w.events("GOAL_RETRY")
+
+
+def test_a_goal_not_sent_lets_go_of_its_nodes():
+    w = World()
+    k, a, b, line = w.to_line()
+    held = set(w.t.grants.nodes_of(CLEANER_NAME))
+    w.t.on_goal_not_sent(CLEANER_NAME, line.goal_id)
+    m = w.t._robots[CLEANER_NAME]
+    left = set(w.t.grants.nodes_of(CLEANER_NAME))
+    assert left <= held
+    assert all(w.t._gap(m, node) <= w.params.clean_reach_m for node in left)
+
+
+def test_the_cleaner_is_not_placed_in_a_dock_or_lane_zone():
+    site = load_fleet_map("v7")
+    dock = next(n for n, node in site.nodes.items()
+                if node.zone and site.zones[node.zone].kind != "shared")
+    w = World({CLEANER_NAME: dock})
+    w.step()
+    m = w.t._robots[CLEANER_NAME]
+    assert not m.placed and not w.t.grants.nodes_of(CLEANER_NAME)
+
+
 # ---- BLOCKED 기다림 ----
 def test_wait_short_block_does_nothing():
     w = World()

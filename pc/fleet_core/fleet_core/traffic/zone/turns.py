@@ -58,8 +58,10 @@ class Turns:
 
     def _open_spots(self, m, station) -> list:
         mine = ("", m.name)
+        reserved = self._reserved(m)
         if not station.line:
-            free = [spot for spot in station.queue if self.grants.node_holder(spot) in mine]
+            free = [spot for spot in station.queue if self.grants.node_holder(spot) in mine
+                    and spot not in reserved]
             site = self.site
             if not any(site.zones[site.nodes[spot].zone].kind == LANE for spot in free):
                 return free
@@ -70,7 +72,8 @@ class Turns:
         taken = [i for i, spot in enumerate(station.queue)
                  if self.grants.node_holder(spot) not in mine
                  and self._in_line(self.grants.node_holder(spot), station.id)]
-        free = [spot for spot in station.queue if self.grants.node_holder(spot) in mine]
+        free = [spot for spot in station.queue if self.grants.node_holder(spot) in mine
+                and spot not in reserved]
         return [spot for spot in station.queue[max(taken) + 1 if taken else 0:] if spot in free]
 
     def _in_line(self, name: str, station_id: str) -> bool:

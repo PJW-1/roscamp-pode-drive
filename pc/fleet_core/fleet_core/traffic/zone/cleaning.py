@@ -208,6 +208,10 @@ class Cleaning:
         if job.stage == OUT:
             return self._clean_ready(m, self._out_leg(m))
         if job.stage == LINES:
+            # 결과 없이 끝난 줄·우회(유실, 못 보냄, 거절, heartbeat 끊김)는 그 줄을 맨 앞에 다시 둔다
+            if job.leg is not None and job.leg.kind in (LINE, DETOUR):
+                job.queue.insert(0, job.leg.line)
+                job.leg, job.detour = None, None
             leg = self._clean_line(m, job, now)
             if leg is not None or job.stage != BACK:
                 return leg
@@ -360,7 +364,7 @@ class Cleaning:
     # ---- 결과 ----
     def _clean_result(self, m, goal_id, success: bool, reason: str) -> None:
         job = self._cleaners[m.name]
-        if job.goal_id != goal_id or m.goal is None or m.goal.id != goal_id:
+        if not self._live(m, job, goal_id):
             return
         leg = job.leg
         self._clear_goal(m)
@@ -411,9 +415,13 @@ class Cleaning:
                     f"{plan.covered([job.segs[k] for k in job.done]):.3f} of the clean grid",
                     m.name)
 
+    def _live(self, m, job, goal_id) -> bool:
+        """지금 달리는 그 goal의 소식인가. 거둔 goal의 늦은 소식은 버린다."""
+        return job.goal_id == goal_id and m.goal is not None and m.goal.id == goal_id
+
     def _clean_rejected(self, m, goal_id, reason: str) -> None:
         job = self._cleaners[m.name]
-        if job.goal_id != goal_id:
+        if not self._live(m, job, goal_id):
             return
         self._clear_goal(m)
         job.goal_id = None
@@ -422,10 +430,11 @@ class Cleaning:
 
     def _clean_not_sent(self, m, goal_id) -> None:
         job = self._cleaners[m.name]
-        if job.goal_id != goal_id:
+        if not self._live(m, job, goal_id):
             return
         self._clear_goal(m)
         job.goal_id = None
+        self._clean_release(m, job, ended=True)
         m.retry_at = self._clock() + self.params.move_retry_wait_s
         if not m.not_sent_warned:
             m.not_sent_warned = True
@@ -434,9 +443,10 @@ class Cleaning:
 
     def _clean_lost(self, m, goal_id) -> None:
         job = self._cleaners[m.name]
-        if job.goal_id == goal_id:
+        if self._live(m, job, goal_id):
             self._clear_goal(m)
             job.goal_id = None
+            self._clean_release(m, job, ended=True)
 
     # ---- 상태 보고: 지나간 지점 놓기, 우회 위치 기록, BLOCKED 기다림 ----
     def _clean_report(self, m, now: float) -> None:

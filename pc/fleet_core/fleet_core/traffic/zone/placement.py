@@ -25,6 +25,9 @@ class Placement:
         if zone is None or (node is None and site.zones[zone].kind != SHARED):
             self._placement_refused(m, f"no node near ({m.x:.2f}, {m.y:.2f})")
             return
+        if m.name in self._cleaners and site.zones[zone].kind != SHARED:
+            self._placement_refused(m, f"the cleaner stands in {zone}, not a shared zone")
+            return
         other = self._overlapped(m)
         if other:
             self._placement_refused(m, f"reports the spot where {other} stands")
