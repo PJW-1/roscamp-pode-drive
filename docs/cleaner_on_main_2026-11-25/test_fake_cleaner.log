@@ -1,0 +1,17 @@
+F.......                                                                 [100%]
+=================================== FAILURES ===================================
+______________________ test_transport_orders_still_finish ______________________
+
+fleet = (<fake_robots.world.world.ZoneWorld object at 0x78a31f86b2f0>, {'HALL'})
+
+    def test_transport_orders_still_finish(fleet):
+        w, _ = fleet
+>       assert w.orders_done()
+E       assert False
+E        +  where False = <bound method ZoneWorld.orders_done of <fake_robots.world.world.ZoneWorld object at 0x78a31f86b2f0>>()
+E        +    where <bound method ZoneWorld.orders_done of <fake_robots.world.world.ZoneWorld object at 0x78a31f86b2f0>> = <fake_robots.world.world.ZoneWorld object at 0x78a31f86b2f0>.orders_done
+
+sim/fake_robots/test/test_world_cleaner.py:35: AssertionError
+=========================== short test summary info ============================
+FAILED sim/fake_robots/test/test_world_cleaner.py::test_transport_orders_still_finish
+1 failed, 7 passed in 168.52s (0:02:48)

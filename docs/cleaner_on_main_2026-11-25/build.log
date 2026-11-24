@@ -1,0 +1,31 @@
+Starting >>> pode_peer_obstacles
+Starting >>> pode_fsm
+Starting >>> arm_control
+Starting >>> arm_vision
+Starting >>> central
+Starting >>> pode_dock
+Finished <<< pode_follow_wall [2.44s]
+Finished <<< pode_scan_filter [3.15s]
+Finished <<< fleet_core [3.17s]
+Finished <<< pode_plan_keep [3.23s]
+Finished <<< pode_dock [2.87s]
+Finished <<< arm_vision [2.90s]
+Finished <<< pode_peer_obstacles [2.93s]
+Starting >>> pode_avoidance
+Finished <<< central [2.97s]
+Finished <<< arm_control [3.02s]
+Finished <<< pode_fsm [3.25s]
+Finished <<< pode_avoidance [2.10s]
+Starting >>> pode_nav_config
+Finished <<< pode_nav_config [0.92s]
+Starting >>> fake_robots
+Finished <<< fake_robots [3.46s]
+Starting >>> fleet_manager
+Finished <<< fleet_manager [3.65s]
+Starting >>> fleet_gz_sim
+Starting >>> iponic_bringup
+Finished <<< iponic_bringup [1.33s]
+Finished <<< fleet_gz_sim [3.71s]
+
+Summary: 17 packages finished [17.9s]
+rc=0
