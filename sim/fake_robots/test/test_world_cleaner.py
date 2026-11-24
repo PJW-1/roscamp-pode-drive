@@ -76,7 +76,7 @@ def test_status_and_events_show_clean(fleet):
 
 def test_no_invariant_breaks_by_the_cleaner(fleet):
     w, _ = fleet
-    assert not [v for v in w.violations if v.robot == CLEANER]
+    assert not [v for v in w.violations if v.robot == CLEANER or CLEANER in v.detail]
 
 
 # ---- 바닥의 물체: 기다림 → 우회 → 빈틈, 우회 못 하면 미룸 ----
