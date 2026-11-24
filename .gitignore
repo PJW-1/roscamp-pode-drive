@@ -1,5 +1,7 @@
 build/
 install/
+build_fw/
+install_fw/
 log/
 __pycache__/
 *.pyc

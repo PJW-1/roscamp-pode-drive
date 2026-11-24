@@ -1,0 +1,70 @@
+# 청소 로봇 전용 Nav2 파라미터 예시(controller_server 부분만). 아직 어디에도 연결하지 않았다.
+# 연결(D4): 청소 로봇의 nav2_params 사본에 이 블록을 합치고, make_params.py가 FollowWall.rpp의
+# 속도와 use_collision_detection도 바꾸게 한다. pode_fsm에는 controller_id=FollowWall,
+# through_controller_id=빈 값을 준다(계획 6-1). 다른 넷(FollowPath, FollowPathThrough,
+# FollowPathReverse, FollowPathGoal)은 그대로 둔다.
+
+controller_server:
+  ros__parameters:
+    # 다섯째 id로 더한다
+    controller_plugins: ["FollowPath", "FollowPathThrough", "FollowPathReverse", "FollowPathGoal",
+                         "FollowWall"]
+    FollowWall:
+      plugin: "pode_follow_wall::FollowWall"
+      # 품은 controller와 그 파라미터 이름공간(FollowWall.rpp.*)
+      primary_controller: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
+      primary_namespace: "rpp"
+      scan_topic: scan
+      map_topic: map_fine  # AMCL과 같은 위치 추정 지도
+      # 보정: 상한은 목표 틈보다 1 cm 이상 작게(넘으면 줄여 쓴다)
+      target_gap: 0.03
+      max_correction: 0.02
+      deadband: 0.005  # 이보다 작은 차는 무시
+      filter_alpha: 0.1  # 주기(20 Hz)마다 e 쪽으로 이만큼 따라간다
+      # 벽 창: 몸 옆 60~120도, 0.3 m 안
+      window_min_angle: 1.0472
+      window_max_angle: 2.0944
+      window_range: 0.30
+      # 직선 맞추기와 믿을 만한지 판정
+      ransac_iterations: 40
+      ransac_threshold: 0.01
+      min_points: 8
+      max_fit_rms: 0.008
+      max_angle_diff: 0.15  # 잰 벽과 지도 벽의 방향 차(rad)
+      max_error: 0.06  # 이보다 큰 e는 벽 앞의 물체로 본다
+      occupied_threshold: 65
+      # 경로 옮기기: 로봇 앞 0.3 m까지 모두, 다음 0.2 m 동안 줄여 0
+      shift_full_length: 0.30
+      shift_taper_length: 0.20
+      scan_timeout: 0.3
+      # 품은 RPP: FollowPath와 같은 값(through_controller_id를 비우므로 접근 감속은 FollowPath 값)
+      rpp:
+        desired_linear_vel: 0.12
+        lookahead_dist: 0.10
+        min_lookahead_dist: 0.10
+        max_lookahead_dist: 0.25
+        lookahead_time: 0.8
+        use_velocity_scaled_lookahead_dist: true
+        rotate_to_heading_angular_vel: 1.0
+        transform_tolerance: 0.2
+        min_approach_linear_velocity: 0.08
+        approach_velocity_scaling_dist: 0.10
+        use_collision_detection: true
+        max_allowed_time_to_collision_up_to_carrot: 0.6
+        use_regulated_linear_velocity_scaling: true
+        use_fixed_curvature_lookahead: false
+        curvature_lookahead_dist: 0.6
+        use_cost_regulated_linear_velocity_scaling: true
+        regulated_linear_scaling_min_radius: 0.25
+        regulated_linear_scaling_min_speed: 0.05
+        use_rotate_to_heading: true
+        allow_reversing: false
+        rotate_to_heading_min_angle: 0.70
+        max_angular_accel: 3.2
+        max_robot_pose_search_dist: 1.4875
+        cost_scaling_dist: 0.05
+        cost_scaling_gain: 1.5
+        inflation_cost_scaling_factor: 3.0
+        interpolate_curvature_after_goal: false
+        use_cancel_deceleration: false
+        cancel_deceleration: 3.2

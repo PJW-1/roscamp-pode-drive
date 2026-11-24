@@ -1,0 +1,5 @@
+<library path="pode_follow_wall_plugin">
+  <class type="pode_follow_wall::FollowWall" base_class_type="nav2_core::Controller">
+    <description>RPP wrapper that shifts the path by the lidar-measured wall distance error</description>
+  </class>
+</library>
