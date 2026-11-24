@@ -123,6 +123,8 @@ class GoalReachEnv(DirectRLEnv):
         )
         n, dev = self.num_envs, self.device
         self.cmd = torch.zeros(n, 2, device=dev)  # 변화율 제한된 (v, w) 명령
+        # 관측 라이다 거리 배율 (lidar_scale_range): 리셋 때 env 별로 뽑음
+        self.lidar_scale = ts.sample_lidar_scale(n, dev, self.spec)
         self.start_xy = torch.zeros(n, 2, device=dev)
         self.goal_xy = torch.zeros(n, 2, device=dev)
         self.d_prev = torch.zeros(n, device=dev)
@@ -306,9 +308,15 @@ class GoalReachEnv(DirectRLEnv):
         self.ang_now[env_ids] = torch.atan2(
             torch.sin(self.ang_now[env_ids]), torch.cos(self.ang_now[env_ids])
         )
+        # 리셋하는 env 만 배율을 새로 뽑음 (한 값이면 난수를 안 써 이전 실행과 같음)
+        self.lidar_scale[env_ids] = ts.sample_lidar_scale(n, self.device, self.spec)
+
+    def obs_lidar_ranges(self) -> torch.Tensor:
+        """관측용 거리: lidar_ranges 에 에피소드 배율을 곱함 (시뮬 판정은 lidar_ranges 그대로)."""
+        return ts.scale_ranges(self.lidar_ranges(), self.lidar_scale)
 
     def _get_observations(self) -> dict:
         obs = ts.build_observation(
-            self.lidar_ranges(), self.d_now, self.ang_now, self.body_velocity(), self.spec
+            self.obs_lidar_ranges(), self.d_now, self.ang_now, self.body_velocity(), self.spec
         )
         return {"policy": obs}
