@@ -7,9 +7,9 @@
 set -u
 LIST=${1:?job list}
 HERE=$(cd "$(dirname "$0")/../.." && pwd)/learning/store_arena
-PY=/d/isaac/IsaacLab/.venv/Scripts/python.exe
-LOCK=/c/Users/pjw/ros2camp/.heavy_run.lock
-QDIR=/c/Users/pjw/ros2camp/.heavy_run.queue  # 파일이 있으면 다른 트랙 차례: 잠금을 잡지 않음
+PY=${PY:-/d/isaac/IsaacLab/.venv/Scripts/python.exe}
+LOCK=${LOCK:-/c/Users/pjw/ros2camp/.heavy_run.lock}
+QDIR=${QDIR:-/c/Users/pjw/ros2camp/.heavy_run.queue}  # 파일이 있으면 다른 트랙 차례: 잠금을 잡지 않음
 R=${R:-/d/isaac/runs/store_arena/acd3}
 PAUSE_S=${PAUSE_S:-90}
 export PYTHONUTF8=1 OMNI_KIT_ACCEPT_EULA=YES PXR_WORK_THREAD_LIMIT=1
@@ -23,13 +23,7 @@ while IFS='|' read -r tag kind rest; do
   case "$tag" in \#*) continue ;; esac
   OUT=$R/$tag
   if [ -f "$OUT/run.json" ] || [ -f "$OUT/eval.json" ]; then echo "$tag skip (done)"; continue; fi
-  case "$kind" in
-    train) script=train.py; extra="" ;;
-    resume:*) script=train.py; extra="--resume $(last_model "${kind#resume:}")" ;;
-    eval:*) script=play.py; extra="--checkpoint $(last_model "${kind#eval:}")" ;;
-    eval) script=play.py; extra="" ;;
-    *) echo "$tag: unknown kind $kind"; exit 2 ;;
-  esac
+  case "$kind" in train|resume:*|eval:*|eval) ;; *) echo "$tag: unknown kind $kind"; exit 2 ;; esac
   [ $first -eq 1 ] || sleep "$PAUSE_S"
   first=0
   until [ -z "$(ls -A "$QDIR" 2>/dev/null)" ] && mkdir "$LOCK" 2>/dev/null; do
@@ -38,6 +32,16 @@ while IFS='|' read -r tag kind rest; do
   done
   echo "rl-acd3 $tag $(date -Iseconds) (overnight RL acd3, pd-rl-acd3)" > "$LOCK/owner"
   trap "release $tag" EXIT
+  # ---- 잠금을 잡은 뒤 다시 본다: 같은 목록의 다른 큐가 이미 끝냈을 수 있고, 이어 쓸 모델도 지금 골라야 한다 ----
+  if [ -f "$OUT/run.json" ] || [ -f "$OUT/eval.json" ]; then
+    trap - EXIT; release "$tag"; echo "$tag skip (done by another queue)"; continue
+  fi
+  case "$kind" in
+    train) script=train.py; extra="" ;;
+    resume:*) script=train.py; extra="--resume $(last_model "${kind#resume:}")" ;;
+    eval:*) script=play.py; extra="--checkpoint $(last_model "${kind#eval:}")" ;;
+    eval) script=play.py; extra="" ;;
+  esac
   mkdir -p "$OUT"
   start=$(date +%s)
   # shellcheck disable=SC2086
