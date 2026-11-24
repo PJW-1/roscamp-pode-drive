@@ -54,20 +54,28 @@ def tables(runs, partial=False):
     return cells, pairs
 
 
+def paired_same(da, db):
+    """같은 에피소드로 시작했는지 확인한 뒤의 짝 차이(%p)와 SE."""
+    if not same_episodes(da, db):
+        raise ValueError(f"{da} and {db} do not start the same episodes")
+    return paired(da, db)
+
+
 # ---- lidar 배율 0.958: 같은 정책 1.0 대비, 그리고 acd2(0.958) 대비 ----
-def lidar_rows(runs):
+def lidar_rows(runs, partial=False):
     rows = []
     base = run_dir(runs, "acd2", 0.12, "rand", l958=True)
     for pol in POLICIES:
         d, d1 = run_dir(runs, pol, 0.12, "rand", l958=True), run_dir(runs, pol, 0.12, "rand")
-        if not (have(d) and have(d1)):
+        # partial이 아니면 빠진 평가는 오류: 고르는 기준의 다섯 번째 칸이 조용히 빠지지 않게
+        if partial and not (have(d) and have(d1)):
             continue
         row = cell_row(d, pol, None, 0.12, "rand_l958")
-        m, se = paired(d, d1)
+        m, se = paired_same(d, d1)
         row.update({"vs_same_policy_scale1_pp": r4(m), "vs_same_policy_se_pp": r4(se),
                     "vs_same_policy_noise": noise(m, se)})
-        if pol != "acd2" and have(base):
-            m, se = paired(d, base)
+        if pol != "acd2" and (have(base) or not partial):
+            m, se = paired_same(d, base)
             row.update({"vs_acd2_l958_pp": r4(m), "vs_acd2_l958_se_pp": r4(se),
                         "vs_acd2_l958_noise": noise(m, se)})
         rows.append(row)
@@ -80,6 +88,6 @@ if __name__ == "__main__":
     cells, pairs = tables(runs, partial="partial" in sys.argv[3:])
     write(f"{out}/cells.csv", cells)
     write(f"{out}/paired.csv", pairs)
-    lid = lidar_rows(runs)
+    lid = lidar_rows(runs, partial="partial" in sys.argv[3:])
     if lid:
         write(f"{out}/lidar.csv", lid)
