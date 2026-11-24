@@ -11,7 +11,7 @@ rsync -a --delete --exclude .git /mnt/c/Users/pjw/ros2camp/$W/ "$SRC/"
 P=$SRC/pode/pode_rl_controller/policies
 # 내보내기(export_policy.py)로 spec과 fixture를 worktree에 두고 CMake parity 목록에 acd3를 더한 뒤 돌린다
 [ -f "$P/store_arena_acd3/policy_spec.json" ] || { echo "no store_arena_acd3/policy_spec.json; export it first"; exit 2; }
-grep -q "store_arena_acd3" "$SRC/pode/pode_rl_controller/CMakeLists.txt" || { echo "add store_arena_acd3 to the parity list in CMakeLists.txt"; exit 2; }
+grep -qE "^ *foreach\(policy [^)]*store_arena_acd3[ )]""$SRC/pode/pode_rl_controller/CMakeLists.txt" || { echo "add store_arena_acd3 to the parity list in CMakeLists.txt"; exit 2; }
 cp "$ACD2" "$P/store_arena_acd2/policy.onnx"
 cp "$ACD3" "$P/store_arena_acd3/policy.onnx"
 # ---- 빌드(onnxruntime은 ort_probe 묶음) ----
@@ -22,7 +22,9 @@ source "$HOME/pinky_deps_ws/install/local_setup.bash"
 ort=$HOME/ort_probe/x/opt/ros/jazzy
 export CMAKE_PREFIX_PATH=$ort:$CMAKE_PREFIX_PATH AMENT_PREFIX_PATH=$ort:$AMENT_PREFIX_PATH
 export LD_LIBRARY_PATH=$ort/lib:$ort/opt/onnxruntime_vendor/lib:$LD_LIBRARY_PATH
+# 지난 빌드의 parity 실행 파일이 남아 지금 목록에 없는 시험을 돌리지 않게 지운다
 mkdir -p "$B"
+rm -f "$B"/build/pode_rl_controller/test_parity_store_arena_*
 cd "$SRC" || exit 1
 colcon --log-base "$B/log" build --build-base "$B/build" --install-base "$B/install" \
   > "$B/build.txt" 2>&1 || { tail -30 "$B/build.txt"; exit 1; }
@@ -37,4 +39,5 @@ for p in 4b acd2 acd3; do
   grep -E "SKIPPED|FAILED|\[parity\] onnxruntime" "$B/parity_$p.txt"
   [ $r -eq 0 ] || { echo "parity $p failed ($r)"; exit 1; }
   ! grep -q "SKIPPED" "$B/parity_$p.txt" || { echo "parity $p skipped inference: is policy.onnx in place?"; exit 1; }
+  grep -q "\[parity\] onnxruntime C++ vs torch" "$B/parity_$p.txt" || { echo "parity $p did not run inference"; exit 1; }
 done
