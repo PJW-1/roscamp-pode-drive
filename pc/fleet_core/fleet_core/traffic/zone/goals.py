@@ -18,9 +18,13 @@ STANDING_WAIT_S = 300.0
 class Goals:
     def _cost(self, m):
         now, p, site, grants = self._clock(), self.params, self.site, self.grants
+        barred = m.name in self._cleaners
 
         def cost(edge) -> float:
             if self._blocked.get((edge.a, edge.b), 0.0) > now:
+                return math.inf
+            # 청소 로봇에는 dock·lane 구역을 지나는 edge가 없다
+            if barred and any(site.zones[zone].kind != SHARED for zone in edge.zones):
                 return math.inf
             seconds = edge.price_m / speed(p, edge.mode)
             for zone in edge.zones:
@@ -211,11 +215,13 @@ class Goals:
             while end < len(route.edges) and self._lane_spot(route.edges[end - 1].b):
                 end = stretch_end(site, route.edges, end)
         zones, nodes, lanes = needs(route.edges[start:end])
+        since = now if m.watch.wait.since is None else m.watch.wait.since
+        if m.name in self._cleaners and self._barred(zones, nodes):
+            return Want(tuple(zones), tuple(nodes), lanes, since, {})
         eta = {}
         for lane in lanes:
             index = next(i for i in range(start, end) if route.edges[i].lane == lane)
             eta[lane] = self._left_s(m, route, index, ARRIVE)
-        since = now if m.watch.wait.since is None else m.watch.wait.since
         want = Want(tuple(zones), tuple(nodes), lanes, since, eta)
         entered = [lane for lane in lanes if m.name not in grants.holders(lane)]
         for lane in entered:
@@ -232,6 +238,13 @@ class Goals:
                     f"{'+'.join(zones)} to {route.edges[end - 1].b}", m.name)
         self._detours.note(m, route)
         return None
+
+    # ---- 청소 로봇이 잡을 수 없는 구역과 지점(dock, lane) ----
+    def _barred(self, zones, nodes) -> bool:
+        site = self.site
+        kinds = [site.zones[zone].kind for zone in zones]
+        kinds += [site.zones[site.nodes[node].zone].kind for node in nodes]
+        return any(kind != SHARED for kind in kinds)
 
     def _lane_spot(self, node: str) -> bool:
         spec = self.site.nodes[node]

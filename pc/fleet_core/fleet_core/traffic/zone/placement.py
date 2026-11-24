@@ -25,6 +25,14 @@ class Placement:
         if zone is None or (node is None and site.zones[zone].kind != SHARED):
             self._placement_refused(m, f"no node near ({m.x:.2f}, {m.y:.2f})")
             return
+        if m.name in self._cleaners:
+            # 지점의 구역과 선 자리의 구역이 모두 공유 구역이어야 한다
+            spots = {zone, site.zone_at(m.x, m.y)} - {None}
+            barred = sorted(z for z in spots if site.zones[z].kind != SHARED)
+            if barred:
+                self._placement_refused(m, f"the cleaner stands in {barred[0]}, "
+                                        "not a shared zone")
+                return
         other = self._overlapped(m)
         if other:
             self._placement_refused(m, f"reports the spot where {other} stands")
@@ -41,6 +49,9 @@ class Placement:
                   or site.nearest_node(m.x, m.y, inside) or "")
         m.phase = PARKED if node in site.parking else IDLE
         self._joining.discard(m.name)
+        if node in self._reserved(m):
+            self._event("WARN", "CLEAN_HOME_TAKEN", f"starts on {node}, the cleaner's home; "
+                        "it is kept from transports once this robot leaves", m.name)
 
     # ---- 노드 빈 여부와 겹치는 로봇 찾기 ----
     def _free(self, m, node: str) -> bool:

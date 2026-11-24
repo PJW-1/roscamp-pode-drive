@@ -15,7 +15,7 @@ class NoZoneTraffic(RuntimeError):
 
 
 # ---- 모드 확인 후 ZoneTraffic 불러와 만들기 ----
-def build_traffic(site, params, robots, clock, next_goal_id):
+def build_traffic(site, params, robots, clock, next_goal_id, cleaners=()):
     mode = params.traffic_mode
     if mode != ZONES:
         raise ValueError(f"traffic_mode must be one of {', '.join(MODES)}, not {mode!r}")
@@ -27,4 +27,5 @@ def build_traffic(site, params, robots, clock, next_goal_id):
             raise
         raise NoZoneTraffic(f"{NEEDS_ZONE_TRAFFIC}: {ZONE_CONTROLLER} is not on this branch"
                             ) from None
-    return module.ZoneTraffic(site, params, robots, clock, next_goal_id)
+    extra = {"cleaners": tuple(cleaners)} if cleaners else {}
+    return module.ZoneTraffic(site, params, robots, clock, next_goal_id, **extra)

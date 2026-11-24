@@ -30,7 +30,9 @@ class Turns:
                 self._stay(m, station)
                 return
         cost = self._cost(m)
-        free = [spot for spot in site.parking if self.grants.node_holder(spot) in ("", m.name)]
+        reserved = self._reserved(m)
+        free = [spot for spot in site.parking if self.grants.node_holder(spot) in ("", m.name)
+                and spot not in reserved]
         for spot in sorted(free, key=lambda spot: (self._price(m, spot, cost), spot)):
             yield spot, False
 
@@ -50,14 +52,17 @@ class Turns:
         if not station.line:
             return None
         at = station.queue.index(m.node)
-        if at == 0 or self.grants.node_holder(station.queue[at - 1]) not in ("", m.name):
+        if (at == 0 or self.grants.node_holder(station.queue[at - 1]) not in ("", m.name)
+                or station.queue[at - 1] in self._reserved(m)):
             return None
         return station.queue[at - 1]
 
     def _open_spots(self, m, station) -> list:
         mine = ("", m.name)
+        reserved = self._reserved(m)
         if not station.line:
-            free = [spot for spot in station.queue if self.grants.node_holder(spot) in mine]
+            free = [spot for spot in station.queue if self.grants.node_holder(spot) in mine
+                    and spot not in reserved]
             site = self.site
             if not any(site.zones[site.nodes[spot].zone].kind == LANE for spot in free):
                 return free
@@ -67,7 +72,8 @@ class Turns:
         taken = [i for i, spot in enumerate(station.queue)
                  if self.grants.node_holder(spot) not in mine
                  and self._in_line(self.grants.node_holder(spot), station.id)]
-        free = [spot for spot in station.queue if self.grants.node_holder(spot) in mine]
+        free = [spot for spot in station.queue if self.grants.node_holder(spot) in mine
+                and spot not in reserved]
         return [spot for spot in station.queue[max(taken) + 1 if taken else 0:] if spot in free]
 
     def _in_line(self, name: str, station_id: str) -> bool:

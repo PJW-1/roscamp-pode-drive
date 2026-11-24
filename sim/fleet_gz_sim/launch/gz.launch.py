@@ -49,6 +49,7 @@ ARGS = {
     "nav_pass_through": ("true", "잠금 경계에서 끝나는 이동(final_goal 거짓)을 접근 감속 없는 둘째"
                                 " RPP(FollowPathThrough)로. false면 모두 FollowPath(둘 다 뜬다)"),
     "scenario_seed": ("", "시나리오 random 블록을 풀 seed(정수). 비면 파일의 seed"),
+    "cleaners": ("", "청소 로봇 이름(띄어 씀, 예: pode3). 비면 모두 운반 로봇"),
     "battery_low_pct": ("", "관제 battery_low_pct(0~100). 주면 그 값을 넣은 파라미터 사본"
                             "(result_dir/fleet_params.yaml)으로 돈다. 비우면 파일 그대로"),
     "fixed_line_collision_check": ("false", "시뮬 전용. true면 고정 경로 controller 셋(FollowPath,"
@@ -229,9 +230,10 @@ def params_for(params_file: str, result_dir: str, battery_low_pct: str = "") -> 
 def fleet(scenario_file: str, robots: list[str], result_dir: str, monitor: bool,
           layout: str, params_file: str = "", obstacles_file: str = "", check: bool = True,
           scenario_seed: int | None = None, use_order_model: bool | None = None,
-          record: str = "") -> list:
+          record: str = "", cleaners: str = "") -> list:
     """진짜 관제와 가짜 작업셀, 출고 팔, central, 모니터, 장애물(있으면). 모두 Gazebo 시계.
     record: 관제 기록 파일(비면 안 남김). layout: map_file(배치 이름). scenario_seed, use_order_model: None이면 넘기지 않는다.
+    cleaners: 관제 노드 파라미터 cleaners(청소 로봇 이름). 비면 넘기지 않는다.
     """
     from fake_robots.common import split_fake_arms
     from fleet_core.fleet_map import load_fleet_map
@@ -248,7 +250,8 @@ def fleet(scenario_file: str, robots: list[str], result_dir: str, monitor: bool,
                     parameters=[{"use_sim_time": True, "robots": robots,
                                  "params_file": params_file, **map_file,
                                  **({} if use_order_model is None
-                                    else {"use_order_model": use_order_model})}])]
+                                    else {"use_order_model": use_order_model}),
+                                 **({"cleaners": cleaners} if cleaners else {})}])]
     workcell, _, swap_arms = split_fake_arms(ARMS, load_fleet_map(layout))
     if workcell:
         actions.append(fake("fake_workcell_node", "fake_workcell"))
@@ -397,7 +400,8 @@ def _start(context):
         if event.returncode != 0:
             return [LogInfo(msg="fleet_gz_sim: 로봇이 IDLE이 되지 않아 끝낸다"), Shutdown()]
         return fleet(scenario_file, robots, value("result_dir"), monitor, layout,
-                     params_file, obstacles_file, check, scenario_seed, order, record)
+                     params_file, obstacles_file, check, scenario_seed, order, record,
+                     LaunchConfiguration("cleaners", default="").perform(context))
 
     actions += [wait, RegisterEventHandler(OnProcessExit(target_action=wait, on_exit=after_wait))]
     return actions

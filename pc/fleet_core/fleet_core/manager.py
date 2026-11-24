@@ -32,7 +32,7 @@ from fleet_core.traffic.modes import build_traffic
 
 # ---- FleetManager 생성: 교통, 주문, 팔 작업 코어 구성 ----
 class FleetManager(ManagerRoute, ManagerViews, ManagerRecord):
-    def __init__(self, site, params, robots, clock):
+    def __init__(self, site, params, robots, clock, cleaners=()):
         self.site = site
         self.params = params
         self._clock = clock
@@ -40,9 +40,13 @@ class FleetManager(ManagerRoute, ManagerViews, ManagerRecord):
         self._write = None
         self._fed = False
         self._goal_seq = 0
-        self.traffic = build_traffic(site, params, robots, self._frozen, self._next_goal_id)
-        self.orchestrator = OrderOrchestrator(site.stations, params, robots, self._frozen)
-        self.arm = ArmJobs(site.stations, params, robots, self._frozen, self._next_goal_id)
+        # 청소 로봇은 교통 층만 알고, 주문 코어와 팔 작업에는 운반 로봇만 넘긴다
+        self.cleaners = tuple(dict.fromkeys(cleaners))
+        self.traffic = build_traffic(site, params, robots, self._frozen, self._next_goal_id,
+                                     self.cleaners)
+        transports = [name for name in robots if name not in self.cleaners]
+        self.orchestrator = OrderOrchestrator(site.stations, params, transports, self._frozen)
+        self.arm = ArmJobs(site.stations, params, transports, self._frozen, self._next_goal_id)
         self._work = next(s.id for s in site.stations.values() if s.action == FILL)
         self._outbound = next(s.id for s in site.stations.values() if s.action == SWAP)
         self._out: list = []
@@ -179,7 +183,7 @@ class FleetManager(ManagerRoute, ManagerViews, ManagerRecord):
         self._input("confirm_clear", robot, zone_ids, note)
         released = self.traffic.confirm_clear(robot, zone_ids, note)
         self.last_clear_reason = self.traffic.clear_reason
-        if released is not None:
+        if released is not None and robot not in self.cleaners:
             self.orchestrator.on_robot_removed(robot)
         self._pump()
         return released
@@ -194,7 +198,8 @@ class FleetManager(ManagerRoute, ManagerViews, ManagerRecord):
             return False
         name, basket = text(robot), text(basket)
         self.traffic.reinstate(name)
-        self.orchestrator.on_robot_reinstated(name, basket)
+        if name not in self.cleaners:
+            self.orchestrator.on_robot_reinstated(name, basket)
         self._out.append(EventOut("INFO", "ROBOT_REINSTATED",
                                   f"basket {basket}, on the map at its next report: {text(note)}",
                                   name))
@@ -229,7 +234,12 @@ class FleetManager(ManagerRoute, ManagerViews, ManagerRecord):
             traffic.tick_pick(stopped)
             self._pump()
             for robot in traffic.robots:
-                if traffic.available(robot) and robot not in stopped:
+                if not traffic.available(robot) or robot in stopped:
+                    continue
+                if robot in self.cleaners:
+                    traffic.step(robot)
+                    self._pump()
+                else:
                     self._step_robot(robot)
         out, self._out = self._out, []
         for item in out:

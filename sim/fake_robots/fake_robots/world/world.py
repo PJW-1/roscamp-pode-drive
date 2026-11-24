@@ -35,9 +35,9 @@ STUCK_TIMEOUT_S = 10.0  # 멈춘 로봇의 이동은 이만큼 뒤 TIMEOUT
 DEFAULT_STOCK = {"A": 20, "B": 20, "C": 20, "D": 20}
 
 
-def default_manager(site, params, robots, clock):
+def default_manager(site, params, robots, clock, cleaners=()):
     from fleet_core.manager import FleetManager
-    return FleetManager(site, params, robots, clock)
+    return FleetManager(site, params, robots, clock, cleaners)
 
 
 def default_robots(site, count=3) -> dict[str, str]:
@@ -49,7 +49,7 @@ class ZoneWorld(Commands, Link):
     def __init__(self, layout="d2", seed=1, params=None, overrides=None, robots=None,
                  orders=None, injections=(), imperfect=None, manager_factory=default_manager,
                  stock=None, arm_s_per_item=2.0, swap_step_s=2.0, dock_s=2.0, run_mode="RUN",
-                 avoid_mode=PERFECT, avoid_settings=None, local_yield=False):
+                 avoid_mode=PERFECT, avoid_settings=None, local_yield=False, cleaners=()):
         self.site = load_fleet_map(layout) if isinstance(layout, str) else layout
         params = params or load_params()
         self.params = replace(params, traffic_mode="zones", **(overrides or {}))
@@ -96,7 +96,10 @@ class ZoneWorld(Commands, Link):
         self.batteries = {name: Battery([f for f in low if f.robot == name], spots)
                           for name in sorted({f.robot for f in low})}
         self._setup_link()
-        self.manager = manager_factory(self.site, self.params, list(self.robots), lambda: self.t)
+        # 청소 로봇이 있을 때만 관제에 넘긴다(시험용 관제는 네 인자만 받는다)
+        extra = {"cleaners": tuple(cleaners)} if cleaners else {}
+        self.manager = manager_factory(self.site, self.params, list(self.robots), lambda: self.t,
+                                       **extra)
 
     # ---- 시험이 읽는 것 ----
 

@@ -121,12 +121,13 @@ class Watch:
         return self._to_parking(m, "WARN", "DEADLOCK_SEEN", f"{m.name} gives way to")
 
     def _to_parking(self, m, level: str, code: str, why: str, clear_of=None) -> bool:
-        # step을 거치지 않는 길이라 LOCALIZING 로봇에는 보내지 않는다
-        if m.goal is not None or self._localizing(m):
+        # step을 거치지 않는 길이라 LOCALIZING 로봇과 청소 로봇에는 보내지 않는다
+        if m.goal is not None or self._localizing(m) or m.name in self._cleaners:
             return False
         waited = self.grants.waiting().get(m.name)
+        reserved = self._reserved(m)
         free = [spot for spot in self.site.parking
-                if self.grants.node_holder(spot) in ("", m.name)
+                if self.grants.node_holder(spot) in ("", m.name) and spot not in reserved
                 and (clear_of is None or self._gap(m, spot) < self._gap(clear_of, spot))]
         for spot in sorted(free, key=lambda spot: (self._gap(m, spot), spot)):
             edges = self._way(m, spot)

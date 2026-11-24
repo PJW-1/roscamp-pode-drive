@@ -3,7 +3,11 @@ from __future__ import annotations
 
 from fleet_core.common.commands import AssignmentView, RobotStatusView, ZoneView
 from fleet_core.orders.orchestrator import FILLING, SWAPPING
+from fleet_core.orders.records import NONE
 from fleet_core.traffic.mission import AT_STATION, DOCKING, OUT_OF_SERVICE, TO_OUTBOUND, TO_WORK
+
+
+CLEAN = "CLEAN"  # 청소 로봇의 task_type(팀 합의 전 제안, Assignment.msg 상수에는 아직 없다)
 
 
 # ---- 구역 조회와 로봇별 작업 조회 ----
@@ -16,6 +20,9 @@ class ManagerViews:
         for robot in self.traffic.robots:
             t = self.traffic.robot_view(robot)
             if not t["on_map"] or t["fault"] == OUT_OF_SERVICE:
+                continue
+            if robot in self.cleaners:
+                views.append(AssignmentView(robot, None, "", CLEAN))
                 continue
             order_id = self.orchestrator.order_of(robot)
             phase, dest = t["phase"], t["destination"]
@@ -48,6 +55,8 @@ class ManagerViews:
     # ---- 로봇 한 대의 상세 조회 ----
     def robot_view(self, robot) -> dict:
         t = self.traffic.robot_view(robot)
+        if robot in self.cleaners:
+            return self._cleaner_view(robot, t)
         o = self.orchestrator.robot_view(robot)
         if not t or not o:
             return {}
@@ -68,4 +77,26 @@ class ManagerViews:
             "goal_id": t["goal_id"],
             "attempts": t["attempts"] + self.arm.attempts(robot),
             "blocked_lane": t["blocked_lane"],
+        }
+
+    # ---- 청소 로봇: 주문 코어 없이 교통 층 상태로 답한다 ----
+    def _cleaner_view(self, robot, t) -> dict:
+        if not t:
+            return {}
+        return {
+            "state": t["fault"] or t["comm"] or t["phase"],
+            "phase": t["phase"],
+            "basket": NONE,
+            "order": None,
+            "placed": {},
+            "called": False,
+            "held": t["held"],
+            "path": t["path"],
+            "waypoint": t["waypoint"],
+            "destination": t["destination"],
+            "goal_id": t["goal_id"],
+            "attempts": t["attempts"],
+            "blocked_lane": t["blocked_lane"],
+            "role": "cleaner",
+            "clean": self.traffic.clean_view(robot),
         }

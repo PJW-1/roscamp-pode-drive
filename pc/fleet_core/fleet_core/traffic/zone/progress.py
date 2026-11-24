@@ -61,6 +61,8 @@ class Progress:
             self._place(m)
         elif m.health.comm == COMM_LOST:
             self._begin_recovery(m)
+        elif not m.health.fault and not m.health.comm and robot in self._cleaners:
+            self._clean_report(m, now)
         elif not m.health.fault and not m.health.comm:
             self._track(m)
             if m.result_lost_at is None:  # 결과 모름이면 구역을 쥐고 막힘 처리도 하지 않는다

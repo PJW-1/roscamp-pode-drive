@@ -420,21 +420,21 @@ def make_plan(site, params: Params = Params()) -> Plan:
         best = None
         for index, (raw, picks) in enumerate(todo):
             for up in (True, False):
-                order = picks if up else picks[::-1]
+                sweep = picks if up else picks[::-1]
                 for east in (True, False):
-                    j, i0, i1 = order[0]
+                    j, i0, i1 = sweep[0]
                     entry = (i0 if east else i1, j)
                     key = (dist[entry[1], entry[0]], index, not up, not east)
                     if best is None or key < best[0]:
-                        best = (key, index, order, east)
-        _, index, order, east = best
+                        best = (key, index, sweep, east)
+        _, index, sweep, east = best
         raw, _ = todo.pop(index)
         number = len(cells)
         xs = [grid.xs[i] for _, i0, i1 in raw for i in (i0, i1)]
         cells.append({"id": number, "box": [min(xs), grid.ys[raw[0][0]],
                                             max(xs), grid.ys[raw[-1][0]]],
-                      "lines": len(order)})
-        for j, i0, i1 in order:
+                      "lines": len(sweep)})
+        for j, i0, i1 in sweep:
             a, b = grid.centre((i0, j)), grid.centre((i1, j))
             if not east:
                 a, b = b, a
@@ -459,12 +459,16 @@ def rounded_problems(plan: Plan) -> list[str]:
 
 
 def covered(plan: Plan) -> np.ndarray:
-    grid = plan.grid
+    return covered_by(plan.grid, plan.params, plan.paths())
+
+
+def covered_by(grid: CleanGrid, params: Params, paths) -> np.ndarray:
+    """경로들을 둥글게 바꾼 뒤 청소 폭이 지나간 칸."""
     xs, ys = np.meshgrid(grid.xs, grid.ys)
-    half = plan.params.clean_width_m / 2.0
+    half = params.clean_width_m / 2.0
     hit = np.zeros(xs.shape, dtype=bool)
-    for path in plan.paths():
-        pts = rounded(path, plan.params.turn_radius_m)
+    for path in paths:
+        pts = rounded(path, params.turn_radius_m)
         if len(pts) == 1:
             pts = [pts[0], pts[0]]
         for a, b in pairwise(pts):

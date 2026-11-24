@@ -116,6 +116,12 @@ class FleetParams:
     blocked_retry_max_s: float = 300.0
     plan_split: bool = False  # 해결안 B: 지도 splits대로 Nav2 goal을 둘로 나눈다. 기록 호환: 끔
     report_max_in_flight: int = 4
+    clean_reach_m: float = 0.18
+    clean_blocked_s: float = 2.0
+    clean_retry_s: float = 5.0
+    clean_defer_limit: int = 3
+    clean_detour_margin_m: float = 0.20
+    clean_block_look_m: float = 0.5
 
     # ---- 파라미터 값 검사 ----
     def __post_init__(self):

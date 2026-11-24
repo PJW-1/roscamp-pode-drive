@@ -5,6 +5,7 @@ from .backoff import Backoff
 from .base import ZoneBase
 from .blocked import Blocked
 from .calls import Calls
+from .cleaning import Cleaning
 from .drive import Drive
 from .goal_life import GoalLife
 from .goals import Goals
@@ -22,7 +23,8 @@ from .yard_retreat import YardRetreat
 
 # ---- ZoneTraffic 클래스와 틱 순서 ----
 class ZoneTraffic(Calls, Goals, Turns, Drive, MoveOrders, OrderAnswers, Results, Redock, Progress,
-                  Placement, Blocked, YardRetreat, Health, Watch, Backoff, GoalLife, ZoneBase):
+                  Placement, Blocked, YardRetreat, Health, Watch, Backoff, GoalLife, Cleaning,
+                  ZoneBase):
     # ---- 조회 위임 ----
     @property
     def everyone_placed(self) -> bool:

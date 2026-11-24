@@ -12,6 +12,7 @@ from fleet_core.traffic.selector import RobotSelector
 
 from .block_marks import MarkBook
 from .capacity import CapacityCheck
+from .cleaning import CLEANER, TRANSPORT, clean_jobs
 from .deadlock_watch import DeadlockWatch
 from .detours import DetourNotes
 from .grants import ZoneGrants
@@ -30,7 +31,7 @@ LOCALIZING_GRACE_S = 1.0
 
 # ---- 로봇, 허락, 호출, 막힘 표시 상태 초기화 ----
 class ZoneBase:
-    def __init__(self, site, params, robots, clock, next_goal_id=None):
+    def __init__(self, site, params, robots, clock, next_goal_id=None, cleaners=()):
         self.site = site
         self.params = params
         self._clock = clock
@@ -39,6 +40,10 @@ class ZoneBase:
         self.lanes = LanePolicy(params)
         self.selector = RobotSelector(site, params)
         self._robots = {name: Robot(name) for name in robots}
+        # 역할: 청소 로봇은 실행부(cleaning.py)가 맡고 운반 흐름에서 빠진다
+        self._cleaners, self._clean_plan = clean_jobs(site, robots, cleaners)
+        self.roles = {name: CLEANER if name in self._cleaners else TRANSPORT for name in robots}
+        self._homes = frozenset(job.home for job in self._cleaners.values())
         self._work = next(s.id for s in site.stations.values() if s.action == FILL)
         self._open_calls: list[int] = []
         self._out: list = []
@@ -63,6 +68,8 @@ class ZoneBase:
         self._mark_book = MarkBook(params, self._blocked, self._marks, self._robots, clock)
         self._deadlock = DeadlockWatch(params, self.grants, self._wants, self._robots,
                                        self._event)
+        for m in self._robots.values():
+            self._join_role(m)
 
     # ---- 로봇 목록, 운행 상태, 가용 여부, 쌓인 출력 꺼내기 ----
     @property
@@ -158,7 +165,11 @@ class ZoneBase:
         return route.edges[route.done].mode
 
     def _priority(self, m) -> int:
-        return priority(self.params, m.phase == AT_STATION, m.dispatch is not None)
+        score = priority(self.params, m.phase == AT_STATION, m.dispatch is not None)
+        if not self._cleaners:
+            return score
+        # 청소 로봇이 있으면 청소는 0, 운반은 1씩 올린다(로봇 쪽은 낮은 값이 양보)
+        return 0 if m.name in self._cleaners else score + 1
 
     def _goal_priority(self, m) -> int:
         m.sent_priority = self._priority(m)
