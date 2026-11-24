@@ -1,0 +1,13 @@
+cap_mps,set,policy,vs,diff_pp,se_pp,noise
+0.12,rand,map,acd2,0.3906,0.3453,inside
+0.12,rand,wall,acd2,0.0,0.3165,inside
+0.12,rand,lidar,acd2,0.3418,0.3294,inside
+0.12,head,map,acd2,1.5869,0.4502,outside
+0.12,head,wall,acd2,0.6836,0.4421,inside
+0.12,head,lidar,acd2,-0.7812,0.4256,inside
+0.08,rand,map,acd2,0.4395,0.3521,inside
+0.08,rand,wall,acd2,-0.2197,0.3409,inside
+0.08,rand,lidar,acd2,0.9277,0.338,outside
+0.08,head,map,acd2,-0.8301,0.4708,inside
+0.08,head,wall,acd2,0.2441,0.4709,inside
+0.08,head,lidar,acd2,-0.2686,0.4548,inside

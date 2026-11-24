@@ -51,7 +51,7 @@ install(DIRECTORY policies DESTINATION share/${PROJECT_NAME})
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   # 후보마다 parity 시험. 저장소에는 4b의 policy.onnx만 있어 4b는 꼭 있어야 하고, 나머지는 없으면 추론 비교만 건너뛴다
-  foreach(policy store_arena_4b store_arena_c store_arena_acd store_arena_acd2)
+  foreach(policy store_arena_4b store_arena_c store_arena_acd store_arena_acd2 store_arena_acd3)
     if(policy STREQUAL "store_arena_4b")
       set(onnx_required 1)
     else()

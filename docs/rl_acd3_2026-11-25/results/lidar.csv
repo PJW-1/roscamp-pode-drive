@@ -1,0 +1,5 @@
+policy,seed,cap_mps,set,success,collision,timeout,gap_lt_0.10_success,gap_lt_0.10_episodes,w_flips_per_min,w_flips_per_min_success,success_time_s_mean,capped,vs_same_policy_scale1_pp,vs_same_policy_se_pp,vs_same_policy_noise,vs_acd2_l958_pp,vs_acd2_l958_se_pp,vs_acd2_l958_noise
+acd2,,0.12,rand_l958,0.7451,0.2458,0.009,0.2372,548,47.17,44.52,12.05,False,0.0732,0.2773,inside,,,
+map,,0.12,rand_l958,0.7471,0.2485,0.0044,0.224,549,41.34,40.66,11.76,False,-0.1221,0.2708,inside,0.1953,0.3366,inside
+wall,,0.12,rand_l958,0.7417,0.252,0.0063,0.2369,553,43.15,42.32,11.88,False,-0.2686,0.2525,inside,-0.3418,0.3145,inside
+lidar,,0.12,rand_l958,0.7456,0.2505,0.0039,0.2378,555,39.05,38.34,11.81,False,-0.2197,0.2641,inside,0.0488,0.3069,inside
