@@ -7,6 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+import yaml
 from fleet_core import coverage as cov
 from fleet_core.coverage import (
     CleanGrid,
@@ -92,6 +93,27 @@ def test_path_clear_sees_segment_between_samples():
     a = (c[0] - d - t, c[1] - d + t)
     b = (c[0] - d + t, c[1] - d - t)
     assert not path_clear(grid, [a, b])
+
+
+def test_path_clear_sees_short_exit_from_hall():
+    zones = {"HALL": SimpleNamespace(id="HALL", rects=((0.0, 0.0, 0.9995, 1.0),
+                                                       (1.0005, 0.0, 2.0, 1.0)))}
+    site = SimpleNamespace(bounds=lambda: (0.0, 0.0, 2.0, 1.0), zones=zones, shelves=(),
+                           sim_shelves=(), keepout_extra=())
+    grid = CleanGrid(site, Params())
+    assert not path_clear(grid, [(0.999, 0.5), (1.001, 0.5)])
+    assert path_clear(grid, [(0.3, 0.5), (0.9, 0.5)])
+
+
+# ---- 저장된 좌표로 다시 둥글게 바꿔도 검사 통과 ----
+def test_saved_paths_pass_check(layout_plan):
+    layout, plan = layout_plan
+    data = yaml.safe_load(data_path(layout).read_text(encoding="utf-8"))
+    paths = [t["points"] for t in data["transits"]]
+    paths += [[line["start"], line["end"]] for line in data["lines"]]
+    for points in paths:
+        pts = [tuple(p) for p in points]
+        assert path_clear(plan.grid, rounded(pts, plan.params.turn_radius_m)), points
 
 
 # ---- 줄 간격이 격자보다 작으면 거절, 검사 실패면 파일을 쓰지 않음 ----

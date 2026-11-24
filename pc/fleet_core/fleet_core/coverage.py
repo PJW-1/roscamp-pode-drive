@@ -175,14 +175,15 @@ def _point_segment(p: Point, a: Point, b: Point) -> float:
     return math.hypot(p[0] - a[0] - t * ux, p[1] - a[1] - t * uy)
 
 
-def _segment_hits_rect(a: Point, b: Point, rect) -> bool:
+def _clip(a: Point, b: Point, rect) -> tuple[float, float] | None:
+    """선분 a→b가 사각형 안에 드는 t 구간. 안 들면 None."""
     t0, t1 = 0.0, 1.0
     dx, dy = b[0] - a[0], b[1] - a[1]
     for p, q in ((-dx, a[0] - rect[0]), (dx, rect[2] - a[0]),
                  (-dy, a[1] - rect[1]), (dy, rect[3] - a[1])):
         if abs(p) <= _EPS:
-            if q < 0.0:
-                return False
+            if q < -_EPS:
+                return None
             continue
         t = q / p
         if p < 0.0:
@@ -190,8 +191,12 @@ def _segment_hits_rect(a: Point, b: Point, rect) -> bool:
         else:
             t1 = min(t1, t)
         if t0 > t1:
-            return False
-    return True
+            return None
+    return t0, t1
+
+
+def _segment_hits_rect(a: Point, b: Point, rect) -> bool:
+    return _clip(a, b, rect) is not None
 
 
 def _segment_rect(a: Point, b: Point, rect) -> float:
@@ -213,14 +218,17 @@ def segment_clearance(grid: CleanGrid, a: Point, b: Point) -> float:
                *(_segment_rect(a, b, rect) for rect in grid.blocked))
 
 
-def _on_hall(grid: CleanGrid, a: Point, b: Point, step: float = 0.002) -> bool:
-    n = max(1, math.ceil(math.dist(a, b) / step))
-    for k in range(n + 1):
-        p = (a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n)
-        if not any(rect[0] - _EPS <= p[0] <= rect[2] + _EPS and rect[1] - _EPS <= p[1] <= rect[3] + _EPS
-                   for rect in grid.hall_rects):
+def _on_hall(grid: CleanGrid, a: Point, b: Point) -> bool:
+    # HALL 사각형마다 선분이 드는 구간을 모아 [0, 1]을 빈틈없이 덮는지 본다
+    spans = sorted(span for rect in grid.hall_rects
+                   if (span := _clip(a, b, (rect[0] - _EPS, rect[1] - _EPS,
+                                            rect[2] + _EPS, rect[3] + _EPS))) is not None)
+    reach = 0.0
+    for t0, t1 in spans:
+        if t0 > reach + _EPS:
             return False
-    return True
+        reach = max(reach, t1)
+    return reach >= 1.0 - _EPS
 
 
 def path_clear(grid: CleanGrid, points: Sequence[Point]) -> bool:
@@ -481,8 +489,13 @@ def _mm(v: float) -> float:
     return round(float(v), 3) + 0.0
 
 
+def _xy(v: float) -> float:
+    # 칸 중심이 0.5 mm 단위라 좌표는 0.1 mm로 저장한다
+    return round(float(v), 4) + 0.0
+
+
 def _pt(p: Point) -> list[float]:
-    return [_mm(p[0]), _mm(p[1])]
+    return [_xy(p[0]), _xy(p[1])]
 
 
 def summary(plan: Plan) -> dict:
@@ -516,7 +529,7 @@ def to_data(plan: Plan, layout: str) -> dict:
         "home": {"node": HOME, "pose": _pt(plan.home), "start": _pt(plan.start),
                  "moved_to_nearest_free": plan.home_moved},
         "summary": summary(plan),
-        "cells": [{"id": c["id"], "box": [_mm(v) for v in c["box"]], "lines": c["lines"]}
+        "cells": [{"id": c["id"], "box": [_xy(v) for v in c["box"]], "lines": c["lines"]}
                   for c in plan.cells],
         "lines": [{"cell": cell, "start": _pt(a), "end": _pt(b)} for a, b, cell in plan.lines],
         "transits": [{"from": a, "to": b, "points": [_pt(q) for q in pts],
