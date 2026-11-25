@@ -5,10 +5,14 @@
 
 앞으로 가는 컨트롤러의 desired_linear_vel을 S로 바꾼다.
 고정 경로 컨트롤러 셋의 충돌 검사는 기본으로 끈다(--fixed-line-check로 켬).
+--rl-policy NAME을 주면 RL controller 둘(FollowPathRL, FollowPathRLAlone)을 더한다.
+값은 시뮬 sim/fleet_gz_sim/nav_overrides/follow_path_rl.yaml에서 그대로 가져오고 policy만 NAME으로 바꾼다.
 """
 import argparse
 import copy
+import json
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -29,6 +33,12 @@ COLLISION_TARGETS = tuple(("controller_server", "ros__parameters", name, "use_co
                           for name in ("FollowPath", "FollowPathThrough", "FollowPathReverse"))
 AVOID_TARGETS = (("follow_path_goal", "desired_linear_vel"),)
 FORWARD = ("FollowPath", "FollowPathThrough")
+# RL controller(선택): 시뮬 덮어쓰기 파일 하나가 값의 출처다
+RL_REL = Path("sim") / "fleet_gz_sim" / "nav_overrides" / "follow_path_rl.yaml"
+POLICIES_REL = Path("pode") / "pode_rl_controller" / "policies"
+RL_NAMES = ("FollowPathRL", "FollowPathRLAlone")
+CTL = ("controller_server", "ros__parameters")
+POLICY_NAME = re.compile(r"^[A-Za-z0-9_]+$")
 
 
 def find_source(rel: Path, given=None) -> Path:
@@ -119,11 +129,94 @@ def _converted(src: Path, targets, value: float, collision=(), collision_on=Fals
     return out
 
 
-def write_params(speed, out_dir, nav2_src=None, avoid_src=None, fixed_line_check=False) -> tuple:
+# ---- RL controller 더하기(--rl-policy) ----
+def checked_policy(name, policies_dir=None) -> str:
+    """정책 이름을 확인한다. 정책 폴더에 policy.onnx와 policy_spec.json이 있어야 한다."""
+    name = str(name)
+    if not POLICY_NAME.match(name):
+        raise ValueError(f"rl policy must be a folder name under {POLICIES_REL} "
+                         f"(letters, digits, _), got {name!r}")
+    if policies_dir is None:
+        found = [root / POLICIES_REL for root in SOURCE_ROOTS if (root / POLICIES_REL).is_dir()]
+        if not found:
+            raise FileNotFoundError(f"{POLICIES_REL} not found under "
+                                    f"{', '.join(map(str, SOURCE_ROOTS))} (deploy with WITH_RL=1)")
+        policies_dir = found[0]
+    policies_dir = Path(policies_dir)
+    folder = policies_dir / name
+    if not folder.is_dir():
+        known = sorted(p.name for p in policies_dir.iterdir() if p.is_dir())
+        raise ValueError(f"unknown rl policy {name!r}: no folder {folder} "
+                         f"(known: {', '.join(known)})")
+    for need in ("policy.onnx", "policy_spec.json"):
+        if not (folder / need).is_file():
+            raise FileNotFoundError(f"rl policy {name!r}: {folder / need} is missing")
+    return name
+
+
+def _rl_blocks(rl_src: Path, policy: str) -> tuple:
+    """시뮬 파일에서 RL controller 두 블록의 줄을 꺼내 policy만 바꾼다. (줄 문자열, 기대 dict)."""
+    text = rl_src.read_text(encoding="utf-8")
+    data = yaml.safe_load(text)
+    ctl = data[CTL[0]][CTL[1]]
+    if set(ctl) != {"controller_plugins", *RL_NAMES} or \
+            tuple(ctl["controller_plugins"][-len(RL_NAMES):]) != RL_NAMES:
+        raise RuntimeError(f"{rl_src}: expected controller_plugins ending with {RL_NAMES} "
+                           f"and only those two blocks")
+    lines = text.splitlines(keepends=True)
+    head = re.compile(r"^    (" + "|".join(RL_NAMES) + r"):\s*(#.*)?$")
+    starts = [i for i, line in enumerate(lines) if head.match(line.rstrip("\r\n"))]
+    if len(starts) != len(RL_NAMES):
+        raise RuntimeError(f"{rl_src}: expected one line per block {RL_NAMES}, found {len(starts)}")
+    # 두 블록은 파일 끝에 붙어 있다(첫 블록 머리부터 끝까지)
+    block = lines[starts[0]:]
+    if any(line.strip() and not line.startswith("    ") for line in block):
+        raise RuntimeError(f"{rl_src}: the RL blocks must be the last part of the file")
+    hits = 0
+    for i, line in enumerate(block):
+        new, n = re.subn(r'^(\s+policy:\s*)"[^"]*"', rf'\g<1>"{policy}"', line)
+        block[i], hits = new, hits + n
+    if hits != len(RL_NAMES):
+        raise RuntimeError(f"{rl_src}: expected {len(RL_NAMES)} quoted policy lines, found {hits}")
+    want = {name: copy.deepcopy(ctl[name]) for name in RL_NAMES}
+    for name in RL_NAMES:
+        want[name]["policy"] = policy
+    if not block[-1].endswith("\n"):
+        block[-1] += "\n"
+    return "".join(block), want
+
+
+def with_rl(text: str, policy: str, rl_src: Path) -> str:
+    """실물 사본에 RL controller 둘을 더한다. 다른 줄은 그대로 둔다."""
+    blocks, want_blocks = _rl_blocks(rl_src, policy)
+    base = yaml.safe_load(text)
+    plugins = base[CTL[0]][CTL[1]]["controller_plugins"]
+    if "FollowPathMPPI" in plugins or any(name in base[CTL[0]][CTL[1]] for name in RL_NAMES):
+        raise RuntimeError(f"real controller list already has MPPI or RL: {plugins}")
+    lines = text.splitlines(keepends=True)
+    at = [i for i, line in enumerate(lines) if line.startswith("    controller_plugins:")]
+    if len(at) != 1 or not lines[at[0]].rstrip().endswith("]"):
+        raise RuntimeError("expected one single-line controller_plugins under controller_server")
+    shown = json.dumps(plugins + list(RL_NAMES))
+    note = f"    # make_params.py --rl-policy {policy}: {RL_REL.as_posix()}의 두 블록(policy만 바꿈)\n"
+    lines[at[0]] = f"    controller_plugins: {shown}  # make_params.py --rl-policy\n"
+    out = "".join(lines[:at[0] + 1]) + note + blocks + "".join(lines[at[0] + 1:])
+    want = copy.deepcopy(base)
+    want[CTL[0]][CTL[1]]["controller_plugins"] = plugins + list(RL_NAMES)
+    want[CTL[0]][CTL[1]].update(want_blocks)
+    if yaml.safe_load(out) != want:
+        raise RuntimeError("the RL copy differs from the real copy plus the two sim blocks")
+    return out
+
+
+def write_params(speed, out_dir, nav2_src=None, avoid_src=None, fixed_line_check=False,
+                 rl_policy=None, rl_src=None, policies_dir=None) -> tuple:
     """두 사본을 out_dir에 쓴다. 확인을 모두 통과해야 쓴다."""
     value = checked_speed(speed)
     nav2 = _converted(find_source(NAV2_REL, nav2_src), NAV2_TARGETS, value, COLLISION_TARGETS,
                       bool(fixed_line_check))
+    if rl_policy is not None:
+        nav2 = with_rl(nav2, checked_policy(rl_policy, policies_dir), find_source(RL_REL, rl_src))
     avoid = _converted(find_source(AVOID_REL, avoid_src), AVOID_TARGETS, value)
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -169,15 +262,24 @@ def main(argv=None) -> int:
     parser.add_argument("--avoidance-src", help="원본 avoidance.yaml(기본: 같은 곳)")
     parser.add_argument("--fixed-line-check", action="store_true",
                         help="고정 경로 충돌 검사를 켜 둔다(기본: 끔)")
+    parser.add_argument("--rl-policy", metavar="NAME",
+                        help="RL controller 둘(FollowPathRL, FollowPathRLAlone)을 이 정책으로 더한다"
+                             "(기본: 더하지 않음). 쓰는 controller는 그대로 FollowPathGoal")
     args = parser.parse_args(argv)
     try:
         nav2, avoid = write_params(args.speed, args.out, args.nav2_src, args.avoidance_src,
-                                  args.fixed_line_check)
+                                  args.fixed_line_check, args.rl_policy)
     except (ValueError, FileNotFoundError, RuntimeError) as problem:
         print(f"make_params: {problem}", file=sys.stderr)
         return 2
     print(f"make_params: speed {_text(checked_speed(args.speed))} m/s -> {nav2}, {avoid}")
     print(f"make_params: fixed-line check {'on' if args.fixed_line_check else 'off'}")
+    if args.rl_policy is not None:
+        print(f"make_params: rl controllers {', '.join(RL_NAMES)} with policy {args.rl_policy}")
+        # RL 블록은 --speed를 따르지 않는다(max_linear_vel 0 = 정책 v_max)
+        if checked_speed(args.speed) < MAX_SPEED:
+            print(f"make_params: WARNING rl controllers ignore --speed and drive up to the "
+                  f"policy v_max (at most {MAX_SPEED} m/s)")
     return 0
 
 

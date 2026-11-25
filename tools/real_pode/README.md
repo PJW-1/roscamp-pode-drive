@@ -18,7 +18,7 @@
 | `pc_env.sh` | PC 터미널에서 source한다. `/opt/ros/jazzy/setup.bash`와 PC 작업공간 `~/ros2camp/nav2fleet_ws/install/setup.bash`를 읽고(`ROS_SETUP`, `NAV2FLEET_WS_SETUP`로 바꿀 수 있다) `net.sh`를 읽는다. 관제 터미널은 `source tools/real_pode/pc_env.sh`, ros2 명령 터미널은 `SUPER=1 source tools/real_pode/pc_env.sh`. 작업공간 setup 파일이 없으면 경고만 내고 ROS만 읽은 채 계속한다. 그 경고가 보이면 PC 작업공간을 먼저 빌드한다(ROS setup이 없거나 실패, 작업공간 setup이 있는데 실패, `net.sh`를 못 읽으면 `return 1`). 새 bash 터미널에서 쓴다(PC 작업공간 setup이 `/opt/ros/jazzy`, `~/pinky_pro`, `~/ros2_ws`를 같이 읽어서, 다른 작업공간을 읽은 터미널이면 섞일 수 있다) |
 | `discovery_server.sh` | PC에서 실행한다. ROS를 읽고 `fastdds discovery -i 0 -p 11811`을 앞에서 돌린다. 끌 때는 Ctrl+C(이 도구는 sh, python, 서버 프로그램이 겹쳐 있어서 PID 하나에 TERM을 보내면 서버가 남을 수 있다) |
 | `rviz_pc.sh` | PC에서 `tools/real_pode/rviz_pc.sh pode1 pode2`로 RViz를 띄운다. 안에서 `SUPER=1`로 `pc_env.sh`를 읽는다. `DISCOVERY_SERVER=off tools/real_pode/rviz_pc.sh ...`도 된다. `RVIZ_MODE`로 창을 고른다: 비우면 `all`(전체 창과 로봇별 창), `overview`는 전체 창만, `robots`는 로봇별 창만 |
-| `deploy.sh ROBOT_HOST` | PC에서: 커밋된 HEAD의 패키지를 `ROBOT:~/nav2fleet_ws/src/<저장소 경로>/`에, 이 폴더(지도 포함)를 `ROBOT:~/nav2fleet_real/`에 복사한다. 빌드와 실행은 하지 않는다 |
+| `deploy.sh ROBOT_HOST` | PC에서: 커밋된 HEAD의 패키지를 `ROBOT:~/nav2fleet_ws/src/<저장소 경로>/`에, 이 폴더(지도 포함)를 `ROBOT:~/nav2fleet_real/`에 복사한다. 빌드와 실행은 하지 않는다. `WITH_RL=1`이면 RL controller도 보내고 그것만 빌드한다(아래 "RL 정책으로 달려 보기") |
 | `maps/` | AMCL(`map_fine`)의 기본은 도면 1 cm 지도 `arena_v7_fine`이다(2026-11-25부터, 시뮬과 같다. 근거 `docs/report_2026-11-25_amcl_map_replay.md`). `arena_real_slam`은 옛 실물 SLAM 지도(0.5 cm, 2026-11-17)로, 되돌릴 때 `map_fine:=`로 준다. 나머지는 실측 진열대로 그린 v7 지도다(`python3 -m fleet_gz_sim.arena --layout v7 --real --out /tmp/real_v7`로 만들고 `/tmp/real_v7/maps/`의 지도를 복사한다): `arena_v7_a`(전역 costmap 2.5 cm, 2026-11-17 결정), `arena_v7_keepout`, `arena_v7_fine`(1 cm 도면 지도, AMCL 기본), `arena_v7_a1`(1 cm costmap 후보, `arena_v7_a`와 같은 칠하기 규칙이라 그림은 `arena_v7_fine`과 같다. 2026-11-24 추가, launch 기본값은 그대로). `arena_v7`(5 cm)은 비교용으로 남긴다. 진열대는 2026-11-25 줄자 값으로 그렸다: 좌표는 벽 아래 단차 면 기준이고, lidar 높이 벽 면에서 잰 값에서 단차 0.006을 뺐다. A x 0.654~1.574, y 0.754~0.794, 남쪽 둘 x 0.704~1.014와 1.264~1.574, y 0.364~0.404(두께 모두 4 cm). 급행 줄은 y 0.882다(`docs/report_2026-11-25_arena_step_tape.md`) |
 
 ## 왜 속도 사본이 따로 있나
@@ -95,6 +95,58 @@ Nav2 goal을 모는 컨트롤러(FollowPathGoal)의 속도는 `nav2_params.yaml`
   띄운다. 바퀴는 돌지 않고, 목표는 정해진 시간 뒤 성공한다. 자세를 안 주면 로봇별 주차 자리(v7 P-1~P-3)를 쓰고,
   `NO_MOTION=1 ./start.sh pode2 X Y YAW`로 바꿀 수 있다. `PEER_ROBOTS`, `DOCK_STUB`, `FIXED_LINE_CHECK`, `PLAN_KEEP`과 함께
   주면 거절한다(종료 2). 내릴 때는 `./stop.sh`.
+
+## RL 정책으로 달려 보기
+
+**이 길은 아직 로봇에서 돌려 보지 않았다.** PC에서는 스크립트를 대역 ssh·rsync·ros2로만 시험했다
+(`tools/test/test_real_pode_rl.py`). 아무것도 주지 않으면 배포와 시작은 예전과 똑같다.
+
+- `WITH_RL=1 deploy.sh HOST`: 먼저 로봇에 `onnxruntime_vendor`와 `nav2_rotation_shim_controller`가 있는지 보고, 없으면 설치 방법을 찍고 아무것도 바꾸지 않은 채 끝난다(종료 1).
+  있으면 평소 복사에 더해 `pode/pode_rl_controller`와 `sim/fleet_gz_sim/nav_overrides/follow_path_rl.yaml`을
+  `~/nav2fleet_ws/src/` 아래 같은 경로로 보내고, 로봇에서 `pode_rl_controller`만 빌드한다(`-j1`, gtest 없이 `-DBUILD_TESTING=OFF`).
+- `RL_POLICY=<정책> start.sh ...`: `make_params.py --rl-policy <정책>`이 `params/nav2_params.yaml`에 `FollowPathRL`(RotationShim으로 감싼 정책)과
+  `FollowPathRLAlone`(감싸지 않은 정책)을 더한다. 값은 모두 시뮬 파일 `follow_path_rl.yaml`에서 가져오고 `policy`만 바꾼다.
+  정책 이름이 틀리거나 폴더에 `policy.onnx`, `policy_spec.json`이 없으면 아무것도 띄우지 않는다. Nav2 `log_level`은 info로 올라간다(시간 로그가 INFO라서. Nav2 노드 전체가 올라가 기록이 늘어난다).
+- 쓰는 controller는 그대로 FollowPathGoal(RPP)이다. `controller_selector`에 이름을 보낸 뒤의 Nav2 goal(navigate_to_pose)만 RL로 간다. 고정 경로(pode_fsm의 FollowPath 등)는 늘 RPP다.
+- RL controller는 start.sh의 SPEED를 따르지 않는다. 정책의 v_max(0.12 m/s, `nav_speed.yaml`보다 커질 수 없음)까지 낸다. SPEED를 0.12보다 낮게 주면 make_params.py가 WARNING을 찍는다.
+
+순서(한 대, 바퀴를 띄운 채 시작한다):
+
+1. 로봇: 돌던 것을 내린다. `~/nav2fleet_real/stop.sh`
+2. 로봇: ONNX Runtime 확인. `source /opt/ros/jazzy/setup.bash && ros2 pkg prefix onnxruntime_vendor && ls "$(ros2 pkg prefix onnxruntime_vendor)"/opt/onnxruntime_vendor/lib/`
+   (`libonnxruntime.so`가 보여야 한다). 없으면 `sudo apt update && sudo apt install ros-jazzy-onnxruntime-vendor`.
+   인터넷이 없으면 PC에서 `ros-jazzy-onnxruntime-vendor_0.1.1-1noble.20261026.232151_arm64.deb`(packages.ros.org pool)를 받아 scp한 뒤 `sudo apt install ./<deb>`.
+   shim도 있어야 한다: `ros2 pkg prefix nav2_rotation_shim_controller`. 없으면 `sudo apt install ros-jazzy-nav2-rotation-shim-controller`.
+   두 controller가 함께 실리므로 shim이 없으면 `FollowPathRLAlone`도 못 쓰고 controller_server가 뜨지 못한다고 본다(로봇에서 확인하지 않았다).
+3. PC(저장소 루트): `WITH_RL=1 tools/real_pode/deploy.sh pinky@<로봇 주소>`. 끝에 `pode_rl_controller` 빌드 결과가 나온다.
+4. 로봇: 나머지 패키지 빌드 `cd ~/nav2fleet_ws && colcon build` (평소와 같다).
+5. 로봇: bag을 먼저 켜고 RL을 더해 시작한다.
+   ```bash
+   ~/nav2fleet_real/bag_record.sh start pode1 <판 이름>
+   RL_POLICY=store_arena_acd3 ~/nav2fleet_real/start.sh pode1 0.12 0.10 1.5708
+   grep -E "Failed to load|FollowPathRL" ~/nav2fleet_real/logs/launch_*.log | tail
+   ```
+   `FollowPathRL <이름>: policy store_arena_acd3 (obs 44, ...` 꼴 줄이 controller 둘 몫으로 보여야 하고 "Failed to load"가 없어야 한다.
+6. RL로 바꾸기(PC는 `SUPER=1 source tools/real_pode/pc_env.sh`, 로봇은 `source ~/nav2fleet_real/env.sh` 뒤):
+   ```bash
+   ros2 topic pub --once --qos-durability transient_local --qos-reliability reliable \
+     /pode1/controller_selector std_msgs/msg/String "{data: FollowPathRL}"
+   ```
+   그다음 보내는 Nav2 goal부터 RL이다. 감싸지 않은 정책은 `{data: FollowPathRLAlone}`. QoS 두 옵션을 빼면 `--once`가 구독자를 기다리며 아무것도 보내지 않는다.
+7. RPP로 되돌리기: 같은 명령에 `{data: FollowPathGoal}`. 달리던 goal 안에서 바로 바뀌는지는 모르므로 goal을 취소하고 다시 보낸다.
+   급하면 goal 취소, 그래도 움직이면 `~/nav2fleet_real/stop.sh`.
+8. 시간 로그: `grep "FollowPathRL: " ~/nav2fleet_real/logs/launch_*.log | tail`. 1초마다 `N calls, infer mean/max, call mean/max ... | scan age`,
+   처음 한 번 `lidar rplidar_link in base_footprint ... yaw 3.142`.
+9. 끝나면 `~/nav2fleet_real/stop.sh`, `~/nav2fleet_real/bag_record.sh stop`. 다음 판을 RPP만으로 하려면 `RL_POLICY` 없이 start.sh를 다시 띄운다.
+
+적어 둘 것: 정책 이름과 커밋(`git rev-parse --short HEAD`), `infer`/`call`의 mean·max(µs), scan age, "Control loop missed its desired rate" 횟수
+(`grep -c` 로그), 같은 시간의 `vmstat 1` CPU, ControllerException·goal 실패 횟수와 그때 로봇 자리, RPP와 같은 출발·goal에서 견준 결과, bag 이름.
+
+알려진 위험(`docs/report_2026-11-24_rl_real_prep.md`):
+
+- 실물 스캔에는 로봇 몸 뒤 왼쪽(base 기준 약 150~153°) 0.075 m에 늘 점이 보인다(로봇 자기 몸으로 보임). 학습에 없던 점이라 정책의 회전 명령이 달라질 수 있다(오프라인 재생에서 목표 ω 차이 95 % 0.34 rad/s).
+- 스캔이 CPU가 바쁠 때 0.64 s까지 끊겼다. 플러그인은 스캔이 `scan_timeout` 0.5 s보다 오래되면 그 주기에 실패를 낸다.
+- Pi 4 CPU는 RPP만으로 평균 74~81 %(합류 81~92 %)였다. 추론과 log_level info가 더해진다. Pi 4의 추론 시간은 아직 재지 않았다.
 
 ## 알려진 한계
 
