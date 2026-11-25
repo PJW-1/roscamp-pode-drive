@@ -136,6 +136,10 @@ class FleetParams:
     clean_wait_max_s: float = 20.0
     clean_wait_check_s: float = 1.0
     clean_backup_max_m: float = 0.30
+    clean_tuck_rows: int = 3
+    clean_tuck_clear_m: float = 0.03
+    clean_tuck_wait_s: float = 30.0
+    clean_tuck_lane_m: float = 0.30
 
     # ---- 파라미터 값 검사 ----
     def __post_init__(self):

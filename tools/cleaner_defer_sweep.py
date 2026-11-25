@@ -39,6 +39,7 @@ CONDITIONS = [
     ("no_cleaner", "v7", NO_CLEANER, {}),
     ("alone", "v7", ALONE, {}),
     ("default", "v7", FLEET, {}),
+    ("no_tuck", "v7", FLEET, {"clean_tuck_rows": 0}),
     ("reach015", "v7", FLEET, {"clean_conflict_reach_m": 0.15}),
     ("r2_off", "v7", FLEET, {"clean_hold_check": "off"}),
     ("r4_off", "v7", FLEET, {"clean_base_check": "off"}),
@@ -51,6 +52,7 @@ CONDITIONS = [
     ("d2_no_cleaner", "d2", NO_CLEANER, {}),
     ("d2_alone", "d2", ALONE, {}),
     ("d2_default", "d2", FLEET, {}),
+    ("d2_no_tuck", "d2", FLEET, {"clean_tuck_rows": 0}),
     ("d2_reach015", "d2", FLEET, {"clean_conflict_reach_m": 0.15}),
     ("d2_r3_only", "d2", FLEET, R3_ONLY),
 ]

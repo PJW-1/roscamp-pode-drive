@@ -264,7 +264,8 @@ def test_no_yield_point_sends_the_cleaner_home_and_the_lap_goes_on(monkeypatch):
 
 
 def test_still_meeting_after_yielding_goes_home(monkeypatch):
-    w = World({"pode1": "P-2", CLEANER_NAME: "P-1"})
+    """통로에서 붙어 서지 않는 때의 기준(clean_yield_wait_s). 붙어 선 때는 test_zone_clean_tuck이 본다."""
+    w = World({"pode1": "P-2", CLEANER_NAME: "P-1"}, replace(load_params(), clean_tuck_rows=0))
     k, a, b, line = w.to_line()
     w.pos[CLEANER_NAME] = w.at(a, b, 0.3)
     w.step()
