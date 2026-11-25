@@ -104,6 +104,33 @@ def isaac_table(path):
               f"| {np.mean(y[tail]) / cmd:.3f} |")
 
 
+# ---- 학습 모델(지연 k 스텝, 20 Hz 1차 지연 tau)에 Newton 바퀴 응답 tn 을 더한 계단 응답 ----
+def model_step(k, tau, tn, dt=0.05, h=0.0005, horizon=1.0):
+    t = np.arange(0.0, horizon, h)
+    beta = math.exp(-dt / tau) if tau > 0 else 0.0
+    n = np.floor(t / dt)
+    u = np.where(n >= k, 1.0 - beta ** np.maximum(n - k + 1, 0), 0.0)
+    y = np.zeros_like(t)
+    a = 1.0 - math.exp(-h / tn)
+    for i in range(1, t.size):
+        y[i] = y[i - 1] + (u[i - 1] - y[i - 1]) * a
+    t10 = t[np.argmax(y >= 0.1)]
+    return t10, t[np.argmax(y >= 0.9)] - t10
+
+
+def model_table():
+    # Newton 바퀴 시간 상수: Isaac 계단의 상승 시간 / 2.2 (선 0.051 s, 회전 0.012 s)
+    print("\n## 학습 모델 계단 응답 (변화율 제한 없음, 10% 시각 / 10→90% 상승 s)")
+    print("| 축 | 지연 k | " + " | ".join(f"tau {x:.3f}" for x in (0.0, 0.04, 0.065, 0.08, 0.12))
+          + " |")
+    print("|---|---|---|---|---|---|---|")
+    for name, tn in (("선", 0.023), ("회전", 0.005)):
+        for k in (0, 1, 2):
+            cells = [model_step(k, tau, tn) for tau in (0.0, 0.04, 0.065, 0.08, 0.12)]
+            print(f"| {name} | {k} | " + " | ".join(f"{a:.3f} / {b:.3f}" for a, b in cells)
+                  + " |")
+
+
 def main():
     real = ROOT / "docs" / "rl_sysid_2026-11-25" / "real"
     gz = ROOT / "results" / "2026-11-21" / "step_probe_gz"
@@ -113,6 +140,7 @@ def main():
     nk = ROOT / "results" / "2026-11-21" / "newton_pinky_check"
     isaac_table(nk / "step_env0_50hz.csv")
     isaac_table(nk / "kd0.5_step_env0_50hz.csv")
+    model_table()
 
 
 if __name__ == "__main__":
