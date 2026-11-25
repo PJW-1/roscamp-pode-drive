@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdio>
 #include <limits>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -255,4 +256,110 @@ TEST(NavSpeed, PolicyCheckedAgainstTheOneSource)
   EXPECT_GT(nav, 0.0);
   EXPECT_EQ(pode_rl_controller::speed_mismatch(nav, nav), "");
   EXPECT_NE(pode_rl_controller::speed_mismatch(nav + 0.01, nav), "");
+}
+
+// ---- 출력 평활(지수 이동 평균) ----
+TEST(Smoothing, StepInputMatchesTheClosedForm)
+{
+  pode_rl_controller::TargetSmoother ema(0.25, 0.5);
+  const pode_rl_controller::Twist2 u{0.1, 1.0};
+  for (int n = 1; n <= 30; ++n) {
+    const auto y = ema.step(u, {0.0, 0.0});
+    EXPECT_NEAR(y.v, 0.1 * (1.0 - std::pow(0.75, n)), 1e-12) << n;
+    EXPECT_NEAR(y.w, 1.0 - std::pow(0.5, n), 1e-12) << n;
+  }
+}
+
+TEST(Smoothing, StartsFromTheGivenCommandAfterReset)
+{
+  pode_rl_controller::TargetSmoother ema(1.0, 0.25);
+  const pode_rl_controller::Twist2 u{0.08, -0.6};
+  for (int n = 0; n < 7; ++n) {
+    ema.step({0.12, 0.9}, {0.0, 0.0});
+  }
+  ema.reset();
+  const pode_rl_controller::Twist2 s{0.03, 0.4};
+  for (int n = 1; n <= 20; ++n) {
+    const auto y = ema.step(u, n == 1 ? s : pode_rl_controller::Twist2{9.0, 9.0});
+    EXPECT_EQ(y.v, u.v) << n;
+    EXPECT_NEAR(y.w, u.w + (s.w - u.w) * std::pow(0.75, n), 1e-12) << n;
+  }
+  pode_rl_controller::TargetSmoother fresh(1.0, 0.25);
+  ema.reset();
+  for (int n = 0; n < 5; ++n) {
+    const auto a = ema.step(u, s);
+    const auto b = fresh.step(u, s);
+    EXPECT_EQ(a.v, b.v);
+    EXPECT_EQ(a.w, b.w);
+  }
+}
+
+TEST(Smoothing, AlphaOutsideZeroOneIsRefused)
+{
+  using pode_rl_controller::TargetSmoother;
+  for (const double bad : {0.0, -0.1, 1.01, std::nan("")}) {
+    EXPECT_THROW(TargetSmoother(bad, 1.0), std::runtime_error) << bad;
+    EXPECT_THROW(TargetSmoother(1.0, bad), std::runtime_error) << bad;
+  }
+  EXPECT_NO_THROW(TargetSmoother(1.0, 1.0));
+  EXPECT_NO_THROW(TargetSmoother(0.25, 1e-3));
+}
+
+// ---- 스캔 가리기: 몸이 보이는 빔을 "돌아온 것 없음"으로 ----
+TEST(ScanMask, MaskedBeamsBecomeNoReturnInTheBaseFrame)
+{
+  const PolicySpec s = spec();
+  const int n = 720;
+  pode_rl_controller::Scan scan{-M_PI, 2.0 * M_PI / n, 0.05, 12.0, std::vector<float>(n, 0.5f)};
+  const auto mask = pode_rl_controller::parse_scan_mask({149.5, 153.5});
+  pode_rl_controller::mask_scan(scan, M_PI, mask);
+  int inf = 0;
+  for (int i = 0; i < n; ++i) {
+    if (std::isinf(scan.ranges[i])) {
+      ++inf;
+      EXPECT_GE(i, 299);
+      EXPECT_LE(i, 307);
+    } else {
+      EXPECT_EQ(scan.ranges[i], 0.5f) << i;
+    }
+  }
+  EXPECT_GE(inf, 7);
+  EXPECT_LE(inf, 9);
+  const auto rays = pode_rl_controller::scan_to_rays(scan, M_PI, s);
+  for (int k = 0; k < s.lidar.rays; ++k) {
+    const float want = (k >= 330 && k <= 333) ? static_cast<float>(s.lidar.obs_max) : 0.5f;
+    EXPECT_EQ(rays[k], want) << k;
+  }
+}
+
+TEST(ScanMask, RangesMeetAcrossTheBack)
+{
+  const int n = 720;
+  pode_rl_controller::Scan scan{-M_PI, 2.0 * M_PI / n, 0.05, 12.0, std::vector<float>(n, 0.5f)};
+  pode_rl_controller::mask_scan(
+    scan, 0.0, pode_rl_controller::parse_scan_mask({170.0, 180.0, -180.0, -170.0}));
+  EXPECT_TRUE(std::isinf(scan.ranges[0]));
+  EXPECT_TRUE(std::isinf(scan.ranges[1]));
+  EXPECT_TRUE(std::isinf(scan.ranges[719]));
+  EXPECT_EQ(scan.ranges[30], 0.5f);
+  EXPECT_EQ(scan.ranges[690], 0.5f);
+  EXPECT_EQ(scan.ranges[360], 0.5f);
+  for (const auto & one : std::vector<std::vector<double>>{{170.0, 180.0}, {-180.0, -170.0}}) {
+    pode_rl_controller::Scan back{-M_PI, 2.0 * M_PI / n, 0.05, 12.0, std::vector<float>(n, 0.5f)};
+    pode_rl_controller::mask_scan(back, 0.0, pode_rl_controller::parse_scan_mask(one));
+    EXPECT_TRUE(std::isinf(back.ranges[0])) << one[0];
+  }
+}
+
+TEST(ScanMask, MalformedListsAreRefused)
+{
+  using pode_rl_controller::parse_scan_mask;
+  EXPECT_TRUE(parse_scan_mask({}).empty());
+  EXPECT_EQ(parse_scan_mask({149.5, 153.5, -10.0, 10.0}).size(), 2u);
+  for (const auto & bad : std::vector<std::vector<double>>{
+      {150.0}, {150.0, 153.0, 10.0}, {153.0, 150.0}, {150.0, 150.0}, {170.0, 190.0},
+      {-200.0, -170.0}, {std::nan(""), 10.0}, {0.0, std::numeric_limits<double>::infinity()}})
+  {
+    EXPECT_THROW(parse_scan_mask(bad), std::runtime_error) << bad.size();
+  }
 }

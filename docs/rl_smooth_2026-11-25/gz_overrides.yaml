@@ -1,0 +1,89 @@
+# 출력 평활 Gazebo 비교: shim으로 감싼 store_arena_acd3(follow_path_rl_acd3.yaml의 FollowPathRL과 같은 설정)에
+# w만 평활한 둘을 더한다. v는 평활하지 않는다(ema_alpha_v 1.0). 기준은 nav2_params.yaml의 FollowPathGoal(RPP)과 FollowPathMPPI.
+# FollowPathRLShimACD3 = 평활 없음, FollowPathRLShimACD3W50 = ema_alpha_w 0.5, FollowPathRLShimACD3W25 = ema_alpha_w 0.25.
+controller_server:
+  ros__parameters:
+    controller_plugins:
+    - FollowPath
+    - FollowPathThrough
+    - FollowPathReverse
+    - FollowPathGoal
+    - FollowPathMPPI
+    - FollowPathRL
+    - FollowPathRLShimACD3
+    - FollowPathRLShimACD3W50
+    - FollowPathRLShimACD3W25
+    FollowPathRL:
+      plugin: pode_rl_controller::FollowPathRL
+      policy: store_arena_acd3
+      scan_topic: scan
+      scan_timeout: 0.5
+      transform_tolerance: 0.2
+      intra_op_threads: 1
+      rotate_gain: 1.5
+      log_period: 1.0
+      rear_stop_range: 0.0
+      rear_half_width_deg: 30.0
+    FollowPathRLShimACD3:
+      plugin: nav2_rotation_shim_controller::RotationShimController
+      primary_controller: pode_rl_controller::FollowPathRL
+      angular_dist_threshold: 0.785
+      angular_disengage_threshold: 0.39
+      forward_sampling_distance: 0.15
+      rotate_to_heading_angular_vel: 1.0
+      max_angular_accel: 2.0
+      simulate_ahead_time: 1.0
+      rotate_to_goal_heading: true
+      policy: store_arena_acd3
+      scan_topic: scan
+      scan_timeout: 0.5
+      transform_tolerance: 0.2
+      intra_op_threads: 1
+      rotate_gain: 1.5
+      log_period: 1.0
+      rear_stop_range: 0.0
+      rear_half_width_deg: 30.0
+      ema_alpha_v: 1.0
+      ema_alpha_w: 1.0
+    FollowPathRLShimACD3W50:
+      plugin: nav2_rotation_shim_controller::RotationShimController
+      primary_controller: pode_rl_controller::FollowPathRL
+      angular_dist_threshold: 0.785
+      angular_disengage_threshold: 0.39
+      forward_sampling_distance: 0.15
+      rotate_to_heading_angular_vel: 1.0
+      max_angular_accel: 2.0
+      simulate_ahead_time: 1.0
+      rotate_to_goal_heading: true
+      policy: store_arena_acd3
+      scan_topic: scan
+      scan_timeout: 0.5
+      transform_tolerance: 0.2
+      intra_op_threads: 1
+      rotate_gain: 1.5
+      log_period: 1.0
+      rear_stop_range: 0.0
+      rear_half_width_deg: 30.0
+      ema_alpha_v: 1.0
+      ema_alpha_w: 0.5
+    FollowPathRLShimACD3W25:
+      plugin: nav2_rotation_shim_controller::RotationShimController
+      primary_controller: pode_rl_controller::FollowPathRL
+      angular_dist_threshold: 0.785
+      angular_disengage_threshold: 0.39
+      forward_sampling_distance: 0.15
+      rotate_to_heading_angular_vel: 1.0
+      max_angular_accel: 2.0
+      simulate_ahead_time: 1.0
+      rotate_to_goal_heading: true
+      policy: store_arena_acd3
+      scan_topic: scan
+      scan_timeout: 0.5
+      transform_tolerance: 0.2
+      intra_op_threads: 1
+      rotate_gain: 1.5
+      log_period: 1.0
+      rear_stop_range: 0.0
+      rear_half_width_deg: 30.0
+      ema_alpha_v: 1.0
+      ema_alpha_w: 0.25

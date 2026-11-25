@@ -5,6 +5,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <filesystem>
 #include <limits>
 #include <string>
@@ -157,6 +158,41 @@ TEST(Action, MatchesTaskSpec)
   }
   std::printf("[parity] action -> (v, w) max |diff| %.3g\n", worst);
   EXPECT_LE(worst, kObsTol);
+}
+
+// ---- 평활 끔(alpha 1)과 빈 가리기는 명령을 한 비트도 바꾸지 않는다 ----
+TEST(Action, SmoothingOffAndEmptyMaskAreBitIdentical)
+{
+  const PolicySpec s = spec();
+  pode_rl_controller::TargetSmoother off(1.0, 1.0);
+  int steps = 0;
+  for (const auto & c : fixture("action_cases.json")) {
+    const auto start = vec<double>(c["start"]);
+    pode_rl_controller::Twist2 plain{start[0], start[1]};
+    pode_rl_controller::Twist2 smoothed = plain;
+    off.reset();
+    for (const auto & a_node : c["actions"]) {
+      const auto a = vec<float>(a_node);
+      const auto target =
+        pode_rl_controller::action_to_target(a[0], a[1], s.action, case_cap(s, c));
+      const auto through = off.step(target, smoothed);
+      EXPECT_EQ(std::memcmp(&through, &target, sizeof(target)), 0);
+      plain = pode_rl_controller::rate_limit(plain, target, s.control_dt, s.action);
+      smoothed = pode_rl_controller::rate_limit(smoothed, through, s.control_dt, s.action);
+      EXPECT_EQ(std::memcmp(&plain, &smoothed, sizeof(plain)), 0);
+      ++steps;
+    }
+  }
+  EXPECT_GT(steps, 0);
+  for (const auto & c : fixture("obs_cases.json")) {
+    pode_rl_controller::Scan scan{c["angle_min"].as<double>(), c["angle_increment"].as<double>(),
+      c["range_min"].as<double>(), c["range_max"].as<double>(), vec<float>(c["ranges"])};
+    const auto before = pode_rl_controller::scan_to_rays(scan, c["lidar_yaw"].as<double>(), s);
+    pode_rl_controller::mask_scan(scan, c["lidar_yaw"].as<double>(), {});
+    const auto after = pode_rl_controller::scan_to_rays(scan, c["lidar_yaw"].as<double>(), s);
+    ASSERT_EQ(before.size(), after.size());
+    EXPECT_EQ(std::memcmp(before.data(), after.data(), before.size() * sizeof(float)), 0);
+  }
 }
 
 // ---- speed_cap 원천: nav_speed.yaml, 학습 범위 밖이면 잘라서 알린다 ----

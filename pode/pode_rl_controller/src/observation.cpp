@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <stdexcept>
+#include <string>
 
 namespace pode_rl_controller
 {
@@ -209,6 +211,82 @@ bool memory_stale(bool policy_ran_before, double since_last_policy_s, double con
 bool new_episode(bool had_plan, const Point2 & old_end, const Point2 & new_end)
 {
   return !had_plan || std::hypot(new_end.x - old_end.x, new_end.y - old_end.y) > 1e-3;
+}
+
+// ---- 출력 평활 ----
+double check_ema_alpha(double alpha, const std::string & name)
+{
+  if (!(alpha > 0.0 && alpha <= 1.0)) {
+    throw std::runtime_error(
+      "FollowPathRL: " + name + " must be in (0, 1] (1 = off), got " + std::to_string(alpha));
+  }
+  return alpha;
+}
+
+TargetSmoother::TargetSmoother(double alpha_v, double alpha_w)
+: alpha_v_(check_ema_alpha(alpha_v, "ema_alpha_v")),
+  alpha_w_(check_ema_alpha(alpha_w, "ema_alpha_w"))
+{
+}
+
+void TargetSmoother::reset()
+{
+  primed_ = false;
+  out_ = {0.0, 0.0};
+}
+
+// 리셋 뒤 첫 주기는 start(지금 내는 명령)에서 출발한다. alpha 1인 성분은 목표를 그대로 낸다
+Twist2 TargetSmoother::step(const Twist2 & target, const Twist2 & start)
+{
+  if (!primed_) {
+    out_ = start;
+    primed_ = true;
+  }
+  out_.v = alpha_v_ == 1.0 ? target.v : alpha_v_ * target.v + (1.0 - alpha_v_) * out_.v;
+  out_.w = alpha_w_ == 1.0 ? target.w : alpha_w_ * target.w + (1.0 - alpha_w_) * out_.w;
+  return out_;
+}
+
+// ---- 스캔 가리기 ----
+std::vector<AngleRange> parse_scan_mask(const std::vector<double> & deg)
+{
+  if (deg.size() % 2 != 0) {
+    throw std::runtime_error(
+      "FollowPathRL: scan_mask_deg must list pairs [lo, hi, lo, hi, ...] in degrees, got " +
+      std::to_string(deg.size()) + " numbers");
+  }
+  std::vector<AngleRange> out;
+  for (size_t i = 0; i < deg.size(); i += 2) {
+    const double lo = deg[i];
+    const double hi = deg[i + 1];
+    if (!std::isfinite(lo) || !std::isfinite(hi) || lo < -180.0 || hi > 180.0 || lo >= hi) {
+      throw std::runtime_error(
+        "FollowPathRL: scan_mask_deg range " + std::to_string(i / 2) + " [" + std::to_string(lo) +
+        ", " + std::to_string(hi) + "] must satisfy -180 <= lo < hi <= 180 (split a range "
+        "across 180 into two)");
+    }
+    out.push_back({lo, hi});
+  }
+  return out;
+}
+
+void mask_scan(Scan & scan, double lidar_yaw, const std::vector<AngleRange> & mask)
+{
+  if (mask.empty()) {
+    return;
+  }
+  for (size_t i = 0; i < scan.ranges.size(); ++i) {
+    const double rad = lidar_yaw + scan.angle_min + static_cast<double>(i) * scan.angle_increment;
+    const double deg = std::remainder(rad * (180.0 / kPi), 360.0);
+    // 바로 뒤는 -180과 180 둘 다로 본다
+    const double alt = deg <= -180.0 ? 180.0 : (deg >= 180.0 ? -180.0 : deg);
+    for (const auto & m : mask) {
+      if ((deg >= m.lo_deg && deg <= m.hi_deg) || (alt >= m.lo_deg && alt <= m.hi_deg)) {
+        scan.ranges[i] = std::numeric_limits<float>::infinity();
+        break;
+      }
+    }
+  }
 }
 
 }  // namespace pode_rl_controller
