@@ -13,6 +13,8 @@ DETOUR = "detour"
 NONE = "none"
 OBSTACLES_ON = "obstacles_on"
 OBSTACLES_OFF = "obstacles_off"
+# action_msgs/GoalStatus에서 끝나지 않은 상태: ACCEPTED, EXECUTING, CANCELING
+ACTIVE_STATUS = (1, 2, 3)
 
 
 @dataclass(frozen=True)
@@ -34,8 +36,17 @@ class State:
     reason: str = ""
 
 
-def navigating(last_plan_t: float | None, now: float, rules: Rules = Rules()) -> bool:
-    """plan_timeout_s 안에 전역 경로(plan)를 받았으면 주행 중이다."""
+def goal_active(statuses) -> bool:
+    """주행 action의 goal 상태들 가운데 아직 끝나지 않은 것이 있는지."""
+    return any(s in ACTIVE_STATUS for s in statuses)
+
+
+def navigating(last_plan_t: float | None, now: float, rules: Rules = Rules(),
+               active: bool | None = None) -> bool:
+    """주행 중인지. 주행 action의 goal 상태를 받았으면 그것을 따른다(행동 트리가 복구 동작을 하는 동안에는
+    경로가 오지 않아도 주행 중이다). 받은 적이 없으면 plan_timeout_s 안에 전역 경로(plan)를 받았는지로 본다."""
+    if active is not None:
+        return active
     return last_plan_t is not None and 0.0 <= now - last_plan_t <= rules.plan_timeout_s
 
 

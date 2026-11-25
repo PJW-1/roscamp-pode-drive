@@ -7,6 +7,7 @@ from fleet_gz_sim.aisle_first import (
     OBSTACLES_ON,
     Rules,
     State,
+    goal_active,
     goal_changed,
     log_line,
     navigating,
@@ -153,3 +154,35 @@ def test_a_new_goal_seen_while_not_navigating_does_not_start_the_stall_count():
     state, actions = run(still(13.0, 17.5), state)
     assert state.mode == AISLE and set(actions) == {NONE}
     assert state.ref_t == 13.0
+
+
+def test_an_active_goal_means_navigating_even_without_plans():
+    assert navigating(None, 10.0, RULES, active=True)
+    assert navigating(1.0, 10.0, RULES, active=True)  # 복구 동작 중에는 경로가 오지 않는다
+    assert not navigating(9.9, 10.0, RULES, active=False)  # 경로가 막 왔어도 goal이 끝났으면 주행 끝
+    # goal 상태를 받은 적이 없으면 경로 시각으로 본다
+    assert navigating(9.9, 10.0, RULES, active=None) and not navigating(1.0, 10.0, RULES, active=None)
+
+
+def test_a_goal_is_active_until_it_reaches_a_final_status():
+    assert not goal_active([])
+    assert goal_active([1]) and goal_active([2]) and goal_active([3])
+    assert not goal_active([4, 5, 6])
+    assert goal_active([4, 2])  # 끝난 goal 뒤에 새 goal이 돈다
+
+
+def test_the_detour_survives_a_recovery_pause_without_plans():
+    # 행동 트리가 복구 동작을 하는 동안에는 경로가 오지 않지만 goal은 살아 있다
+    state, action, t = State(), NONE, 0.0
+    while action != OBSTACLES_ON:
+        state, action = step(state, t, (0.67, 0.57), True, RULES)
+        t += 0.2
+        assert t < 2 * RULES.stall_s
+    last_plan_t = t
+    for _ in range(40):
+        t += 0.2
+        moving = navigating(last_plan_t, t, RULES, active=True)
+        state, action = step(state, t, (0.67, 0.57), moving, RULES)
+        assert state.mode == DETOUR and action == NONE
+    # goal 상태 없이 경로 시각만 보면 같은 구간이 주행 끝으로 보인다
+    assert not navigating(last_plan_t, t, RULES)
