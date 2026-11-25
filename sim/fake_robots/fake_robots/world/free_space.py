@@ -1,7 +1,7 @@
 """Nav2 goal이 다닐 수 있는 바닥(격자). ROS를 쓰지 않는다.
 
 넓은 구역(shared)의 합만 바닥이다. 한 줄 구역, 도크 구역, 벽, 진열대는 로봇 반지름만큼 키워 막는다.
-다른 로봇과 물체는 매번 원으로 찍는다.
+다른 로봇과 물체는 매번 원(서 있는 청소 로봇은 캡슐)으로 찍는다.
 """
 from __future__ import annotations
 
@@ -10,6 +10,8 @@ import math
 from fleet_core.fleet_map import SHARED
 from fleet_core.fleet_map.geometry import inside, point_rect_distance, wall_gap
 from fleet_core.fleet_map.keepout import dock_openings, filled
+
+from .geom import segment_gap
 
 GRID_M = 0.02
 
@@ -51,8 +53,8 @@ class FreeSpace:
         return (min(self.w - 1, max(0, int((x - self.x0) / self.res))),
                 min(self.h - 1, max(0, int((y - self.y0) / self.res))))
 
-    def with_discs(self, discs) -> bytearray:
-        """정적 바닥에 원 (x, y, 막는 반지름)들을 찍은 격자."""
+    def with_discs(self, discs, segs=()) -> bytearray:
+        """정적 바닥에 원 (x, y, 막는 반지름)들과 선분 (a, b, 막는 반지름)들을 찍은 격자."""
         cells = bytearray(self.static)
         for cx, cy, reach in discs:
             ix0, iy0 = self.cell(cx - reach, cy - reach)
@@ -61,6 +63,13 @@ class FreeSpace:
                 for ix in range(ix0, ix1 + 1):
                     x, y = self.centre(ix, iy)
                     if math.hypot(x - cx, y - cy) < reach:
+                        cells[iy * self.w + ix] = 1
+        for a, b, reach in segs:
+            ix0, iy0 = self.cell(min(a[0], b[0]) - reach, min(a[1], b[1]) - reach)
+            ix1, iy1 = self.cell(max(a[0], b[0]) + reach, max(a[1], b[1]) + reach)
+            for iy in range(iy0, iy1 + 1):
+                for ix in range(ix0, ix1 + 1):
+                    if segment_gap(self.centre(ix, iy), a, b) < reach:
                         cells[iy * self.w + ix] = 1
         return cells
 

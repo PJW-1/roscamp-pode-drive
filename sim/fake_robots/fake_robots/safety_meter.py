@@ -1,6 +1,7 @@
 """SafetyMeter: 실제 자세로 로봇이 얼마나 가까워졌는지 잰다. ROS를 쓰지 않는다.
 
-early: 몸이 구역 반지름 안인데 구역을 풀었다. near: 두 로봇이 반지름 두 배보다 가까워졌다.
+early: 몸이 구역 반지름 안인데 구역을 풀었다. near: 두 로봇이 반지름 두 배보다 가까워졌다
+(narrow 로봇은 몸 폭 캡슐에서 반지름보다 가까워졌다).
 결과는 요약 옆 safety.json에 둔다.
 """
 from __future__ import annotations
@@ -9,14 +10,18 @@ import itertools
 import math
 
 from fake_robots.judge import holder_set
+from fake_robots.world.body import capsule_gap, spine
 
 
 class SafetyMeter:
-    def __init__(self, site, radius_m: float, on_course=lambda robot: True):
+    def __init__(self, site, radius_m: float, on_course=lambda robot: True,
+                 narrow=lambda robot: False):
         self.site = site
         self.radius_m = radius_m
         self.on_course = on_course
+        self.narrow = narrow  # 몸 폭 캡슐로 볼 로봇(서 있는 청소 로봇)
         self.poses: dict[str, tuple[float, float]] = {}
+        self.yaws: dict[str, float] = {}
         self.holders: dict[str, frozenset[str]] = {}
         self.early = 0
         self.near = 0
@@ -26,8 +31,9 @@ class SafetyMeter:
         self.log: list[str] = []
         self._close: set[tuple[str, str]] = set()
 
-    def on_pose(self, robot: str, x: float, y: float) -> None:
+    def on_pose(self, robot: str, x: float, y: float, yaw: float = 0.0) -> None:
         self.poses[robot] = (x, y)
+        self.yaws[robot] = yaw
 
     def on_zones(self, t: float, holders: dict[str, str]) -> None:
         for zone, text in holders.items():
@@ -52,12 +58,19 @@ class SafetyMeter:
         for one, other in itertools.combinations(present, 2):
             gap = math.dist(self.poses[one], self.poses[other])
             self.min_gap_m = min(self.min_gap_m, gap)
-            if gap >= 2 * self.radius_m:
+            if not self._near(one, other, gap):
                 self._close.discard((one, other))
             elif (one, other) not in self._close:
                 self._close.add((one, other))
                 self.near += 1
                 self.log.append(f"t={t:.1f} {one} and {other} are {gap:.3f} m apart")
+
+    def _near(self, one: str, other: str, gap: float) -> bool:
+        for slim, wide in ((one, other), (other, one)):
+            if self.narrow(slim):
+                bone = spine(*self.poses[slim], self.yaws[slim], self.radius_m)
+                return capsule_gap(self.poses[wide], bone) < self.radius_m
+        return gap < 2 * self.radius_m
 
     def summary(self) -> dict:
         def finite(value):

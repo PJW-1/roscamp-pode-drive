@@ -16,8 +16,9 @@ from ..battery import Battery
 from ..nav_speed import nav_speed_mps
 from .apply import Commands
 from .avoid import PERFECT, MixedSettings, check_mode
+from .body import CLEANER_HALF_M, spine, standing_cleaner
 from .free_space import FreeSpace
-from .geom import segment_gap
+from .geom import segment_gap, segments_gap
 from .injections import LowBattery, OrderFault, Reinstate, Removal, Schedule
 from .invariants import Invariants
 from .link import Link
@@ -79,12 +80,13 @@ class ZoneWorld(Commands, Link):
             self.robots[name] = SimRobot(name, x, y, yaw,
                                          profile=profile_for(self.rng, self.imperfect))
         self.space = FreeSpace(self.site, self.radius)
+        self.cleaners = frozenset(cleaners)  # 서 있으면 몸 폭 캡슐로 본다(body.py)
         self.events: list = []  # (시각, EventOut)
         self.commands: list = []  # (시각, 명령)
         self.results: list = []  # (시각, 로봇, Result)
         self.reports_sent = 0
         self.guard_stops = 0  # 몸이 닿기 직전에 세계가 세운 수(충돌 검사가 놓친 것)
-        self.invariants = Invariants(self.site, self.params)
+        self.invariants = Invariants(self.site, self.params, self.cleaners)
         self.reaction = ReactionWatch(self.params, self.invariants.violations)
         self.metrics = Metrics(self.site, self.robots)
         self.order_metrics = OrderMetrics(self.site, self.robots)
@@ -136,6 +138,23 @@ class ZoneWorld(Commands, Link):
         others = [(r.x, r.y, self.radius) for r in self.robots.values()
                   if r is not robot and not r.removed]
         return others + self.schedule.objects_now(self.t)
+
+    def _bone(self, o):
+        """o가 서 있는 청소 로봇이면 캡슐 뼈대, 아니면 None."""
+        return spine(o.x, o.y, o.yaw, self.radius) if standing_cleaner(o, self.cleaners) else None
+
+    def bodies(self, robot):
+        """robot이 피해야 할 몸: (원들, 서 있는 청소 로봇의 캡슐 뼈대들)."""
+        discs, bones = [], []
+        for r in self.robots.values():
+            if r is robot or r.removed:
+                continue
+            bone = self._bone(r)
+            if bone is None:
+                discs.append((r.x, r.y, self.radius))
+            else:
+                bones.append(bone)
+        return discs + self.schedule.objects_now(self.t), bones
 
     # ---- 걸음 ----
 
@@ -244,14 +263,19 @@ class ZoneWorld(Commands, Link):
 
     def clear_to(self, r, new) -> bool:
         """r이 지금 자리에서 new까지 곧게 가는 동안 다른 로봇 몸에 닿지 않는다
-        (2r 밖이거나 멀어진다).
+        (2r 밖이거나 멀어진다. 서 있는 청소 로봇은 캡슐에서 r 밖이거나 멀어진다).
         닿으면 세계가 그 걸음을 막고 센다: 충돌 검사(blocked_ahead)가 놓친 것이다."""
-        least = 2 * self.radius
         for o in self.robots.values():
             if o is r or o.removed:
                 continue
-            gap = segment_gap(o.pose, r.pose, new)
-            if gap < least - 1e-9 and gap < math.dist(r.pose, o.pose) - 1e-12:
+            bone = self._bone(o)
+            if bone is None:
+                least, now = 2 * self.radius, math.dist(r.pose, o.pose)
+                gap = segment_gap(o.pose, r.pose, new)
+            else:
+                least, now = self.radius, segment_gap(r.pose, *bone) - CLEANER_HALF_M
+                gap = segments_gap(r.pose, new, *bone) - CLEANER_HALF_M
+            if gap < least - 1e-9 and gap < now - 1e-12:
                 self.guard_stops += 1
                 return False
         return True
