@@ -446,3 +446,25 @@ def test_no_cell_is_shut_in_when_the_start_is_inside_the_circle():
     site = load_fleet_map("v7")
     plan = cov.make_plan(site)
     assert not cov.pocket(plan.grid, plan.grid.free, plan.start, plan.start, 0.18).any()
+
+
+def test_the_start_point_itself_decides_whether_it_is_inside_the_circle():
+    """출발점은 Q2 둘레 안(0.168 m)이고 그 칸의 중심은 밖(0.181 m)이다: 막다른 칸은 없다."""
+    site = load_fleet_map("v7")
+    plan = cov.make_plan(site)
+    start, q2 = (1.826, 0.176), (1.66, 0.15)
+    assert math.dist(start, q2) < 0.18 < math.dist(plan.grid.centre(plan.grid.cell(start)), q2)
+    assert not cov.pocket(plan.grid, plan.grid.free, start, q2, 0.18).any()
+
+
+def test_a_start_point_outside_the_circle_counts_even_when_its_cell_centre_is_inside():
+    """출발점은 Q2 둘레 밖(0.189 m) 동쪽 구석이고 그 칸의 중심은 안(0.178 m)이다: 구석 밖이 막다른 쪽이다."""
+    site = load_fleet_map("v7")
+    plan = cov.make_plan(site)
+    grid, start, q2 = plan.grid, (1.849, 0.151), (1.66, 0.15)
+    assert math.dist(grid.centre(grid.cell(start)), q2) < 0.18 < math.dist(start, q2)
+    shut = cov.pocket(grid, grid.free, start, q2, 0.18)
+    i, j = grid.cell((1.4125, 0.2125))
+    assert shut[j, i]
+    i, j = grid.cell((1.8625, 0.2125))
+    assert grid.free[j, i] and not shut[j, i]

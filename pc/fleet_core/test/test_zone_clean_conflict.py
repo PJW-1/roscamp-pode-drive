@@ -277,3 +277,13 @@ def test_a_node_off_the_way_out_is_released_as_before(here):
     assert _path_gap(t.site.node_pose("Q2"), [here]) > t.params.clean_reach_m
     assert t.grants.nodes_of("pode3") == ()
     assert t.grants.take("pode1", [], ["Q2"])
+
+
+def test_the_kept_node_is_let_go_once_the_cleaner_is_out_of_the_dead_end():
+    """구석에서 goal이 끝나 쥐고 있던 Q2는, 둘레에 든 보고가 없었어도 구석을 벗어난 첫 보고에서 놓는다."""
+    t = _standing((1.8625, 0.2125), ["Q1", "Q2"])
+    me, job = t._robots["pode3"], t._cleaners["pode3"]
+    assert "Q2" in t.grants.nodes_of("pode3")
+    me.x, me.y = 1.4125, 0.2125
+    t._clean_release(me, job, ended=False)
+    assert t.grants.nodes_of("pode3") == ()

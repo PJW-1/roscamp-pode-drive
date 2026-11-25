@@ -1328,6 +1328,8 @@ class Cleaning:
                 job.entered.add(node)
             elif node in job.entered or ended:
                 if plan is not None and plan.shut_in(here, self.site.node_pose(node), reach):
+                    # 막다른 자리를 벗어난 첫 보고에서 놓는다
+                    job.entered.add(node)
                     continue
                 self.grants.release_node(m.name, node)
                 job.entered.discard(node)
