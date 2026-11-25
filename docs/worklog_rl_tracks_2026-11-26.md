@@ -253,6 +253,38 @@ t_ctrl보다 높고, 이상 응답 두 칸(rand, head)에서는 t_ctrl보다 낮
   통로 판이 적으면 원인을 계획 경로(전역 planner가 다른 통로로 돌렸는지)와 실제 궤적으로 나눠 적고, 계획 경로 쪽이면
   길 유지(`plan_keep:=true`, 벤치의 `BENCH_LAUNCH_ARGS`)를 켠 판을 더 돌려 견준다.
 
+구현(서브에이전트 셋, 01:10에 통합 브랜치로 병합, 시뮬레이터 없는 시험 305개 통과)과 Isaac 작업 목록:
+
+| 목록 | 작업 | 내용 |
+|---|---|---|
+| `jobs_b6c.txt` | c_clean, c_cross, c_demo_box | 새 설정을 켠 채 Isaac의 기존 확인 모드(robot, mover, obstacle)를 돌린다. 운동 모델 자세와 시뮬 자세의 차이, 라이다 거리, 서 있는 우리 로봇을 치는지 |
+| `jobs_b6.txt` | smoke_demo | 세 설정을 절반씩 섞은 2번짜리 학습(연결 확인) |
+| | e_acd3_{aisle, demo1, demo2} | acd3 기준. H-a, H-b |
+| | t_demo와 e_demo_{demo1, aisle, rand, demo2, head} | acd3에서 300번, t_ctrl 설정에 `obstacle_demo_share=0.5 mover_cross_prob=0.5 robot_cleaner_prob=0.5`만 더함. H-c |
+| | e_ctrl_{demo1, aisle, demo2} | H-c의 대조(t_ctrl) |
+| `jobs_b6b.txt` | t_demo_std와 평가 다섯 칸, e_std_{demo1, aisle, demo2} | 위에 `--init_std 0.3`을 더한 갈래. 대조는 t_std. 묶음 1의 t_std가 끝난 뒤에 건다 |
+
+평가 칸의 설정(공통: 4096 env, 에피소드 1, seed 7, 속도 상한 0.12 고정):
+- aisle: `obstacle_demo_share=1 obstacle_demo_aisle_prob=1 obstacle_demo_counts=1,1 mover_prob=0 robot_max=0`. 경로가 통로를
+  0.30 m 넘게 지나면 그 통로에 상자 하나, 다른 것은 없다.
+- demo1: 상자 규칙은 aisle과 같고, 사람만(`mover_kinds=person mover_prob=1 mover_cross_prob=1`), 로봇 둘
+  (`robot_max=2 robot_min=2 robot_cleaner_prob=1`: 운반 하나와 청소 하나).
+- demo2: demo1에서 상자를 둘로(`obstacle_demo_counts=2,2`). 둘째 상자는 다른 구역에 놓인다.
+
+내가 정한 것(에이전트가 결정 거리로 넘긴 것):
+- `obstacle_demo_keep_path=1`(기본)을 쓴다. 전역 경로는 빈 지도에서 계획한 것 그대로라 통로 상자를 지나가고, 정책이
+  경로에서 벗어나 옆으로 비켜야 한다. 0으로 두면 Nav2 방식 계획기가 대부분 다른 통로로 돌아가는 경로를 내서(통로 상자가
+  남는 배치 4.5 %) "통로 안 회피"를 잴 수 없다. **이것은 실물에도 그대로 해당한다: 전역 planner가 상자를 보고 다시
+  계획하면 통로 안 회피가 아니라 우회가 된다.** Gazebo 둘째·셋째 묶음에서 계획 경로가 통로에 남는지를 같이 본다.
+- 지금까지의 학습은 상자를 피해 다시 계획한 경로를 주었으므로(`route_spec.build_routes`), 경로가 상자를 지나는 상황은
+  acd3가 거의 겪지 않았다. 그래서 H-a가 틀릴(통과율이 낮을) 가능성을 열어 둔다. 낮게 나오면 t_demo가 이 능력을 처음
+  가르치는 학습이 된다.
+- 평가의 통로 안 통과율(`in_aisle_pass`)은 "경로 위 통로 상자가 있는 에피소드의 성공 비율"이다. 전역 경로가 그 통로를
+  지나므로 성공은 그 통로를 지난 것으로 보지만, 궤적을 직접 검사한 값은 아니다.
+- 청소 로봇에게 운반 로봇은 비키지 않는다(실물과 다름). 청소 로봇은 가까운 로봇에게 0.30 m에서 멈춰 10 s 기다렸다 물러난다.
+- H-c의 std 갈래: t_demo_std가 t_std보다 demo 칸에서 2 SE 넘게 높으면 "std를 되돌린 채 시연 조건을 섞으면 효과 있음"이다.
+  t_demo와 t_demo_std의 차이는 묶음 1(t_ctrl 대 t_std)의 결과와 함께 읽는다.
+
 결과: (채움)
 
 ## 9. 결과 표
