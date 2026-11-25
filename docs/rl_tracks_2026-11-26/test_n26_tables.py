@@ -157,6 +157,9 @@ def test_new_comparisons_are_listed():
         for a, b in (("demo", "ctrl"), ("demostd", "std"), ("demostd", "demo"),
                      ("demo", "acd3"), ("demostd", "acd3")):
             assert (a, cell, b, cell) in c
+    for cell in ("rand", "head", "aisle"):
+        for a, b in (("sym", "ctrl"), ("sym", "acd3")):
+            assert (a, cell, b, cell) in c
     assert len(c) == len(nt.COMPARISONS)
 
 

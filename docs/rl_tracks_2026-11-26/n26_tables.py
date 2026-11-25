@@ -47,6 +47,8 @@ DEMO_RAND_PAIRS = [("demo", "ctrl"), ("demostd", "std"), ("demostd", "demo"), ("
 # 부드러움을 손실로 건 정책 (caps의 대조는 ctrl, capsstd의 대조는 std)
 CAPS_PAIRS = [("caps", "ctrl"), ("capsstd", "std"), ("capsstd", "caps"), ("caps", "acd3"),
               ("capsstd", "acd3")]
+# 좌우 거울 증강 (대조는 ctrl)
+SYM_PAIRS = [("sym", "ctrl"), ("sym", "acd3")]
 COMPARISONS = (
     [(a, c, b, c) for c in ("rand", "head") for a, b in BASE_PAIRS]
     + [("sysid", "realrand", "ctrl", "realrand"), ("ctrl", "realrand", "acd3", "realrand")]
@@ -55,6 +57,7 @@ COMPARISONS = (
     + [(a, c, b, c) for c in ("rand", "head") for a, b in DEMO_RAND_PAIRS]
     + [(a, c, b, c) for c in DEMO_CELLS for a, b in DEMO_PAIRS]
     + [(a, c, b, c) for c in ("rand", "head") for a, b in CAPS_PAIRS]
+    + [(a, c, b, c) for c in ("rand", "head", "aisle") for a, b in SYM_PAIRS]
 )
 # (기준, 다시 돌린 것): 같은 체크포인트·같은 seed를 병합 코드로 다시 돌린 칸
 REGRESSION = (("e_acd3_rand", "e_acd3_rand_chk"), ("e_acd3_rand", "e_acd3_rand_chk2"))
