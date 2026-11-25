@@ -82,6 +82,30 @@ def test_the_stuck_form_is_undone_by_yielding_before_the_transport_comes():
     assert w.t.grants.take("pode1", [], ["Q1"])
 
 
+def test_the_yield_point_leaves_room_for_stopping_short():
+    """Nav2는 goal에서 xy 허용치 안에서 멈춘다. 그만큼 덜 가도 띠 밖이어야 비키기를 되풀이하지 않는다."""
+    w = _at_q1("E-3")
+    w.step()
+    move = w.moves("follow_path")[-1]
+    p, pode1 = w.params, w.t._robots["pode1"]
+    band = w.t._clean_band(pode1, full=True)
+    reach = p.clean_yield_band_m / 2 + p.footprint_radius_m
+    end, before = w.job.leg.points[-1], w.job.leg.points[-2]
+    assert _path_gap(end, band) > reach + p.clean_yield_margin_m - 1e-9
+    # 다리를 따라 오다 허용치만큼 덜 가서 성공해도 다시 비키지 않는다
+    s = min(p.clean_yield_margin_m, math.dist(before, end))
+    short = (end[0] + (before[0] - end[0]) * s / math.dist(before, end),
+             end[1] + (before[1] - end[1]) * s / math.dist(before, end))
+    yields = len(w.events("CLEAN_YIELD"))
+    w.pos[CLEANER_NAME] = short
+    w.step()
+    w.finish(move.goal_id)
+    for _ in range(5):
+        w.step()
+    assert len(w.events("CLEAN_YIELD")) == yields
+    assert w.job.leg is None or w.job.leg.kind != YIELD
+
+
 def test_a_transport_waiting_for_a_node_the_cleaner_holds_is_a_meeting():
     w = _at_q1("Q2")
     other, why = w.t._clean_meeting(w.t._robots[CLEANER_NAME], w.job)
@@ -378,4 +402,5 @@ def test_yield_parameters_are_loaded():
     p = load_params()
     assert p.clean_yield_band_m > 0 and p.clean_yield_near_m > 0
     assert p.clean_yield_wait_s > 0 and p.clean_stuck_s > 0
+    assert p.clean_yield_margin_m > 0
     assert BACK == "back"

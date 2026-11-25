@@ -118,8 +118,10 @@ class CleanPlan:
 
     # ---- 지금 자리에서 점까지 청소 격자 위 꺾은선: (보낼 점들, 검사할 점들) ----
     def way(self, here, to) -> tuple[list, list]:
+        # 빈칸 안이어도 멈춤 오차로 reach 안에 서면 가장 가까운 빈칸 중심부터 검사한다
         cell = self.grid.cell(here)
-        inside = cell is not None and self.free[cell[1], cell[0]]
+        inside = (cell is not None and self.free[cell[1], cell[0]]
+                  and self.cov.path_clear(self.grid, [here]))
         first = here if inside else self.grid.centre(self.grid.nearest_free(here))
         pts = self.cov.transit(self.grid, self.free, first, to, self.radius)
         return ([] if inside else [here]) + pts, pts
@@ -603,7 +605,7 @@ class Cleaning:
         body, start_gap = 2 * p.footprint_radius_m, math.dist(here, pos)
         tries = 0
         for spot in spots:
-            if _path_gap(spot, band) <= reach or any(
+            if _path_gap(spot, band) <= reach + p.clean_yield_margin_m or any(
                     math.dist(spot, (o.x, o.y)) <= p.clean_conflict_reach_m for o in rest):
                 continue
             tries += 1

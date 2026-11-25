@@ -101,6 +101,7 @@ clean_hold_check: all         # 남이 쥔 지점 보기: all(전부) / ahead(�
 clean_base_check: all         # 남의 쥔 base 보기: all(전부) / ahead(지금 위치부터 base를 따라 clean_conflict_ahead_m까지) / off
 clean_conflict_ahead_m: 1.0   # ahead일 때 보는 앞 거리
 clean_yield_band_m: 0.30      # 만남 띠 폭(몸 지름 + 여유): 선 청소 로봇이 운반 로봇 띠 중심선에서 반폭 + 몸 반지름 안이면 만나고, 비킬 점은 그 밖에서 고른다. 달리는 다리는 clean_conflict_reach_m으로 본다
+clean_yield_margin_m: 0.05    # 비킬 점은 띠에서 반폭 + 몸 반지름보다 이만큼 더 떨어진 곳(Nav2 xy_goal_tolerance와 같게): 덜 가서 멈춰도 띠 밖
 clean_yield_near_m: 0.30      # 청소 로봇이 움직이는 중 운반 로봇과 거리가 이 안에서 줄어들면 만난다(near_m과 같게)
 clean_yield_wait_s: 10.0      # 같은 운반 로봇과 처음 만난 뒤 이만큼 지나도 아직 만나면 집 자리로 간다(운반 로봇 막힘 표시 blocked_mark_s와 같게)
 clean_stuck_s: 5.0            # 집 자리로 가는 다리를 이만큼 못 보내면 CLEAN_STUCK 경고를 낸다(미룬 줄 다시 보기 clean_retry_s와 같게)

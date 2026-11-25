@@ -129,6 +129,7 @@ class FleetParams:
     clean_base_check: str = "all"
     clean_conflict_ahead_m: float = 1.0
     clean_yield_band_m: float = 0.30
+    clean_yield_margin_m: float = 0.05
     clean_yield_near_m: float = 0.30
     clean_yield_wait_s: float = 10.0
     clean_stuck_s: float = 5.0
