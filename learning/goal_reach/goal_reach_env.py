@@ -125,6 +125,11 @@ class GoalReachEnv(DirectRLEnv):
         self.cmd = torch.zeros(n, 2, device=dev)  # 변화율 제한된 (v, w) 명령
         # 관측 라이다 거리 배율 (lidar_scale_range): 리셋 때 env 별로 뽑음
         self.lidar_scale = ts.sample_lidar_scale(n, dev, self.spec)
+        # 명령 응답 모델 (cmd_*_range): 끄면 (기본) _pre_physics_step 이 건너뜀
+        self.cmd_response = ts.cmd_response_active(self.spec)
+        self.resp_delay, self.resp_tau, self.resp_gain = ts.sample_cmd_response(n, dev, self.spec)
+        self.resp_buf = torch.zeros(n, ts.cmd_delay_slots(self.spec), 2, device=dev)
+        self.resp_lag = torch.zeros(n, 2, device=dev)
         self.start_xy = torch.zeros(n, 2, device=dev)
         self.goal_xy = torch.zeros(n, 2, device=dev)
         self.d_prev = torch.zeros(n, device=dev)
@@ -185,6 +190,17 @@ class GoalReachEnv(DirectRLEnv):
 
     def _pre_physics_step(self, actions: torch.Tensor) -> None:
         self.target = target = self.action_target(actions)
+        if self.cmd_response:  # 정책 목표 -> 실물 응답 모델 -> 변화율 제한
+            target, self.resp_buf = ts.cmd_response_step(
+                self.resp_buf,
+                self.resp_lag,
+                target,
+                self.resp_delay,
+                self.resp_tau,
+                self.resp_gain,
+                self.step_dt,
+            )
+            self.resp_lag = target
         self.cmd = ts.rate_limit(self.cmd, target, self.step_dt)
         self._wheel_target = ts.twist_to_wheels(self.cmd)
 
@@ -310,6 +326,17 @@ class GoalReachEnv(DirectRLEnv):
         )
         # 리셋하는 env 만 배율을 새로 뽑음 (한 값이면 난수를 안 써 이전 실행과 같음)
         self.lidar_scale[env_ids] = ts.sample_lidar_scale(n, self.device, self.spec)
+        # 응답 모델 값도 리셋하는 env 만 새로 뽑음 (한 값이면 난수를 안 씀)
+        if self.cmd_response:
+            delay, tau, gain = ts.sample_cmd_response(n, self.device, self.spec)
+            self.resp_delay[env_ids], self.resp_tau[env_ids] = delay, tau
+            self.resp_gain[env_ids] = gain
+        self.reset_cmd_response(env_ids)
+
+    def reset_cmd_response(self, env_ids) -> None:
+        """응답 모델의 지연 버퍼와 1차 지연 상태를 지금 명령 self.cmd 로 채운다 (정지면 0)."""
+        self.resp_buf[env_ids] = self.cmd[env_ids][:, None]
+        self.resp_lag[env_ids] = self.cmd[env_ids]
 
     def obs_lidar_ranges(self) -> torch.Tensor:
         """관측용 거리: lidar_ranges 에 에피소드 배율을 곱함 (시뮬 판정은 lidar_ranges 그대로)."""

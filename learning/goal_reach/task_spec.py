@@ -74,6 +74,12 @@ class TaskSpec:
     lidar_obs_max: float = 2.0  # m; [0, 1] 로 스케일하기 전 클리핑
     # 관측 거리 = s × 실제 거리, s 는 에피소드마다 이 범위에서 균등 (로봇별 라이다 배율 오차)
     lidar_scale_range: tuple[float, float] = (1.0, 1.0)
+    # ---- 명령 응답 모델: 목표 -> 이득 -> 지연 -> 1차 지연 -> 변화율 제한 -> 바퀴 ----
+    # 에피소드마다 env 별로 균등하게 뽑음 (한 값이면 뽑지 않음). 기본값은 응답 모델 없음
+    cmd_delay_steps_range: tuple[int, int] = (0, 0)  # 제어 스텝 수, 양끝 포함 정수
+    cmd_lag_tau_range: tuple[float, float] = (0.0, 0.0)  # s; 1차 지연 시간 상수 (0 = 지연 없음)
+    cmd_gain_v_range: tuple[float, float] = (1.0, 1.0)  # 정상 상태 v 비 (실제 / 명령)
+    cmd_gain_w_range: tuple[float, float] = (1.0, 1.0)  # 정상 상태 w 비 (실제 / 명령)
     goal_obs_max: float = 3.0  # m; 목표 거리 클리핑
     # ---- 플릿 intent (4c): 가까운 intent_robots 대마다 존재 마스크와 경로점 intent_points 개 ----
     # 0 대 = goal-reach, 4a, 4b 정책의 41차원 배치
@@ -122,6 +128,10 @@ OVERRIDABLE = (
     "success_radius",
     "out_of_bounds",
     "lidar_scale_range",
+    "cmd_delay_steps_range",
+    "cmd_lag_tau_range",
+    "cmd_gain_v_range",
+    "cmd_gain_w_range",
     "goal_obs_max",
     "collision_force",
     "w_progress",
@@ -157,12 +167,20 @@ def parse_overrides(items, spec=SPEC) -> dict:
         elif isinstance(default, int) and not isinstance(default, bool):
             out[key] = int(float(text))
         elif isinstance(default, tuple):
-            values = tuple(float(x) for x in text.split(","))
-            if len(values) != len(default):
+            parts = text.split(",")
+            if len(parts) != len(default):
                 raise ValueError(
                     f"{key} takes {len(default)} comma-separated numbers, got {text!r}"
                 )
-            out[key] = values
+            values = tuple(float(x) for x in parts)
+            if any(
+                isinstance(d, int) and not v.is_integer()
+                for d, v in zip(default, values, strict=True)
+            ):
+                raise ValueError(f"{key} takes integers, got {text!r}")
+            out[key] = tuple(
+                int(v) if isinstance(d, int) else v for d, v in zip(default, values, strict=True)
+            )
         else:
             out[key] = float(text)
     return out
@@ -340,6 +358,80 @@ def rate_limit(
     """명령 (v, w) 를 목표로 (acc_v, acc_w) * dt 이내로만 옮긴다."""
     step = torch.tensor((lim.acc_v * dt, lim.acc_w * dt), device=cmd.device, dtype=cmd.dtype)
     return cmd + (target - cmd).clamp(-step, step)
+
+
+def cmd_response_active(spec: TaskSpec = SPEC) -> bool:
+    """명령 응답 모델이 무언가를 바꾸는지 (기본값이면 env 가 모델을 건너뛰어 이전과 같음)."""
+    return (
+        tuple(spec.cmd_delay_steps_range) != (0, 0)
+        or tuple(spec.cmd_lag_tau_range) != (0.0, 0.0)
+        or tuple(spec.cmd_gain_v_range) != (1.0, 1.0)
+        or tuple(spec.cmd_gain_w_range) != (1.0, 1.0)
+    )
+
+
+def cmd_delay_slots(spec: TaskSpec = SPEC) -> int:
+    """지연 버퍼 칸 수: 가장 긴 지연 + 1 (지금 목표 포함)."""
+    return int(spec.cmd_delay_steps_range[1]) + 1
+
+
+def _uniform(n: int, device, rng: tuple[float, float]) -> torch.Tensor:
+    lo, hi = rng
+    if lo == hi:
+        return torch.full((n,), float(lo), device=device)
+    return lo + (hi - lo) * torch.rand(n, device=device)
+
+
+def sample_cmd_response(n: int, device, spec: TaskSpec = SPEC):
+    """에피소드별 응답 모델 값: (지연 스텝 (n,) long, 시간 상수 (n,) s, 이득 (n, 2) v·w).
+    범위가 한 값이면 난수를 쓰지 않는다 (고정 값 평가와 기본 실행의 난수열 그대로)."""
+    lo, hi = (int(x) for x in spec.cmd_delay_steps_range)
+    if not 0 <= lo <= hi:
+        raise ValueError(f"cmd_delay_steps_range must be 0 <= lo <= hi, got {(lo, hi)}")
+    if lo == hi:
+        delay = torch.full((n,), lo, dtype=torch.long, device=device)
+    else:
+        delay = torch.randint(lo, hi + 1, (n,), device=device)
+    if min(spec.cmd_lag_tau_range) < 0:
+        raise ValueError(f"cmd_lag_tau_range must be >= 0, got {spec.cmd_lag_tau_range}")
+    tau = _uniform(n, device, spec.cmd_lag_tau_range)
+    gain = torch.stack(
+        (_uniform(n, device, spec.cmd_gain_v_range), _uniform(n, device, spec.cmd_gain_w_range)),
+        -1,
+    )
+    return delay, tau, gain
+
+
+def cmd_delay_step(
+    buf: torch.Tensor, x: torch.Tensor, delay: torch.Tensor
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """지연 버퍼 (N, slots, 2) 에 x (N, 2) 를 맨 앞에 넣고 env 별 delay 스텝 전 값을 낸다.
+    반환 (지연된 값 (N, 2), 새 버퍼). 칸 0 이 지금 값."""
+    buf = torch.cat((x[:, None], buf[:, :-1]), 1)
+    rows = torch.arange(x.shape[0], device=x.device)
+    return buf[rows, delay], buf
+
+
+def cmd_lag_step(y: torch.Tensor, x: torch.Tensor, tau: torch.Tensor, dt: float) -> torch.Tensor:
+    """1차 지연 한 스텝 (스텝 동안 입력 x 일정, 정확한 이산화): x + (y - x) exp(-dt / tau).
+    tau 0 인 env 는 x 그대로."""
+    beta = torch.exp(-dt / tau.clamp(min=1e-9))[:, None]
+    return torch.where(tau[:, None] > 0, x + (y - x) * beta, x)
+
+
+def cmd_response_step(
+    buf: torch.Tensor,
+    lag: torch.Tensor,
+    target: torch.Tensor,
+    delay: torch.Tensor,
+    tau: torch.Tensor,
+    gain: torch.Tensor,
+    dt: float,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """정책 목표 (N, 2) -> 이득 -> 지연 -> 1차 지연. 반환 (응답 = 새 1차 지연 상태 (N, 2), 새 버퍼).
+    변화율 제한은 이 뒤에 건다 (바퀴 명령은 계속 acc 한도 안)."""
+    delayed, buf = cmd_delay_step(buf, target * gain, delay)
+    return cmd_lag_step(lag, delayed, tau, dt), buf
 
 
 def twist_to_wheels(cmd: torch.Tensor, geo: RobotGeometry = GEOMETRY) -> torch.Tensor:

@@ -424,6 +424,7 @@ class StoreArenaEnv(GoalReachEnv):
         jv[:, self.wheel_ids] = ts.twist_to_wheels(cmd)
         self.robot.write_joint_velocity_to_sim_index(velocity=jv, env_ids=env_ids)
         self.cmd[env_ids] = cmd
+        self.reset_cmd_response(env_ids)
 
     def _sample_robots(self, env_ids, r) -> None:
         """env_ids 의 로봇 경로: 0..robot_max 대, 우리 시작/목표와 다른 노드에서 출발/정지."""
