@@ -187,11 +187,12 @@ def mean_se(x):
 
 
 def collided_kind(d):
-    """에피소드별 (충돌 여부, 충돌 순간 가장 가까운 것의 이름), 종류 목록. hit_kind가 없으면 None."""
-    kind = ep_field(d, "hit_kind")
-    if kind is None:
+    """에피소드별 (충돌 여부, 충돌 순간 가장 가까운 것의 이름), 종류 목록. hit_kind·hit_kinds가 없으면 None."""
+    z = np.load(d + "/episodes.npz")
+    if "hit_kind" not in z.files or "hit_kinds" not in z.files:
         return None
-    names = [str(k) for k in np.load(d + "/episodes.npz")["hit_kinds"]]
+    kind = ep_field(d, "hit_kind")
+    names = [str(k) for k in z["hit_kinds"]]
     _, code, keys = load(d)
     kind = np.asarray(kind, dtype=int)
     ok = (kind >= 0) & (kind < len(names))  # 범위 밖 번호는 이름 없음으로

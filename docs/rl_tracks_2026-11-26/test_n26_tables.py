@@ -257,3 +257,33 @@ def test_crossing_table(tmp_path):
     assert r["coll_on_minus_off_se_pp"] == pytest.approx(
         round(100 * np.sqrt(0.4 * 0.6 / 10 + 0.1 * 0.9 / 20), 4))
     assert r["coll_on_minus_off_noise"] == "inside"
+
+
+def test_hit_kind_without_kind_names_leaves_columns_empty(tmp_path):
+    fake_eval(tmp_path, "e_ctrl_rand", [1, 0], npz={"hit_kind": np.array([3, 0])})
+    fake_eval(tmp_path, "e_std_rand", [0, 0],
+              npz={"hit_kind": np.array([0, 0]), "hit_kinds": KINDS})
+    status(tmp_path, ["e_ctrl_rand exit=0", "e_std_rand exit=0"])
+    (row,) = nt.main([str(tmp_path), str(tmp_path / "out")])["paired"]
+    assert set(row) == OLD_PAIR_KEYS
+
+
+def test_new_fields_follow_env_order(tmp_path):
+    # ctrl은 env 순서를 뒤집어 저장: 짝은 env 번호로 맞춰져야 한다
+    fake_eval(tmp_path, "e_demo_aisle", [0, 0, 0, 0],
+              npz={"box_gap_m": np.array([np.nan, 0.14, 0.14, 0.30]),
+                   "hit_kind": np.zeros(4, int), "hit_kinds": KINDS})
+    d = tmp_path / "e_ctrl_aisle"
+    fake_eval(tmp_path, "e_ctrl_aisle", [0, 0, 0, 0])
+    np.savez(d / "episodes.npz", env=np.array([3, 2, 1, 0]), code=np.array([1, 0, 0, 0]),
+             keys=KEYS, flips=np.zeros(4), length_s=np.full(4, 10.0),
+             box_gap_m=np.array([0.30, 0.14, 0.14, np.nan]),
+             hit_kind=np.array([3, 0, 0, 0]), hit_kinds=KINDS)
+    status(tmp_path, ["e_demo_aisle exit=0", "e_ctrl_aisle exit=0"])
+    t = nt.main([str(tmp_path), str(tmp_path / "out")])
+    (row,) = t["paired"]
+    assert row["coll_robot_diff_pp"] == pytest.approx(-25.0)
+    by = {r["width_bin"]: r for r in t["gap_paired"]}
+    assert by["all"]["gap_mask"] == "same"
+    assert (by[">= 0.25"]["n"], by[">= 0.25"]["collision_diff_pp"]) == (1, -100.0)
+    assert (by["0.13-0.16"]["n"], by["0.13-0.16"]["collision_diff_pp"]) == (2, 0.0)
