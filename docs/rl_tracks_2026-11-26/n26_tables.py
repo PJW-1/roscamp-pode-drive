@@ -54,20 +54,30 @@ def finished(runs):
         return {}
     for line in p.read_text(encoding="utf-8").splitlines():
         parts = line.split()
-        if len(parts) >= 2 and parts[1].startswith("exit="):
+        if parts:  # 형식이 깨진 줄도 그 tag의 마지막 줄로 친다
             wall = next((x[7:] for x in parts if x.startswith("wall_s=")), "")
-            last[parts[0]] = (parts[1] == "exit=0", wall)
+            last[parts[0]] = (len(parts) >= 2 and parts[1] == "exit=0", wall)
     return {t: w for t, (ok, w) in last.items() if ok and (Path(runs) / t).is_dir()}
 
 
-def evals(runs, done):
-    """{(정책, 칸): 폴더} — eval.json과 episodes.npz가 있는 끝난 평가."""
+def evals(runs, done, skipped):
+    """{(정책, 칸): 폴더} — eval.json과 episodes.npz를 읽을 수 있는 끝난 평가.
+
+    못 읽는 실행은 skipped에 적는다.
+    """
     out = {}
     for tag in sorted(done):
         m = CELL_RE.match(tag)
-        d = Path(runs) / tag
-        if m and (d / "eval.json").exists() and (d / "episodes.npz").exists():
-            out[(m.group(1), m.group(2))] = str(d)
+        if not m:
+            continue
+        d = str(Path(runs) / tag)
+        try:
+            json.load(open(d + "/eval.json", encoding="utf-8"))["rates"]
+            load(d)
+        except Exception as e:  # 잘린 파일: 이 실행만 빼고 표는 계속 만든다
+            skipped.append(f"{tag} ({type(e).__name__})")
+            continue
+        out[(m.group(1), m.group(2))] = d
     return out
 
 
@@ -102,21 +112,31 @@ def outcome_diff(da, db, key):
 
 
 def check_same(da, db):
-    """같은 에피소드로 시작했는지: rollouts.npz 첫 스텝과 env 번호. 이유 문자열, 같으면 ''."""
-    if not (Path(da) / "rollouts.npz").exists() or not (Path(db) / "rollouts.npz").exists():
-        return "rollouts.npz missing: start not verified"
-    if not same_episodes(da, db):
-        return "different start episodes"
+    """같은 에피소드로 시작했는지: rollouts.npz 첫 스텝과 env 번호. (문제, 확인한 추적 env 수).
+
+    시작 상태는 추적 env(--track, 기본 16개)만 저장되므로 그 env들만 확인된다.
+    """
+    try:
+        if not same_episodes(da, db):
+            return "different start episodes", 0
+        n = min(np.load(da + "/rollouts.npz")["route"].shape[1],
+                np.load(db + "/rollouts.npz")["route"].shape[1])
+    except Exception as e:  # rollouts.npz가 없거나 잘림
+        return f"start not verified ({type(e).__name__})", 0
     if not np.array_equal(load(da)[0], load(db)[0]):
-        return "different env sets"
-    return ""
+        return "different env sets", 0
+    return "", n
+
+
+def same_label(da, db):
+    bad, n = check_same(da, db)
+    return bad or f"yes ({n} tracked envs)", bool(bad)
 
 
 def pair_row(ev, pa, ca, pb, cb):
     da, db = ev[(pa, ca)], ev[(pb, cb)]
     row = {"policy": pa, "cell": ca, "vs_policy": pb, "vs_cell": cb, "n": len(load(da)[0])}
-    bad = check_same(da, db)
-    row["same_episodes"] = "yes" if not bad else bad
+    row["same_episodes"], bad = same_label(da, db)
     if bad:
         return row
     m, se = paired(da, db)
@@ -132,14 +152,14 @@ def pairs(ev):
 
 
 # ---- 3. 회귀 확인 ----
-def regression(runs, done):
+def regression(runs, ev):
     a, b = REGRESSION
-    if a not in done or b not in done:
+    ka, kb = CELL_RE.match(a).groups(), CELL_RE.match(b).groups()
+    if ka not in ev or kb not in ev:
         return []
-    da, db = str(Path(runs) / a), str(Path(runs) / b)
+    da, db = ev[ka], ev[kb]
     row = {"run": b, "vs": a}
-    bad = check_same(da, db)
-    row["same_episodes"] = "yes" if not bad else bad
+    row["same_episodes"], bad = same_label(da, db)
     if bad:
         return [row]
     ea, ca, keys = load(da)
@@ -220,7 +240,7 @@ def training(runs, done):
         points = [(0, None)] + [(it - start, p) for it, p in models]
         for rel, p in points:
             row = {"run": tag, "iteration": rel, "abs_iteration": start + rel}
-            r = met.get(max(rel, 1), {})  # metrics.csv의 반복은 1부터
+            r = met.get(rel, {})  # metrics.csv의 반복은 1부터라 시작 줄은 비움
             for k in ("success_rate", "collision_rate", "timeout_rate", "success_time_s"):
                 row[k] = r.get(k, "")
             if p is not None:
@@ -319,6 +339,7 @@ SECTIONS = [
     ("cells", "1. 평가 칸", ""),
     ("paired", "2. 짝 비교 (a - 대조)",
      "에피소드별 짝 차이와 SE. 2SE가 outside면 |차이| > 2 SE. "
+     "같은 에피소드 확인은 시작 상태가 저장된 추적 env(괄호 안 수)와 env 번호만 본다. "
      "에피소드별 충돌 원인(가장 가까운 것)은 episodes.npz에 저장되지 않아 "
      "사람·카트, 로봇 충돌의 짝 차이는 넣지 않았다."),
     ("regression", "3. 회귀 확인 (같은 체크포인트, 같은 seed, 병합 코드)", ""),
@@ -336,18 +357,21 @@ def main(argv):
     runs, out = argv[0], Path(argv[1])
     out.mkdir(parents=True, exist_ok=True)
     done = finished(runs)
-    ev = evals(runs, done)
+    skipped = []
+    ev = evals(runs, done, skipped)
     train_rows, curve = training(runs, done)
     tables = {
         "cells": [cell_row(d, p, c) for (p, c), d in sorted(ev.items())],
         "paired": pairs(ev),
-        "regression": regression(runs, done),
+        "regression": regression(runs, ev),
         "training": train_rows,
         "curve": curve,
         "scenarios": scenarios(ev),
     }
     names = ", ".join(sorted(done)) or "없음"
     md = ["# n26 표\n", f"실행 폴더 `{runs}`, 끝난 실행(exit=0): {names}\n"]
+    if skipped:
+        md.append(f"파일을 읽지 못해 뺀 실행: {', '.join(skipped)}\n")
     for name, title, note in SECTIONS:
         write(out / f"{name}.csv", tables[name])
         md += [f"## {title}\n", (note + "\n") if note else "", md_table(tables[name])]

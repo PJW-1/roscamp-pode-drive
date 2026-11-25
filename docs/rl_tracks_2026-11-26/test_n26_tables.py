@@ -41,12 +41,25 @@ def test_missing_and_unfinished_runs_are_skipped(tmp_path):
     assert (out / "tables.md").exists()
 
 
+def test_malformed_last_line_and_truncated_files_skip_the_run(tmp_path):
+    fake_eval(tmp_path, "e_ctrl_rand", [0, 1, 0, 3])
+    fake_eval(tmp_path, "e_std_rand", [0, 0, 0, 3])
+    fake_eval(tmp_path, "e_acd3_rand", [0, 0, 0, 3])
+    (tmp_path / "e_acd3_rand" / "episodes.npz").write_bytes(b"PK\x03\x04trunc")
+    status(tmp_path, ["e_ctrl_rand exit=0", "e_std_rand exit=0", "e_std_rand exit",
+                      "e_acd3_rand exit=0"])
+    t = nt.main([str(tmp_path), str(tmp_path / "out")])
+    assert [(r["policy"], r["cell"]) for r in t["cells"]] == [("ctrl", "rand")]
+    assert "e_acd3_rand" in (tmp_path / "out" / "tables.md").read_text(encoding="utf-8")
+
+
 def test_paired_row_arithmetic(tmp_path):
     fake_eval(tmp_path, "e_ctrl_rand", [1, 1, 0, 3])
     fake_eval(tmp_path, "e_std_rand", [0, 0, 0, 0])
     status(tmp_path, ["e_ctrl_rand exit=0", "e_std_rand exit=0"])
     (row,) = nt.main([str(tmp_path), str(tmp_path / "out")])["paired"]
-    assert (row["policy"], row["vs_policy"], row["same_episodes"]) == ("std", "ctrl", "yes")
+    assert (row["policy"], row["vs_policy"]) == ("std", "ctrl")
+    assert row["same_episodes"] == "yes (4 tracked envs)"
     d = np.array([1, 1, 0, 1.0])  # std 성공 - ctrl 성공
     assert row["success_diff_pp"] == pytest.approx(75.0)
     assert row["success_se_pp"] == pytest.approx(round(100 * d.std(ddof=1) / 2, 4))
@@ -82,7 +95,7 @@ def test_training_diff_and_std_curve(tmp_path):
     assert rows[1]["wall_s"] == "12"
     std = [r for r in curve if r["run"] == "t_std"]
     assert [(r["iteration"], r["success_rate"], r["std_v"]) for r in std] == [
-        (0, "0.1", 0.3), (50, "0.5", 0.2)]
+        (0, "", 0.3), (50, "0.5", 0.2)]
 
 
 def test_regression_row(tmp_path):
