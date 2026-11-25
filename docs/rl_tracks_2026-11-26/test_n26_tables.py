@@ -391,3 +391,38 @@ def test_cross_person_pairs_by_env_not_by_record_order_and_has_an_unpaired_fallb
     c = cp.load(save("c", [0, 1, 2, 4], [1, 0, 1, 0], [2, 0, 2, 0], [1, 1, 1, 0]))
     with pytest.raises(ValueError, match="not the same episodes"):
         cp.paired(a, c)
+
+
+def test_cross_person_compare_falls_back_and_labels_only_what_it_can_judge(tmp_path, monkeypatch):
+    import cross_person as cp
+    keys = np.array(["success", "collision", "oob", "timeout"])
+    kinds = np.array(["wall_shelf", "box", "mover", "robot"])
+
+    def save(name, env, code, hit, on):
+        d = tmp_path / name
+        d.mkdir()
+        on = np.array(on, bool)
+        np.savez(d / "episodes.npz", keys=keys, hit_kinds=kinds, code=np.array(code), hit_kind=np.array(hit),
+                 cross=on.copy(), cross_path=on, env=np.array(env))
+        return str(d)
+
+    a = save("a", [0, 1, 2, 3], [1, 0, 1, 0], [2, 0, 2, 0], [1, 1, 1, 1])
+    b = save("b", [0, 1, 2, 3], [0, 0, 1, 1], [0, 0, 2, 2], [1, 1, 1, 1])
+    other = save("other", [0, 1, 2, 3], [0, 0, 1, 1], [0, 0, 2, 2], [1, 1, 0, 0])
+    twice = save("twice", [0, 0, 1, 1], [1, 0, 1, 0], [2, 0, 2, 0], [1, 1, 1, 1])
+    # 시작 상태를 확인할 수 없으면(rollouts.npz 없음) 독립 표본 차이
+    kind, why, rows = cp.compare(a, b)
+    assert kind == "unpaired" and "start not verified" in why
+    # 빈 무리는 2 SE 표시를 하지 않는다
+    assert rows["no_cross"]["n_a"] == 0 and rows["no_cross"]["two_se"] == ""
+    assert rows["cross_on_path"]["two_se"] in ("inside 2 SE", "outside 2 SE")
+    # 시작 상태가 같다고 나와도 건넘 무리가 다르면 독립 표본 차이로 간다
+    monkeypatch.setattr(cp.nt, "check_same", lambda da, db: ("", 16))
+    kind, why, rows = cp.compare(a, other)
+    assert kind == "unpaired" and "not the same episodes" in why
+    kind, why, rows = cp.compare(a, b)
+    assert kind == "paired" and "16 tracked envs" in why and rows["cross_on_path"]["n"] == 4
+    assert rows["cross_on_path"]["two_se"] == "inside 2 SE" and rows["no_cross"]["two_se"] == ""
+    # env마다 에피소드가 여럿이면 뒤 에피소드가 같은지 알 수 없어 짝을 짓지 않는다
+    kind, why, rows = cp.compare(twice, twice)
+    assert kind == "unpaired" and "more than one episode per env" in why

@@ -48,6 +48,8 @@ def rates(r: dict) -> dict:
 def paired(a: dict, b: dict) -> dict:
     """같은 에피소드끼리 a - b의 사람 충돌 차이(%p)와 SE. 두 실행의 env와 건넘 무리가 같아야 한다.
     시작 상태까지 같은지는 여기서 알 수 없다: main이 n26_tables.check_same으로 먼저 본다."""
+    if len(np.unique(a["env"])) != len(a["env"]) or len(np.unique(b["env"])) != len(b["env"]):
+        raise ValueError("more than one episode per env: later episodes cannot be checked to be the same")
     same = (np.array_equal(a["env"], b["env"]) and np.array_equal(a["cross"], b["cross"])
             and np.array_equal(a["cross_path"], b["cross_path"]))
     if not same:
@@ -61,6 +63,13 @@ def paired(a: dict, b: dict) -> dict:
     return out
 
 
+def two_se(diff: float, se: float) -> str:
+    """차이가 2 SE 밖인지. 판정할 수 없으면(표본 없음, SE 없음) 빈 문자열."""
+    if not (np.isfinite(diff) and np.isfinite(se)):
+        return ""
+    return "outside 2 SE" if abs(diff) > 2 * se else "inside 2 SE"
+
+
 def unpaired(a: dict, b: dict) -> dict:
     """서로 다른 에피소드일 때: 무리마다 a - b의 사람 충돌 차이(%p)와 두 비율의 독립 SE."""
     ra, rb = rates(a), rates(b)
@@ -72,27 +81,38 @@ def unpaired(a: dict, b: dict) -> dict:
     return out
 
 
+def compare(run_a, run_b) -> tuple[str, str, dict]:
+    """두 실행의 사람 충돌 차이(a - b). ("paired" 또는 "unpaired", 까닭, 무리별 행).
+    같은 에피소드로 시작했고 건넘 무리도 같을 때만 짝을 짓고, 아니면 독립 표본 차이를 낸다."""
+    a, b = load(run_a), load(run_b)
+    bad, tracked = nt.check_same(str(run_a), str(run_b))
+    rows = None
+    if not bad:
+        try:
+            rows = paired(a, b)
+        except ValueError as e:
+            bad = str(e)
+    if rows is None:
+        kind, why, rows = "unpaired", bad, unpaired(a, b)
+    else:
+        kind, why = "paired", f"same start checked on {tracked} tracked envs"
+    for r in rows.values():
+        r["two_se"] = two_se(r["diff_pp"], r["se_pp"])
+    return kind, why, rows
+
+
 def main():
-    a = load(sys.argv[1])
-    print(f"{sys.argv[1]}")
-    for g, r in rates(a).items():
-        print(f"  {g:15s} n {r['n']:5d}  person collision {r['person_pct']:5.1f} % (SE {r['se_pp']:.1f})")
-    if len(sys.argv) > 2:
-        b = load(sys.argv[2])
-        print(f"{sys.argv[2]}")
-        for g, r in rates(b).items():
+    for run in sys.argv[1:3]:
+        print(run)
+        for g, r in rates(load(run)).items():
             print(f"  {g:15s} n {r['n']:5d}  person collision {r['person_pct']:5.1f} % (SE {r['se_pp']:.1f})")
-        bad, tracked = nt.check_same(str(sys.argv[1]), str(sys.argv[2]))
-        if bad:
-            print(f"not paired ({bad}): independent difference (first - second)")
-            for g, r in unpaired(a, b).items():
-                two = "outside 2 SE" if abs(r["diff_pp"]) > 2 * r["se_pp"] else "inside 2 SE"
-                print(f"  {g:15s} n {r['n_a']:5d} / {r['n_b']:5d}  {r['diff_pp']:+6.2f} %p (SE {r['se_pp']:.2f})  {two}")
-            return
-        print(f"paired (first - second), same start checked on {tracked} tracked envs")
-        for g, r in paired(a, b).items():
-            two = "" if not r["n"] > 1 else ("  outside 2 SE" if abs(r["diff_pp"]) > 2 * r["se_pp"] else "  inside 2 SE")
-            print(f"  {g:15s} n {r['n']:5d}  {r['diff_pp']:+6.2f} %p (SE {r['se_pp']:.2f}){two}")
+    if len(sys.argv) > 2:
+        kind, why, rows = compare(sys.argv[1], sys.argv[2])
+        note = "independent difference" if kind == "unpaired" else "paired difference"
+        print(f"{note} (first - second): {why}")
+        for g, r in rows.items():
+            n = f"{r['n']:5d}" if kind == "paired" else f"{r['n_a']:5d} / {r['n_b']:5d}"
+            print(f"  {g:15s} n {n}  {r['diff_pp']:+6.2f} %p (SE {r['se_pp']:.2f})  {r['two_se']}")
 
 
 if __name__ == "__main__":
