@@ -223,6 +223,7 @@ def run_provenance(checkpoint: str, iterations_total) -> dict:
 
     resume 으로 이어 간 덩어리는 resume 경로의 폴더를 거슬러 올라가 반복 수를 더하고, 처음 덩어리의
     init 을 부모로 둔다 (init 도 resume 도 없으면 처음부터 학습: 부모 ""). 기록이 없는 값은 "" / None.
+    폴더의 중간 체크포인트면 그 뒤 저장 번호와의 차이만큼 이번 반복 수에서 뺀다 (중간에 멈춘 실행은 못 가림).
     iterations_total 은 체크포인트의 iter (rsl_rl 반복 번호)."""
     folder = os.path.dirname(os.path.abspath(checkpoint))
     cfg, sha = _read_run_file(folder)
@@ -239,13 +240,23 @@ def run_provenance(checkpoint: str, iterations_total) -> dict:
     out["seed"] = cfg.get("seed")
     out["map_layout"] = (cfg.get("map") or {}).get("layout", "")
     iters, cur, seen = cfg.get("max_iterations"), cfg, {folder}
-    while iters is not None and not cur.get("init") and cur.get("resume"):
+    if iters is not None and iterations_total is not None:
+        # 같은 폴더에 이 체크포인트보다 뒤의 저장이 있으면 그만큼은 이 정책의 학습이 아님
+        saved = [
+            int(n[6:-3])
+            for n in os.listdir(folder)
+            if n.startswith("model_") and n.endswith(".pt") and n[6:-3].isdigit()
+        ]
+        iters -= max(0, max(saved, default=iterations_total) - iterations_total)
+    while not cur.get("init") and cur.get("resume"):
         prev = os.path.dirname(os.path.abspath(cur["resume"]))
         nxt = None if prev in seen else _read_run_file(prev)[0]
-        if nxt is None or nxt.get("max_iterations") is None:
+        if nxt is None:
             break  # 이전 덩어리 기록이 없으면 resume 체크포인트를 부모로 둠
         seen.add(prev)
-        iters, cur = iters + nxt["max_iterations"], nxt
+        more = nxt.get("max_iterations")
+        iters = None if iters is None or more is None else iters + more
+        cur = nxt
     out["iterations_this_run"] = iters
     out["parent_checkpoint"] = (cur.get("init") or cur.get("resume") or "").replace("\\", "/")
     return out

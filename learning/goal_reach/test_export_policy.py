@@ -100,3 +100,19 @@ def test_provenance_without_a_run_file_is_empty(tmp_path):
         "map_layout": "",
         "run_config_sha256": "",
     }
+
+
+def test_a_checkpoint_before_the_last_save_counts_only_its_own_iterations(tmp_path):
+    _write(tmp_path, "run.json", {"max_iterations": 300, "seed": 1, "resume": ""})
+    for n in (0, 150, 299):
+        (tmp_path / f"model_{n}.pt").write_bytes(b"")
+    assert ep.run_provenance(str(tmp_path / "model_150.pt"), 150)["iterations_this_run"] == 151
+    assert ep.run_provenance(str(tmp_path / "model_299.pt"), 299)["iterations_this_run"] == 300
+
+
+def test_a_chunk_without_max_iterations_still_gives_the_first_init(tmp_path):
+    c1, c2 = tmp_path / "c1", tmp_path / "c2"
+    _write(c1, "run.json", {"seed": 3, "init": "D:/r/init.pt", "resume": ""})
+    _write(c2, "run.json", {"max_iterations": 250, "seed": 3, "resume": str(c1 / "m.pt")})
+    out = ep.run_provenance(str(c2 / "model_1496.pt"), 1496)
+    assert out["parent_checkpoint"] == "D:/r/init.pt" and out["iterations_this_run"] is None
