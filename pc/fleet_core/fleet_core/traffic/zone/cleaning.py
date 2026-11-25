@@ -103,10 +103,11 @@ class CleanJob:
     stuck_count: int = 0
     yields: int = 0
     gaps_seen: dict = field(default_factory=dict)
-    # 붙어 서기: 설 자리(tuck.Tuck), 붙기 전에 가던 줄, 붙어 준 운반 로봇
+    # 붙어 서기: 설 자리(tuck.Tuck), 붙기 전에 가던 줄, 붙어 준 운반 로봇, 닿으면 쓸 복귀 계획
     tuck: tuck.Tuck | None = None
     tuck_line: int = -1
     tuck_for: str = ""
+    tuck_rejoin: tuple | None = None
 
 
 # ---- 청소 경로 자료: 단계 1의 커버리지 계획과 집 자리 고정 경로 ----
@@ -685,15 +686,17 @@ class Cleaning:
             return True
         if job.homing:
             return job.goal_id is not None or self._clean_yield_on_the_way_home(m, job, other, why)
-        tucked = self._tucked(m, job)
-        if job.yield_for != other.name or job.yield_since is None:
+        # 붙어 서서 기다리는 것은 옆으로 지나갈 로봇에게만이다. 쥔 지점을 기다리는 로봇에게는 비킨다
+        tucked = self._tucked(m, job) and not set(self._wanted(other)) & set(
+            self.grants.nodes_of(m.name))
+        if job.yield_since is None or (job.yield_for != other.name and not tucked):
+            # 붙어 선 동안에는 만나는 로봇이 바뀌어도 시계를 잇는다
             job.yield_for, job.yield_since = other.name, now
         elif now - job.yield_since >= (p.clean_tuck_wait_s if tucked else p.clean_yield_wait_s):
             return self._clean_go_home(m, job, f"{other.name} still meets it "
                                        f"{now - job.yield_since:.0f} s after yielding ({why})",
                                        other.name)
         if tucked:
-            # 붙어 서서 운반 로봇이 옆으로 지나가기를 기다린다
             return True
         clear = self._clear_of(m, other)
         if job.goal_id is None and clear:
@@ -738,9 +741,9 @@ class Cleaning:
         if found is None or self._clean_take(m, found[0]):
             return False
         leg, spot = found
-        line = self._tuck_rejoin(m, job, spot, line)
+        rejoin = self._tuck_rejoin(m, job, spot, line)
         self._clean_send(m, job, leg)
-        job.tuck, job.tuck_line, job.tuck_for = spot, line, other.name
+        job.tuck, job.tuck_rejoin, job.tuck_for = spot, rejoin, other.name
         self._event("INFO", "CLEAN_YIELD", f"tucks in for {other.name} at ({spot.spot[0]:.3f}, "
                     f"{spot.spot[1]:.3f}), {spot.rows} rows left beside: {why}", m.name)
         return True
@@ -751,6 +754,7 @@ class Cleaning:
         if p.clean_tuck_rows <= 0:
             return None
         here, pos = (m.x, m.y), (other.x, other.y)
+        mine = set(self.grants.nodes_of(m.name))
         rest = [o for o in self._robots.values() if o is not m and o is not other and o.placed]
         # 운반 로봇이 기다리거나 앞으로 지날 지점
         route = other.route
@@ -772,6 +776,10 @@ class Cleaning:
             # 운반 로봇이 지날 지점 둘레에 서면 그 지점을 쥔 채 길을 막는다
             if self._clean_off_floor(leg) or coming & set(leg.nodes):
                 continue
+            # 막다른 자리의 입구처럼 붙어 선 뒤에도 놓지 못할 지점을 기다리면 붙어도 길이 열리지 않는다
+            if any(plan.shut_in(spot.spot, site.node_pose(n), p.clean_reach_m)
+                   for n in coming & mine):
+                continue
             # 선 몸에서 운반 로봇 쪽으로 찍히는 띠가 그 로봇이 갈 지점을 덮으면 계획이 닿지 못한다
             if any(tuck.lane_shuts(spot.spot, spot.yaw, pos, p.clean_tuck_lane_m, site.node_pose(n))
                    for n in coming if n):
@@ -784,20 +792,35 @@ class Cleaning:
             return replace(leg, nodes=tuple(n for n, h in held if h in ("", m.name))), spot
         return None
 
-    def _tuck_rejoin(self, m, job, spot, k: int) -> int:
-        """붙기 전에 가던 줄 k를 복귀점부터로 줄이고, 건너뛰는 구간에서 덜 닦인 곳을 빈틈으로 남긴다.
-        줄 위에서 줄 방향으로 붙는 것이 아니면 -1(줄은 진행점부터 그대로 다시 간다)."""
+    def _tuck_rejoin(self, m, job, spot, k: int):
+        """붙기 전에 가던 줄 k로 돌아갈 계획 (k, 진행점, 복귀점, 복귀점까지 거리, 지나갈 길).
+        줄 위에서 줄 방향으로 붙는 것이 아니면 None(줄은 진행점부터 그대로 다시 간다)."""
         if k < 0 or not job.queue or job.queue[0] != k:
-            return -1
+            return None
         a, u, span = self._axis(job.segs[k])
         along = u[0] * math.cos(spot.yaw) + u[1] * math.sin(spot.yaw)
         if math.dist((m.x, m.y), a) > self.params.arrival_tolerance_m / 2 or along < 0.99:
-            return -1
+            return None
         s_back = min(max(self._along(a, u, spot.back), 0.0), span)
         back = (a[0] + u[0] * s_back, a[1] + u[1] * s_back)
-        self._clean_note_gaps(m, job, k, Detour(k, a, back, 0.0, s_back, trail=[*spot.path, back]))
+        return k, a, back, s_back, [*spot.path, back]
+
+    def _tuck_arrived(self, m, job) -> None:
+        """붙어 설 자리에 닿았다: 가던 줄을 복귀점부터로 줄이고, 건너뛰는 구간에서 덜 닦인 곳을 빈틈으로 남긴다."""
+        rejoin, job.tuck_rejoin = job.tuck_rejoin, None
+        if rejoin is None or job.tuck is None:
+            return
+        k, a, back, s_back, trail = rejoin
+        if not job.queue or job.queue[0] != k or job.segs[k][0] != a:
+            return
+        self._clean_note_gaps(m, job, k, Detour(k, a, back, 0.0, s_back, trail=trail))
         job.segs[k] = (back, job.segs[k][1])
-        return k
+        job.tuck_line = k
+
+    @staticmethod
+    def _tuck_drop(job) -> None:
+        """가다 만 붙기는 붙어 선 것이 아니다."""
+        job.tuck, job.tuck_line, job.tuck_rejoin = None, -1, None
 
     def _clean_yield_on_the_way_home(self, m, job, other, why: str) -> bool:
         """집으로 가는 길이 막혀 선 동안에도 그 운반 로봇의 길 위면 비킬 점을 clean_retry_s마다 다시 찾는다."""
@@ -1056,7 +1079,7 @@ class Cleaning:
     # ---- 보내기 ----
     def _clean_send(self, m, job, leg) -> None:
         goal_id = self._next_goal_id()
-        job.tuck, job.tuck_line = None, -1
+        self._tuck_drop(job)
         if leg.kind == BAY_IN or leg.target == BACKUP:
             if leg.kind == BAY_IN:
                 edge = self._clean_plan.in_edge
@@ -1110,6 +1133,8 @@ class Cleaning:
 
     def _clean_end(self, m, job, success: bool, reason: str) -> None:
         leg = job.leg
+        if not success and leg is not None and leg.target == TUCK:
+            self._tuck_drop(job)
         self._clear_goal(m)
         job.goal_id, job.arrival_by = None, None
         self._clean_release(m, job, ended=True)
@@ -1141,6 +1166,8 @@ class Cleaning:
         elif leg.kind == BACK_NAV:
             job.back_nav = False
         elif leg.kind == YIELD:
+            if leg.target == TUCK:
+                self._tuck_arrived(m, job)
             return
         elif leg.kind == BACK and self._clean_plan.in_edge is not None:
             job.stage = BAY_IN
@@ -1252,6 +1279,8 @@ class Cleaning:
 
     def _clean_cancel(self, m, job) -> None:
         """지금 goal(줄이든 우회든)을 거둔다. 늦게 온 결과는 goal 번호로 버려진다."""
+        if job.goal_id is not None and job.leg is not None and job.leg.target == TUCK:
+            self._tuck_drop(job)
         self._cancel_goal(m)
         job.goal_id, job.arrival_by = None, None
         job.blocked_since, job.blocked_at = None, None

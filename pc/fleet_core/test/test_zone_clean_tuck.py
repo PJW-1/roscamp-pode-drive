@@ -91,12 +91,14 @@ def test_after_the_transport_is_gone_the_line_goes_on_from_ahead_of_the_tuck(mon
     w.out += t.take_output()
     cmd = w.moves("follow_path")[-1]
     spot = cmd.path[-1][:2]
-    back = w.job.segs[k][0]
     here = w.at(a, b, S)
+    # 닿기 전에는 줄이 진행점부터 그대로다
+    assert w.job.segs[k][0] == pytest.approx(here) and w.job.tuck_line == -1
+    _arrive(w, cmd)
+    back = w.job.segs[k][0]
     # 복귀점은 줄 위, 붙어 선 자리보다 앞이다
     assert back[1] == pytest.approx(LINE_Y) and back[0] > spot[0] > here[0]
     assert w.job.queue[0] == k and w.job.tuck_line == k
-    _arrive(w, cmd)
     monkeypatch.setattr(t, "_clean_band", lambda other, full=False: None)
     for _ in range(5):
         w.step()
@@ -113,11 +115,13 @@ def test_the_skipped_stretch_near_the_tuck_line_counts_as_cleaned(monkeypatch):
     w, t, m, other, k, a, b = _on_the_line(monkeypatch)
     assert t._clean_make_way(m, other, "test")
     w.out += t.take_output()
+    before = list(w.job.gaps)
+    _arrive(w, w.moves("follow_path")[-1])
     half = t._clean_plan.params.clean_width_m / 2
     assert TUCK_Y - LINE_Y < half
-    left = sum(math.dist(*gap) for gap in w.job.gaps)
+    left = sum(math.dist(*gap) for gap in w.job.gaps if gap not in before)
     skipped = w.job.segs[k][0][0] - w.at(a, b, S)[0]
-    assert left < skipped  # 건너뛴 구간 전체가 빈틈이 되지는 않는다
+    assert 0.0 < skipped and left < skipped  # 건너뛴 구간 전체가 빈틈이 되지는 않는다
 
 
 # ---- 붙지 않는 때 ----
@@ -165,9 +169,94 @@ def test_a_failed_tuck_is_not_tried_again_for_the_same_transport(monkeypatch):
     assert len(tucks) == 1
 
 
+def test_a_tuck_that_fails_on_the_way_is_not_a_tuck_and_the_line_stays(monkeypatch):
+    """설 자리 둘레(arrival_tolerance_m)에서 실패해도 붙어 선 것이 아니다: 줄은 진행점부터 그대로다."""
+    w, t, m, other, k, a, b = _on_the_line(monkeypatch)
+    here, gaps = w.at(a, b, S), list(w.job.gaps)
+    assert t._clean_make_way(m, other, "test")
+    w.out += t.take_output()
+    cmd = w.moves("follow_path")[-1]
+    assert math.dist(here, cmd.path[-1][:2]) < w.params.arrival_tolerance_m
+    w.state[CLEANER_NAME] = "IDLE"
+    w.report()
+    w.finish(cmd.goal_id, success=False, reason="NAV_ABORTED")
+    assert w.job.tuck is None and not t._tucked(m, w.job) and w.job.tuck_line == -1
+    assert w.job.segs[k][0] == pytest.approx(here) and w.job.gaps == gaps
+
+
+def test_a_tuck_called_off_on_the_way_is_not_a_tuck(monkeypatch):
+    w, t, m, other, k, a, b = _on_the_line(monkeypatch)
+    here = w.at(a, b, S)
+    assert t._clean_make_way(m, other, "test")
+    w.out += t.take_output()
+    assert w.job.tuck is not None and w.job.goal_id is not None
+    t._clean_cancel(m, w.job)
+    assert w.job.tuck is None and not t._tucked(m, w.job)
+    assert w.job.segs[k][0] == pytest.approx(here)
+
+
+# ---- 붙어 선 뒤 ----
+def test_a_tucked_cleaner_makes_way_for_a_transport_that_waits_for_a_node_it_holds(monkeypatch):
+    """붙어 서서 기다리는 것은 옆으로 지나갈 로봇에게만이다. 쥔 지점을 기다리는 로봇에게는 예전 순서로 비킨다."""
+    w, t, m, other, k, a, b = _on_the_line(monkeypatch)
+    assert t._clean_make_way(m, other, "test")
+    w.out += t.take_output()
+    _arrive(w, w.moves("follow_path")[-1])
+    held = t.grants.nodes_of(CLEANER_NAME)
+    assert held and t._tucked(m, w.job)
+    monkeypatch.setattr(t, "_wanted", lambda other: list(held))
+    sent = len(w.moves())
+    for _ in range(round((w.params.clean_yield_wait_s + 2.0) / 0.1)):
+        w.step()
+    assert len(w.moves()) > sent or w.events("CLEAN_HOME")
+
+
+def test_the_tucked_wait_is_one_clock_when_the_met_transport_changes(monkeypatch):
+    """두 운반 로봇이 번갈아 만나져도 clean_tuck_wait_s 뒤에는 집으로 간다."""
+    w = World({"pode1": "P-3", "pode2": "P-2", CLEANER_NAME: "P-1"})
+    k, a, b, _ = w.to_line(_south_line(w))
+    w.pos[CLEANER_NAME] = w.at(a, b, S)
+    w.step()
+    t = w.t
+    monkeypatch.setattr(t, "_clean_band", lambda other, full=False: list(WAY))
+    monkeypatch.setattr(t, "_wanted", lambda other: [])
+    m, one, two = t._robots[CLEANER_NAME], t._robots["pode1"], t._robots["pode2"]
+    assert t._clean_make_way(m, one, "test")
+    w.out += t.take_output()
+    _arrive(w, w.moves("follow_path")[-1])
+    turn = [0]
+
+    def meeting(robot, job):
+        turn[0] += 1
+        return (one if turn[0] % 2 else two), "test"
+
+    monkeypatch.setattr(t, "_clean_meeting", meeting)
+    for _ in range(round((w.params.clean_tuck_wait_s + 2.0) / 0.1)):
+        w.step()
+    assert w.events("CLEAN_HOME")
+
+
+def test_no_tuck_when_the_transport_waits_for_the_way_in_the_cleaner_keeps(monkeypatch):
+    """막다른 자리의 입구 지점(GAP_S)은 붙어 선 뒤에도 놓지 못한다: 그 지점을 기다리는 로봇에게는 붙어도 길이 열리지 않는다."""
+    params = replace(load_params(), clean_tuck_lane_m=0.0)
+    w, t, m, other, k, a, b = _on_the_line(monkeypatch, params=params)
+    assert "GAP_S" in t.grants.nodes_of(CLEANER_NAME)
+    monkeypatch.setattr(t, "_wanted", lambda other: ["GAP_S"])
+    assert t._clean_make_way(m, other, "test")
+    w.out += t.take_output()
+    assert w.job.tuck is None
+
+
+def _let_go(t, node):
+    """띠 검사만 보려고 청소 로봇이 쥔 입구 지점을 놓는다."""
+    t.grants.release_node(CLEANER_NAME, node)
+    assert node not in t.grants.nodes_of(CLEANER_NAME)
+
+
 def test_no_tuck_when_the_lane_would_cover_a_node_the_transport_must_reach(monkeypatch):
     """붙어 선 몸에서 운반 로봇 쪽으로 찍히는 띠가 그 로봇이 갈 틈 아래 지점(GAP_S)을 덮는다."""
     w, t, m, other, k, a, b = _on_the_line(monkeypatch)
+    _let_go(t, "GAP_S")
     monkeypatch.setattr(t, "_wanted", lambda other: ["GAP_S"])
     assert t._clean_make_way(m, other, "test")
     w.out += t.take_output()
@@ -177,6 +266,7 @@ def test_no_tuck_when_the_lane_would_cover_a_node_the_transport_must_reach(monke
 def test_the_lane_check_is_off_with_no_lane(monkeypatch):
     params = replace(load_params(), clean_tuck_lane_m=0.0)
     w, t, m, other, k, a, b = _on_the_line(monkeypatch, params=params)
+    _let_go(t, "GAP_S")
     monkeypatch.setattr(t, "_wanted", lambda other: ["GAP_S"])
     assert t._clean_make_way(m, other, "test")
     w.out += t.take_output()
