@@ -4,6 +4,7 @@
 """
 import os
 import time
+from dataclasses import replace
 
 import pytest
 
@@ -104,7 +105,6 @@ def test_a_plan_to_another_goal_turns_the_layer_off_and_clears(ros):
     fake.create_service(ClearEntireCostmap, "global_costmap/clear_entirely_global_costmap",
                         on_clear)
     plan = fake.create_publisher(Path, "plan", 10)
-    # 멈춤 판정을 길게 두어 새 goal 뒤에 다시 켜지기 전에 차례를 본다
     node = AisleFirst(namespace=NAMESPACE, parameter_overrides=[
         Parameter("stall_s", value=1.0), Parameter("plan_timeout_s", value=5.0),
         Parameter("tick_s", value=0.05)])
@@ -116,10 +116,13 @@ def test_a_plan_to_another_goal_turns_the_layer_off_and_clears(ros):
         assert spin_until(executor, lambda: calls == [("set", True)], 5.0,
                           also=lambda: plan.publish(path_to(1.6, 0.55)))
         assert node.state.mode == "detour"
+        # 새 goal 뒤에 다시 멈춤으로 판정되어 요청 차례가 바뀌지 않게 멈춤 판정을 길게 둔다
+        node.rules = replace(node.rules, stall_s=600.0)
         # 같은 goal의 재계획은 그대로 두고, 끝점이 다른 경로가 오면 층을 끄고 지운다
         assert spin_until(executor, lambda: len(calls) >= 3, 5.0,
                           also=lambda: plan.publish(path_to(0.49, 0.625)))
-        assert calls[1:3] == [("set", False), ("clear",)]
+        assert calls[1:] == [("set", False), ("clear",)]
+        assert node.state.mode == "aisle" and node.state.reason == "new goal"
     finally:
         executor.shutdown()
         node.destroy_node()

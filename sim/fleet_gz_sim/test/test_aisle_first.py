@@ -144,3 +144,12 @@ def test_the_goal_changed_only_when_the_path_end_really_moved():
     assert not goal_changed((1.0, 0.5), None, RULES)  # 빈 경로
     assert not goal_changed((1.0, 0.5), (1.0 + RULES.goal_change_m, 0.5), RULES)
     assert goal_changed((1.0, 0.5), (1.0 + RULES.goal_change_m + 0.01, 0.5), RULES)
+
+
+def test_a_new_goal_seen_while_not_navigating_does_not_start_the_stall_count():
+    state, action = step(State(), 10.0, (1.0, 0.5), False, RULES, new_goal=True)
+    assert action == NONE and state.ref is None
+    # 주행이 다시 시작된 때부터 센다
+    state, actions = run(still(13.0, 17.5), state)
+    assert state.mode == AISLE and set(actions) == {NONE}
+    assert state.ref_t == 13.0
