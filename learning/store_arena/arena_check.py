@@ -914,7 +914,7 @@ def main():
             w = torch.where(all_ids % 4 < 2, 0.6, -0.6)
             acts = action(0.08)
             acts[:, 1] = w / lim.w_max
-            err_pose, err_sim, lag_max, desync, checked = 0.0, 0.0, 0.0, 0, 0
+            err_pose, err_sim, lag_max, desync, checked, err_yaw = 0.0, 0.0, 0.0, 0, 0, 0.0
             for k in range(200):
                 xy0, yaw0 = env.robot_pose()
                 want = env.ghost_pose(xy0[pe], yaw0[pe])
@@ -925,6 +925,8 @@ def main():
                 checked += int(keep.sum())
                 if keep.any():
                     err_pose = max(err_pose, float((env.ghost_xy - want).norm(dim=-1)[keep].max()))
+                    dyaw = torch.remainder(env.ghost_yaw - yaw0[pe] + math.pi, 2 * math.pi) - math.pi
+                    err_yaw = max(err_yaw, float(dyaw.abs()[keep].max()))
                     sim_xy = env.robot_objs[0].data.root_pos_w.torch[:, :2] - org
                     err_sim = max(err_sim, float((sim_xy - env.ghost_xy).norm(dim=-1)[keep].max()))
                     xy1, yaw1 = env.robot_pose()
@@ -933,10 +935,11 @@ def main():
             report["ghost_steps_checked"] = checked
             report["ghost_vs_partner_step_start_m"] = round(err_pose, 6)
             report["ghost_sim_box_vs_ghost_m"] = round(err_sim, 6)
+            report["ghost_yaw_vs_partner_step_start_rad"] = round(err_yaw, 6)
             report["ghost_lag_vs_partner_now_m"] = round(lag_max, 4)
             report["pair_done_desync"] = desync
             report["pass"] = (
-                collide_ok and checked > 0 and err_pose < 1e-4 and err_sim < 1e-3
+                collide_ok and checked > 0 and err_pose < 1e-4 and err_sim < 1e-3 and err_yaw < 1e-4
                 and lag_max < 0.02 and desync == 0
             )
 

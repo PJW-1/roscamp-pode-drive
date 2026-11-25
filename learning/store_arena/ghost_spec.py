@@ -13,6 +13,8 @@ import numpy as np
 import torch
 
 KINDS = ("random", "headon", "scenario")
+# 충돌한 env 의 몸체와 ghost 상자 여유가 이 이하일 때만 서로 부딪힌 충돌로 봄 [m]
+HIT_M = 0.01
 
 
 def partner(ids: torch.Tensor) -> torch.Tensor:
@@ -87,14 +89,28 @@ def pair_priority(m: int, prob: float, gen=None, device="cpu"):
 
 def pair_dones(terminated: torch.Tensor, time_out: torch.Tensor, mutual: torch.Tensor):
     """짝 env 를 같이 끝냄. mutual (n,) 은 이 env 가 ghost 와 부딪혀 끝남.
-    반환 (terminated, time_out, 짝 때문에 충돌이 된 env (n,)): 짝이 ghost 와 부딪혔으면 이 env 도 충돌로 끝나고,
-    짝이 다른 까닭으로 끝나면 이 env 는 (아직 안 끝났다면) 시간초과로 끊는다."""
+    반환 (terminated, time_out, 짝 때문에 충돌이 된 env (n,)): 짝이 ghost 와 부딪혔으면 이 env 도 충돌로 끝나고
+    (같은 스텝에 성공했어도: env 가 success 를 끔), 짝이 다른 까닭으로 끝나면 이 env 는 (아직 안 끝났다면)
+    시간초과로 끊는다."""
     idx = partner(torch.arange(len(terminated), device=terminated.device))
-    hit_by = mutual[idx] & ~terminated
+    hit_by = mutual[idx] & ~mutual
     term = terminated | hit_by
     done_p = terminated[idx] | time_out[idx]
     out_to = (time_out | done_p) & ~term
     return term, out_to, hit_by
+
+
+def path_progress(path: torch.Tensor, cum: torch.Tensor, npts: torch.Tensor, prog: torch.Tensor,
+                  xy: torch.Tensor) -> torch.Tensor:
+    """(n,) 지나온 호장: 진행 인덱스 prog 의 점 + 다음 선분에 xy 를 투영한 길이 (route_spec.follow 와 같은 투영)."""
+    rows = torch.arange(len(prog), device=path.device)
+    p0 = path[rows, prog]
+    nxt = torch.minimum(prog + 1, npts - 1)
+    seg = path[rows, nxt] - p0
+    seg_len = seg.norm(dim=-1)
+    t = ((xy - p0) * seg).sum(-1) / seg_len.clamp(min=1e-9) ** 2
+    t = torch.where(seg_len > 0, t.clamp(0.0, 1.0), torch.zeros_like(t))
+    return cum[rows, prog] + t * seg_len
 
 
 def path_ahead(path: torch.Tensor, cum: torch.Tensor, npts: torch.Tensor, done_arc: torch.Tensor,

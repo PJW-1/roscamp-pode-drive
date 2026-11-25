@@ -384,6 +384,8 @@ class StoreArenaEnv(GoalReachEnv):
             self._new_handover = ho
             self._new_w0 = torch.where(ho, w0, 0.0)
         self._new_scen = torch.full((n,), -1, dtype=torch.long, device=self.device)
+        self._new_gkind = torch.full((n,), -1, dtype=torch.long, device=self.device)
+        self._new_gprio = torch.zeros(n, dtype=torch.bool, device=self.device)
         if self.scen is not None:  # 평가 시나리오: 경로를 덮고 경로 쪽을 보며 시작
             self._new_scen = scn.sample(self.scen, n)
             self._new_route = self.scen["route"][self._new_scen]
@@ -402,12 +404,11 @@ class StoreArenaEnv(GoalReachEnv):
         a, dev = self.arena, self.device
         ids = self._reset_ids
         lay = self.routes.layouts
+        yaw = (2 * torch.rand(n, device=dev) - 1) * torch.pi  # 코너/인계 yaw 를 버리고 다시 임의
         self._new_route = (self._new_route // lay) * lay  # 짝 없이 리셋되는 env 도 박스 없음
         self._new_corner = torch.zeros_like(self._new_corner)
         self._new_handover = torch.zeros_like(self._new_handover)
         self._new_w0 = torch.zeros_like(self._new_w0)
-        self._new_gkind = torch.full((n,), -1, dtype=torch.long, device=dev)
-        self._new_gprio = torch.zeros(n, dtype=torch.bool, device=dev)
         pos_of = torch.full((self.num_envs,), -1, dtype=torch.long, device=dev)
         pos_of[ids] = torch.arange(n, device=dev)
         even = ids[(ids % 2 == 0) & (pos_of[ids ^ 1] >= 0)]
@@ -663,7 +664,10 @@ class StoreArenaEnv(GoalReachEnv):
             if k == 0 and self.ghost:  # 짝 로봇의 자기 전역 경로 남은 부분
                 pe = gh.partner(torch.arange(len(xy), device=self.device))
                 pr = self.route[pe]
-                done = self.r_cum[pr].gather(1, self.prog[pe][:, None])[:, 0]
+                pxy, _ = self.robot_pose()
+                done = gh.path_progress(
+                    self.r_path[pr], self.r_cum[pr], self.r_npts[pr], self.prog[pe], pxy[pe]
+                )
                 p = gh.path_ahead(
                     self.r_path[pr], self.r_cum[pr], self.r_npts[pr], done, s.intent_spacing_m,
                     s.intent_points,
@@ -854,8 +858,7 @@ class StoreArenaEnv(GoalReachEnv):
             self.ep_limit if self.cap_active else self.max_episode_length,
         )
         if self.ghost:  # 짝은 같이 끝남: ghost 와 부딪힌 충돌은 짝도 충돌
-            ghost_nearest = self.robot_clear[:, 0] <= self.robot_clear.amin(-1)
-            mutual = self.collided & (self.hit_kind == HIT_KINDS.index("robot")) & ghost_nearest
+            mutual = self.collided & (self.robot_clear[:, 0] <= gh.HIT_M)
             term, time_out, self.ghost_hit_by = gh.pair_dones(term, time_out, mutual)
             self.collided = self.collided | self.ghost_hit_by
             self.success = self.success & ~self.ghost_hit_by

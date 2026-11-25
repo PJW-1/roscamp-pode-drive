@@ -102,6 +102,7 @@ def test_pair_dones_end_both_together():
     term2, to2, hit = G.pair_dones(term, to, mutual)
     # 짝 0-1: 0 이 ghost 와 충돌 -> 1 도 충돌
     assert term2[:2].tolist() == [t, t] and hit[:2].tolist() == [f, t]
+    assert not bool(hit[2:].any())
     # 짝 2-3: 3 시간초과 -> 2 도 시간초과
     assert to2[2:4].tolist() == [t, t] and not bool(term2[2:4].any())
     # 짝 4-5: 아무 일 없음
@@ -120,3 +121,25 @@ def test_path_ahead_walks_the_remaining_path_and_stops_at_the_goal():
     pts = G.path_ahead(path, cum, npts, torch.tensor([0.5]), 0.4, 4)
     want = [[0.9, 0.0], [1.0, 0.3], [1.0, 0.7], [1.0, 1.0]]
     assert torch.allclose(pts[0], torch.tensor(want), atol=1e-6)
+
+
+def test_mutual_collision_overrides_a_partner_success_in_the_same_step():
+    """짝이 같은 스텝에 성공해도 서로 부딪혔으면 충돌 (성공 보상을 받지 않게 env 가 success 를 끔)."""
+    term = torch.tensor([True, True])
+    to = torch.tensor([False, False])
+    mutual = torch.tensor([True, False])  # 0 이 ghost 와 충돌, 1 은 같은 스텝에 성공
+    term2, to2, hit = G.pair_dones(term, to, mutual)
+    assert hit.tolist() == [False, True]
+    assert term2.tolist() == [True, True] and not bool(to2.any())
+
+
+def test_path_progress_projects_onto_the_segment():
+    path = torch.tensor([[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0]]])
+    cum = torch.tensor([[0.0, 1.0, 2.0]])
+    npts = torch.tensor([3])
+    done = G.path_progress(path, cum, npts, torch.tensor([0]), torch.tensor([[0.4, 0.05]]))
+    assert float(done[0]) == pytest.approx(0.4, abs=1e-6)
+    done = G.path_progress(path, cum, npts, torch.tensor([1]), torch.tensor([[0.95, 0.3]]))
+    assert float(done[0]) == pytest.approx(1.3, abs=1e-6)
+    done = G.path_progress(path, cum, npts, torch.tensor([2]), torch.tensor([[1.0, 1.2]]))
+    assert float(done[0]) == pytest.approx(2.0, abs=1e-6)  # 목표에서 멈춤
