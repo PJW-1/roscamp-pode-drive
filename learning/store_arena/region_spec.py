@@ -55,15 +55,15 @@ class Regions:
         return -1
 
     def rect_ids(self, rect) -> set[int]:
-        """rect 가 걸친 영역 인덱스 모음."""
+        """rect 가 걸친 영역 인덱스 모음 (열린 곳은 셀 중심이 rect 안인 셀로)."""
         out = {i for i, r in enumerate(self.regions)
                if r.kind != "open" and _overlap(np.asarray(rect), np.asarray(r.rect))}
         x0, y0 = self.bounds[:2]
         nx, ny = self.open_label.shape
-        i0 = max(int(np.floor((rect[0] - x0) / OPEN_CELL_M)), 0)
-        i1 = min(int(np.ceil((rect[2] - x0) / OPEN_CELL_M)), nx)
-        j0 = max(int(np.floor((rect[1] - y0) / OPEN_CELL_M)), 0)
-        j1 = min(int(np.ceil((rect[3] - y0) / OPEN_CELL_M)), ny)
+        i0 = max(int(np.ceil((rect[0] - x0) / OPEN_CELL_M - 0.5)), 0)
+        i1 = min(int(np.floor((rect[2] - x0) / OPEN_CELL_M - 0.5)) + 1, nx)
+        j0 = max(int(np.ceil((rect[1] - y0) / OPEN_CELL_M - 0.5)), 0)
+        j1 = min(int(np.floor((rect[3] - y0) / OPEN_CELL_M - 0.5)) + 1, ny)
         lab = self.open_label[i0:i1, j0:j1]
         return out | {int(v) for v in np.unique(lab) if v >= 0}
 
@@ -187,9 +187,11 @@ def side_gaps(region: Region, box) -> tuple[float, float]:
     return box[a] - region.rect[a], region.rect[a + 2] - box[a + 2]
 
 
-def passing_gap(regions: Regions, box, path: np.ndarray, half_w: float) -> float:
-    """박스 rect 가 통로 안에 있고 경로 (L, 2) 의 통로 구간 몸체 띠(경로 +- half_w)에 걸치면 지나갈 틈
-    (두 옆 간격 중 큰 쪽), 아니면 NaN."""
+def passing_gap(regions: Regions, box, path: np.ndarray, half_w: float,
+                final: np.ndarray | None = None) -> float:
+    """박스 rect 가 통로 안에 있고 빈 아레나 경로 path (L, 2) 의 통로 구간 몸체 띠(경로 +- half_w)에 걸치면
+    지나갈 틈 (두 옆 간격 중 큰 쪽), 아니면 NaN. final (박스를 피한 경로) 을 주면 그 경로가 통로 안에서
+    박스 옆을 지날 때만 (passes_beside)."""
     c = (0.5 * (box[0] + box[2]), 0.5 * (box[1] + box[3]))
     k = regions.index_of(c)
     if k < 0 or regions.regions[k].kind != "aisle":
@@ -197,7 +199,17 @@ def passing_gap(regions: Regions, box, path: np.ndarray, half_w: float) -> float
     reg = regions.regions[k]
     if not on_corridor(reg, box, path, half_w):
         return float("nan")
+    if final is not None and not passes_beside(reg, box, final):
+        return float("nan")
     return float(max(max(side_gaps(reg, box)), 0.0))
+
+
+def passes_beside(region: Region, box, path: np.ndarray) -> bool:
+    """경로 (L, 2) 가 통로 안에서 박스의 뻗는 축 구간을 지나감 (다른 통로로 돌아가지 않음)."""
+    r, l = region.rect, region.axis
+    sel = ((path[:, 0] >= r[0]) & (path[:, 0] <= r[2]) & (path[:, 1] >= r[1]) & (path[:, 1] <= r[3])
+           & (path[:, l] >= box[l]) & (path[:, l] <= box[l + 2]))
+    return bool(sel.any())
 
 
 def on_corridor(region: Region, box, path: np.ndarray, half_w: float) -> bool:

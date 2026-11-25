@@ -32,6 +32,11 @@ class Routes:
     npts: np.ndarray  # (R,)
     cum: np.ndarray  # (R, L) 시작부터 호장, 전체 길이로 채움
     total: np.ndarray  # (R,)
+    # 박스 기록 (demo_layout.box_records): 영역 목록, 슬롯별 중심의 영역 인덱스 (-1 안 씀), 통로 박스
+    # 지나갈 틈 [m] (경로 몸체 띠에 걸친 통로 박스가 아니면 NaN)
+    regions: list | None = None
+    obstacle_region: np.ndarray | None = None  # (R, K)
+    obstacle_gap: np.ndarray | None = None  # (R, K)
 
     @property
     def count(self) -> int:
@@ -182,6 +187,7 @@ def build_routes(spec, site, static_rects: np.ndarray) -> Routes:
     grid = Grid(site.bounds(), spec.grid_m)
     sizes = tuple(float(s) for s in spec.obstacle_sizes)
     cost0 = grid.costs(static_rects, spec.inscribed_m, spec.inflation_m, spec.cost_scaling)
+    demo = demo_setup(spec, site, static_rects)
     pairs, obstacle_xy, paths = [], [], []
     for a in range(len(names)):
         for b in range(len(names)):
@@ -195,6 +201,8 @@ def build_routes(spec, site, static_rects: np.ndarray) -> Routes:
                 for _ in range(20):  # 경로가 생길 때까지 배치를 다시 뽑음
                     if m == 0:  # 모든 쌍의 배치 0 은 박스 없음
                         boxes = np.full((len(sizes), 2), np.nan)
+                    elif demo.is_demo(m):
+                        boxes = demo.layout(path0, node_xy[a], node_xy[b], sizes)
                     else:
                         boxes = sample_layout(
                             rng, spec, site.bounds(), static_rects, path0, node_xy[a], node_xy[b],
@@ -213,12 +221,14 @@ def build_routes(spec, site, static_rects: np.ndarray) -> Routes:
                             rects, spec.inscribed_m, spec.inflation_m, spec.cost_scaling
                         )
                         p = plan(grid, cost, node_xy[a], node_xy[b])
-                    if p is not None:
+                    p = demo.final_path(m, p, path0)
+                    if p is not None and demo.accept(m, boxes, sizes, p):
                         break
                 else:
                     boxes, p = np.full((len(sizes), 2), np.nan), path0
                 obstacle_xy.append(boxes)
                 paths.append(p)
+                demo.record(path0, boxes, sizes, p)
     lmax = max(len(p) for p in paths)
     r = len(paths)
     path = np.zeros((r, lmax, 2))
@@ -242,7 +252,59 @@ def build_routes(spec, site, static_rects: np.ndarray) -> Routes:
         npts=npts,
         cum=cum,
         total=cum[:, -1].copy(),
+        **demo.fields(),
     )
+
+
+class _Demo:
+    """build_routes 의 데모 배치 (demo_layout) 와 박스 기록. 데모 난수는 별도 생성기라 share 0 이면
+    표본기 난수 순서가 그대로다."""
+
+    def __init__(self, spec, site, static_rects):
+        import demo_layout as dl
+        import region_spec as rg
+
+        self.dl, self.spec, self.static_rects = dl, spec, static_rects
+        self.bounds = site.bounds()
+        self.regions = rg.build_regions(self.bounds, static_rects)
+        self.half_w = dl.half_width(spec)
+        self.rng = np.random.default_rng([int(spec.route_seed), 1])
+        self.reg, self.gap = [], []
+        self.aisle_slot = -1
+
+    def is_demo(self, m: int) -> bool:
+        return self.dl.is_demo(m, float(self.spec.obstacle_demo_share))
+
+    def layout(self, path0, start, goal, sizes) -> np.ndarray:
+        boxes, self.aisle_slot = self.dl.demo_layout(self.rng, self.spec, self.regions,
+                                                     self.bounds, self.static_rects, path0, start,
+                                                     goal, sizes)
+        return boxes
+
+    def final_path(self, m: int, p, path0):
+        """obstacle_demo_keep_path: 통로 박스가 있는 데모 배치는 빈 아레나 경로 path0 를 그대로 씀."""
+        if self.is_demo(m) and self.aisle_slot >= 0 and int(self.spec.obstacle_demo_keep_path):
+            return path0
+        return p
+
+    def accept(self, m: int, boxes, sizes, p) -> bool:
+        """데모 배치의 통로 박스는 박스 피한 경로 p 가 그 통로 안에서 지나야 함 (아니면 다시 뽑음)."""
+        if not self.is_demo(m) or self.aisle_slot < 0:
+            return True
+        return self.dl.aisle_passed(self.regions, boxes, sizes, self.aisle_slot, p)
+
+    def record(self, path0, boxes, sizes, p) -> None:
+        reg, gap = self.dl.box_records(self.regions, boxes, sizes, path0, self.half_w, p)
+        self.reg.append(reg)
+        self.gap.append(gap)
+
+    def fields(self) -> dict:
+        return dict(regions=self.regions.regions, obstacle_region=np.array(self.reg),
+                    obstacle_gap=np.array(self.gap))
+
+
+def demo_setup(spec, site, static_rects) -> _Demo:
+    return _Demo(spec, site, static_rects)
 
 
 def follow(
