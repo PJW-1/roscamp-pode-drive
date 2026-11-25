@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>pode_compute_bench</name>
+  <version>0.1.0</version>
+  <description>Per-cycle compute time of Nav2 controllers (RPP, MPPI levels, FollowPathRL, raw ONNX) through nav2_core::Controller::computeVelocityCommands, without publishing any velocity command</description>
+  <maintainer email="team@example.com">team-2</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav2_core</depend>
+  <depend>nav2_costmap_2d</depend>
+  <depend>nav2_map_server</depend>
+  <depend>nav2_util</depend>
+  <depend>nav_msgs</depend>
+  <depend>pluginlib</depend>
+  <depend>pode_rl_controller</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>sensor_msgs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <exec_depend>nav2_controller</exec_depend>
+  <exec_depend>nav2_mppi_controller</exec_depend>
+  <exec_depend>nav2_regulated_pure_pursuit_controller</exec_depend>
+  <exec_depend>pode_nav_config</exec_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

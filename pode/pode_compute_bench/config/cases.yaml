@@ -1,0 +1,73 @@
+# compute_bench가 재는 경우들. 순서대로 잰다.
+# bench_source: nav2_params.yaml의 controller_server 아래 이름. 그 값을 모두 가져오고 여기 적은 값으로 덮는다("" = 가져오지 않음)
+# bench_rate_hz: 그 경우가 가정하는 controller 주기. 이 주기로 불러 잰다. MPPI는 1/주기가 model_dt와 같아야 한다
+# bench_kind: controller(기본, pluginlib로 띄움) 또는 onnx(ONNX Runtime 추론만)
+compute_bench:
+  ros__parameters:
+    cases: ["rpp", "mppi_l0", "mppi_l1", "mppi_l2", "mppi_l3", "mppi_l4", "rl", "onnx_only"]
+
+    # ---- 기준: 실물이 쓰는 RPP(FollowPath) 그대로 ----
+    rpp:
+      bench_source: "FollowPath"
+      bench_rate_hz: 20.0
+
+    # ---- MPPI 단계: L0은 시뮬 FollowPathMPPI 그대로, 아래로 갈수록 가볍다 ----
+    # RotationShim 없이 MPPIController만 띄운다(경로와 같은 방향에서 shim은 MPPI에 그대로 넘긴다)
+    mppi_l0:
+      bench_source: "FollowPathMPPI"
+      bench_rate_hz: 20.0
+      plugin: "nav2_mppi_controller::MPPIController"
+      batch_size: 1000
+      time_steps: 83
+      model_dt: 0.05
+    mppi_l1:
+      bench_source: "FollowPathMPPI"
+      bench_rate_hz: 20.0
+      plugin: "nav2_mppi_controller::MPPIController"
+      batch_size: 500
+      time_steps: 56
+      model_dt: 0.05
+    mppi_l2:
+      bench_source: "FollowPathMPPI"
+      bench_rate_hz: 20.0
+      plugin: "nav2_mppi_controller::MPPIController"
+      batch_size: 300
+      time_steps: 40
+      model_dt: 0.05
+    mppi_l3:
+      bench_source: "FollowPathMPPI"
+      bench_rate_hz: 10.0
+      plugin: "nav2_mppi_controller::MPPIController"
+      batch_size: 200
+      time_steps: 20
+      model_dt: 0.1
+    mppi_l4:
+      bench_source: "FollowPathMPPI"
+      bench_rate_hz: 10.0
+      plugin: "nav2_mppi_controller::MPPIController"
+      batch_size: 100
+      time_steps: 15
+      model_dt: 0.1
+
+    # ---- RL: 시뮬 nav_overrides의 FollowPathRLAlone 값 ----
+    # scan_topic만 다르다: compute_bench가 10 Hz로 보내는 합성 스캔을 받는다
+    rl:
+      bench_source: ""
+      bench_rate_hz: 20.0
+      plugin: "pode_rl_controller::FollowPathRL"
+      policy: "store_arena_4b"
+      scan_topic: "bench_scan"
+      scan_timeout: 0.5
+      transform_tolerance: 0.2
+      intra_op_threads: 1
+      rotate_gain: 1.5
+      log_period: 1.0
+      rear_stop_range: 0.0
+      rear_half_width_deg: 30.0
+
+    # ---- ONNX Runtime 추론만(관측 만들기, 경로 계산 없음) ----
+    onnx_only:
+      bench_kind: "onnx"
+      bench_rate_hz: 20.0
+      policy: "store_arena_4b"
+      intra_op_threads: 1
