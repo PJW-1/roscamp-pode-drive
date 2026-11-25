@@ -53,7 +53,11 @@ if [ "$nodes" = 0 ] && [ "${ALLOW_EMPTY_GRAPH:-0}" != 1 ]; then
   exit 1
 fi
 for t in $(grep cmd_vel <<< "$topics" || true); do
-  pubs=$(timeout 20 ros2 topic info "$t" --no-daemon | sed -n 's/^Publisher count: //p' || true)
+  if ! info=$(timeout 20 ros2 topic info "$t" --no-daemon 2>/dev/null); then
+    echo "$t 의 정보를 읽지 못했다(ros2 topic info 실패). 시작하지 않는다"
+    exit 1
+  fi
+  pubs=$(sed -n 's/^Publisher count: //p' <<< "$info")
   if ! [[ $pubs =~ ^[0-9]+$ ]]; then
     echo "$t 의 publisher 수를 읽지 못했다. 시작하지 않는다"
     exit 1
