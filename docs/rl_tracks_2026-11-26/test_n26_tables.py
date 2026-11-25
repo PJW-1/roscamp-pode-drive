@@ -287,3 +287,39 @@ def test_new_fields_follow_env_order(tmp_path):
     assert by["all"]["gap_mask"] == "same"
     assert (by[">= 0.25"]["n"], by[">= 0.25"]["collision_diff_pp"]) == (1, -100.0)
     assert (by["0.13-0.16"]["n"], by["0.13-0.16"]["collision_diff_pp"]) == (2, 0.0)
+
+
+def add_layout(runs, tag, obstacle_xy):
+    """rollouts.npz에 play.py가 쓰는 경로 표의 상자 자리를 더한다."""
+    p = runs / tag / "rollouts.npz"
+    z = dict(np.load(p))
+    np.savez(p, **z, obstacle_xy=np.array(obstacle_xy, float), obstacle_sizes=np.full(3, 0.1))
+
+
+def test_different_box_layouts_are_reported_not_paired(tmp_path):
+    fake_eval(tmp_path, "e_ctrl_rand", [1, 1, 0, 3])
+    fake_eval(tmp_path, "e_std_rand", [0, 0, 0, 0])
+    a = np.full((5, 3, 2), np.nan)
+    a[0, 0] = (0.8, 0.6)
+    b = a.copy()
+    b[0, 0] = (0.9, 0.6)  # 시작 상태는 같고 상자 자리만 다르다
+    add_layout(tmp_path, "e_ctrl_rand", a)
+    add_layout(tmp_path, "e_std_rand", b)
+    status(tmp_path, ["e_ctrl_rand exit=0", "e_std_rand exit=0"])
+    (row,) = nt.main([str(tmp_path), str(tmp_path / "out")])["paired"]
+    assert row["same_episodes"] == "different route table"
+    assert "success_diff_pp" not in row
+
+
+def test_equal_box_layouts_pair_and_one_sided_layout_is_not_checked(tmp_path):
+    fake_eval(tmp_path, "e_ctrl_rand", [1, 1, 0, 3])
+    fake_eval(tmp_path, "e_std_rand", [0, 0, 0, 0])
+    fake_eval(tmp_path, "e_acd3_rand", [0, 0, 0, 0])  # 경로 표가 없는 예전 실행
+    a = np.full((5, 3, 2), np.nan)  # 빈 칸은 NaN이고 NaN끼리는 같다고 본다
+    a[0, 0] = (0.8, 0.6)
+    add_layout(tmp_path, "e_ctrl_rand", a)
+    add_layout(tmp_path, "e_std_rand", a.copy())
+    status(tmp_path, ["e_ctrl_rand exit=0", "e_std_rand exit=0", "e_acd3_rand exit=0"])
+    rows = nt.main([str(tmp_path), str(tmp_path / "out")])["paired"]
+    assert {r["same_episodes"] for r in rows} == {"yes (4 tracked envs)"}
+    assert len(rows) == 3

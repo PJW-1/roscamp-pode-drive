@@ -134,14 +134,30 @@ def outcome_diff(da, db, key):
     return 100 * d.mean(), 100 * d.std(ddof=1) / np.sqrt(len(d))
 
 
+# 경로 표: 풀 전체의 전역 경로와 상자 자리 (play.py가 rollouts.npz에 쓴다)
+LAYOUT_KEYS = ("path", "npts", "obstacle_xy", "obstacle_sizes")
+
+
+def same_layout(da, db):
+    """두 실행의 경로 표가 같은지. 어느 한쪽에 없는 키는 확인하지 않는다(예전 실행)."""
+    za, zb = np.load(da + "/rollouts.npz"), np.load(db + "/rollouts.npz")
+    for k in LAYOUT_KEYS:
+        if k in za.files and k in zb.files and not np.array_equal(za[k], zb[k], equal_nan=True):
+            return False
+    return True
+
+
 def check_same(da, db):
-    """같은 에피소드로 시작했는지: rollouts.npz 첫 스텝과 env 번호. (문제, 확인한 추적 env 수).
+    """같은 에피소드로 시작했는지: rollouts.npz 첫 스텝, 경로 표, env 번호. (문제, 확인한 추적 env 수).
 
     시작 상태는 추적 env(--track, 기본 16개)만 저장되므로 그 env들만 확인된다.
+    경로 표(전역 경로와 상자 자리)는 풀 전체를 견준다.
     """
     try:
         if not same_episodes(da, db):
             return "different start episodes", 0
+        if not same_layout(da, db):
+            return "different route table", 0
         n = min(np.load(da + "/rollouts.npz")["route"].shape[1],
                 np.load(db + "/rollouts.npz")["route"].shape[1])
     except Exception as e:  # rollouts.npz가 없거나 잘림
@@ -525,7 +541,7 @@ SECTIONS = [
     ("cells", "1. 평가 칸", ""),
     ("paired", "2. 짝 비교 (a - 대조)",
      "에피소드별 짝 차이와 SE. 2SE가 outside면 |차이| > 2 SE. "
-     "같은 에피소드 확인은 시작 상태가 저장된 추적 env(괄호 안 수)와 env 번호만 본다. "
+     "같은 에피소드 확인은 시작 상태가 저장된 추적 env(괄호 안 수), env 번호, 경로 표(풀 전체의 전역 경로와 상자 자리)를 본다. "
      "종류별 충돌 차는 (충돌했고 그 순간 로봇 중심에 가장 가까운 것이 그 종류) 여부의 에피소드별 "
      "짝 차이이며, 두 실행 모두 episodes.npz에 hit_kind가 있을 때만 적고 없는 실행이 낀 줄은 빈칸이다."),
     ("regression", "3. 회귀 확인 (같은 체크포인트, 같은 seed, 병합 코드)", ""),
