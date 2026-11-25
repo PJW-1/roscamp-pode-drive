@@ -1,0 +1,5 @@
+cap_mps,set,policy,vs,diff_pp,se_pp,noise
+0.12,rand,s4,acd3,0.0977,0.3069,inside
+0.12,head,s4,acd3,-0.7812,0.4339,inside
+0.08,rand,s4,acd3,0.4883,0.3201,inside
+0.08,head,s4,acd3,0.9033,0.4801,inside
