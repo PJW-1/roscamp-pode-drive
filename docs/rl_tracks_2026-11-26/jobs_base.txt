@@ -1,0 +1,3 @@
+# tag|kind|args  (queue.sh). 기준: acd3 = acd3/t_wall/model_1745.pt, 줄자 진열대 v7 지도(main 3ccf2a3f), 평가 seed 7
+e_acd3_rand|eval|--checkpoint D:/isaac/runs/store_arena/acd3/t_wall/model_1745.pt --num_envs 4096 --episodes 1 --seed 7 --set prev_action_obs=1 --set critic_privileged=1 --set speed_cap_obs=1 --set robot_max=2 --set robot_priority_prob=0.5 --set speed_cap_range=0.12,0.12
+e_acd3_head|eval|--checkpoint D:/isaac/runs/store_arena/acd3/t_wall/model_1745.pt --num_envs 4096 --episodes 1 --seed 7 --set prev_action_obs=1 --set critic_privileged=1 --set speed_cap_obs=1 --set robot_max=2 --set robot_priority_prob=0.5 --set speed_cap_range=0.12,0.12 --set robot_headon=1

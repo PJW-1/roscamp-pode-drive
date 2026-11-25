@@ -30,6 +30,13 @@ parser.add_argument(
     "or a plain checkpoint for the control run of the same recipe comparison)",
 )
 parser.add_argument(
+    "--init_std",
+    type=str,
+    default="0",
+    help="with --init: set the action std to this value, or to v,w values (exploration reset for "
+    "a converged checkpoint whose std has shrunk); 0 keeps the std of the checkpoint",
+)
+parser.add_argument(
     "--set", action="append", default=[], metavar="FIELD=VALUE", help="TaskSpec/ArenaSpec field"
 )
 add_launcher_args(parser)
@@ -41,8 +48,12 @@ sys.path.insert(0, os.path.join(HERE, "..", "goal_reach"))
 
 def main():
     import arena_spec as arena
+    import run_config
     import store_arena_env as sae
 
+    init_std = run_config.parse_init_std(args_cli.init_std)
+    if max(init_std) > 0 and not args_cli.init:
+        raise SystemExit("--init_std needs --init (a resumed chunk keeps its own std)")
     task_over, arena_over = arena.split_overrides(args_cli.set)
     env_cfg = sae.StoreArenaEnvCfg()
     env_cfg.scene.num_envs = args_cli.num_envs
@@ -73,6 +84,21 @@ def main():
             agent_cfg.obs_groups = {"actor": ["policy"], "critic": ["policy", "critic"]}
         agent_cfg = handle_deprecated_rsl_rl_cfg(agent_cfg, check_rsl_rl_version())
         env_cfg.metrics_every = agent_cfg.num_steps_per_env
+        # 설정 스냅샷: 학습 전에 써서 중간에 멈춘 실행도 무엇으로 돌았는지 남는다
+        config = run_config.build(
+            argv=sys.argv,
+            sets=args_cli.set,
+            num_envs=args_cli.num_envs,
+            max_iterations=args_cli.max_iterations,
+            seed=args_cli.seed,
+            init=args_cli.init,
+            resume=args_cli.resume,
+            init_std=args_cli.init_std,
+            task_spec=arena.ts.make_spec(task_over),
+            arena_spec=arena.make_arena_spec(arena_over),
+            agent=agent_cfg.to_dict() if hasattr(agent_cfg, "to_dict") else dict(agent_cfg),
+        )
+        config_sha = run_config.write(os.path.join(out, "run_config.json"), config)
 
         t0 = time.time()
         env = sae.StoreArenaEnv(env_cfg)
@@ -85,6 +111,17 @@ def main():
         elif args_cli.init:
             no_opt = {"actor": True, "critic": True, "optimizer": False, "iteration": True}
             runner.load(args_cli.init, load_cfg=no_opt)
+            if max(init_std) > 0:
+                # 탐색 되살리기: 수렴한 체크포인트의 줄어든 행동 std 를 다시 키운다
+                dist = runner.alg.get_policy().distribution
+                old_std = dist.std_param.detach().cpu().tolist()
+                with torch.no_grad():
+                    for k, value in enumerate(init_std):
+                        if value > 0:
+                            dist.std_param[k] = value
+                print(
+                    f"[ARENA] action std reset {old_std} -> {dist.std_param.detach().cpu().tolist()}"
+                )
         t1 = time.time()
         runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=True)
         torch.cuda.synchronize()
@@ -97,6 +134,8 @@ def main():
             "seed": args_cli.seed,
             "resume": args_cli.resume,
             "init": args_cli.init,
+            "init_std": list(init_std),
+            "run_config_sha256": config_sha,
             "spec_overrides": task_over,
             "arena_overrides": arena_over,
             "routes": routes.count,
