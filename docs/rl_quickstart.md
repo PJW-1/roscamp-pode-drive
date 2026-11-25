@@ -85,5 +85,7 @@ Pi 4에서 RL 추론과 MPPI의 계산 시간을 주행 없이 재려면 `tools/
 
 - GitHub에서 `feat/rl-policy-onnx-2026-11-26`을 새로 받은 사본만으로 WSL에서 빌드했고, 정책 다섯의 추론 일치 시험이
   통과했다(onnxruntime C++ 대 torch 차이 1.4e-6, 건너뜀 0).
-- 그 사본만으로 Gazebo에서 acd3를 달리는 확인: (채움)
+- 그 사본의 빌드만 source한 셸에서 Gazebo로 acd3를 달렸다: `follow_path_rl_acd3.yaml`, 로봇 한 대, Q2→E-3 두 판 모두
+  SUCCEEDED(12.5 s, 15.2 s). 플릿 시뮬 인자 `nav_rl:=rl_acd3`은 launch 배선 시험만 있고 Gazebo에서
+  돌려 보지 않았다.
 - 실물: 돌려 보지 않았다.

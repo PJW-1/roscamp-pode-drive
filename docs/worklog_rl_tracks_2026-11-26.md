@@ -192,7 +192,14 @@ t_ctrl보다 높고, 이상 응답 두 칸(rand, head)에서는 t_ctrl보다 낮
 - 저장소만으로 되는지: `feat/rl-policy-onnx-2026-11-26`을 GitHub에서 새로 받아 그 사본만으로 빌드하고, 추론 일치
   시험과 Gazebo Q2→E-3 두 판(`follow_path_rl_acd3.yaml`)을 돌린다.
 
-결과: (채움)
+결과 (00:56~01:54, 표와 판정은 `docs/report_2026-11-26_rl_smooth.md`의 "Gazebo 결과", 원본은 `results/gz_smooth/`):
+
+- **평활: 규칙을 모두 채운 alpha가 없다. 기본값(끔)을 둔다.** alpha 0.5는 성공 13/15, alpha 0.25는 성공 15/15지만
+  d_robot에서 0.36 s(SE 0.10) 느렸다. 이 묶음에서는 RPP도 분당 36.5~40.7번 부호를 바꿔서(평활 없는 acd3는 28.0~43.1)
+  "RL이 RPP보다 많이 흔들린다"는 전제가 부호 바뀜 횟수로는 다시 나오지 않았다. 각저크 RMS는 acd3가 RPP보다 작다.
+- **새 지도에서 acd3(평활 없음):** Q2→E-3 5/5에 접촉 0, c_moving 4/5, d_robot 4/5. 세 시나리오 모두 RPP보다 빨랐다.
+- **저장소만으로:** GitHub에서 새로 받은 `feat/rl-policy-onnx-2026-11-26` 사본의 빌드만 source한 셸에서
+  `follow_path_rl_acd3.yaml`로 Q2→E-3 두 판을 달렸고 둘 다 SUCCEEDED였다(12.5 s, 15.2 s).
 
 ## 8. 시연 조건 갈래 (사용자 설명, 11-26 00:40쯤)
 
