@@ -172,9 +172,14 @@ def parse_overrides(items, spec=SPEC) -> dict:
                 raise ValueError(
                     f"{key} takes {len(default)} comma-separated numbers, got {text!r}"
                 )
+            values = tuple(float(x) for x in parts)
+            if any(
+                isinstance(d, int) and not v.is_integer()
+                for d, v in zip(default, values, strict=True)
+            ):
+                raise ValueError(f"{key} takes integers, got {text!r}")
             out[key] = tuple(
-                int(float(x)) if isinstance(d, int) else float(x)
-                for d, x in zip(default, parts, strict=True)
+                int(v) if isinstance(d, int) else v for d, v in zip(default, values, strict=True)
             )
         else:
             out[key] = float(text)

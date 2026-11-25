@@ -452,3 +452,10 @@ def test_rate_limit_still_bounds_the_wheel_command_after_the_response_model():
         new = ts.rate_limit(cmd, r, 0.05)
         assert ((new - cmd).abs() <= step + 1e-7).all()
         cmd = new
+
+
+def test_cmd_delay_override_rejects_non_integer_steps():
+    for text in ("cmd_delay_steps_range=-0.9,1.9", "cmd_delay_steps_range=0,1.5"):
+        with pytest.raises(ValueError):
+            ts.parse_overrides([text])
+    assert ts.parse_overrides(["cmd_delay_steps_range=1.0,2"])["cmd_delay_steps_range"] == (1, 2)
