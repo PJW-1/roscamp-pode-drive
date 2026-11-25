@@ -669,8 +669,10 @@ class StoreArenaEnv(GoalReachEnv):
         for k in range(nk - 1):
             sub = {key: v[env_ids] for key, v in self.robot_routes[k].items()}
             pos = rbs.robot_pose(sub, self.robot_t[k, env_ids])[0]
-            if k == 0 and self.ghost:  # ghost 칸은 짝의 시작점 (짝이 같이 리셋되지 않으면 근사)
-                pos = self.start_xy[gh.partner(env_ids)]
+            if k == 0 and self.ghost:  # ghost 칸: 같이 리셋되는 짝은 시작점, 아니면 지금 자세
+                pe = gh.partner(env_ids)
+                both = torch.isin(pe, env_ids)
+                pos = torch.where(both[:, None], self.start_xy[pe], self.robot_pose()[0][pe])
             avoid.append(pos)
             avoid_on.append(act[k] | (k == 0 and self.ghost))
         t0 = cln.start_clock(

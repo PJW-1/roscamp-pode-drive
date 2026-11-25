@@ -356,10 +356,20 @@ def test_ghost_slot_is_avoided_at_its_partner_start(env_src):
     env = _fake_env(_methods(env_src, ENV_METHODS), robot_cleaner_prob=1.0)
     env.ghost, env._new_gprio = True, torch.zeros(env.num_envs, dtype=torch.bool)
     env.start_xy = torch.rand(env.num_envs, 2) * torch.tensor([1.9, 0.9]) + 0.04
+    now = torch.rand(env.num_envs, 2) * torch.tensor([1.9, 0.9]) + 0.04
+    env.robot_pose = lambda: (now, torch.zeros(env.num_envs))
     _run(env)
     pos, _, _ = RS.robot_pose(env.robot_routes[1], env.robot_t[1])
     partner = env.start_xy[gh.partner(torch.arange(env.num_envs))]
     assert ((pos - partner).norm(dim=-1) >= scn.START_SEP_M).float().mean() > 0.95
+    # 짝 없이 짝수 env 만 리셋: 짝의 지금 자세를 피함
+    even = torch.arange(0, env.num_envs, 2)
+    torch.manual_seed(2)
+    env._new_gprio = torch.zeros(len(even), dtype=torch.bool)
+    env._sample_robots(even, torch.zeros(len(even), dtype=torch.long))
+    pos, _, _ = RS.robot_pose({k: v[even] for k, v in env.robot_routes[1].items()},
+                              env.robot_t[1, even])
+    assert ((pos - now[even + 1]).norm(dim=-1) >= scn.START_SEP_M).float().mean() > 0.95
 
 
 def test_cleaner_needs_a_free_slot(env_src):
