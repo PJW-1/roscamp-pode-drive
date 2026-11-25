@@ -326,7 +326,9 @@ def finish_legs(out, shows, ctx, shape, spec, rand, candidates: int, openings) -
     out["cross"] = torch.zeros(n, dtype=torch.bool, device=dev)
     out["cross_path"] = torch.zeros(n, dtype=torch.bool, device=dev)
     use = spec.mover_cross_prob > 0 and shape.name in CROSS_MOVERS
-    if use and openings is not None and len(openings) > 0:
+    if use and (openings is None or len(openings) == 0):
+        raise ValueError("mover_cross_prob > 0 needs a shelf opening (find_openings found none)")
+    if use:
         rects, bounds, path, npts, start, goal = ctx
         cross = rand(n) < spec.mover_cross_prob
         a, b = crossing_candidates(openings.to(dev), shape.radius, n, candidates, rand)

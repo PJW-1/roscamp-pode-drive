@@ -249,6 +249,8 @@ def test_crossing_only_for_the_person_and_appended_draws(batch):
     same = ~cross["cross"]
     assert torch.equal(base["a"][same], cross["a"][same])
     assert torch.equal(base["active"][same], cross["active"][same])
+    with pytest.raises(ValueError):  # 틈 없는 배치에서 건넘을 켜면 조용히 넘어가지 않음
+        _legs(t, PERSON, spec, openings=False)
 
 
 # ---- mover_kinds ----
