@@ -1,0 +1,6 @@
+b_static start 2026-11-26T01:54:33+09:00 avail 15299MB domain 72
+b_static: exit 0, bench b_static: 5/5 repeats, 14 resets
+b_static end 2026-11-26T02:08:16+09:00
+e_corridor start 2026-11-26T02:11:16+09:00 avail 15289MB domain 72
+e_corridor: exit 0, bench e_corridor: 5/5 repeats, 14 resets
+e_corridor end 2026-11-26T02:20:21+09:00
