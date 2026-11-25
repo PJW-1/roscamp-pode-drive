@@ -50,7 +50,8 @@ def step(state: State, now: float, xy: tuple[float, float] | None, moving: bool,
     """(새 상태, 할 일) 할 일은 NONE, OBSTACLES_ON, OBSTACLES_OFF."""
     # ---- 새 goal: 통로 모드에서 다시 시작한다 (앞 goal의 우회가 다음 goal로 넘어가지 않게) ----
     if new_goal:
-        fresh = State(ref=xy, ref_t=now, reason="new goal")
+        # 주행 중이 아닐 때 온 새 goal은 기준을 잡지 않는다 (서 있던 시간을 멈춤으로 세지 않게)
+        fresh = State(ref=xy if moving else None, ref_t=now, reason="new goal")
         return fresh, (OBSTACLES_OFF if state.mode == DETOUR else NONE)
     # ---- DETOUR: 벗어났거나 주행이 끝났으면 통로 모드로 ----
     if state.mode == DETOUR:
