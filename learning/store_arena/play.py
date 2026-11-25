@@ -35,6 +35,13 @@ parser.add_argument(
     help="a policy trained without speed_cap_obs under --set speed_cap_range=c,c: its v target "
     "at the trained top speed, clamped to c (what the plugin does with a format-2 policy)",
 )
+parser.add_argument(
+    "--dump_obs",
+    type=int,
+    default=0,
+    help="save the actor observations and deterministic actions of the first N control steps of "
+    "every env to <out>/obs_dump.npz (symmetry_check.py); 0 = off",
+)
 add_launcher_args(parser)
 args_cli = parser.parse_args()
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -48,6 +55,8 @@ def main():
     import timeouts
 
     task_over, arena_over = arena.split_overrides(args_cli.set)
+    if args_cli.dump_obs and (args_cli.still or args_cli.capped):
+        raise SystemExit("--dump_obs records the trained policy's own actions: no --still/--capped")
     env_cfg = sae.StoreArenaEnvCfg()
     env_cfg.scene.num_envs = args_cli.num_envs
     env_cfg.seed = args_cli.seed
@@ -114,9 +123,14 @@ def main():
         obs = env.get_observations()
         route = raw.route.clone()
         step = 0
+        dump_obs, dump_act = [], []  # --dump_obs: 앞쪽 스텝의 액터 관측과 결정적 행동
         while True:
             with torch.inference_mode():
-                obs, _, dones, _ = env.step(policy(obs))
+                act = policy(obs)
+                if step < args_cli.dump_obs:
+                    dump_obs.append(obs["policy"].cpu().numpy())
+                    dump_act.append(act.cpu().numpy())
+                obs, _, dones, _ = env.step(act)
             step += 1
             d = dones.bool()
             lidar_min = min(lidar_min, float(raw.lidar_ranges().min()))
@@ -277,6 +291,15 @@ def main():
             boxes=np.array([(b.x0, b.y0, b.x1, b.y1) for b in raw.boxes]),
             dt=raw.step_dt,
         )
+        if dump_obs:
+            # (스텝, env, 항목): symmetry_check.py 가 spec_overrides 로 관측 배치를 되살림
+            np.savez_compressed(
+                os.path.join(args_cli.out, "obs_dump.npz"),
+                obs=np.stack(dump_obs),
+                actions=np.stack(dump_act),
+                spec_overrides=json.dumps(task_over),
+                checkpoint=args_cli.checkpoint,
+            )
         print("[PLAY]", json.dumps(report))
         env.close()
 
