@@ -149,15 +149,15 @@ td2는 판이 끝난 뒤 Gazebo 서버가 종료 신호에 끝나지 않아 강�
 
 ## 7. 다시 보는 방법
 
-이 브랜치를 빌드한 환경에서 띄운다.
+이 브랜치를 빌드한 환경에서 띄운다. 3절의 판은 모두 시나리오 판정을 끄고(`monitor:=false`) RViz 없이 돌렸다(판정을 켜면 주문이 끝날 때 launch가 끝난다).
 
 ```bash
 # 세워 둔 청소 로봇 옆 교차(둘째 명령은 첫 명령을 띄운 직후, 같은 환경의 다른 터미널에서)
-ros2 launch fleet_gz_sim gz.launch.py layout:=v7 scenario:=gz_v7 sim_dock_stub:=true cleaners:=pode3 rviz:=fleet
+ros2 launch fleet_gz_sim gz.launch.py layout:=v7 scenario:=gz_v7 sim_dock_stub:=true cleaners:=pode3 monitor:=false rviz:=fleet
 python3 tools/aisle_pass_stage.py
 
 # 실제 청소 흐름(붙어 서기는 CLEAN_YIELD tucks in 이벤트로 보인다)
-ros2 launch fleet_gz_sim gz.launch.py layout:=v7 scenario:=gz_v7_rush sim_dock_stub:=true cleaners:=pode3 rviz:=fleet
+ros2 launch fleet_gz_sim gz.launch.py layout:=v7 scenario:=gz_v7_rush sim_dock_stub:=true cleaners:=pode3 monitor:=false rviz:=fleet
 ```
 
 첫 판에서는 충전 칸 P-3의 운반 로봇(pode1)이 첫 주문을 받고 10 s쯤 뒤 남쪽 통로에서 청소 로봇 옆을 지난다.
