@@ -1,10 +1,12 @@
 """aisle_first 노드(시뮬 시험): 통로 안에서 못 지나가면 전역 costmap의 장애물 층을 켠다.
   ros2 run fleet_gz_sim aisle_first --ros-args -r __ns:=/pode1 -r /tf:=tf -r /tf_static:=tf_static -p use_sim_time:=true
-규칙은 aisle_first.py. 위치는 TF(map -> base_footprint), 주행 여부는 planner가 내는 plan으로 본다.
+규칙은 aisle_first.py. 위치는 TF(map -> base_footprint), 주행 여부는 주행 action의 goal 상태로 본다
+(상태를 받은 적이 없으면 planner가 내는 plan으로 본다).
 """
 from __future__ import annotations
 
 import rclpy
+from action_msgs.msg import GoalStatusArray
 from nav2_msgs.srv import ClearEntireCostmap
 from nav_msgs.msg import Path
 from rcl_interfaces.msg import Parameter as ParameterMsg
@@ -13,6 +15,7 @@ from rcl_interfaces.srv import SetParameters
 from rclpy.duration import Duration
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from rclpy.time import Time
 from tf2_ros import Buffer, TransformException, TransformListener
 
@@ -21,6 +24,7 @@ from fleet_gz_sim.aisle_first import (
     OBSTACLES_ON,
     Rules,
     State,
+    goal_active,
     goal_changed,
     log_line,
     navigating,
@@ -29,6 +33,7 @@ from fleet_gz_sim.aisle_first import (
 
 # ---- 이름 ----
 PLAN = "plan"
+STATUS = "navigate_to_pose/_action/status"
 SET_PARAMETERS = "global_costmap/global_costmap/set_parameters"
 CLEAR = "global_costmap/clear_entirely_global_costmap"
 LAYER_ENABLED = "obstacle_layer.enabled"
@@ -52,6 +57,7 @@ class AisleFirst(Node):
         self.base_frame = declare("robot_base_frame", "base_footprint").value
         self.state = State()
         self.last_plan_t = None
+        self.active = None  # 주행 action에 끝나지 않은 goal이 있는지 (상태를 받기 전에는 None)
         self.goal = None  # 마지막으로 받은 전역 경로의 끝점
         self.new_goal = False
         self.ops = []  # 차례로 낼 요청: ("set", bool) 또는 ("clear",)
@@ -61,6 +67,10 @@ class AisleFirst(Node):
         self.set_client = self.create_client(SetParameters, SET_PARAMETERS)
         self.clear_client = self.create_client(ClearEntireCostmap, CLEAR)
         self.create_subscription(Path, PLAN, self._on_plan, 10)
+        # action 상태 토픽은 마지막 값을 남겨 둔다: 늦게 떠도 지금 상태를 받는다
+        latched = QoSProfile(depth=1, reliability=ReliabilityPolicy.RELIABLE,
+                             durability=DurabilityPolicy.TRANSIENT_LOCAL)
+        self.create_subscription(GoalStatusArray, STATUS, self._on_status, latched)
         self.create_timer(float(declare("tick_s", 0.2).value), self.tick)
         self.get_logger().info(f"aisle_first: {self.rules}, {self.global_frame} -> "
                                f"{self.base_frame}")
@@ -77,6 +87,9 @@ class AisleFirst(Node):
             self.new_goal = True
         self.goal = (end.x, end.y)
 
+    def _on_status(self, msg):
+        self.active = goal_active(s.status for s in msg.status_list)
+
     def position(self):
         try:
             t = self.tf.lookup_transform(self.global_frame, self.base_frame, Time(),
@@ -92,7 +105,8 @@ class AisleFirst(Node):
         before = self.state.mode
         new_goal, self.new_goal = self.new_goal, False
         self.state, action = step(self.state, now, xy,
-                                  navigating(self.last_plan_t, now, self.rules), self.rules,
+                                  navigating(self.last_plan_t, now, self.rules, self.active),
+                                  self.rules,
                                   new_goal=new_goal)
         if action == OBSTACLES_ON:
             self.ops = [("set", True)]

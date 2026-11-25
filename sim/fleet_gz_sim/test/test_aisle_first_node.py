@@ -127,3 +127,53 @@ def test_a_plan_to_another_goal_turns_the_layer_off_and_clears(ros):
         executor.shutdown()
         node.destroy_node()
         fake.destroy_node()
+
+
+def test_the_detour_stays_on_without_plans_while_the_goal_is_active(ros):
+    from action_msgs.msg import GoalStatus, GoalStatusArray
+    from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
+
+    from fleet_gz_sim.aisle_first_node import AisleFirst
+    calls = []
+    fake = rclpy.create_node("fake_costmap", namespace=NAMESPACE)
+
+    def on_set(request, response):
+        calls.append(("set", request.parameters[0].value.bool_value))
+        response.results = [SetParametersResult(successful=True)]
+        return response
+
+    def on_clear(_request, response):
+        calls.append(("clear",))
+        return response
+
+    fake.create_service(SetParameters, "global_costmap/global_costmap/set_parameters", on_set)
+    fake.create_service(ClearEntireCostmap, "global_costmap/clear_entirely_global_costmap",
+                        on_clear)
+    latched = QoSProfile(depth=1, reliability=ReliabilityPolicy.RELIABLE,
+                         durability=DurabilityPolicy.TRANSIENT_LOCAL)
+    status = fake.create_publisher(GoalStatusArray, "navigate_to_pose/_action/status", latched)
+    node = AisleFirst(namespace=NAMESPACE, parameter_overrides=[
+        Parameter("stall_s", value=0.6), Parameter("plan_timeout_s", value=0.5),
+        Parameter("tick_s", value=0.05)])
+    node.position = lambda: (1.0, 0.5)
+    executor = SingleThreadedExecutor()
+    executor.add_node(fake)
+    executor.add_node(node)
+    try:
+        # 경로가 한 번도 오지 않아도 goal이 돌고 있으면 주행 중이라 멈춤을 센다
+        status.publish(GoalStatusArray(status_list=[GoalStatus(status=GoalStatus.STATUS_EXECUTING)]))
+        assert spin_until(executor, lambda: calls == [("set", True)], 5.0)
+        assert node.state.mode == "detour"
+        # 경로 없이 plan_timeout_s의 세 배가 지나도 우회가 유지된다
+        end = time.monotonic() + 1.5
+        spin_until(executor, lambda: time.monotonic() > end, 3.0)
+        assert node.state.mode == "detour" and calls == [("set", True)]
+        # goal이 끝나면 층을 끄고 지운다
+        status.publish(GoalStatusArray(status_list=[GoalStatus(status=GoalStatus.STATUS_ABORTED)]))
+        assert spin_until(executor, lambda: len(calls) == 3 and not node.ops, 5.0)
+        assert calls[1:] == [("set", False), ("clear",)]
+        assert node.state.mode == "aisle" and node.state.reason == "navigation ended"
+    finally:
+        executor.shutdown()
+        node.destroy_node()
+        fake.destroy_node()
