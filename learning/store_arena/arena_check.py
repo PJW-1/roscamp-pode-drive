@@ -688,8 +688,11 @@ def main():
             report["envs_driven"] = len(ids)
             tested = torch.zeros(n, dtype=torch.bool, device=env.device)
             tested[ids] = True
+            route0 = env.route.clone()
             env.reset()
-            # 리셋이 경로를 새로 뽑았으므로 이 검사가 잰 박스를 되돌림
+            # 리셋이 경로를 새로 뽑았으므로 경로 번호와 박스를 이 검사가 잰 것으로 되돌림
+            # 경로 번호를 두면 스침 판정(경로 표의 박스 자리)이 시뮬에 없는 새 박스를 본다
+            env.route[:] = route0
             for k, obj in enumerate(env.obstacles):
                 pose = obj.data.root_pose_w.torch.clone()
                 pose[:, :2] = xy1[:, k] + env.scene.env_origins[:, :2]
