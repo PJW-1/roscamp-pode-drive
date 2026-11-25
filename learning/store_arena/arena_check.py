@@ -795,7 +795,7 @@ def main():
             st = env.robot_state()
             report["robot_active_share"] = [round(float(a.float().mean()), 3) for _, _, a in st]
             # 충돌: 로봇을 모두 세우고 우리 로봇을 첫 활성 로봇 면 0.20 m 앞에 띠가 비게 놓아 0.25 m/s 로 주행
-            sae.rbs.robot_step = lambda route, t, wait, back, *a_: (t, wait, back)
+            sae.rbs.robot_step = lambda route, t, wait, back, *a_, **k_: (t, wait, back)
             static = rects.cpu().numpy()
             obst = env.obstacle_xy().cpu().numpy()
             sz = np.array(env.routes.obstacle_sizes)
