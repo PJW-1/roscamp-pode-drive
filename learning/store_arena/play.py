@@ -44,6 +44,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "goal_reach"))
 
 def main():
     import arena_spec as arena
+    import encounter as enc
     import store_arena_env as sae
     import timeouts
 
@@ -111,6 +112,13 @@ def main():
         # 센 에피소드별: env, 명령 w 부호 반전 수 (nav_bench doridori), 길이
         ep_env, flips, ep_len = [], [], []
         handovers = []  # 센 에피소드별: 인계 시작 여부 (handover_start_prob)
+        # 센 에피소드별 만남 지표 (encounter.py) 와 시나리오 이름 인덱스 (-1: 시나리오 아님)
+        enc_eps = {"min_gap": [], "enc_s": [], "enc_seen": [], "deadlock": []}
+        scen_ids = []
+        if raw.scen is not None:
+            scen_of = torch.repeat_interleave(
+                torch.arange(len(raw.scen_names), device=raw.device), raw.scen["count"]
+            )
         obs = env.get_observations()
         route = raw.route.clone()
         step = 0
@@ -139,6 +147,12 @@ def main():
                 grazes += raw.graze_only[counted].tolist()
                 corners += raw.last_ep_corner[counted].tolist()
                 handovers += raw.last_ep_handover[counted].tolist()
+                for k_ in enc_eps:
+                    enc_eps[k_] += raw.last_ep_enc[k_][counted].tolist()
+                pick = raw.last_ep_scen[counted]
+                if raw.scen is not None:
+                    pick = torch.where(pick >= 0, scen_of[pick.clamp(min=0)], -1)
+                scen_ids += pick.tolist()
                 ep_env += counted.nonzero()[:, 0].tolist()
                 flips += raw.last_ep_cmd_flips[counted].tolist()
                 ep_len += raw.last_ep_len_s[counted].tolist()
@@ -254,6 +268,14 @@ def main():
         # env 마다 첫 E 개 에피소드: env 는 모두가 E 개가 될 때까지 계속 돎
         rows = timeouts.classify(tz, raw.max_episode_length * raw.step_dt, max_episodes=E)
         # 추적 env 의 시간초과를 주변 상황별로: alone 은 정책 자체 문제
+        # 플릿 로봇 만남: 최소 몸체 간격 분포, 첫 만남 시간, 교착 (기준은 encounter.py)
+        report["robot_encounter"] = enc.summary(**enc_eps)
+        scen_ids = np.array(scen_ids)
+        report["by_scenario"] = {
+            name: {**rates_of(scen_ids == i),
+                   **enc.summary(**{k_: np.array(v)[scen_ids == i] for k_, v in enc_eps.items()})}
+            for i, name in enumerate(raw.scen_names)
+        }
         report["timeouts_tracked"] = {k: sum(r["kind"] == k for r in rows) for k in timeouts.KINDS}
         report["alone_timeouts"] = timeouts.alone_summary(tz, rows, max_episodes=E)
         with open(os.path.join(args_cli.out, "eval.json"), "w", encoding="utf-8") as f:
@@ -266,6 +288,9 @@ def main():
             keys=np.array(keys),
             flips=flips,
             length_s=ep_len,
+            scenario=scen_ids,
+            scenario_names=np.array(raw.scen_names),
+            **{f"enc_{k_}": np.array(v) for k_, v in enc_eps.items()},
         )
         np.savez_compressed(
             os.path.join(args_cli.out, "rollouts.npz"),

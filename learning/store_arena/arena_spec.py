@@ -126,6 +126,9 @@ class ArenaSpec:
     robot_priority_prob: float = 0.0
     # 1: 평가용, 로봇 0 이 우리 목표 노드에서 시작 노드로 정면 주행
     robot_headon: int = 0
+    # 평가용 시나리오 (scenario_spec.SCENARIOS 를 쉼표로, "" 은 끔): 모든 env 가 후보 중 하나로 시작
+    # 시나리오는 고르게, 그 안의 후보도 고르게 뽑음. robot_headon 과 같이 못 씀
+    robot_scenario: str = ""
     intent_ablate: int = 0  # 1: intent 항목을 0 으로 (로봇이 없는 듯 보임), 평가 전용
 
 
