@@ -23,6 +23,8 @@ MAP_DIR = os.path.join("pc", "fleet_core", "fleet_core", "data")
 SYMMETRY_MODES = ("off", "aug", "loss", "both")
 # 거울 손실 = 행동 평균의 MSE (행동 단위), value_loss_coef 1.0 과 같은 크기로 더함
 MIRROR_LOSS_COEFF = 1.0
+# --caps_*: 계수가 하나라도 0 보다 크면 이 PPO 하위 클래스 (goal_reach/caps_ppo.py) 로 학습
+CAPS_CLASS_NAME = "caps_ppo:CapsPPO"
 
 
 def _git(*args: str) -> str:
@@ -73,6 +75,9 @@ def build(
     agent,
     symmetry: str = "off",
     mirror_loss_coeff: float = MIRROR_LOSS_COEFF,
+    caps_temporal: float = 0.0,
+    caps_spatial: float = 0.0,
+    caps_sigma: float = 0.0,
 ) -> dict:
     """run_config.json 내용. task_spec, arena_spec 은 dataclass, agent 는 dict."""
     return {
@@ -87,6 +92,7 @@ def build(
         "resume": resume,
         "init_std": list(parse_init_std(init_std)),
         "symmetry": {"mode": symmetry, **(symmetry_settings(symmetry, mirror_loss_coeff) or {})},
+        "caps": caps_record(caps_temporal, caps_spatial, caps_sigma),
         "task_spec": dataclasses.asdict(task_spec),
         "arena_spec": dataclasses.asdict(arena_spec),
         "agent": agent,
@@ -119,6 +125,31 @@ def symmetry_settings(mode: str, mirror_loss_coeff: float = MIRROR_LOSS_COEFF) -
         "use_mirror_loss": loss,
         "mirror_loss_coeff": float(mirror_loss_coeff) if loss else 0.0,
     }
+
+
+def caps_settings(temporal: float, spatial: float, sigma: float) -> dict | None:
+    """--caps_* 값을 algorithm 설정 항목으로. 모두 0 이면 None (rsl_rl PPO 그대로, 추가 난수 없음)."""
+    values = (temporal, spatial, sigma)
+    if not all(math.isfinite(x) and x >= 0 for x in values):
+        raise ValueError(f"--caps_temporal/--caps_spatial/--caps_sigma must be finite and >= 0, got {values}")
+    if spatial > 0 and not sigma > 0:
+        raise ValueError("--caps_spatial needs --caps_sigma above 0")
+    if sigma > 0 and not spatial > 0:
+        raise ValueError("--caps_sigma only acts with --caps_spatial above 0")
+    if not (temporal > 0 or spatial > 0):
+        return None
+    return {
+        "class_name": CAPS_CLASS_NAME,
+        "caps_temporal": float(temporal),
+        "caps_spatial": float(spatial),
+        "caps_sigma": float(sigma),
+    }
+
+
+def caps_record(temporal: float, spatial: float, sigma: float) -> dict:
+    """run_config.json / run.json 의 caps 항목 (꺼져 있어도 0 값과 enabled=False 로 남김)."""
+    on = caps_settings(temporal, spatial, sigma) is not None
+    return {"enabled": on, "temporal": float(temporal), "spatial": float(spatial), "sigma": float(sigma)}
 
 
 def sha256_of(path: str) -> str:

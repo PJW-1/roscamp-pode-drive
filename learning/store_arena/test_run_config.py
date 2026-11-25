@@ -76,6 +76,26 @@ def test_symmetry_mode_is_recorded():
     }
 
 
+def test_caps_settings_and_record():
+    assert rc.caps_settings(0.0, 0.0, 0.0) is None  # 모두 0 이면 rsl_rl PPO 그대로
+    assert rc.caps_settings(0.04, 0.2, 0.1) == {
+        "class_name": rc.CAPS_CLASS_NAME,
+        "caps_temporal": 0.04,
+        "caps_spatial": 0.2,
+        "caps_sigma": 0.1,
+    }
+    assert rc.caps_settings(0.04, 0.0, 0.0)["caps_spatial"] == 0.0
+    for bad in ((0.0, 0.2, 0.0), (0.0, 0.0, 0.1), (-0.1, 0.0, 0.0), (float("nan"), 0.0, 0.0)):
+        try:
+            rc.caps_settings(*bad)
+        except ValueError:
+            continue
+        raise AssertionError(bad)
+    assert _config()["caps"] == {"enabled": False, "temporal": 0.0, "spatial": 0.0, "sigma": 0.0}
+    c = _config(caps_temporal=0.04, caps_spatial=0.2, caps_sigma=0.1)
+    assert c["caps"] == {"enabled": True, "temporal": 0.04, "spatial": 0.2, "sigma": 0.1}
+
+
 def test_init_std_takes_one_value_or_a_pair():
     assert rc.parse_init_std("0") == (0.0, 0.0)
     assert rc.parse_init_std("0.3") == (0.3, 0.3)
