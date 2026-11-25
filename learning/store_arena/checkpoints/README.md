@@ -15,3 +15,6 @@ onnx를 다시 내보낼 수 있게 여기에 둔다. 나머지 체크포인트�
   (옵티마이저는 새로 시작한다. 학습 PC가 아니면 Isaac Lab 설치가 필요하다.)
 - onnx 다시 내보내기: `learning/goal_reach/export_policy.py --checkpoint <이 파일> ...` (`pode/pode_rl_controller/README.md`).
 - 새 후보가 생기면 폴더와 `index.json` 줄을 더한다. 파일 하나가 0.6 MB쯤이라 후보만 넣는다.
+- 저장소 밖 예비 사본: Drive `ros2_edu/RL_정책_백업` 폴더. 파일 이름은 `<정책 이름>__<저장소 안 파일 이름>`이고,
+  크기와 sha256은 그 폴더의 문서 「RL 정책 백업 안내」에 있다. 지금은 acd3의 `.pt`, onnx, `policy_spec.json`,
+  `run.json`이 올라가 있다. 새 후보를 넣을 때 같이 올린다(`../POLICIES.md` 기록 규칙 5).
