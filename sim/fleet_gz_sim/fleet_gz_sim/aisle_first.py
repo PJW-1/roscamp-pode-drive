@@ -1,7 +1,7 @@
 """통로 먼저(시뮬 시험): 전역 costmap의 장애물 층을 끈 채 통로 안에서 지나가 보고, 못 지나가면 켠다.
 ROS 없이 규칙만. 시각은 밖에서 넣는다(노드 시계라 sim time을 따른다).
   AISLE: 장애물 층 끔(시작). 주행 중에 stall_s 동안 progress_m 넘게 못 움직이면 DETOUR.
-  DETOUR: 장애물 층 켬. 멈춘 곳에서 resume_m 넘게 벗어나거나 주행이 끝나면 AISLE.
+  DETOUR: 장애물 층 켬. 멈춘 곳에서 resume_m 넘게 벗어나거나 주행이 끝나거나 새 goal이 오면 AISLE.
 """
 from __future__ import annotations
 
@@ -21,6 +21,7 @@ class Rules:
     progress_m: float = 0.05
     stall_s: float = 5.0
     resume_m: float = 0.40
+    goal_change_m: float = 0.20
 
 
 @dataclass(frozen=True)
@@ -38,9 +39,19 @@ def navigating(last_plan_t: float | None, now: float, rules: Rules = Rules()) ->
     return last_plan_t is not None and 0.0 <= now - last_plan_t <= rules.plan_timeout_s
 
 
+def goal_changed(prev: tuple[float, float] | None, goal: tuple[float, float] | None,
+                 rules: Rules = Rules()) -> bool:
+    """전역 경로의 끝점이 goal_change_m 넘게 옮겨졌으면 새 goal이다. 처음 받은 경로와 빈 경로는 아니다."""
+    return prev is not None and goal is not None and math.dist(prev, goal) > rules.goal_change_m
+
+
 def step(state: State, now: float, xy: tuple[float, float] | None, moving: bool,
-         rules: Rules = Rules()) -> tuple[State, str]:
+         rules: Rules = Rules(), new_goal: bool = False) -> tuple[State, str]:
     """(새 상태, 할 일) 할 일은 NONE, OBSTACLES_ON, OBSTACLES_OFF."""
+    # ---- 새 goal: 통로 모드에서 다시 시작한다 (앞 goal의 우회가 다음 goal로 넘어가지 않게) ----
+    if new_goal:
+        fresh = State(ref=xy, ref_t=now, reason="new goal")
+        return fresh, (OBSTACLES_OFF if state.mode == DETOUR else NONE)
     # ---- DETOUR: 벗어났거나 주행이 끝났으면 통로 모드로 ----
     if state.mode == DETOUR:
         if not moving:

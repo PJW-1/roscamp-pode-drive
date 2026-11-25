@@ -21,6 +21,7 @@ from fleet_gz_sim.aisle_first import (
     OBSTACLES_ON,
     Rules,
     State,
+    goal_changed,
     log_line,
     navigating,
     step,
@@ -45,11 +46,14 @@ class AisleFirst(Node):
         self.rules = Rules(plan_timeout_s=float(declare("plan_timeout_s", 2.5).value),
                            progress_m=float(declare("progress_m", 0.05).value),
                            stall_s=float(declare("stall_s", 5.0).value),
-                           resume_m=float(declare("resume_m", 0.40).value))
+                           resume_m=float(declare("resume_m", 0.40).value),
+                           goal_change_m=float(declare("goal_change_m", 0.20).value))
         self.global_frame = declare("global_frame", "map").value
         self.base_frame = declare("robot_base_frame", "base_footprint").value
         self.state = State()
         self.last_plan_t = None
+        self.goal = None  # 마지막으로 받은 전역 경로의 끝점
+        self.new_goal = False
         self.ops = []  # 차례로 낼 요청: ("set", bool) 또는 ("clear",)
         self.inflight = None  # (요청, future)
         self.tf = Buffer()
@@ -64,8 +68,14 @@ class AisleFirst(Node):
     def now_s(self) -> float:
         return self.get_clock().now().nanoseconds * 1e-9
 
-    def _on_plan(self, _msg):
+    def _on_plan(self, msg):
         self.last_plan_t = self.now_s()
+        if not msg.poses:
+            return
+        end = msg.poses[-1].pose.position
+        if goal_changed(self.goal, (end.x, end.y), self.rules):
+            self.new_goal = True
+        self.goal = (end.x, end.y)
 
     def position(self):
         try:
@@ -80,8 +90,10 @@ class AisleFirst(Node):
         now = self.now_s()
         xy = self.position()
         before = self.state.mode
+        new_goal, self.new_goal = self.new_goal, False
         self.state, action = step(self.state, now, xy,
-                                  navigating(self.last_plan_t, now, self.rules), self.rules)
+                                  navigating(self.last_plan_t, now, self.rules), self.rules,
+                                  new_goal=new_goal)
         if action == OBSTACLES_ON:
             self.ops = [("set", True)]
         elif action == OBSTACLES_OFF:

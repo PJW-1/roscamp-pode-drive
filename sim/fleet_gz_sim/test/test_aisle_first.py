@@ -7,6 +7,7 @@ from fleet_gz_sim.aisle_first import (
     OBSTACLES_ON,
     Rules,
     State,
+    goal_changed,
     log_line,
     navigating,
     step,
@@ -116,3 +117,30 @@ def test_navigating_means_a_plan_within_the_timeout():
 
 def test_stall_stays_below_the_controller_progress_timeout():
     assert RULES.stall_s < 10.0 and RULES.progress_m == 0.05
+
+
+def test_a_new_goal_ends_the_detour_at_once():
+    state, _ = run(still(0.0, 5.0))
+    assert state.mode == DETOUR
+    state, action = step(state, 5.5, (1.0, 0.5), True, RULES, new_goal=True)
+    assert state.mode == AISLE and action == OBSTACLES_OFF
+    assert state.ref == (1.0, 0.5) and state.ref_t == 5.5
+    assert log_line(state, (1.0, 0.5)) == (
+        "aisle_first: back to aisle mode (new goal) at (1.00, 0.50)")
+
+
+def test_a_new_goal_restarts_the_stall_count_in_aisle_mode():
+    state, _ = run(still(0.0, 4.5))
+    state, action = step(state, 4.8, (1.0, 0.5), True, RULES, new_goal=True)
+    assert state.mode == AISLE and action == NONE and state.ref_t == 4.8
+    state, actions = run(still(5.0, 9.5), state)
+    assert state.mode == AISLE and set(actions) == {NONE}
+    state, action = step(state, 9.8, (1.0, 0.5), True, RULES)
+    assert state.mode == DETOUR and action == OBSTACLES_ON
+
+
+def test_the_goal_changed_only_when_the_path_end_really_moved():
+    assert not goal_changed(None, (1.0, 0.5), RULES)  # 첫 경로
+    assert not goal_changed((1.0, 0.5), None, RULES)  # 빈 경로
+    assert not goal_changed((1.0, 0.5), (1.0 + RULES.goal_change_m, 0.5), RULES)
+    assert goal_changed((1.0, 0.5), (1.0 + RULES.goal_change_m + 0.01, 0.5), RULES)
