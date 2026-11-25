@@ -61,6 +61,25 @@ parser.add_argument(
     default=1.0,
     help="weight of the mirror loss with --symmetry loss|both (run_config.MIRROR_LOSS_COEFF)",
 )
+parser.add_argument(
+    "--caps_temporal",
+    type=float,
+    default=0.0,
+    help="CAPS temporal loss weight (goal_reach/caps_ppo.py): MSE of the action mean at t and t+1; "
+    "all --caps_* 0 keeps the stock rsl_rl PPO",
+)
+parser.add_argument(
+    "--caps_spatial",
+    type=float,
+    default=0.0,
+    help="CAPS spatial loss weight: MSE of the action mean at obs and at obs + noise",
+)
+parser.add_argument(
+    "--caps_sigma",
+    type=float,
+    default=0.0,
+    help="std of the --caps_spatial noise, in units of the actor's normalised observations",
+)
 add_launcher_args(parser)
 args_cli = parser.parse_args()
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -75,6 +94,8 @@ def main():
 
     init_std = run_config.parse_init_std(args_cli.init_std)
     sym_settings = run_config.symmetry_settings(args_cli.symmetry, args_cli.mirror_loss_coeff)
+    caps = (args_cli.caps_temporal, args_cli.caps_spatial, args_cli.caps_sigma)
+    caps_settings = run_config.caps_settings(*caps)
     if max(init_std) > 0 and (args_cli.resume or not args_cli.init):
         raise SystemExit("--init_std needs --init and no --resume (a resumed chunk keeps its std)")
     task_over, arena_over = arena.split_overrides(args_cli.set)
@@ -117,6 +138,10 @@ def main():
             agent_cfg.algorithm.symmetry_cfg = RslRlSymmetryCfg(
                 data_augmentation_func=symmetry.augment, **sym_settings
             )
+        if caps_settings:
+            # CAPS: 행동 평균의 매끄러움 손실을 더하는 PPO 하위 클래스 (계수가 0 이면 PPO 그대로)
+            for key, value in caps_settings.items():
+                setattr(agent_cfg.algorithm, key, value)
         agent_cfg = handle_deprecated_rsl_rl_cfg(agent_cfg, check_rsl_rl_version())
         env_cfg.metrics_every = agent_cfg.num_steps_per_env
         # 설정 스냅샷: 학습 전에 써서 중간에 멈춘 실행도 무엇으로 돌았는지 남는다
@@ -131,6 +156,9 @@ def main():
             init_std=args_cli.init_std,
             symmetry=args_cli.symmetry,
             mirror_loss_coeff=args_cli.mirror_loss_coeff,
+            caps_temporal=caps[0],
+            caps_spatial=caps[1],
+            caps_sigma=caps[2],
             task_spec=arena.ts.make_spec(task_over),
             arena_spec=arena.make_arena_spec(arena_over),
             agent=agent_cfg.to_dict() if hasattr(agent_cfg, "to_dict") else dict(agent_cfg),
@@ -173,6 +201,7 @@ def main():
             "init": args_cli.init,
             "init_std": list(init_std),
             "symmetry": args_cli.symmetry,
+            "caps": run_config.caps_record(*caps),
             "run_config_sha256": config_sha,
             "spec_overrides": task_over,
             "arena_overrides": arena_over,
