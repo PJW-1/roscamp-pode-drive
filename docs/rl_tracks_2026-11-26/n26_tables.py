@@ -8,12 +8,15 @@ env 번호로 짝짓는다.
 
 cells.csv       끝난 평가마다 한 줄: 결과 비율, 충돌의 가장 가까운 것, 스침, 분당 w 반전,
                 성공 시간 비
-paired.csv      COMPARISONS의 (정책, 칸) 쌍마다 짝 차이(%p)와 SE: 성공, 충돌, 시간 초과
-                (에피소드별 충돌 원인은 episodes.npz에 없어 mover·robot 충돌 짝 차이는 없다)
+paired.csv      COMPARISONS의 (정책, 칸) 쌍마다 짝 차이(%p)와 SE: 성공, 충돌, 시간 초과,
+                두 실행 모두 episodes.npz에 hit_kind가 있으면 충돌 종류별 짝 차이
 regression.csv  e_acd3_rand와 e_acd3_rand_chk, e_acd3_rand_chk2: 결과 코드가 다른 에피소드 수와 짝 차이
 training.csv    학습마다 t_ctrl과 다른 설정, 걸린 시간
 curve.csv       학습마다 저장된 체크포인트 반복에서 metrics.csv 값과 행동 std (v, w)
 scenarios.csv   corner·tee·entry 평가와 같은 정책의 rand 줄: 결과, 충돌 원인, 만남 지표
+gap.csv         eval.json에 by_gap이 있는 평가마다: 통로 안 통과 비율과 틈 칸별 성공
+gap_paired.csv  aisle·demo1·demo2 비교마다 경로 위 통로 상자 에피소드만의 짝 차이, 전체와 틈 칸별
+crossing.csv    eval.json에 by_crossing이 있는 평가마다: 건넘 무리별 결과와 경로 위-밖 충돌 차이
 """
 
 import csv
@@ -27,6 +30,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "learning" / "store_arena"))
 from acd_tables import noise, r4, same_episodes  # noqa: E402
+import box_gap as bg  # noqa: E402
 from ceiling import load  # noqa: E402
 from report_tables import paired, write  # noqa: E402
 
@@ -34,17 +38,29 @@ from report_tables import paired, write  # noqa: E402
 BASE_PAIRS = [("std", "ctrl"), ("ctrl", "acd3"), ("sysid", "ctrl"), ("dyn", "ctrl"),
               ("gam", "std"), ("std", "acd3"), ("sysid", "acd3"), ("dyn", "acd3"),
               ("gam", "acd3")]
+# 데모 조건 칸과 데모 섞어 학습한 정책 (demo의 대조는 ctrl, demostd의 대조는 std)
+DEMO_CELLS = ("aisle", "demo1", "demo2")
+DEMO_PAIRS = [("demo", "ctrl"), ("demo", "acd3"), ("demostd", "std"), ("demostd", "demo"),
+              ("ctrl", "acd3"), ("std", "acd3"), ("std", "ctrl")]
+DEMO_RAND_PAIRS = [("demo", "ctrl"), ("demostd", "std"), ("demostd", "demo"), ("demo", "acd3"),
+                   ("demostd", "acd3")]
 COMPARISONS = (
     [(a, c, b, c) for c in ("rand", "head") for a, b in BASE_PAIRS]
     + [("sysid", "realrand", "ctrl", "realrand"), ("ctrl", "realrand", "acd3", "realrand")]
     # 응답 범위가 한 값이면 난수를 쓰지 않아 realrand와 rand는 같은 에피소드다
     + [(p, "realrand", p, "rand") for p in ("acd3", "ctrl", "sysid")]
+    + [(a, c, b, c) for c in ("rand", "head") for a, b in DEMO_RAND_PAIRS]
+    + [(a, c, b, c) for c in DEMO_CELLS for a, b in DEMO_PAIRS]
 )
 # (기준, 다시 돌린 것): 같은 체크포인트·같은 seed를 병합 코드로 다시 돌린 칸
 REGRESSION = (("e_acd3_rand", "e_acd3_rand_chk"), ("e_acd3_rand", "e_acd3_rand_chk2"))
 SCENARIOS = ("corner", "tee", "entry")
 HIT_KINDS = ("wall_shelf", "box", "mover", "robot")
 CELL_RE = re.compile(r"^e_([a-z0-9]+)_(.+)$")
+# 틈 칸 이름은 box_gap.bins에서: 첫 칸은 통로 상자 없음, 나머지가 틈 칸
+GAP_NONE, *GAP_BINS = bg.bins(np.zeros(0))
+CROSS_GROUPS = ("cross_on_path", "cross_off_path", "no_cross")
+KIND_KO = {"wall_shelf": "벽·선반", "box": "상자", "mover": "사람·카트", "robot": "로봇"}
 
 
 # ---- 큐 상태: tag의 마지막 줄이 exit=0인 실행만 ----
@@ -147,7 +163,54 @@ def pair_row(ev, pa, ca, pb, cb):
     for key in ("collision", "timeout"):
         m, se = outcome_diff(da, db, key)
         row.update({f"{key}_diff_pp": r4(m), f"{key}_se_pp": r4(se), f"{key}_noise": noise(m, se)})
+    row.update(kind_diffs(da, db))
     return row
+
+
+def ep_field(d, key):
+    """env 번호 순서로 정렬한 episodes.npz 항목, 없으면 None."""
+    z = np.load(d + "/episodes.npz")
+    if key not in z.files:
+        return None
+    return z[key][np.argsort(z["env"], kind="stable")]
+
+
+def mean_se(x):
+    """에피소드별 차이 x의 (평균 %p, SE %p, 2SE 표시). 비면 모두 빈칸, 하나면 SE 빈칸."""
+    if len(x) == 0:
+        return "", "", ""
+    m = 100 * float(np.mean(x))
+    if len(x) < 2:
+        return r4(m), "", ""
+    se = 100 * float(np.std(x, ddof=1)) / np.sqrt(len(x))
+    return r4(m), r4(se), noise(m, se)
+
+
+def collided_kind(d):
+    """에피소드별 (충돌 여부, 충돌 순간 가장 가까운 것의 이름), 종류 목록. hit_kind·hit_kinds가 없으면 None."""
+    z = np.load(d + "/episodes.npz")
+    if "hit_kind" not in z.files or "hit_kinds" not in z.files:
+        return None
+    kind = ep_field(d, "hit_kind")
+    names = [str(k) for k in z["hit_kinds"]]
+    _, code, keys = load(d)
+    kind = np.asarray(kind, dtype=int)
+    ok = (kind >= 0) & (kind < len(names))  # 범위 밖 번호는 이름 없음으로
+    label = np.array(names + [""])[np.where(ok, kind, len(names))]
+    return code == keys.index("collision"), label, names
+
+
+def kind_diffs(da, db):
+    """종류 K마다 (a가 K와 충돌) - (b가 K와 충돌)의 짝 차이. 한쪽이라도 hit_kind가 없으면 빈 dict."""
+    a, b = collided_kind(da), collided_kind(db)
+    if a is None or b is None:
+        return {}
+    out = {}
+    for k in a[2] + [k for k in b[2] if k not in a[2]]:
+        x = (a[0] & (a[1] == k)).astype(float) - (b[0] & (b[1] == k)).astype(float)
+        m, se, lab = mean_se(x)
+        out.update({f"coll_{k}_diff_pp": m, f"coll_{k}_se_pp": se, f"coll_{k}_noise": lab})
+    return out
 
 
 def pairs(ev):
@@ -304,6 +367,106 @@ def scenarios(ev):
     return rows
 
 
+# ---- 6. 통로 상자 틈 ----
+def gkey(name):
+    return "gap_" + name.replace(" ", "")
+
+
+def gap_row(pol, cell, j):
+    ia = j.get("in_aisle_pass") or {}
+    n, p = ia.get("episodes", 0), ia.get("rate")
+    se = 100 * np.sqrt(p * (1 - p) / n) if n and p is not None else None
+    row = {"policy": pol, "cell": cell, "aisle_episodes": n, "in_aisle_pass_pct": pct(p),
+           "in_aisle_pass_se_pp": "" if se is None else r4(se)}
+    for name, r in j["by_gap"].items():
+        if name == GAP_NONE:
+            continue
+        row[gkey(name) + "_n"] = r["episodes"]
+        row[gkey(name) + "_success_pct"] = pct(r["success"]) if r["episodes"] else ""
+    return row
+
+
+def gaps(ev):
+    rows = []
+    for (p, c), d in sorted(ev.items()):
+        j = json.load(open(d + "/eval.json", encoding="utf-8"))
+        if "by_gap" in j:
+            rows.append(gap_row(p, c, j))
+    return rows
+
+
+def gap_pair_rows(da, db, base):
+    """두 실행 모두 box_gap_m이 유한한 에피소드의 성공·충돌 짝 차이: 전체와 a의 틈 칸별."""
+    base["same_episodes"], bad = same_label(da, db)
+    if bad:
+        return [base]
+    ga, gb = ep_field(da, "box_gap_m").astype(float), ep_field(db, "box_gap_m").astype(float)
+    fa, fb = np.isfinite(ga), np.isfinite(gb)
+    both = fa & fb
+    if not np.array_equal(fa, fb):
+        base["gap_mask"] = f"differs (a only {int((fa & ~fb).sum())}, b only {int((fb & ~fa).sum())})"
+    elif not np.array_equal(ga[both], gb[both]):
+        base["gap_mask"] = f"widths differ in {int((ga[both] != gb[both]).sum())}"
+    else:
+        base["gap_mask"] = "same"
+    _, ca, ka = load(da)
+    _, cb, kb = load(db)
+    sels = [("all", both)] + [(name, both & s)
+                              for name, s in bg.bins(np.where(both, ga, np.nan)).items()
+                              if name != GAP_NONE]
+    rows = []
+    for name, sel in sels:
+        row = {**base, "width_bin": name, "n": int(sel.sum())}
+        for key in ("success", "collision"):
+            x = (ca[sel] == ka.index(key)).astype(float) - (cb[sel] == kb.index(key)).astype(float)
+            m, se, lab = mean_se(x)
+            row.update({f"{key}_diff_pp": m, f"{key}_se_pp": se, f"{key}_noise": lab})
+        rows.append(row)
+    return rows
+
+
+def gap_pairs(ev):
+    rows = []
+    for pa, ca, pb, cb in COMPARISONS:
+        if ca not in DEMO_CELLS or (pa, ca) not in ev or (pb, cb) not in ev:
+            continue
+        da, db = ev[(pa, ca)], ev[(pb, cb)]
+        if ep_field(da, "box_gap_m") is None or ep_field(db, "box_gap_m") is None:
+            continue
+        rows += gap_pair_rows(da, db, {"policy": pa, "cell": ca, "vs_policy": pb, "vs_cell": cb})
+    return rows
+
+
+# ---- 7. 건너는 사람 ----
+def crossing_row(pol, cell, bc):
+    row = {"policy": pol, "cell": cell}
+    for g in CROSS_GROUPS:
+        r = bc.get(g, {})
+        n = r.get("episodes", 0)
+        row[f"{g}_n"] = n
+        for k in ("success", "collision", "timeout"):
+            row[f"{g}_{k}_pct"] = pct(r[k]) if n else ""
+    on, off = bc.get("cross_on_path", {}), bc.get("cross_off_path", {})
+    n1, n2 = on.get("episodes", 0), off.get("episodes", 0)
+    row.update(coll_on_minus_off_pp="", coll_on_minus_off_se_pp="", coll_on_minus_off_noise="")
+    if n1 and n2:  # 다른 에피소드라 짝 없이 두 비율의 독립 SE
+        p1, p2 = on["collision"], off["collision"]
+        m = 100 * (p1 - p2)
+        se = 100 * np.sqrt(p1 * (1 - p1) / n1 + p2 * (1 - p2) / n2)
+        row.update(coll_on_minus_off_pp=r4(m), coll_on_minus_off_se_pp=r4(se),
+                   coll_on_minus_off_noise=noise(m, se))
+    return row
+
+
+def crossings(ev):
+    rows = []
+    for (p, c), d in sorted(ev.items()):
+        bc = json.load(open(d + "/eval.json", encoding="utf-8")).get("by_crossing")
+        if bc is not None:
+            rows.append(crossing_row(p, c, bc))
+    return rows
+
+
 # ---- Markdown ----
 HEAD = {
     "policy": "정책", "cell": "칸", "episodes": "에피소드", "success_pct": "성공 %",
@@ -326,7 +489,20 @@ HEAD = {
     "gap_p50_m": "p50 m", "gap_min_m": "최소 m", "share_touching": "닿은 비율",
     "encounter_episodes": "만남 에피소드", "encounter_s_mean": "만남 시각 평균 s",
     "deadlocks": "교착", "deadlock_rate": "교착률",
+    "aisle_episodes": "경로 위 통로 상자 에피소드", "in_aisle_pass_pct": "통로 안 통과 %",
+    "in_aisle_pass_se_pp": "그 SE %p", "gap_mask": "상자 에피소드 일치", "width_bin": "틈 칸 m",
+    "coll_on_minus_off_pp": "충돌 경로 위-밖 %p", "coll_on_minus_off_se_pp": "그 SE",
+    "coll_on_minus_off_noise": "2SE",
 }
+for _b in GAP_BINS:
+    HEAD[gkey(_b) + "_n"] = f"틈 {_b} m 수"
+    HEAD[gkey(_b) + "_success_pct"] = f"틈 {_b} m 성공 %"
+for _g, _ko in zip(CROSS_GROUPS, ("건넘 경로 위", "건넘 경로 밖", "건넘 없음"), strict=True):
+    HEAD.update({f"{_g}_n": f"{_ko} 수", f"{_g}_success_pct": f"{_ko} 성공 %",
+                 f"{_g}_collision_pct": f"{_ko} 충돌 %", f"{_g}_timeout_pct": f"{_ko} 시간 초과 %"})
+for _k, _ko in KIND_KO.items():
+    HEAD.update({f"coll_{_k}_diff_pp": f"{_ko} 충돌 차 %p", f"coll_{_k}_se_pp": f"{_ko} 충돌 SE",
+                 f"coll_{_k}_noise": f"{_ko} 충돌 2SE"})
 
 
 def md_table(rows):
@@ -346,8 +522,8 @@ SECTIONS = [
     ("paired", "2. 짝 비교 (a - 대조)",
      "에피소드별 짝 차이와 SE. 2SE가 outside면 |차이| > 2 SE. "
      "같은 에피소드 확인은 시작 상태가 저장된 추적 env(괄호 안 수)와 env 번호만 본다. "
-     "에피소드별 충돌 원인(가장 가까운 것)은 episodes.npz에 저장되지 않아 "
-     "사람·카트, 로봇 충돌의 짝 차이는 넣지 않았다."),
+     "종류별 충돌 차는 (충돌했고 그 순간 로봇 중심에 가장 가까운 것이 그 종류) 여부의 에피소드별 "
+     "짝 차이이며, 두 실행 모두 episodes.npz에 hit_kind가 있을 때만 적고 없는 실행이 낀 줄은 빈칸이다."),
     ("regression", "3. 회귀 확인 (같은 체크포인트, 같은 seed, 병합 코드)", ""),
     ("training", "4. 학습 설정", "걸린 시간은 queue_status.txt의 wall_s."),
     ("curve", "4b. 학습 곡선",
@@ -356,6 +532,20 @@ SECTIONS = [
      "std는 저장된 model_<누적 반복>.pt의 distribution.std_param."),
     ("scenarios", "5. 시나리오",
      "로봇 충돌 rand 대비 차이는 다른 에피소드라 짝이 아니며, SE는 두 비율의 독립 SE다."),
+    ("gap", "6. 통로 상자 틈별 통과",
+     "통로 안 통과 %는 전역 경로 위에 통로 상자가 있는 에피소드(경로 위 통로 상자 에피소드) 중 "
+     "성공 비율이며, 궤적이 통로 안에 머물렀는지 확인한 값이 아니다. SE는 이항 SE sqrt(p(1-p)/n). "
+     "틈은 경로 위 통로 상자 옆 지나갈 폭 중 가장 작은 값이고 칸 경계는 box_gap.EDGES. "
+     "에피소드가 없는 칸의 성공 %는 빈칸."),
+    ("gap_paired", "6b. 통로 상자 에피소드 짝 비교 (a - 대조)",
+     "aisle·demo1·demo2 비교에서 두 실행 모두 box_gap_m이 유한한 에피소드만 짝지은 성공·충돌 "
+     "차이(%p)와 SE. 틈 칸은 a 실행의 틈으로 나눈다. 상자 에피소드 일치가 same이 아니면 두 실행에서 "
+     "경로 위 통로 상자 에피소드(또는 그 틈)가 달라, 양쪽 모두 유한한 에피소드만 쓴 값이다. "
+     "2SE는 2절과 같다. 에피소드가 없는 칸은 빈칸, 1개면 SE가 빈칸."),
+    ("crossing", "7. 건너는 사람",
+     "eval.json의 by_crossing: 나온 사람의 건넘 구간이 전역 경로를 덮음(경로 위), 덮지 않음(경로 밖), "
+     "건넘 없음으로 나눈 결과 비율. 충돌 경로 위-밖 차이는 서로 다른 에피소드 사이의 차이라 짝 "
+     "차이가 아니며, SE는 두 비율의 독립 SE다. 에피소드가 없는 무리는 빈칸."),
 ]
 
 
@@ -373,6 +563,9 @@ def main(argv):
         "training": train_rows,
         "curve": curve,
         "scenarios": scenarios(ev),
+        "gap": gaps(ev),
+        "gap_paired": gap_pairs(ev),
+        "crossing": crossings(ev),
     }
     names = ", ".join(sorted(done)) or "없음"
     md = ["# n26 표\n", f"실행 폴더 `{runs}`, 끝난 실행(exit=0): {names}\n"]

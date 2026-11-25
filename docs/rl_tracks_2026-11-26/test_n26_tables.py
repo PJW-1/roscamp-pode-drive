@@ -1,3 +1,4 @@
+import csv
 import json
 import os
 
@@ -8,13 +9,13 @@ import pytest
 KEYS = np.array(["success", "collision", "oob", "timeout"])
 
 
-def fake_eval(runs, tag, code, route_shift=0):
+def fake_eval(runs, tag, code, route_shift=0, npz=None, extra=None):
     d = runs / tag
     os.makedirs(d)
     code = np.array(code)
     n = len(code)
     np.savez(d / "episodes.npz", env=np.arange(n), code=code, keys=KEYS,
-             flips=np.zeros(n), length_s=np.full(n, 10.0))
+             flips=np.zeros(n), length_s=np.full(n, 10.0), **(npz or {}))
     np.savez(d / "rollouts.npz", route=np.arange(4)[None, :] + route_shift + np.zeros((3, 4), int),
              mover_xy=np.zeros((3, 4, 2, 2)), robot_xy=np.zeros((3, 4, 2, 2)))
     rates = {k: float((code == i).mean()) for i, k in enumerate(KEYS)}
@@ -22,7 +23,8 @@ def fake_eval(runs, tag, code, route_shift=0):
                "collisions_by_nearest": {"wall_shelf": 0, "box": 0, "mover": 0,
                                          "robot": int((code == 1).sum())},
                "collisions_graze_only": 0, "w_flips_per_min": 40.0,
-               "success_time_over_path_at_vmax_mean": 1.2}, open(d / "eval.json", "w"))
+               "success_time_over_path_at_vmax_mean": 1.2, **(extra or {})},
+              open(d / "eval.json", "w"))
 
 
 def status(runs, lines):
@@ -119,3 +121,169 @@ def test_regression_row(tmp_path):
     assert row["success_diff_pp"] == pytest.approx(25.0)  # chk - rand
     assert row["from_collision_changed"] == 1 and row["from_timeout_changed"] == 1
     assert ("acd3", "rand_chk") in {(r["policy"], r["cell"]) for r in t["cells"]}
+
+
+OLD_PAIR_KEYS = {"policy", "cell", "vs_policy", "vs_cell", "n", "same_episodes",
+                 "success_diff_pp", "success_se_pp", "success_noise", "collision_diff_pp",
+                 "collision_se_pp", "collision_noise", "timeout_diff_pp", "timeout_se_pp",
+                 "timeout_noise"}
+KINDS = np.array(["wall_shelf", "box", "mover", "robot"])
+GAPS = [np.nan, 0.14, 0.15, 0.20, 0.30, np.nan]
+
+
+def read_csv(path):
+    with open(path, encoding="utf-8") as f:
+        return list(csv.DictReader(f))
+
+
+def test_runs_without_new_keys_keep_the_old_output(tmp_path):
+    fake_eval(tmp_path, "e_ctrl_aisle", [1, 1, 0, 3])
+    fake_eval(tmp_path, "e_demo_aisle", [0, 0, 0, 0])
+    status(tmp_path, ["e_ctrl_aisle exit=0", "e_demo_aisle exit=0"])
+    t = nt.main([str(tmp_path), str(tmp_path / "out")])
+    (row,) = t["paired"]
+    assert (row["policy"], row["vs_policy"], row["cell"]) == ("demo", "ctrl", "aisle")
+    assert set(row) == OLD_PAIR_KEYS
+    assert t["gap"] == [] and t["gap_paired"] == [] and t["crossing"] == []
+
+
+def test_new_comparisons_are_listed():
+    c = set(nt.COMPARISONS)
+    for cell in ("aisle", "demo1", "demo2"):
+        for a, b in (("demo", "ctrl"), ("demo", "acd3"), ("demostd", "std"), ("demostd", "demo"),
+                     ("ctrl", "acd3"), ("std", "acd3"), ("std", "ctrl")):
+            assert (a, cell, b, cell) in c
+    for cell in ("rand", "head"):
+        for a, b in (("demo", "ctrl"), ("demostd", "std"), ("demostd", "demo"),
+                     ("demo", "acd3"), ("demostd", "acd3")):
+            assert (a, cell, b, cell) in c
+    assert len(c) == len(nt.COMPARISONS)
+
+
+def test_collision_kind_paired_diff_and_missing_key(tmp_path):
+    fake_eval(tmp_path, "e_ctrl_rand", [1, 1, 0, 1],
+              npz={"hit_kind": np.array([3, 1, 0, 2]), "hit_kinds": KINDS})
+    fake_eval(tmp_path, "e_std_rand", [1, 0, 0, 0],
+              npz={"hit_kind": np.array([1, 0, 0, 0]), "hit_kinds": KINDS})
+    fake_eval(tmp_path, "e_acd3_rand", [0, 0, 0, 0])
+    status(tmp_path, ["e_ctrl_rand exit=0", "e_std_rand exit=0", "e_acd3_rand exit=0"])
+    t = nt.main([str(tmp_path), str(tmp_path / "out")])
+    rows = {(r["policy"], r["vs_policy"]): r for r in t["paired"]}
+    r = rows[("std", "ctrl")]
+    assert r["coll_robot_diff_pp"] == pytest.approx(-25.0)
+    assert r["coll_mover_diff_pp"] == pytest.approx(-25.0)
+    assert r["coll_box_diff_pp"] == pytest.approx(0.0)
+    assert r["coll_box_se_pp"] == pytest.approx(round(100 * np.sqrt(2 / 3) / 2, 4))
+    assert (r["coll_wall_shelf_diff_pp"], r["coll_wall_shelf_noise"]) == (0.0, "inside")
+    assert set(rows[("ctrl", "acd3")]) == OLD_PAIR_KEYS
+    csv_rows = {(c["policy"], c["vs_policy"]): c
+                for c in read_csv(tmp_path / "out" / "paired.csv")}
+    assert csv_rows[("ctrl", "acd3")]["coll_robot_diff_pp"] == ""
+    md = (tmp_path / "out" / "tables.md").read_text(encoding="utf-8")
+    assert "로봇 충돌 차 %p" in md
+
+
+def test_gap_table_with_empty_bins_and_no_aisle_box(tmp_path):
+    code = [0, 0, 1, 3, 0, 0]
+    keys = list(KEYS)
+    gaps = np.array(GAPS)
+    extra = {"by_gap": nt.bg.by_gap(gaps, code, keys), "in_aisle_pass": nt.bg.in_aisle_pass(gaps, code)}
+    fake_eval(tmp_path, "e_demo_aisle", code, extra=extra)
+    none = np.full(6, np.nan)
+    fake_eval(tmp_path, "e_demo_rand", code, extra={
+        "by_gap": nt.bg.by_gap(none, code, keys), "in_aisle_pass": nt.bg.in_aisle_pass(none, code)})
+    status(tmp_path, ["e_demo_aisle exit=0", "e_demo_rand exit=0"])
+    t = nt.main([str(tmp_path), str(tmp_path / "out")])
+    a, r = t["gap"]
+    assert (a["cell"], a["aisle_episodes"], a["in_aisle_pass_pct"]) == ("aisle", 4, 50.0)
+    assert a["in_aisle_pass_se_pp"] == pytest.approx(25.0)
+    assert (a["gap_<0.13_n"], a["gap_<0.13_success_pct"]) == (0, "")
+    assert (a["gap_0.13-0.16_n"], a["gap_0.13-0.16_success_pct"]) == (2, 50.0)
+    assert (a["gap_0.19-0.22_n"], a["gap_0.19-0.22_success_pct"]) == (1, 0.0)
+    assert (a["gap_>=0.25_n"], a["gap_>=0.25_success_pct"]) == (1, 100.0)
+    assert "gap_no aisle box_n" not in a and "gap_noaislebox_n" not in a
+    assert (r["aisle_episodes"], r["in_aisle_pass_pct"], r["in_aisle_pass_se_pp"]) == (0, "", "")
+    md = (tmp_path / "out" / "tables.md").read_text(encoding="utf-8")
+    assert "통로 안 통과 %" in md and "틈 0.13-0.16 m 성공 %" in md
+
+
+def test_gap_paired_overall_and_by_bin(tmp_path):
+    g = {"box_gap_m": np.array(GAPS)}
+    fake_eval(tmp_path, "e_demo_aisle", [0, 0, 0, 0, 0, 0], npz=g)
+    fake_eval(tmp_path, "e_ctrl_aisle", [0, 0, 1, 3, 0, 0], npz=g)
+    status(tmp_path, ["e_demo_aisle exit=0", "e_ctrl_aisle exit=0"])
+    rows = nt.main([str(tmp_path), str(tmp_path / "out")])["gap_paired"]
+    by = {r["width_bin"]: r for r in rows}
+    assert list(by) == ["all"] + nt.GAP_BINS
+    a = by["all"]
+    assert (a["policy"], a["vs_policy"], a["gap_mask"], a["n"]) == ("demo", "ctrl", "same", 4)
+    assert a["success_diff_pp"] == pytest.approx(50.0)
+    assert a["success_se_pp"] == pytest.approx(round(100 * np.std([0, 1, 1, 0], ddof=1) / 2, 4))
+    assert a["collision_diff_pp"] == pytest.approx(-25.0)
+    assert (by["0.13-0.16"]["n"], by["0.13-0.16"]["success_diff_pp"]) == (2, 50.0)
+    assert (by["< 0.13"]["n"], by["< 0.13"]["success_diff_pp"], by["< 0.13"]["success_se_pp"]) == (
+        0, "", "")
+    assert (by["0.19-0.22"]["success_diff_pp"], by["0.19-0.22"]["success_se_pp"]) == (100.0, "")
+
+
+def test_gap_paired_reports_unequal_masks(tmp_path):
+    gb = np.array(GAPS)
+    gb[4] = np.nan
+    fake_eval(tmp_path, "e_demo_aisle", [0] * 6, npz={"box_gap_m": np.array(GAPS)})
+    fake_eval(tmp_path, "e_ctrl_aisle", [0, 0, 1, 3, 0, 0], npz={"box_gap_m": gb})
+    fake_eval(tmp_path, "e_acd3_aisle", [0] * 6)  # box_gap_m 없음: 그 쌍은 빠짐
+    status(tmp_path, ["e_demo_aisle exit=0", "e_ctrl_aisle exit=0", "e_acd3_aisle exit=0"])
+    rows = nt.main([str(tmp_path), str(tmp_path / "out")])["gap_paired"]
+    assert {(r["policy"], r["vs_policy"]) for r in rows} == {("demo", "ctrl")}
+    a = rows[0]
+    assert a["gap_mask"] == "differs (a only 1, b only 0)"
+    assert a["n"] == 3 and a["success_diff_pp"] == pytest.approx(round(200 / 3, 4))
+
+
+def test_crossing_table(tmp_path):
+    bc = {"cross_on_path": {"episodes": 10, "success": 0.5, "collision": 0.4, "oob": 0.0,
+                            "timeout": 0.1},
+          "cross_off_path": {"episodes": 20, "success": 0.9, "collision": 0.1, "oob": 0.0,
+                             "timeout": 0.0},
+          "no_cross": {"episodes": 0, "success": 0.0, "collision": 0.0, "oob": 0.0,
+                       "timeout": 0.0}}
+    fake_eval(tmp_path, "e_demo_demo1", [0, 1], extra={"by_crossing": bc})
+    status(tmp_path, ["e_demo_demo1 exit=0"])
+    (r,) = nt.main([str(tmp_path), str(tmp_path / "out")])["crossing"]
+    assert (r["cross_on_path_n"], r["cross_on_path_collision_pct"]) == (10, 40.0)
+    assert r["cross_off_path_success_pct"] == 90.0
+    assert (r["no_cross_n"], r["no_cross_success_pct"]) == (0, "")
+    assert r["coll_on_minus_off_pp"] == pytest.approx(30.0)
+    assert r["coll_on_minus_off_se_pp"] == pytest.approx(
+        round(100 * np.sqrt(0.4 * 0.6 / 10 + 0.1 * 0.9 / 20), 4))
+    assert r["coll_on_minus_off_noise"] == "inside"
+
+
+def test_hit_kind_without_kind_names_leaves_columns_empty(tmp_path):
+    fake_eval(tmp_path, "e_ctrl_rand", [1, 0], npz={"hit_kind": np.array([3, 0])})
+    fake_eval(tmp_path, "e_std_rand", [0, 0],
+              npz={"hit_kind": np.array([0, 0]), "hit_kinds": KINDS})
+    status(tmp_path, ["e_ctrl_rand exit=0", "e_std_rand exit=0"])
+    (row,) = nt.main([str(tmp_path), str(tmp_path / "out")])["paired"]
+    assert set(row) == OLD_PAIR_KEYS
+
+
+def test_new_fields_follow_env_order(tmp_path):
+    # ctrl은 env 순서를 뒤집어 저장: 짝은 env 번호로 맞춰져야 한다
+    fake_eval(tmp_path, "e_demo_aisle", [0, 0, 0, 0],
+              npz={"box_gap_m": np.array([np.nan, 0.14, 0.14, 0.30]),
+                   "hit_kind": np.zeros(4, int), "hit_kinds": KINDS})
+    d = tmp_path / "e_ctrl_aisle"
+    fake_eval(tmp_path, "e_ctrl_aisle", [0, 0, 0, 0])
+    np.savez(d / "episodes.npz", env=np.array([3, 2, 1, 0]), code=np.array([1, 0, 0, 0]),
+             keys=KEYS, flips=np.zeros(4), length_s=np.full(4, 10.0),
+             box_gap_m=np.array([0.30, 0.14, 0.14, np.nan]),
+             hit_kind=np.array([3, 0, 0, 0]), hit_kinds=KINDS)
+    status(tmp_path, ["e_demo_aisle exit=0", "e_ctrl_aisle exit=0"])
+    t = nt.main([str(tmp_path), str(tmp_path / "out")])
+    (row,) = t["paired"]
+    assert row["coll_robot_diff_pp"] == pytest.approx(-25.0)
+    by = {r["width_bin"]: r for r in t["gap_paired"]}
+    assert by["all"]["gap_mask"] == "same"
+    assert (by[">= 0.25"]["n"], by[">= 0.25"]["collision_diff_pp"]) == (1, -100.0)
+    assert (by["0.13-0.16"]["n"], by["0.13-0.16"]["collision_diff_pp"]) == (2, 0.0)
