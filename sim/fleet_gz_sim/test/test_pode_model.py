@@ -89,6 +89,13 @@ def test_wheels_whose_joints_sit_on_the_body_line_still_go_to_their_own_side():
     assert ys == pytest.approx([0.04805, -0.04805])
 
 
+def test_a_turned_wheel_joint_is_refused():
+    urdf = _toy("ball+", "ball-").replace("<origin xyz='0 0.04055 0'/>",
+                                          "<origin xyz='0 0.04055 0' rpy='0 0 3.14159'/>")
+    with pytest.raises(ValueError, match="turned"):
+        pode_model.thin_wheels(urdf)
+
+
 def test_each_wheel_needs_its_own_ball():
     with pytest.raises(ValueError):
         pode_model.thin_wheels(_toy("ball+,ball+", ""))

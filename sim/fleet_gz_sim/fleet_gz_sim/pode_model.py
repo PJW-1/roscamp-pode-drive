@@ -23,7 +23,9 @@ def _joint_y(root, link_name: str) -> float:
     for joint in root.iter("joint"):
         child, origin = joint.find("child"), joint.find("origin")
         if child is not None and child.get("link") == link_name:
-            return float(origin.get("xyz").split()[1]) if origin is not None else 0.0
+            if origin is not None and any(float(v) for v in origin.get("rpy", "0 0 0").split()):
+                raise ValueError(f"the joint of {link_name} is turned")
+            return float(origin.get("xyz", "0 0 0").split()[1]) if origin is not None else 0.0
     raise ValueError(f"no joint holds {link_name}")
 
 

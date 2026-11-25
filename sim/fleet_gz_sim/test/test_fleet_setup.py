@@ -231,6 +231,20 @@ def test_an_aisle_is_only_as_long_as_the_two_faces_look_at_each_other():
     assert (1.3, -0.05, 3.0, 0.45) in by_wall and (1.0, 0.09, 1.3, 0.45) in by_wall
 
 
+def test_aisle_pieces_do_not_join_across_a_shelf_that_stands_between():
+    # 긴 진열대와 벽 사이 가운데에 다른 진열대가 서 있으면 그 자리를 넘어 잇지 않는다
+    long, block = (1.0, 0.4, 3.0, 0.44), (1.5, 0.1, 1.8, 0.14)
+    strips = fleet_setup.aisle_strips([long, block], (0.0, 0.0, 4.0, 2.5), band=0.05)
+    assert (1.0, -0.05, 1.5, 0.45) in strips and (1.8, -0.05, 3.0, 0.45) in strips
+    assert not [r for r in strips if r[0] < 1.5 and r[2] > 1.8 and r[1] < 0.0]
+
+
+def test_an_aisle_exactly_as_wide_as_the_limit_counts():
+    assert 0.8 - 0.35 > 0.45  # 부동소수 오차가 나는 값
+    assert fleet_setup.aisle_strips([(1.0, 0.8, 2.0, 0.84), (1.0, 0.31, 2.0, 0.35)],
+                                    (0.0, -1.0, 3.0, 3.0), band=0.05) == [(1.0, 0.3, 2.0, 0.85)]
+
+
 def test_narrow_strips_add_the_aisles_only_when_asked():
     site = load_fleet_map("v7")
     plain = fleet_setup.narrow_strips(site).split("; ")

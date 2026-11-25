@@ -186,7 +186,8 @@ def aisle_strips(shelves, bounds, band: float, max_gap: float = AISLE_MAX_M,
                  min_len: float = AISLE_MIN_LEN_M) -> list[tuple[float, float, float, float]]:
     """진열대 긴 면과 그 면이 마주 보는 벽·진열대 사이가 max_gap 이하인 통로 사각형들.
     두 면이 마주 보는 길이만 잡고, 두 면을 band만큼 넘긴다.
-    같은 폭으로 이어지는 통로는 진열대 사이 틈(max_gap 이하)을 넘어 하나로 잇는다."""
+    같은 폭으로 이어지는 통로는 진열대 사이 틈(max_gap 이하)을 넘어 하나로 잇는다. 그 틈에 다른 진열대가 서 있으면 잇지 않는다.
+    진열대끼리 겹친 지도는 다루지 않는다."""
     bx0, by0, bx1, by1 = bounds
     rects = []
     for i, (x0, y0, x1, y1) in enumerate(shelves):
@@ -205,14 +206,24 @@ def aisle_strips(shelves, bounds, band: float, max_gap: float = AISLE_MAX_M,
             below = max([wall_lo, *(p1 for _, p1 in facing if p1 <= c0)])
             above = min([wall_hi, *(p0 for p0, _ in facing if p0 >= c1)])
             for lo, hi in ((below, c0), (c1, above)):
-                if 1e-9 < hi - lo <= max_gap:
+                if 1e-9 < hi - lo <= max_gap + 1e-9:
                     rects.append((along_x, s0, s1, lo - band, hi + band))
+
+    def open_between(along_x, lo, hi, g0, g1) -> bool:
+        """긴 축 g0~g1, 폭 lo~hi 안쪽에 선 진열대가 없는가."""
+        for x0, y0, x1, y1 in shelves:
+            o0, o1, p0, p1 = (x0, x1, y0, y1) if along_x else (y0, y1, x0, x1)
+            if o0 < g1 and o1 > g0 and p0 < hi - band - 1e-9 and p1 > lo + band + 1e-9:
+                return False
+        return True
+
     # 같은 폭의 통로끼리 긴 축 순서로 잇는다
     merged = []
     for along_x, lo, hi, a0, a1 in sorted((r[0], round(r[3], 6), round(r[4], 6), r[1], r[2])
                                           for r in rects):
         last = merged[-1] if merged else None
-        if last is not None and last[:3] == (along_x, lo, hi) and a0 - last[4] <= max_gap:
+        if (last is not None and last[:3] == (along_x, lo, hi) and a0 - last[4] <= max_gap + 1e-9
+                and (a0 <= last[4] or open_between(along_x, lo, hi, last[4], a0))):
             merged[-1] = (along_x, lo, hi, last[3], max(last[4], a1))
         else:
             merged.append((along_x, lo, hi, a0, a1))
