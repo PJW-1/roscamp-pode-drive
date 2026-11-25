@@ -20,6 +20,7 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "goal_reach"))
 
 import arena_spec as arena  # noqa: E402
+import cleaner_spec as cln  # noqa: E402
 import crossing_eval as cev  # noqa: E402
 import encounter as enc  # noqa: E402
 import ghost_spec as gh  # noqa: E402
@@ -317,6 +318,7 @@ class StoreArenaEnv(GoalReachEnv):
             torch.zeros(n, int(a.robot_routes), device=dev),
         )
         self.robot_routes = [{k_: v.clone() for k_, v in lay.items()} for _ in range(nk)]
+        self._cleaner_init(nk, lay, site)
         self.robot_active = torch.zeros(nk, n, dtype=torch.bool, device=dev)
         self.robot_t = torch.zeros(nk, n, **f32)
         self.robot_wait = torch.zeros(nk, n, **f32)
@@ -558,7 +560,7 @@ class StoreArenaEnv(GoalReachEnv):
         nk = len(self.robot_objs)
         if nk == 0:  # 난수를 안 뽑아 4b 아레나의 난수열 유지
             return
-        count = torch.randint(0, nk + 1, (n,), device=dev)
+        count = torch.randint(int(a.robot_min), nk + 1, (n,), device=dev)
         banned = torch.zeros(n, len(self.graph.names), dtype=torch.bool, device=dev)
         sg = self.r_sg_node[r]
         for c in range(2):
@@ -574,6 +576,7 @@ class StoreArenaEnv(GoalReachEnv):
         scen = self._new_scen >= 0
         if self.scen is not None:
             count = torch.where(scen, count.clamp(min=1), count)
+        count, clean = self._cleaner_pick(count)
         for k in range(nk):
             chain = rbs.sample_chains(self.g_t, n, legs, banned, start_banned=ours)
             if k == 0 and a.robot_headon:  # 우리 목표 -> 우리 시작, 이후 임의
@@ -595,6 +598,8 @@ class StoreArenaEnv(GoalReachEnv):
                 speed = speed * self.v_cap[env_ids] / ts.NAV_SPEED_MPS
             pause = p0 + torch.rand(n, legs, device=dev) * (p1 - p0)
             route = rbs.chain_route(self.g_t, chain, speed, pause)
+            if clean is not None and k == nk - 1:  # 청소 로봇 칸: 뽑힌 env 는 청소 바퀴
+                route = self._cleaner_route(env_ids, route, clean)
             for key, v in route.items():
                 self.robot_routes[k][key][env_ids] = v
             banned[torch.arange(n, device=dev), chain[:, 0]] = True
@@ -610,9 +615,95 @@ class StoreArenaEnv(GoalReachEnv):
             self.robot_back[k, env_ids] = 0.0
             if a.robot_priority_prob > 0:  # 아니면 난수를 안 뽑아 이전 실행과 같게 유지
                 self.robot_priority[k, env_ids] = torch.rand(n, device=dev) < a.robot_priority_prob
+        if clean is not None:
+            self._cleaner_reset(env_ids, count, clean)
         if self.ghost:  # 칸 0 은 늘 ghost
             self.robot_active[0, env_ids] = True
             self.robot_priority[0, env_ids] = self._new_gprio
+
+    # ---- 청소 로봇 칸 (robot_cleaner_prob, cleaner_spec): 마지막 로봇 칸이 청소 줄 바퀴 ----
+    def _cleaner_init(self, nk: int, lay: dict, site) -> None:
+        """청소 바퀴 표를 만들고 마지막 칸 경로 저장소를 그 길이로 늘림. 꺼지면 아무것도 안 바꿈."""
+        a, dev = self.arena, self.device
+        if not 0 <= a.robot_min <= a.robot_max:
+            raise ValueError("robot_min must be in 0..robot_max")
+        self.cleaner = None
+        self.cleaner_on = torch.zeros(self.num_envs, dtype=torch.bool, device=dev)
+        if a.robot_cleaner_prob <= 0:
+            return
+        if nk < 1 + int(bool(a.robot_headon or self.scen_names or self.ghost)):
+            raise ValueError(
+                "robot_cleaner_prob needs robot_max >= 1 (>= 2 with robot_headon, robot_scenario "
+                "or ghost_pairs: slot 0 is theirs, the cleaner is the last slot)"
+            )
+        lap = cln.clean_lap(site)
+        lo, hi = self.spec.speed_cap_range
+        travel = self.cfg.episode_length_s * cln.SPEED_MPS * hi / ts.NAV_SPEED_MPS
+        table = cln.lap_table(lap, cln.laps_needed(lap, travel))
+        self.cleaner = {"lap": lap, "table": table, "speed": torch.zeros(self.num_envs, device=dev)}
+        v = max(lay["pts"].shape[1], table["pts"].shape[0])
+        self.robot_routes[-1] = cln.pad_route(self.robot_routes[-1], v)
+        print(
+            f"[ARENA] cleaner slot {nk - 1}: {len(lap.rows)} rows, lap {lap.length:.2f} m "
+            f"({lap.length / cln.SPEED_MPS:.1f} s at {cln.SPEED_MPS} m/s), {v} route vertices"
+        )
+
+    def _cleaner_pick(self, count):
+        """청소 env (n,) 를 뽑고 그 env 의 로봇 수를 맞춤. 꺼지면 난수 없이 (count, None)."""
+        a = self.arena
+        if self.cleaner is None:
+            return count, None
+        clean = torch.rand(len(count), device=self.device) < a.robot_cleaner_prob
+        need = 1 + int(bool(a.robot_headon or self.scen is not None or self.ghost))
+        return torch.where(clean, count.clamp(min=need), count), clean
+
+    def _cleaner_route(self, env_ids, route, clean):
+        """마지막 칸 그래프 경로에 청소 env 만 청소 바퀴를 넣음 (0.12 m/s x 상한 배율)."""
+        speed = torch.full((len(env_ids),), cln.SPEED_MPS, device=self.device)
+        if self.cap_active:
+            speed = speed * self.v_cap[env_ids] / ts.NAV_SPEED_MPS
+        self.cleaner["speed"][env_ids] = speed
+        return cln.mix_route(route, cln.lap_route(self.cleaner["table"], speed), clean)
+
+    def _cleaner_reset(self, env_ids, count, clean) -> None:
+        """활성 칸, 바퀴 위 무작위 출발 시각 (우리 시작과 운반 로봇에서 떨어짐), 우선권 없음."""
+        nk, n = len(self.robot_objs), len(env_ids)
+        act = cln.cleaner_active(count, clean, nk)
+        self.robot_active[:, env_ids] = act
+        route = {key: v[env_ids] for key, v in self.robot_routes[-1].items()}
+        lap_s = self.cleaner["lap"].length / self.cleaner["speed"][env_ids]
+        u = torch.rand(n, 8, device=self.device)
+        avoid, avoid_on = [self.start_xy[env_ids]], [torch.ones_like(clean)]
+        for k in range(nk - 1):
+            sub = {key: v[env_ids] for key, v in self.robot_routes[k].items()}
+            pos = rbs.robot_pose(sub, self.robot_t[k, env_ids])[0]
+            if k == 0 and self.ghost:  # ghost 칸: 같이 리셋되는 짝은 시작점, 아니면 지금 자세
+                pe = gh.partner(env_ids)
+                both = torch.isin(pe, env_ids)
+                pos = torch.where(both[:, None], self.start_xy[pe], self.robot_pose()[0][pe])
+            avoid.append(pos)
+            avoid_on.append(act[k] | (k == 0 and self.ghost))
+        t0 = cln.start_clock(
+            route, lap_s, u, torch.stack(avoid, 1), torch.stack(avoid_on, 1), scn.START_SEP_M
+        )
+        self.robot_t[-1, env_ids] = torch.where(clean, t0, self.robot_t[-1, env_ids])
+        self.robot_priority[-1, env_ids] &= ~clean
+        self.cleaner_on[env_ids] = clean
+
+    def _cleaner_yield(self, xy, yield_m, wait_s):
+        """청소 env 의 마지막 칸: 우리와 운반 로봇 중 가장 가까운 것에 clean_yield 값으로 비킴."""
+        a, on = self.arena, self.cleaner_on
+        states = self.robot_state()
+        pos = states[-1][0]
+        others = torch.zeros(len(xy), 0, 2, device=self.device)
+        others_on = torch.zeros(len(xy), 0, dtype=torch.bool, device=self.device)
+        if len(states) > 1:
+            others = torch.stack([p for p, _, _ in states[:-1]], 1)
+            others_on = torch.stack([act for _, _, act in states[:-1]], 1)
+        watch = torch.where(on[:, None], cln.watch_xy(pos, xy, others, others_on), xy)
+        yield_m = torch.where(on, a.robot_cleaner_yield_m, yield_m)
+        wait_s = torch.where(on, a.robot_cleaner_wait_s, torch.ones_like(xy[:, 0]) * wait_s)
+        return watch, yield_m, wait_s
 
     def our_nodes(self, ids=None) -> torch.Tensor:
         """(n, K) 우리 로봇이 잡고 있는 그래프 노드."""
@@ -823,15 +914,18 @@ class StoreArenaEnv(GoalReachEnv):
                 # 앞선 로봇이 먼저 움직인 뒤: 한 스텝에 두 로봇이 한 노드를 못 잡음
                 blocked = self.blocked_nodes(k) if a.robot_reserve else None
                 yield_m = torch.where(self.robot_priority[k], 0.0, a.robot_yield_m)
+                watch, wait_s = xy, a.robot_wait_s * self.wait_scale()
+                if self.cleaner is not None and k == len(self.robot_routes) - 1:
+                    watch, yield_m, wait_s = self._cleaner_yield(xy, yield_m, wait_s)
                 self.robot_t[k], self.robot_wait[k], self.robot_back[k] = rbs.robot_step(
                     route,
                     self.robot_t[k],
                     self.robot_wait[k],
                     self.robot_back[k],
                     self.step_dt,
-                    xy,
+                    watch,
                     yield_m,
-                    a.robot_wait_s * self.wait_scale(),
+                    wait_s,
                     a.robot_backoff_s * self.wait_scale(),
                     retreat=bool(a.robot_retreat),
                     lock_m=a.robot_lock_m,
