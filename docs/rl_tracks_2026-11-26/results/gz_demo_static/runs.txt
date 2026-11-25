@@ -1,0 +1,9 @@
+f_cart start 2026-11-26T04:40:27+09:00 avail 15354MB domain 72 args 
+f_cart: exit 0, bench f_cart: 5/5 repeats, 15 resets
+f_cart end 2026-11-26T05:06:28+09:00
+g_demo start 2026-11-26T05:09:28+09:00 avail 15342MB domain 72 args 
+g_demo: exit 0, bench g_demo: 5/5 repeats, 15 resets
+g_demo end 2026-11-26T05:35:29+09:00
+b_static start 2026-11-26T05:38:29+09:00 avail 15340MB domain 72 args 
+b_static: exit 0, bench b_static: 5/5 repeats, 15 resets
+b_static end 2026-11-26T06:04:05+09:00
