@@ -101,7 +101,7 @@ clean_block_look_m: 0.5       # 장애물 좌표가 없을 때 진행점에서 �
 clean_conflict_reach_m: 0.18  # 청소 경로가 다른 로봇의 지금 자리나 쥔 base에서 이 안을 지나면 겹친다. 지도 지점 고르기는 clean_reach_m
 clean_hold_check: all         # 남이 쥔 지점 보기: all(전부) / ahead(그 로봇에서 clean_conflict_ahead_m 안만) / off. 안 보는 지점은 쥐지 않는다
 clean_base_check: all         # 남의 쥔 base 보기: all(전부) / ahead(지금 위치부터 base를 따라 clean_conflict_ahead_m까지) / off
-clean_conflict_ahead_m: 1.0   # ahead일 때 보는 앞 거리
+clean_conflict_ahead_m: 1.0   # ahead일 때 보는 앞 거리. 비킬 길은 운반 로봇 길의 첫 구간과 이 거리 안을 가로지르지 않는다
 clean_yield_band_m: 0.30      # 만남 띠 폭(몸 지름 + 여유): 선 청소 로봇이 운반 로봇 띠 중심선에서 반폭 + 몸 반지름 안이면 만나고, 비킬 점은 그 밖에서 고른다. 달리는 다리는 clean_conflict_reach_m으로 본다
 clean_yield_margin_m: 0.05    # 비킬 점은 띠에서 반폭 + 몸 반지름보다 이만큼 더 떨어진 곳(Nav2 xy_goal_tolerance와 같게): 덜 가서 멈춰도 띠 밖
 clean_yield_near_m: 0.30      # 청소 로봇이 움직이는 중 운반 로봇과 거리가 이 안에서 줄어들면 만난다(near_m과 같게)

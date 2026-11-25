@@ -477,22 +477,22 @@ class Cleaning:
                 return f"meets {other.name}'s way"
         return ""
 
-    def _crosses_band(self, pts, band) -> bool:
-        """경로가 띠 중심선의 어느 구간이든 가로지른다. 출발점에서 몸 반지름 안은 보지 않는다:
-        몸이 이미 중심선을 덮은 자리에서 내려서는 것은 끼어들기가 아니다."""
+    def _band_ahead(self, band):
+        """운반 로봇이 곧 지날 띠: 첫 구간 전체와, 그 뒤는 로봇에서 clean_conflict_ahead_m 안."""
         if len(band) < 2:
-            return False
-        cut, rest = self.params.footprint_radius_m, list(pts)
-        while len(rest) >= 2:
-            span = math.dist(rest[0], rest[1])
-            if span > cut:
-                a, b = rest[0], rest[1]
-                rest[0] = (a[0] + (b[0] - a[0]) * cut / span, a[1] + (b[1] - a[1]) * cut / span)
+            return list(band)
+        out = [band[0], band[1]]
+        left = self.params.clean_conflict_ahead_m - math.dist(band[0], band[1])
+        for a, b in pairwise(band[1:]):
+            if left <= 1e-9:
                 break
-            cut -= span
-            rest.pop(0)
-        return len(rest) >= 2 and any(segments_cross(a, b, c, d) for a, b in pairwise(rest)
-                                      for c, d in pairwise(band))
+            span = math.dist(a, b)
+            if span > left:
+                out.append((a[0] + (b[0] - a[0]) * left / span, a[1] + (b[1] - a[1]) * left / span))
+                break
+            out.append(b)
+            left -= span
+        return out
 
     def _leaves_band(self, pts, band) -> bool:
         """띠 안에서 떠나는 다리: 띠를 가로지르지 않고, clean_yield_band_m 안에 띠에서
@@ -712,7 +712,7 @@ class Cleaning:
         plan, p, site = self._clean_plan, self.params, self.site
         here, pos = (m.x, m.y), (other.x, other.y)
         band = self._clean_band(other, full=True) or [pos]
-        reach = self._band_reach()
+        reach, ahead = self._band_reach(), self._band_ahead(band)
         js, iz = plan.free.nonzero()
         spots = sorted(((float(plan.grid.xs[i]), float(plan.grid.ys[j])) for j, i in zip(js, iz)),
                        key=lambda q: math.dist(here, q))
@@ -732,8 +732,9 @@ class Cleaning:
                 continue
             if len(sent) < 2 or not plan.clear(checked):
                 continue
-            # 띠의 모든 구간을 본다(첫 구간만 보면 꺾인 운반 로봇 길을 가로지른다)
-            if self._crosses_band(sent, band):
+            # 꺾인 운반 로봇 길은 첫 구간 뒤도 곧 지난다
+            if len(ahead) >= 2 and any(segments_cross(a, b, c, d) for a, b in pairwise(sent)
+                                       for c, d in pairwise(ahead)):
                 continue
             if min(point_segment_distance(pos, a, b)
                    for a, b in pairwise(sent)) < min(body, start_gap) - 1e-6:
