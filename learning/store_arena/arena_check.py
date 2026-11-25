@@ -670,10 +670,17 @@ def main():
                 js = [j for j in range(len(sz)) if used[e, j]]
                 others = [rs_.box_rect(xyn[e, j], sz[j]) for j in js if j != k]
                 world = np.array(list(static) + others)
-                for ang in (0.0, math.pi / 2, math.pi, -math.pi / 2):
+                # 면 가운데로 못 다가가면 박스 모서리 쪽으로 비켜서 본다 (선반에 붙은 통로 박스는 가운데 띠가 선반에 걸림)
+                cands = [
+                    (ang, off)
+                    for off in (0.0, 0.5 * sz[k], -0.5 * sz[k])
+                    for ang in (0.0, math.pi / 2, math.pi, -math.pi / 2)
+                ]
+                for ang, off in cands:
                     u = np.array((math.cos(ang), math.sin(ang)))
-                    p = xyn[e, k] - u * (0.5 * sz[k] + 0.20)
-                    f = xyn[e, k] - u * 0.5 * sz[k]
+                    c = xyn[e, k] + off * np.array((-u[1], u[0]))
+                    p = c - u * (0.5 * sz[k] + 0.20)
+                    f = c - u * 0.5 * sz[k]
                     # 시작에서 박스 면까지 로봇이 쓸고 가는 띠(양옆 STRIP_HALF_M)는 비어야 함
                     a, b = p - u * 0.09, f
                     lo, hi = np.minimum(a, b) - STRIP_HALF_M * np.abs(u[::-1]), np.maximum(a, b)
