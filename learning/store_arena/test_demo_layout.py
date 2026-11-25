@@ -153,6 +153,31 @@ def test_gap_draws_cover_the_range(site_static):
     assert (counts > 0.1 * len(g)).all()
 
 
+def test_keep_path_layouts_stay_solvable_without_the_aisle_box(demo2, site_static):
+    """keep_path 1: 통로 박스 말고 다른 박스와 선반으로는 목표까지 계획 가능 (통로 박스 옆 틈은 몸체보다 넓음)."""
+    _, static = site_static
+    r = demo2
+    grid = R.Grid(_REG_BOUNDS(site_static), SPEC.grid_m)
+    checked = 0
+    for i in np.flatnonzero(_demo_rows(r) & np.isfinite(r.obstacle_gap).any(1)):
+        k = int(np.flatnonzero(np.isfinite(r.obstacle_gap[i]))[0])
+        others = [R.box_rect(r.obstacle_xy[i, j], r.obstacle_sizes[j])
+                  for j in range(len(r.obstacle_sizes))
+                  if j != k and not np.isnan(r.obstacle_xy[i, j, 0])]
+        if not others:
+            continue
+        rects = np.concatenate((static, np.array(others)))
+        cost = grid.costs(rects, SPEC.inscribed_m, SPEC.inflation_m, SPEC.cost_scaling)
+        s, g = r.start_goal(i)
+        assert R.plan(grid, cost, s, g) is not None
+        checked += 1
+    assert checked > 0
+
+
+def _REG_BOUNDS(site_static):
+    return site_static[0].bounds()
+
+
 def test_keep_path_zero_accepts_only_paths_that_pass_inside_the_aisle(site_static):
     import region_spec as rg
 

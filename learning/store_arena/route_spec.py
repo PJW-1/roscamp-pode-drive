@@ -221,7 +221,7 @@ def build_routes(spec, site, static_rects: np.ndarray) -> Routes:
                             rects, spec.inscribed_m, spec.inflation_m, spec.cost_scaling
                         )
                         p = plan(grid, cost, node_xy[a], node_xy[b])
-                    p = demo.final_path(m, p, path0)
+                    p = demo.final_path(m, p, path0, boxes, sizes, grid, node_xy[a], node_xy[b])
                     if p is not None and demo.accept(m, boxes, sizes, p):
                         break
                 else:
@@ -281,11 +281,20 @@ class _Demo:
                                                      goal, sizes)
         return boxes
 
-    def final_path(self, m: int, p, path0):
-        """obstacle_demo_keep_path: 통로 박스가 있는 데모 배치는 빈 아레나 경로 path0 를 그대로 씀."""
-        if self.is_demo(m) and self.aisle_slot >= 0 and int(self.spec.obstacle_demo_keep_path):
-            return path0
-        return p
+    def final_path(self, m: int, p, path0, boxes, sizes, grid, start, goal):
+        """obstacle_demo_keep_path: 통로 박스가 있는 데모 배치는 빈 아레나 경로 path0 를 그대로 씀.
+        단 통로 박스를 뺀 나머지 박스로는 목표까지 계획이 되어야 함 (아니면 None: 다시 뽑음)."""
+        if not (self.is_demo(m) and self.aisle_slot >= 0 and int(self.spec.obstacle_demo_keep_path)):
+            return p
+        others = [box_rect(boxes[i], sizes[i]) for i in range(len(sizes))
+                  if i != self.aisle_slot and not np.isnan(boxes[i, 0])]
+        if others:
+            s = self.spec
+            cost = grid.costs(np.concatenate((self.static_rects, np.array(others))),
+                              s.inscribed_m, s.inflation_m, s.cost_scaling)
+            if plan(grid, cost, start, goal) is None:
+                return None
+        return path0
 
     def accept(self, m: int, boxes, sizes, p) -> bool:
         """데모 배치의 통로 박스는 박스 피한 경로 p 가 그 통로 안에서 지나야 함 (아니면 다시 뽑음)."""
