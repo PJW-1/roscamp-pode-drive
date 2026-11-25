@@ -265,8 +265,11 @@ t_ctrl보다 높고, 이상 응답 두 칸(rand, head)에서는 t_ctrl보다 낮
 | `jobs_b6b.txt` | t_demo_std와 평가 다섯 칸, e_std_{demo1, aisle, demo2} | 위에 `--init_std 0.3`을 더한 갈래. 대조는 t_std. 묶음 1의 t_std가 끝난 뒤에 건다 |
 
 평가 칸의 설정(공통: 4096 env, 에피소드 1, seed 7, 속도 상한 0.12 고정):
-- aisle: `obstacle_demo_share=1 obstacle_demo_aisle_prob=1 obstacle_demo_counts=1,1 mover_prob=0 robot_max=0`. 경로가 통로를
-  0.30 m 넘게 지나면 그 통로에 상자 하나, 다른 것은 없다.
+- aisle: `obstacle_demo_share=1 obstacle_demo_aisle_prob=1 obstacle_demo_counts=1,1 mover_prob=0 robot_max=0`. 사람과
+  로봇은 없다. 칸 전체가 통로 상자 에피소드인 것은 아니다. 시뮬 없이 센 값(경로 4224개)으로, 경로가 한 통로를
+  0.30 m 넘게 지나는 2850개 가운데 2848개에 그 통로의 상자가 놓이고, 통로를 그만큼 지나지 않는 경로에는 상자 하나가
+  예전 규칙으로 놓이며, 노드 쌍마다 배치 0은 늘 비어 있다(상자 없는 경로 50개). 그래서 통로 안 통과율과 남는 폭별
+  표는 "경로 위 통로 상자가 있는 에피소드"(약 2/3)만 센다. demo1, demo2도 같은 규칙이다.
 - demo1: 상자 규칙은 aisle과 같고, 사람만(`mover_kinds=person mover_prob=1 mover_cross_prob=1`), 로봇 둘
   (`robot_max=2 robot_min=2 robot_cleaner_prob=1`: 운반 하나와 청소 하나).
 - demo2: demo1에서 상자를 둘로(`obstacle_demo_counts=2,2`). 둘째 상자는 다른 구역에 놓인다.
