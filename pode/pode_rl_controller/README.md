@@ -10,7 +10,7 @@ Runtime CPU) trained in `learning/goal_reach` or `learning/store_arena`. Design,
 | `src/observation.cpp` | LaserScan -> the 360 training rays, the 41-dim observation, action -> (v, w), rate limit; path progress and lookahead point (`route_spec.follow`) |
 | `src/onnx_policy.cpp` | ONNX Runtime session (CPU, 1 thread, sequential, no spinning) |
 | `src/follow_path_rl.cpp` | the plugin: scan subscription, goal point from the plan (the spec's goal rule), policy call, speed cap `max_linear_vel` (0 = the policy's v_max; the sim launch sets it to `nav_max_speed` like RPP and MPPI; never above `pode_nav_config/params/nav_speed.yaml`, and a policy whose v_max differs from that file logs an ERROR at configure and every 10 s while driving), reverse guard (no backing up while a lidar ray within `rear_half_width_deg` of straight back is under `rear_stop_range`, default off (0); a candidate value is 0.12 m / 30 deg), turn in place inside the goal checker's xy tolerance, timing log |
-| `policies/<name>/` | `policy.onnx` + `policy_spec.json` (goal rule, lookahead, origin); parameter `policy` picks one, default `store_arena_4b`. Only the deployed policy's onnx is committed (user decision 2026-11-22); `goal_reach_base_4096` keeps only its spec, under `test/fixtures` |
+| `policies/<name>/` | `policy.onnx` + `policy_spec.json` (goal rule, lookahead, origin); parameter `policy` picks one, default `store_arena_4b`. Every policy folder's onnx is committed, so a fresh clone can run each policy in the sim and on the robot (`tools/test/test_policy_files.py` keeps it so); `goal_reach_base_4096` keeps only its spec, under `test/fixtures` |
 | `test/test_parity.cpp` | gtest against `test/fixtures/<policy>` (made by `export_policy.py --fixtures`), built once per policy |
 | `test/test_observation.cpp` | gtest: lookahead point and progress against `route_spec.follow`, goal and velocity terms against `task_spec`, lidar with the yaw-pi mount, reverse guard |
 | `test/test_format3.cpp` | gtest: format 3 spec loading and refusals, `ObsMemory` (prev_action, lidar history, speed_cap), the cap-aware action mapping, when the memory resets, and observation parity against `test/fixtures/format3/format3_cases.json` (made by `tools/rl_fixtures/make_format3_cases.py` from the recipe's `task_spec.py` and `store_arena_env.lidar_history`) |
@@ -24,6 +24,22 @@ periods since its last call: the RotationShim rotated or the plugin turned in pl
 Not loaded by default: `sim/fleet_gz_sim/nav_overrides/follow_path_rl.yaml` adds two controllers to
 one_pode (`nav_overrides:=<that file>`): `FollowPathRL`, the default RL option, is the policy wrapped in
 RotationShim; `FollowPathRLAlone` is the same policy unwrapped. `controller_selector` picks one.
+
+Policies in this repository (the lineage, training settings and results of each are in
+`learning/store_arena/POLICIES.md` once that file is merged):
+
+| policy | inputs | spec format | checkpoint | onnx sha256 (first 12) | note |
+|---|---|---|---|---|---|
+| `store_arena_4b` | 41 | 2 | `c2/model_998.pt` | `fd7519b279cc` | default; first 0.12 m/s policy |
+| `store_arena_acd` | 44 | 3 | `t_combo_acd/model_1197.pt` | `a537541fb725` | comparison: first a+c+d recipe run |
+| `store_arena_acd2` | 44 | 3 | `t_acd_s3_c2/model_1496.pt` | `d6f98cfc5bf6` | a+c+d, seed 3 of three |
+| `store_arena_acd3` | 44 | 3 | `t_wall/model_1745.pt` | `c11b9d29b223` | acd2 continued on the corrected map with the near-wall penalty; the user's real-robot candidate |
+| `store_arena_c` | 41 | 2 | `t_c/model_1197.pt` | `ccaf99c15f72` | comparison: asymmetric critic only |
+
+To drive another policy in the sim, pass its overrides file: `nav_overrides:=<share>/nav_overrides/follow_path_rl_acd3.yaml`
+runs `store_arena_acd3` under both RL controller names. A new policy needs its folder here (spec + onnx), its
+fixtures under `test/fixtures/<name>`, its name in the parity list in `CMakeLists.txt`, and, to be selectable in the
+sim, a `follow_path_rl_<suffix>.yaml` that differs from `follow_path_rl.yaml` only in `policy`.
 
 Build needs `onnxruntime_vendor` (apt `ros-jazzy-onnxruntime-vendor`, ORT 1.24.3; amd64 and arm64).
 Without sudo, unpack the .deb with `dpkg -x` and put `<dir>/opt/ros/jazzy` on `CMAKE_PREFIX_PATH`;
