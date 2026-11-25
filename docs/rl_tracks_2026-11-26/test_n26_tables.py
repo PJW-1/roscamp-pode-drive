@@ -98,6 +98,17 @@ def test_training_diff_and_std_curve(tmp_path):
         (0, "", 0.3), (50, "0.5", 0.2)]
 
 
+def test_regression_skips_an_episodes_file_without_length(tmp_path):
+    fake_eval(tmp_path, "e_acd3_rand", [0, 1, 0, 3])
+    fake_eval(tmp_path, "e_acd3_rand_chk", [0, 0, 0, 1])
+    np.savez(tmp_path / "e_acd3_rand_chk" / "episodes.npz", env=np.arange(4),
+             code=np.array([0, 0, 0, 1]), keys=KEYS)
+    status(tmp_path, ["e_acd3_rand exit=0", "e_acd3_rand_chk exit=0"])
+    t = nt.main([str(tmp_path), str(tmp_path / "out")])
+    assert t["regression"] == []
+    assert "e_acd3_rand_chk" in (tmp_path / "out" / "tables.md").read_text(encoding="utf-8")
+
+
 def test_regression_row(tmp_path):
     fake_eval(tmp_path, "e_acd3_rand", [0, 1, 0, 3])
     fake_eval(tmp_path, "e_acd3_rand_chk", [0, 0, 0, 1])

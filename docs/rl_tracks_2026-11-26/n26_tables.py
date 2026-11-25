@@ -73,7 +73,9 @@ def evals(runs, done, skipped):
         d = str(Path(runs) / tag)
         try:
             json.load(open(d + "/eval.json", encoding="utf-8"))["rates"]
-            load(d)
+            z = np.load(d + "/episodes.npz")
+            for k in set(z.files) | {"env", "code", "keys", "length_s"}:  # 항목마다 끝까지 읽어 봄
+                z[k]
         except Exception as e:  # 잘린 파일: 이 실행만 빼고 표는 계속 만든다
             skipped.append(f"{tag} ({type(e).__name__})")
             continue
