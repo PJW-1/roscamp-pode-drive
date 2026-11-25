@@ -21,8 +21,16 @@ cd "${ISAAC_DIR:-/d/isaac/IsaacLab}" || exit 1
 release() { [ "$(cut -d' ' -f1-2 "$LOCK/owner" 2>/dev/null)" = "$QNAME $1" ] && rm -rf "$LOCK"; }
 last_model() { ls -1v "$R/$1"/model_*.pt 2>/dev/null | tail -1; }
 # play.py는 eval.json을 다른 결과보다 먼저 쓰므로, 파일만 있고 그 작업의 마지막 기록이 exit=0이 아니면 끝난 것이 아니다
+# 결과 파일은 작업 종류에 맞는 것만 본다: 같은 tag를 다른 종류로 다시 쓴 줄을 끝난 것으로 건너뛰지 않게
 done_ok() {
-  { [ -f "$R/$1/run.json" ] || [ -f "$R/$1/eval.json" ] || [ -f "$R/$1/${kind#check:}.json" ]; } &&
+  local f
+  case "$kind" in
+    train|resume:*) f=run.json ;;
+    eval|eval:*) f=eval.json ;;
+    check:*) f=${kind#check:}.json ;;
+    *) return 1 ;;
+  esac
+  [ -f "$R/$1/$f" ] &&
     awk -v t="$1" '$1 == t { s = $2 } END { exit !(s == "exit=0") }' "$R/queue_status.txt" 2>/dev/null
 }
 first=1

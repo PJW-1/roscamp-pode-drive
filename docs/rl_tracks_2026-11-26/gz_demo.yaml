@@ -75,5 +75,10 @@ movers:
     speed: 0.0
 
 scenarios:
+  a_hall: []
+  b_static: [box]
+  c_moving: [person, cart]
+  d_robot: [robot]
+  e_corridor: [e_box, e_cart]
   f_cart: [demo_cart]  # 통로 안 정적 장애물 하나
   g_demo: [demo_cart, demo_cart_hall, person]  # 통로 하나 + 넓은 공간 하나 + 틈을 건너는 사람

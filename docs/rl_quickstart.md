@@ -22,9 +22,15 @@ git checkout feat/rl-tracks-2026-11-26   # 또는 위 표의 다른 브랜치
 
 `pode_rl_controller`는 ONNX Runtime이 있어야 빌드된다. 없으면 이 패키지에서 `colcon build`가 멈춘다.
 
+시뮬을 빌드하려면 제조사 로봇 모델 `pinky_description`이 먼저 빌드되어 있어야 한다(`fleet_gz_sim`이 그것을 찾는다).
+받는 곳과 빌드 순서는 `sim/fleet_gz_sim/README.md`의 "준비 (한 번)"에 있고, 아래는 그것을 `~/pinky_deps_ws`에 빌드해 둔 경우다.
+
 ```bash
 sudo apt update && sudo apt install ros-jazzy-onnxruntime-vendor ros-jazzy-nav2-rotation-shim-controller
+source /opt/ros/jazzy/setup.bash
+source ~/pinky_deps_ws/install/local_setup.bash   # pinky_description (시뮬을 빌드할 때)
 cd <작업공간> && colcon build
+source install/setup.bash                          # 새 셸마다 위 두 줄과 이 줄을 다시 한다
 colcon test --packages-select pode_rl_controller --event-handlers console_direct+   # 정책 다섯의 추론 일치 시험
 ```
 
