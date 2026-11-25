@@ -1,0 +1,33 @@
+== f_cart: 10 legs, 42 detour-on lines in the whole run
+f_cart_FollowPathGoal_0            SUCC start_mode aisle  detour_on 3  9s detour on at (0.68, 0.57) after 5.0 s without progress; 16s back to aisle mode (navigation ended) at (0.81, 0.52); 23s detour on at (0.81, 0.51) after 5.0 s without pr
+f_cart_FollowPathRLShimACD3_0      SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimACD3_1      SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathGoal_1            SUCC start_mode aisle  detour_on 2  9s detour on at (0.68, 0.57) after 5.0 s without progress; 16s back to aisle mode (navigation ended) at (0.81, 0.52); 24s detour on at (0.84, 0.52) after 5.0 s without pr
+f_cart_FollowPathRLShimACD3_2      SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathGoal_2            SUCC start_mode aisle  detour_on 2  9s detour on at (0.67, 0.57) after 5.0 s without progress; 17s back to aisle mode (navigation ended) at (0.87, 0.52); 25s detour on at (0.89, 0.52) after 5.0 s without pr
+f_cart_FollowPathGoal_3            SUCC start_mode aisle  detour_on 1  9s detour on at (0.70, 0.56) after 5.0 s without progress; 15s back to aisle mode (moved 0.40 m) at (1.10, 0.53)
+f_cart_FollowPathRLShimACD3_3      SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathGoal_4            SUCC start_mode aisle  detour_on 1  9s detour on at (0.69, 0.57) after 5.0 s without progress; 15s back to aisle mode (moved 0.41 m) at (1.10, 0.53)
+f_cart_FollowPathRLShimACD3_4      SUCC start_mode aisle  detour_on 0  
+== g_demo: 10 legs, 52 detour-on lines in the whole run
+g_demo_FollowPathGoal_0            ABOR start_mode aisle  detour_on 3  8s detour on at (0.56, 0.60) after 5.0 s without progress; 10s back to aisle mode (navigation ended) at (0.56, 0.60); 19s detour on at (0.56, 0.60) after 5.2 s without pr
+g_demo_FollowPathRLShimACD3_0      SUCC start_mode aisle  detour_on 0  
+g_demo_FollowPathRLShimACD3_1      ABOR start_mode aisle  detour_on 0  
+g_demo_FollowPathGoal_1            ABOR start_mode aisle  detour_on 3  8s detour on at (0.54, 0.61) after 5.0 s without progress; 10s back to aisle mode (navigation ended) at (0.54, 0.61); 18s detour on at (0.56, 0.60) after 5.0 s without pr
+g_demo_FollowPathRLShimACD3_2      ABOR start_mode aisle  detour_on 3  29s detour on at (1.26, 0.52) after 5.0 s without progress; 32s back to aisle mode (navigation ended) at (1.25, 0.52); 41s detour on at (1.25, 0.51) after 5.0 s without p
+g_demo_FollowPathGoal_2            SUCC start_mode aisle  detour_on 2  5s detour on at (0.52, 0.62) after 5.0 s without progress; 24s back to aisle mode (moved 0.42 m) at (0.93, 0.53); 40s detour on at (1.41, 0.55) after 5.0 s without progre
+g_demo_FollowPathGoal_3            SUCC start_mode aisle  detour_on 1  5s detour on at (0.53, 0.62) after 5.0 s without progress; 12s back to aisle mode (moved 0.41 m) at (0.93, 0.52)
+g_demo_FollowPathRLShimACD3_3      ABOR start_mode aisle  detour_on 0  
+g_demo_FollowPathGoal_4            ABOR start_mode aisle  detour_on 3  9s detour on at (0.55, 0.61) after 5.0 s without progress; 10s back to aisle mode (navigation ended) at (0.55, 0.61); 18s detour on at (0.55, 0.61) after 5.0 s without pr
+g_demo_FollowPathRLShimACD3_4      SUCC start_mode aisle  detour_on 0  
+== h_block: 10 legs, 37 detour-on lines in the whole run
+h_block_FollowPathGoal_0           SUCC start_mode aisle  detour_on 1  9s detour on at (0.68, 0.57) after 5.0 s without progress; 19s back to aisle mode (moved 0.40 m) at (0.75, 0.17)
+h_block_FollowPathRLShimACD3_0     SUCC start_mode aisle  detour_on 1  5s detour on at (0.52, 0.61) after 5.0 s without progress; 11s back to aisle mode (moved 0.41 m) at (0.68, 0.23)
+h_block_FollowPathRLShimACD3_1     SUCC start_mode aisle  detour_on 1  5s detour on at (0.51, 0.60) after 5.0 s without progress; 11s back to aisle mode (moved 0.41 m) at (0.67, 0.22)
+h_block_FollowPathGoal_1           ABOR start_mode aisle  detour_on 3  9s detour on at (0.67, 0.57) after 5.0 s without progress; 11s back to aisle mode (navigation ended) at (0.67, 0.57); 19s detour on at (0.67, 0.57) after 5.0 s without pr
+h_block_FollowPathRLShimACD3_2     SUCC start_mode aisle  detour_on 1  5s detour on at (0.50, 0.61) after 5.0 s without progress; 12s back to aisle mode (moved 0.41 m) at (0.67, 0.23)
+h_block_FollowPathGoal_2           SUCC start_mode aisle  detour_on 1  9s detour on at (0.67, 0.57) after 5.0 s without progress; 20s back to aisle mode (moved 0.40 m) at (0.73, 0.17)
+h_block_FollowPathGoal_3           ABOR start_mode aisle  detour_on 3  10s detour on at (0.69, 0.57) after 5.0 s without progress; 11s back to aisle mode (navigation ended) at (0.69, 0.57); 19s detour on at (0.69, 0.57) after 5.0 s without p
+h_block_FollowPathRLShimACD3_3     SUCC start_mode aisle  detour_on 1  5s detour on at (0.51, 0.60) after 5.0 s without progress; 11s back to aisle mode (moved 0.42 m) at (0.67, 0.22)
+h_block_FollowPathGoal_4           ABOR start_mode aisle  detour_on 3  9s detour on at (0.67, 0.57) after 5.0 s without progress; 11s back to aisle mode (navigation ended) at (0.67, 0.57); 19s detour on at (0.67, 0.57) after 5.0 s without pr
+h_block_FollowPathRLShimACD3_4     SUCC start_mode aisle  detour_on 1  5s detour on at (0.51, 0.61) after 5.0 s without progress; 11s back to aisle mode (moved 0.41 m) at (0.68, 0.23)
