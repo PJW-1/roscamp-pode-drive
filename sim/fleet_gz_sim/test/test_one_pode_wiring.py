@@ -252,3 +252,82 @@ def test_one_pode_passes_plan_keep_to_nav2(one):
     assert (nav["plan_keep"], nav["plan_keep_node"]) == ("false", "true")
     nav = nav_arguments(run(one, plan_keep="true"))
     assert (nav["plan_keep"], nav["plan_keep_node"]) == ("true", "true")
+
+
+# ---- 통로 먼저(시뮬 시험): 끄면 아무것도 바뀌지 않는다 ----
+def pode_call(one, monkeypatch, **overrides):
+    """(pode()에 넘긴 인자, pode() 밖에서 더한 action)."""
+    need("pinky_description", "pode_nav_config", "pode_fsm")
+    from fleet_gz_sim import launch_parts
+    seen = {}
+    monkeypatch.setattr(launch_parts, "pode", lambda *a, **kw: seen.update(kw, args=a) or [])
+    actions = run(one, layout="v7", start="O_IN", **overrides)
+    others = [(a.node_package, a.node_executable) for a in actions if type(a).__name__ == "Node"
+              and a.node_executable != "parameter_bridge"]
+    return seen, others
+
+
+def test_aisle_first_is_off_by_default_and_changes_nothing(one, monkeypatch):
+    assert one.ARGS["aisle_first"][0] == "false"
+    default, default_nodes = pode_call(one, monkeypatch)
+    off, off_nodes = pode_call(one, monkeypatch, aisle_first="false")
+    assert default["nav_overrides"] is None
+    assert off == default and off_nodes == default_nodes
+    assert not [n for n in default_nodes if n[1] == "aisle_first"]
+
+
+def test_aisle_first_adds_exactly_the_node_and_the_override(one, monkeypatch, tmp_path):
+    from fleet_gz_sim import launch_parts
+    default, default_nodes = pode_call(one, monkeypatch)
+    on, on_nodes = pode_call(one, monkeypatch, aisle_first="true")
+    assert on.pop("nav_overrides") == launch_parts.AISLE_FIRST_OVERRIDES
+    default.pop("nav_overrides")
+    assert on == default
+    [extra] = [n for n in on_nodes if n not in default_nodes]
+    assert extra == ("fleet_gz_sim", "aisle_first")
+    assert len(on_nodes) == len(default_nodes) + 1
+    # nav_overrides 파일 위에 덮는다(파일의 다른 값은 그대로)
+    mine = tmp_path / "mine.yaml"
+    mine.write_text("global_costmap:\n  global_costmap:\n    ros__parameters:\n"
+                    "      obstacle_layer: {enabled: true, footprint_clearing_enabled: false}\n"
+                    "      update_frequency: 2.0\n")
+    on, _ = pode_call(one, monkeypatch, aisle_first="1", nav_overrides=str(mine))
+    params = on["nav_overrides"]["global_costmap"]["global_costmap"]["ros__parameters"]
+    assert params == {"obstacle_layer": {"enabled": False, "footprint_clearing_enabled": False},
+                      "update_frequency": 2.0}
+
+
+def test_aisle_first_node_runs_in_the_robot_namespace_with_sim_time(one, monkeypatch):
+    need("pinky_description", "pode_nav_config", "pode_fsm")
+    from fleet_gz_sim import launch_parts
+    made = []
+    real = launch_parts.Node
+    monkeypatch.setattr(launch_parts, "Node", lambda *a, **kw: made.append(kw) or real(*a, **kw))
+    run(one, layout="v7", start="O_IN", namespace="pode3", aisle_first="true")
+    [node] = [kw for kw in made if kw.get("executable") == "aisle_first"]
+    assert node["namespace"] == "pode3" and node["parameters"] == [{"use_sim_time": True}]
+    assert node["remappings"] == launch_parts.TF_REMAPS
+
+
+def test_aisle_first_rejects_a_typo(one):
+    need("pinky_description", "pode_nav_config", "pode_fsm")
+    with pytest.raises(ValueError, match="aisle_first"):
+        run(one, aisle_first="yes")
+
+
+def test_aisle_first_params_differ_only_in_the_global_obstacle_layer(tmp_path):
+    need("pode_nav_config", "pode_avoidance")
+    import yaml
+    from fleet_gz_sim import launch_parts
+    base = launch_parts.share("pode_nav_config") / "params" / "nav2_params.yaml"
+    plain = yaml.safe_load(launch_parts.sim_nav_params(
+        base, tmp_path / "a.yaml", avoidance=launch_parts.avoidance_file()).read_text())
+    aisle = yaml.safe_load(launch_parts.sim_nav_params(
+        base, tmp_path / "b.yaml", overrides=launch_parts.with_aisle_first(None),
+        avoidance=launch_parts.avoidance_file()).read_text())
+    layer = aisle["global_costmap"]["global_costmap"]["ros__parameters"]["obstacle_layer"]
+    assert layer["enabled"] is False
+    plain_layer = plain["global_costmap"]["global_costmap"]["ros__parameters"]["obstacle_layer"]
+    assert plain_layer["enabled"] is True
+    layer["enabled"] = True
+    assert aisle == plain

@@ -179,6 +179,28 @@ ros2 run fleet_gz_sim drive_check                  # 인자 없으면 v7 corrido
 
 RViz의 2D Goal Pose로도 보낼 수 있다. 이것은 `bt_navigator`로 가고 `pode_fsm`을 거치지 않는다.
 
+### 통로 먼저 (`aisle_first`, 시뮬 시험)
+
+`aisle_first:=true`면 통로에 선 장애물(카트)을 다른 통로로 돌아가지 않고 그 통로 안에서 지나가 보고, 못 지나갈 때만 돌아간다. 시뮬 전용 시험이고 `one_pode.launch.py`에만 있다. 기본 `false`면 launch와 파라미터가 main과 같다.
+
+- 전역 costmap의 `obstacle_layer.enabled`를 `false`로 덮어 시작한다(`nav_overrides`가 있으면 그 위에 덮는다). 전역 경로는 지도만 보고 통로 안에 남고, 지나가는 일은 controller가 한다.
+- `aisle_first` 노드(로봇 namespace, sim time)가 TF(`map` -> `base_footprint`)로 위치를 보고, planner가 내는 `plan`을 `plan_timeout_s` 안에 받았으면 주행 중으로 본다.
+- 주행 중에 `stall_s` 동안 기준 위치에서 `progress_m`보다 멀리 못 가면 `global_costmap/global_costmap`의 `obstacle_layer.enabled`를 `true`로 바꾼다. 1 Hz 재계획이 장애물을 보고 돌아가는 길을 낸다.
+- 멈춘 곳에서 `resume_m`보다 멀어지거나, 주행이 끝나거나(`plan`이 `plan_timeout_s` 동안 없음), 새 goal이 오면(`plan`의 끝점이 `goal_change_m`보다 멀리 옮겨짐) 층을 다시 끄고 `global_costmap/clear_entirely_global_costmap`을 부른다.
+- 모드가 바뀔 때 INFO 한 줄: `aisle_first: detour on at (x, y) after 5.0 s without progress`, `aisle_first: back to aisle mode (moved 0.41 m | navigation ended | new goal)`.
+
+| 파라미터 | 기본값 | 뜻 |
+|---|---|---|
+| `plan_timeout_s` | 2.5 | 이 시간 안에 `plan`을 받았으면 주행 중 |
+| `progress_m` | 0.05 | 이보다 멀리 가면 진척(기준 위치를 옮긴다) |
+| `stall_s` | 5.0 | 이 시간 동안 진척이 없으면 돌아가기를 켠다. controller 진척 검사(10 s)보다 짧아야 한다 |
+| `resume_m` | 0.40 | 멈춘 곳에서 이보다 멀어지면 통로 모드로 돌아간다 |
+| `goal_change_m` | 0.20 | `plan`의 끝점이 이보다 멀리 옮겨지면 새 goal로 본다 |
+
+```bash
+ros2 launch fleet_gz_sim one_pode.launch.py aisle_first:=true
+```
+
 ### 구성
 
 | 것 | 이름 |
