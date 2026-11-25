@@ -327,3 +327,128 @@ def test_privileged_block_is_in_our_frame_and_zero_when_absent():
     assert out.shape == (1, 2 * ts.PRIV_PER_OBJECT)
     assert torch.allclose(out[0, :5], torch.tensor([1.0, 0.5, 0.0, 0.0, -0.5]), atol=1e-6)
     assert torch.equal(out[0, 5:], torch.zeros(5))
+
+
+# ---- 명령 응답 모델 (cmd_*_range) ----
+def _run_response(targets, delay, tau, gain, spec, dt=0.05):
+    n = targets.shape[1]
+    buf = torch.zeros(n, ts.cmd_delay_slots(spec), 2)
+    lag = torch.zeros(n, 2)
+    out = []
+    for x in targets:
+        lag, buf = ts.cmd_response_step(buf, lag, x, delay, tau, gain, dt)
+        out.append(lag)
+    return torch.stack(out)
+
+
+def test_cmd_delay_of_k_steps_shifts_the_input_by_k():
+    spec = dataclasses.replace(ts.SPEC, cmd_delay_steps_range=(0, 3))
+    torch.manual_seed(0)
+    x = torch.randn(12, 4, 2)
+    delay = torch.tensor([0, 1, 2, 3])
+    y = _run_response(x, delay, torch.zeros(4), torch.ones(4, 2), spec)
+    for e, k in enumerate(delay.tolist()):
+        assert torch.equal(y[k:, e], x[: 12 - k, e])
+        assert torch.equal(y[:k, e], torch.zeros(k, 2))
+
+
+def test_cmd_lag_matches_the_first_order_step_response():
+    dt = 0.05
+    tau = torch.tensor([0.02, 0.065, 0.12])
+    x = torch.ones(20, 3, 2)
+    y = _run_response(x, torch.zeros(3, dtype=torch.long), tau, torch.ones(3, 2), ts.SPEC, dt)
+    t = dt * torch.arange(1, 21, dtype=torch.float32)[:, None]
+    want = 1.0 - torch.exp(-t / tau)
+    assert torch.allclose(y[..., 0], want, atol=1e-6)
+    assert torch.allclose(y[..., 1], want, atol=1e-6)
+
+
+def test_cmd_gain_scales_the_steady_state():
+    x = torch.tensor([[0.1, -0.5]]).expand(40, 1, 2)
+    gain = torch.tensor([[0.95, 1.1]])
+    spec = dataclasses.replace(ts.SPEC, cmd_delay_steps_range=(0, 2))
+    y = _run_response(x, torch.tensor([2]), torch.tensor([0.07]), gain, spec)
+    assert torch.allclose(y[-1, 0], torch.tensor([0.095, -0.55]), atol=1e-6)
+
+
+def test_cmd_response_identity_is_bit_for_bit():
+    assert not ts.cmd_response_active(ts.SPEC)
+    delay, tau, gain = ts.sample_cmd_response(5, "cpu")
+    assert delay.tolist() == [0] * 5 and tau.tolist() == [0.0] * 5
+    assert torch.equal(gain, torch.ones(5, 2))
+    torch.manual_seed(1)
+    x = torch.randn(30, 5, 2) * torch.tensor([0.1, 1.0])
+    x[3, 0, 1] = -0.0
+    y = _run_response(x, delay, tau, gain, ts.SPEC)
+    assert torch.equal(y, x)
+    assert torch.equal(torch.signbit(y), torch.signbit(x))
+
+
+def test_cmd_response_overrides_and_draws():
+    spec = ts.make_spec(
+        ts.parse_overrides(
+            [
+                "cmd_delay_steps_range=0,2",
+                "cmd_lag_tau_range=0.0,0.12",
+                "cmd_gain_v_range=0.95,1.05",
+                "cmd_gain_w_range=0.85,1.15",
+            ]
+        )
+    )
+    assert spec.cmd_delay_steps_range == (0, 2)
+    assert all(isinstance(k, int) for k in spec.cmd_delay_steps_range)
+    assert ts.cmd_response_active(spec) and ts.cmd_delay_slots(spec) == 3
+    delay, tau, gain = ts.sample_cmd_response(20000, "cpu", spec)
+    assert set(delay.tolist()) == {0, 1, 2}
+    assert 0.0 <= tau.min() and tau.max() <= 0.12
+    assert 0.95 <= gain[:, 0].min() and gain[:, 0].max() <= 1.05
+    assert 0.85 <= gain[:, 1].min() and gain[:, 1].max() <= 1.15
+    # 한 값 범위는 난수를 쓰지 않음
+    fixed = dataclasses.replace(
+        ts.SPEC, cmd_delay_steps_range=(1, 1), cmd_lag_tau_range=(0.065, 0.065)
+    )
+    torch.manual_seed(3)
+    before = torch.rand(1)
+    torch.manual_seed(3)
+    d, t, _ = ts.sample_cmd_response(4, "cpu", fixed)
+    assert torch.equal(torch.rand(1), before)
+    assert d.tolist() == [1] * 4 and torch.allclose(t, torch.full((4,), 0.065))
+    with pytest.raises(ValueError):
+        ts.sample_cmd_response(1, "cpu", dataclasses.replace(ts.SPEC, cmd_delay_steps_range=(2, 1)))
+
+
+def test_cmd_response_resamples_only_reset_envs():
+    """env 의 리셋 경로처럼 reset 한 env 만 새 값으로 덮는다."""
+    spec = dataclasses.replace(
+        ts.SPEC,
+        cmd_delay_steps_range=(0, 5),
+        cmd_lag_tau_range=(0.0, 0.2),
+        cmd_gain_v_range=(0.5, 1.5),
+        cmd_gain_w_range=(0.5, 1.5),
+    )
+    torch.manual_seed(4)
+    delay, tau, gain = ts.sample_cmd_response(64, "cpu", spec)
+    old = (delay.clone(), tau.clone(), gain.clone())
+    ids = torch.tensor([3, 10, 40])
+    d, t, g = ts.sample_cmd_response(len(ids), "cpu", spec)
+    delay[ids], tau[ids], gain[ids] = d, t, g
+    keep = torch.ones(64, dtype=torch.bool)
+    keep[ids] = False
+    assert torch.equal(delay[keep], old[0][keep]) and torch.equal(tau[keep], old[1][keep])
+    assert torch.equal(gain[keep], old[2][keep])
+    assert not torch.equal(tau[ids], old[1][ids])
+
+
+def test_rate_limit_still_bounds_the_wheel_command_after_the_response_model():
+    spec = dataclasses.replace(ts.SPEC, cmd_delay_steps_range=(1, 1))
+    delay, tau, gain = ts.sample_cmd_response(2, "cpu", spec)
+    gain = torch.tensor([[1.5, 1.5], [1.0, 1.0]])
+    buf, lag, cmd = torch.zeros(2, 2, 2), torch.zeros(2, 2), torch.zeros(2, 2)
+    lim = ts.ACTION_LIMITS
+    step = torch.tensor((lim.acc_v * 0.05, lim.acc_w * 0.05))
+    for x in (torch.tensor([[0.12, 1.0], [-0.05, -1.0]]),) * 5:
+        r, buf = ts.cmd_response_step(buf, lag, x, delay, tau, gain, 0.05)
+        lag = r
+        new = ts.rate_limit(cmd, r, 0.05)
+        assert ((new - cmd).abs() <= step + 1e-7).all()
+        cmd = new
