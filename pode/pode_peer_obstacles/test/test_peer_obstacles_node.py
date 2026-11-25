@@ -301,6 +301,38 @@ def test_the_lane_goes_out_only_for_a_standing_cleaner_toward_this_robot(passing
     assert _spin_until(executor, gone)
 
 
+def test_a_standing_robot_that_loses_its_pose_is_the_disc_again_without_a_lane(passing):
+    """자리를 잃은 로봇은 선 것으로 보지 않는다: 마지막 자리에 원으로 남고 띠는 사라진다."""
+    node, other, executor = passing
+    clouds, lanes = [], []
+    other.create_subscription(PointCloud2, "peer_obstacles", clouds.append, 5)
+    other.create_subscription(PointCloud2, "peer_lane", lanes.append, 5)
+    senders = _senders(other)
+    state = {"pode3": ("IDLE", 1.40, 0.2615)}
+
+    def send():
+        senders["pode1"].publish(_state("pode1", 0.64, 0.24))
+        name, x, y = state["pode3"]
+        senders["pode3"].publish(_state("pode3", x, y, state=name))
+
+    def standing():
+        send()
+        return (bool(clouds) and bool(lanes) and len(_points(lanes[-1])) > 20
+                and bool(_points(clouds[-1])))
+
+    assert _spin_until(executor, standing)
+    assert min(p[1] for p in _points(clouds[-1])) == pytest.approx(0.2615 - 0.058, abs=1e-3)
+    state["pode3"] = ("LOCALIZING", 0.0, 0.0)
+
+    def lost():
+        send()
+        points = _points(clouds[-1])
+        return (not _points(lanes[-1]) and bool(points)
+                and min(p[1] for p in points) == pytest.approx(0.2615 - 0.075, abs=1e-3))
+
+    assert _spin_until(executor, lost)
+
+
 def test_no_lane_goes_out_by_default(running):
     node, other, executor = running
     lanes = []

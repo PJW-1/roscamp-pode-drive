@@ -88,8 +88,9 @@ class PeerObstacles(Node):
             self.poses[name] = pose
             if msg.state == RobotState.STATE_IDLE:
                 self.standing.add(name)
-            else:
-                self.standing.discard(name)
+                return
+        # 달리거나 자리를 잃은 로봇은 선 것으로 보지 않는다(마지막 자리에 원으로 남는다)
+        self.standing.discard(name)
 
     def on_me(self, msg: RobotState):
         pose = (msg.pose.x, msg.pose.y, msg.pose.theta)
