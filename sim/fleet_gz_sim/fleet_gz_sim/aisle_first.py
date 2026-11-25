@@ -38,9 +38,9 @@ class State:
 
 def active_goal(entries):
     """(상태, goal id, 받아들인 시각) 목록에서 아직 끝나지 않은 goal 가운데 가장 나중에 받아들인 것의 id.
-    없으면 None."""
-    live = [e for e in entries if e[0] in ACTIVE_STATUS]
-    return max(live, key=lambda e: e[2])[1] if live else None
+    시각이 같으면 목록에서 뒤에 있는 쪽이다. 없으면 None."""
+    live = [(e[2], i, e[1]) for i, e in enumerate(entries) if e[0] in ACTIVE_STATUS]
+    return max(live)[2] if live else None
 
 
 def navigating(last_plan_t: float | None, now: float, rules: Rules = Rules(),

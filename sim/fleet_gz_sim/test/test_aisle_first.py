@@ -188,3 +188,5 @@ def test_the_active_goal_is_the_latest_unfinished_one():
     assert active_goal([(4, b"a", 1.0), (2, b"b", 2.0)]) == b"b"
     # 선점: 취소 중인 앞 goal과 새 goal이 같이 보이면 나중에 받아들인 쪽이다 (목록 순서와 무관)
     assert active_goal([(2, b"b", 2.0), (3, b"a", 1.0)]) == b"b"
+    # 받아들인 시각이 같으면(둘 다 0이어도) 목록에서 뒤에 있는 쪽이다
+    assert active_goal([(3, b"a", 0.0), (2, b"b", 0.0)]) == b"b"
