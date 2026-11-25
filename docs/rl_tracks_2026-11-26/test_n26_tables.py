@@ -360,3 +360,34 @@ def test_cross_person_counts_person_hits_by_crossing_group_and_pairs_them(tmp_pa
     c = dict(b, cross_path=~cross_path)
     with pytest.raises(ValueError, match="not the same episodes"):
         cp.paired(a, c)
+
+
+def test_cross_person_pairs_by_env_not_by_record_order_and_has_an_unpaired_fallback(tmp_path):
+    import cross_person as cp
+    keys = np.array(["success", "collision", "oob", "timeout"])
+    kinds = np.array(["wall_shelf", "box", "mover", "robot"])
+
+    def save(name, env, code, hit, on):
+        d = tmp_path / name
+        d.mkdir()
+        on = np.array(on, bool)
+        np.savez(d / "episodes.npz", keys=keys, hit_kinds=kinds, code=np.array(code), hit_kind=np.array(hit),
+                 cross=on.copy(), cross_path=on, env=np.array(env))
+        return d
+
+    # 같은 env 넷, 끝난 순서만 다르다 (평가는 끝난 순서대로 적는다)
+    a = cp.load(save("a", [0, 1, 2, 3], [1, 0, 1, 0], [2, 0, 2, 0], [1, 1, 1, 0]))
+    b = cp.load(save("b", [3, 2, 1, 0], [0, 0, 1, 1], [0, 0, 2, 2], [0, 1, 1, 1]))
+    assert a["env"].tolist() == [0, 1, 2, 3] and b["env"].tolist() == [0, 1, 2, 3]
+    d = cp.paired(a, b)["cross_on_path"]
+    # env 0: 1-1, env 1: 0-1, env 2: 1-0 → 평균 0
+    assert d["n"] == 3 and d["diff_pp"] == 0.0
+    # 짝을 지을 수 없을 때 쓰는 독립 표본 차이
+    u = cp.unpaired(a, b)["cross_on_path"]
+    pa, pb = 2 / 3, 2 / 3
+    assert u["n_a"] == 3 and u["n_b"] == 3 and abs(u["diff_pp"]) < 1e-9
+    assert abs(u["se_pp"] - 100 * (pa * (1 - pa) / 3 + pb * (1 - pb) / 3) ** 0.5) < 1e-9
+    # env 묶음이 다르면 짝을 짓지 않는다
+    c = cp.load(save("c", [0, 1, 2, 4], [1, 0, 1, 0], [2, 0, 2, 0], [1, 1, 1, 0]))
+    with pytest.raises(ValueError, match="not the same episodes"):
+        cp.paired(a, c)
