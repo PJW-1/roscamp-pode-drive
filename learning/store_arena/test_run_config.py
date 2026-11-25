@@ -75,3 +75,30 @@ def test_init_std_takes_one_value_or_a_pair():
         except ValueError:
             continue
         raise AssertionError(bad)
+
+
+def test_init_std_refuses_values_that_are_not_finite():
+    for bad in ("nan", "inf", "0.3,nan", "inf,0.1"):
+        try:
+            rc.parse_init_std(bad)
+        except ValueError:
+            continue
+        raise AssertionError(bad)
+
+
+def test_the_map_entry_resolves_a_layout_the_way_the_map_loader_does(tmp_path, monkeypatch):
+    from fleet_core.fleet_map import fleet_map as fm
+
+    assert os.path.samefile(os.path.join(rc.REPO, rc.MAP_DIR), fm.DATA)
+    # 확장자 없는 이름은 작업 폴더에 같은 이름의 파일이 있어도 지도 이름이다
+    (tmp_path / "v7").write_text("not a map", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    assert rc.map_info("v7")["yaml"] == "pc/fleet_core/fleet_core/data/fleet_map_v7.yaml"
+    # 저장소 밖의 yaml 은 절대 경로로 적는다 (다른 드라이브여도 예외 없이)
+    other = tmp_path / "other.yaml"
+    other.write_text("a: 1", encoding="utf-8")
+    m = rc.map_info(str(other))
+    assert os.path.isabs(m["yaml"]) and m["yaml"].endswith("other.yaml")
+    assert m["yaml_sha256"] == rc.sha256_of(str(other))
+    monkeypatch.setattr(rc.os.path, "relpath", lambda *a, **k: (_ for _ in ()).throw(ValueError()))
+    assert os.path.isabs(rc.map_info("v7")["yaml"])

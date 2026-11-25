@@ -37,6 +37,15 @@ parser.add_argument(
     "a converged checkpoint whose std has shrunk); 0 keeps the std of the checkpoint",
 )
 parser.add_argument(
+    "--gamma",
+    type=float,
+    default=0.0,
+    help="PPO discount factor; 0 keeps agent_cfg (0.99, a horizon of 5 s at 20 Hz)",
+)
+parser.add_argument(
+    "--entropy_coef", type=float, default=-1.0, help="PPO entropy bonus; negative keeps agent_cfg"
+)
+parser.add_argument(
     "--set", action="append", default=[], metavar="FIELD=VALUE", help="TaskSpec/ArenaSpec field"
 )
 add_launcher_args(parser)
@@ -52,8 +61,8 @@ def main():
     import store_arena_env as sae
 
     init_std = run_config.parse_init_std(args_cli.init_std)
-    if max(init_std) > 0 and not args_cli.init:
-        raise SystemExit("--init_std needs --init (a resumed chunk keeps its own std)")
+    if max(init_std) > 0 and (args_cli.resume or not args_cli.init):
+        raise SystemExit("--init_std needs --init and no --resume (a resumed chunk keeps its std)")
     task_over, arena_over = arena.split_overrides(args_cli.set)
     env_cfg = sae.StoreArenaEnvCfg()
     env_cfg.scene.num_envs = args_cli.num_envs
@@ -80,6 +89,10 @@ def main():
         agent_cfg.experiment_name = "pode_store_arena"
         agent_cfg.max_iterations = args_cli.max_iterations
         agent_cfg.seed = args_cli.seed
+        if args_cli.gamma > 0:
+            agent_cfg.algorithm.gamma = args_cli.gamma
+        if args_cli.entropy_coef >= 0:
+            agent_cfg.algorithm.entropy_coef = args_cli.entropy_coef
         if arena.ts.make_spec(task_over).critic_privileged:  # env 가 "critic" 그룹을 더함
             agent_cfg.obs_groups = {"actor": ["policy"], "critic": ["policy", "critic"]}
         agent_cfg = handle_deprecated_rsl_rl_cfg(agent_cfg, check_rsl_rl_version())

@@ -11,6 +11,7 @@ import dataclasses
 import datetime
 import hashlib
 import json
+import math
 import os
 import subprocess
 
@@ -38,13 +39,19 @@ def git_info() -> dict:
 
 
 def map_info(layout: str) -> dict:
-    """지도 이름(v7)이나 yaml 경로를 저장소 기준 경로와 sha256 으로."""
+    """지도 이름(v7)이나 yaml 경로를 경로와 sha256 으로. 이름과 경로는 지도 로더(load_fleet_map)와
+    같은 규칙으로 가른다: 확장자가 없으면 이름. 저장소 안이면 저장소 기준 경로, 밖이면 절대 경로."""
     named = os.path.join(REPO, MAP_DIR, f"fleet_map_{layout}.yaml")
-    path = layout if os.path.isfile(layout) else named
+    path = layout if os.path.splitext(layout)[1] else named
     if not os.path.isfile(path):
         return {"layout": layout, "yaml": "", "yaml_sha256": ""}
-    rel = os.path.relpath(os.path.abspath(path), REPO).replace(os.sep, "/")
-    return {"layout": layout, "yaml": rel, "yaml_sha256": sha256_of(path)}
+    full = os.path.abspath(path)
+    try:
+        rel = os.path.relpath(full, REPO)
+    except ValueError:  # Windows 에서 다른 드라이브
+        rel = ".."
+    shown = full if rel.startswith("..") else rel
+    return {"layout": layout, "yaml": shown.replace(os.sep, "/"), "yaml_sha256": sha256_of(path)}
 
 
 def build(
@@ -86,8 +93,8 @@ def parse_init_std(text: str) -> tuple[float, float]:
     parts = [float(x) for x in str(text).split(",")] if str(text).strip() else [0.0]
     if len(parts) == 1:
         parts = parts * 2
-    if len(parts) != 2 or min(parts) < 0:
-        raise ValueError(f"--init_std takes one value or v,w (each >= 0), got {text!r}")
+    if len(parts) != 2 or not all(math.isfinite(x) and x >= 0 for x in parts):
+        raise ValueError(f"--init_std takes one value or v,w (each finite and >= 0), got {text!r}")
     return parts[0], parts[1]
 
 
