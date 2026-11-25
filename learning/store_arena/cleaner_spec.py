@@ -490,12 +490,12 @@ def clean_lap(site, params: Params = Params(), dense_m: float = DENSE_M) -> Clea
         legs.append(rounded([*plan.transits[k][2], b], r))
     legs.append(rounded([*plan.transits[-1][2], site.node_pose(in_edge.a)], r))  # _back_leg
     legs.append(list(in_edge.points))  # bay_in_1 후진
-    pts, ends, rev = [legs[0][0]], [], []
+    # 다리 이음 꼭짓점은 두 번 둔다 (길이 0 구간): 새 다리 첫 꼭짓점부터 intent 가 새 다리 끝까지
+    pts, ends, rev = [], [], []
     for li, leg in enumerate(legs):
         dense = _densify(_dedup(leg), dense_m)
-        new = dense[1:] if math.dist(dense[0], pts[-1]) <= _SAME_M else dense
-        pts += new
-        rev += [li == len(legs) - 1] * len(new)
+        rev += ([False] if pts else []) + [li == len(legs) - 1] * (len(dense) - 1)
+        pts += dense
         ends.append(len(pts) - 1)
     xy = np.array(pts)
     arc = np.concatenate(([0.0], np.cumsum(np.linalg.norm(np.diff(xy, axis=0), axis=1))))
@@ -507,7 +507,7 @@ def clean_lap(site, params: Params = Params(), dense_m: float = DENSE_M) -> Clea
     line_m = sum(math.dist(a, b) for a, b, _ in plan.lines)
     move_m = sum(path_length(rounded(p, r)) for _, _, p in plan.transits)
     return CleanLap(
-        xy, arc, leg_end, np.array(rev[: len(xy) - 1]),
+        xy, arc, leg_end, np.array(rev),
         tuple((a, b) for a, b, _ in plan.lines), (line_m + move_m) / params.speed_mps,
     )
 
@@ -519,12 +519,13 @@ def laps_needed(lap: CleanLap, travel_m: float) -> int:
 
 def lap_table(lap: CleanLap, laps: int) -> dict:
     """바퀴를 laps 번 이은 (V,) 표: pts, arc, leg_end_arc, heading (후진 구간은 뒤를 봄)."""
-    pts = [lap.pts] + [lap.pts[1:]] * (laps - 1)
-    arc = [lap.arc] + [lap.arc[1:] + i * lap.length for i in range(1, laps)]
-    end = [lap.leg_end] + [lap.leg_end[1:] + i * lap.length for i in range(1, laps)]
+    # 바퀴 이음도 집 자리 꼭짓점을 두 번 둔다
+    pts = [lap.pts] * laps
+    arc = [lap.arc + i * lap.length for i in range(laps)]
+    end = [lap.leg_end + i * lap.length for i in range(laps)]
     p = torch.as_tensor(np.concatenate(pts), dtype=torch.float32)
     heading = rbs.route_heading(p[None])[0]
-    rev = torch.as_tensor(np.tile(lap.reverse, laps))
+    rev = torch.as_tensor(np.concatenate([lap.reverse] + [[False], lap.reverse] * (laps - 1)))
     heading = torch.where(rev, heading + math.pi, heading)
     return {
         "pts": p,

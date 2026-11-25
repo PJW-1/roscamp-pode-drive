@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "goal_reach"))
 
 import arena_spec as A  # noqa: E402
 import cleaner_spec as C  # noqa: E402
+import ghost_spec as gh  # noqa: E402
 import robot_spec as RS  # noqa: E402
 import scenario_spec as scn  # noqa: E402
 import task_spec as ts  # noqa: E402
@@ -154,6 +155,17 @@ def test_intent_is_the_next_row_points(lap):
     assert (sign * torch.diff(pts[:, 0]) > 0).all() or (pts[-1] - end).norm() < 1e-4
 
 
+def test_intent_end_switches_at_each_leg_joint(lap):
+    """다리 이음 바로 뒤 intent 끝은 새 다리 끝 (앞 다리 끝에서 잘리지 않음)."""
+    table = C.lap_table(lap, 2)
+    route = C.lap_route(table, torch.tensor([C.SPEED_MPS]))
+    ends = np.unique(table["leg_end_arc"].numpy())
+    for e, nxt in zip(ends[:-1], ends[1:], strict=True):
+        t = torch.tensor([e / C.SPEED_MPS + 1e-3], dtype=torch.float32)
+        out, _ = RS._interp(route["time"], t, route["leg_end_arc"][..., None])
+        assert out[0, 0].item() == pytest.approx(nxt, abs=1e-3)
+
+
 def test_start_clock_keeps_away_from_given_points(lap):
     table = C.lap_table(lap, 2)
     speed = torch.full((64,), C.SPEED_MPS)
@@ -216,7 +228,7 @@ def test_watch_picks_the_nearest_active_robot():
 # ---- env 메서드를 가짜 env 로: 로봇 수, 칸 배치, 기본값 그대로 ----
 def _methods(src: str, names: set[str]) -> dict:
     tree = ast.parse(src)
-    ns = {"torch": torch, "np": np, "rbs": RS, "cln": C, "scn": scn, "ts": ts}
+    ns = {"torch": torch, "np": np, "rbs": RS, "cln": C, "scn": scn, "ts": ts, "gh": gh}
     out = {}
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef) and node.name in names:
@@ -338,6 +350,16 @@ def test_cleaner_prob_mixes_slots(env_src):
     v0 = env.robot_routes[0]["pts"].shape[1]
     short = {k: v[:, : v0 - (1 if k == "heading" else 0)] for k, v in sub.items()}
     assert torch.allclose(RS.robot_pose(sub, t)[0], RS.robot_pose(short, t)[0])
+
+
+def test_ghost_slot_is_avoided_at_its_partner_start(env_src):
+    env = _fake_env(_methods(env_src, ENV_METHODS), robot_cleaner_prob=1.0)
+    env.ghost, env._new_gprio = True, torch.zeros(env.num_envs, dtype=torch.bool)
+    env.start_xy = torch.rand(env.num_envs, 2) * torch.tensor([1.9, 0.9]) + 0.04
+    _run(env)
+    pos, _, _ = RS.robot_pose(env.robot_routes[1], env.robot_t[1])
+    partner = env.start_xy[gh.partner(torch.arange(env.num_envs))]
+    assert ((pos - partner).norm(dim=-1) >= scn.START_SEP_M).float().mean() > 0.95
 
 
 def test_cleaner_needs_a_free_slot(env_src):
