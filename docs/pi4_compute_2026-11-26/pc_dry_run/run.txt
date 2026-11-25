@@ -1,0 +1,14 @@
+cmd_vel publisher 없음(도메인 71, cmd_vel 토픽 0개 확인)
+결과 폴더 /tmp/cb_pc/2026-11-26_001117 (약 380 초)
+[INFO] [1795619514.445809762] [compute_bench]: case rpp: 600 calls, mean 0.290 ms, errors 0
+[INFO] [1795619549.959103298] [compute_bench]: case mppi_l0: 600 calls, mean 3.209 ms, errors 0
+[INFO] [1795619585.484185762] [compute_bench]: case mppi_l1: 600 calls, mean 0.940 ms, errors 0
+[INFO] [1795619620.992865639] [compute_bench]: case mppi_l2: 600 calls, mean 0.415 ms, errors 0
+[INFO] [1795619691.499150292] [compute_bench]: case mppi_l3: 600 calls, mean 0.197 ms, errors 0
+[INFO] [1795619762.005361636] [compute_bench]: case mppi_l4: 600 calls, mean 0.106 ms, errors 0
+[INFO] [1795619797.536049346] [compute_bench]: case rl: 600 calls, mean 0.180 ms, errors 0
+[INFO] [1795619832.537867916] [compute_bench]: case onnx_only: 600 calls, mean 0.074 ms, errors 0
+[INFO] [1795619832.539231216] [compute_bench]: 27 publishers in the graph, 0 on a cmd_vel topic (list in publishers.txt)
+(table.md와 같은 표)
+compute_bench 종료 코드 0 (0 정상, 2 호출 오류, 3 cmd_vel publisher 발견). 결과: /tmp/cb_pc/2026-11-26_001117
+EXIT=0

@@ -1,0 +1,9 @@
+case,kind,plugin,rate_hz,batch_size,time_steps,model_dt,n,errors,overruns,wall_s,proc_user_s,proc_sys_s,thread_cpu_s,first_error
+rpp,controller,nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController,20,,,,600,0,0,30.0001,0.232328,0,0.185913,
+mppi_l0,controller,nav2_mppi_controller::MPPIController,20,1000,83,0.050000,600,0,0,30.0001,1.39098,0.603473,1.93825,
+mppi_l1,controller,nav2_mppi_controller::MPPIController,20,500,56,0.050000,600,0,0,30.0001,0.506461,0.122189,0.57682,
+mppi_l2,controller,nav2_mppi_controller::MPPIController,20,300,40,0.050000,600,0,0,30.0001,0.25291,0.063768,0.261747,
+mppi_l3,controller,nav2_mppi_controller::MPPIController,10,200,20,0.100000,600,0,0,60.0001,0.177279,0.053673,0.130073,
+mppi_l4,controller,nav2_mppi_controller::MPPIController,10,100,15,0.100000,600,0,0,60.0001,0.141788,0.034576,0.074854,
+rl,controller,pode_rl_controller::FollowPathRL,20,,,,600,0,0,30.0001,0.19283,0,0.120117,
+onnx_only,onnx,OnnxPolicy store_arena_4b,20,,,,600,0,0,30.0001,0.107212,0,0.05654,
