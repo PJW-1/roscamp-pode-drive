@@ -90,6 +90,7 @@ class CleanJob:
     not_home_warned: bool = False
     # 비키기(4-6): 비켜 준 운반 로봇, 처음 만난 시각, 집 자리 피난, 막힘 경고
     yield_for: str = ""
+    escape_from: str = ""  # 비킬 곳이 없어 집으로 갈 때 피하는 운반 로봇
     yield_since: float | None = None
     homing: bool = False
     refuge: bool = False
@@ -309,7 +310,8 @@ class Cleaning:
             if leg is not None or job.stage != BACK:
                 return leg
         if job.stage == BACK:
-            return self._clean_ready(m, self._back_leg(m, job))
+            return self._clean_ready(m, self._back_leg(m, job),
+                                     job.escape_from if job.homing else "")
         if job.stage == BAY_IN:
             return self._clean_ready(m, self._bay_leg(m))
         return None
@@ -318,8 +320,9 @@ class Cleaning:
         while True:
             if not job.queue:
                 if not job.waiting:
-                    # 못 한 줄이 남았으면 집에 가지 않고 그 줄부터 다음 바퀴를 돈다
-                    if job.skipped and not job.homing:
+                    # 못 한 줄이나 빈틈이 남았으면 집에 가지 않고 그것부터 다음 바퀴를 돈다.
+                    # 한 tick에 한 번만 넘긴다(모든 줄이 바로 포기되면 집으로)
+                    if (job.skipped or job.gaps) and not job.homing and job.lap_since < now:
                         self._clean_carry_lap(m, job, now)
                         continue
                     job.stage = BACK
@@ -382,8 +385,8 @@ class Cleaning:
         self._event("INFO", "CLEAN_LAP_START", f"lap {job.lap}, {len(job.segs)} lines "
                     f"({len(job.segs) - count} gaps), first {first}", m.name)
 
-    def _clean_ready(self, m, leg):
-        leg, why = self._clean_admit(m, leg)
+    def _clean_ready(self, m, leg, leaving: str = ""):
+        leg, why = self._clean_admit(m, leg, leaving)
         return None if why else leg
 
     # ---- 다리 만들기 ----
@@ -429,8 +432,8 @@ class Cleaning:
         return Leg(kind, target, tuple(out), nodes, end_yaw, line)
 
     # ---- 겹침 검사와 쥐기: 볼 대상이 아닌 남의 지점은 다리에서 빼고 쥐지 않는다 ----
-    def _clean_admit(self, m, leg) -> tuple:
-        why = self._clean_conflict(m, leg)
+    def _clean_admit(self, m, leg, leaving: str = "") -> tuple:
+        why = self._clean_conflict(m, leg, leaving)
         if why:
             return leg, why
         if self.params.clean_hold_check != ALL:
@@ -439,7 +442,9 @@ class Cleaning:
         return leg, self._clean_take(m, leg)
 
     # ---- 겹침 검사: 막힌 구역, 남이 쥔 지점, 남의 자리와 base ----
-    def _clean_conflict(self, m, leg) -> str:
+    def _clean_conflict(self, m, leg, leaving: str = "") -> str:
+        """leaving: 집으로 피하는 다리가 비켜 주는 운반 로봇. 그 로봇이 청소 로봇이 쥔 지점을
+        기다리는 것과 띠에 닿는 것은 막지 않고(떠나면 놓는다), 띠를 가로지르는 것만 막는다."""
         site, grants, reach = self.site, self.grants, self.params.clean_conflict_reach_m
         for node in leg.nodes:
             zone = site.nodes[node].zone
@@ -456,9 +461,17 @@ class Cleaning:
             if self._base_near(other, leg.points, reach):
                 return f"{other.name}'s base passes near"
             # 운반 로봇의 만남 띠(4-6)에 닿거나 그 로봇이 기다리는 지점을 지나는 다리는 보내지 않는다
-            wanted = [n for n in self._wanted(other) if n in leg.nodes]
+            escape = other.name == leaving
+            wanted = [n for n in self._wanted(other) if n in leg.nodes
+                      and not (escape and grants.node_holder(n) == m.name)]
             if wanted:
                 return f"{other.name} waits for {wanted}"
+            if escape:
+                band = self._clean_band(other) or []
+                if any(segments_cross(a, b, c, d) for a, b in pairwise(leg.points)
+                       for c, d in pairwise(band)):
+                    return f"crosses {other.name}'s way"
+                continue
             band = self._clean_band(other) if self._band_on_legs() else None
             if band is not None and self._ways_meet(leg.points, band):
                 return f"meets {other.name}'s way"
@@ -587,7 +600,8 @@ class Cleaning:
             job.yield_for, job.yield_since = other.name, now
         elif now - job.yield_since >= p.clean_yield_wait_s:
             return self._clean_go_home(m, job, f"{other.name} still meets it "
-                                       f"{now - job.yield_since:.0f} s after yielding ({why})")
+                                       f"{now - job.yield_since:.0f} s after yielding ({why})",
+                                       other.name)
         clear = self._clear_of(m, other)
         if job.goal_id is None and clear:
             return True
@@ -607,7 +621,8 @@ class Cleaning:
             leg = self._clean_yield_leg(m, other)
         refusal = "no place out of its way" if leg is None else self._clean_take(m, leg)
         if refusal:
-            return self._clean_go_home(m, job, f"cannot yield to {other.name}: {refusal}")
+            return self._clean_go_home(m, job, f"cannot yield to {other.name}: {refusal}",
+                                       other.name)
         end = leg.points[-1]
         self._event("INFO", "CLEAN_YIELD", f"{how} for {other.name} to ({end[0]:.3f}, "
                     f"{end[1]:.3f}): {why}", m.name)
@@ -714,10 +729,9 @@ class Cleaning:
             end = (here[0] + back[0] * n * step, here[1] + back[1] * n * step)
             if _path_gap(end, band) <= need:
                 continue
-            # 뒤가 막혔거나, 운반 로봇에 몸 너비보다 다가가거나, 띠를 가로지르면 더 가도 같다
+            # 뒤가 막혔거나, 운반 로봇에 지금보다 다가가거나, 띠를 가로지르면 더 가도 같다
             if (not plan.clear([here, end])
-                    or point_segment_distance(pos, here, end)
-                    < min(2 * p.footprint_radius_m, math.dist(here, pos)) - 1e-6
+                    or point_segment_distance(pos, here, end) < math.dist(here, pos) - 1e-6
                     or any(segments_cross(here, end, a, b) for a, b in pairwise(band))
                     or any(_path_gap((o.x, o.y), [here, end]) <= p.clean_conflict_reach_m
                            for o in rest)):
@@ -739,14 +753,15 @@ class Cleaning:
                                  <= self.params.clean_conflict_ahead_m)
 
     # ---- 집 자리 피난(3-6): 돌아오기 다리로 입구까지 간 뒤 후진. 그 길도 막히면 세우고 경고 ----
-    def _clean_go_home(self, m, job, why: str) -> bool:
+    def _clean_go_home(self, m, job, why: str, leaving: str = "") -> bool:
         if job.goal_id is not None:
             self._clean_cancel(m, job)
         self._clean_requeue(m, job)
         job.homing, job.stage, job.back_nav = True, BACK, False
         job.yield_for, job.yield_since = "", None
+        job.escape_from = leaving
         self._event("WARN", "CLEAN_HOME", f"goes home to {job.home}: {why}", m.name)
-        leg = self._clean_ready(m, self._back_leg(m, job))
+        leg = self._clean_ready(m, self._back_leg(m, job), leaving)
         if leg is None:
             self._clean_note_stuck(m, job, self._clock())
             return False
@@ -929,7 +944,7 @@ class Cleaning:
             return
         elif leg.kind == BACK and self._clean_plan.in_edge is not None:
             job.stage = BAY_IN
-        elif job.homing and (job.queue or job.waiting):
+        elif job.homing and (job.queue or job.waiting or job.skipped or job.gaps):
             self._clean_refuge(m, job)
         else:
             job.homing = False

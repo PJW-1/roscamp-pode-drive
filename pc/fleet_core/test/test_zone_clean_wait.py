@@ -6,9 +6,11 @@
 from __future__ import annotations
 
 import math
+from dataclasses import replace
 
 from fleet_core.common.commands import RetreatCmd
-from fleet_core.traffic.zone.cleaning import BACK, LINE, LINES, YIELD, _path_gap
+from fleet_core.traffic.zone.cleaning import BACK, BAY_IN, LINE, LINES, YIELD, _path_gap
+from fleet_core.common.params import load_params
 from test_zone_cleaning import CLEANER_NAME, World
 
 
@@ -188,3 +190,86 @@ def test_after_backing_up_the_line_goes_on_from_its_progress():
     pts = [pt[:2] for pt in again.path]
     assert any(math.dist(pt, w.at(a, b, 0.3)) < 1e-6 for pt in pts)
     assert math.dist(pts[-1], b) < 1e-6
+
+
+def test_backing_up_never_passes_closer_to_the_transport(monkeypatch):
+    w = _out_done()
+    # 뒤 왼쪽 0.25 m의 운반 로봇: 후진하면 0.24 m까지 다가갔다가 멀어진다
+    t, m, other = _on_line_facing_a_band(w, monkeypatch, [(0.92, 0.80)])
+    assert t._clean_backup_leg(m, other) is None
+
+
+# ---- 빈틈과 피난: 남은 것이 있으면 다음 바퀴 맨 앞 ----
+def test_a_lap_with_only_gaps_left_does_not_go_home():
+    w = _out_done()
+    _lap_end(w, [])
+    gap = ((0.75, 0.5625), (0.85, 0.5625))
+    w.job.gaps = [gap]
+    w.step()
+    starts = w.events("CLEAN_LAP_START")
+    assert len(starts) == 2 and "(1 gaps)" in starts[-1].detail
+    assert w.job.segs[-1] == gap
+    sent = _lines_sent(w)
+    assert sent and sent[0].detail.startswith(f"line {len(w.job.segs) - 1} ")
+    assert not [e for e in w.events("CLEAN_SENT") if e.detail.startswith("back")]
+
+
+def test_refuge_with_only_skipped_lines_left_keeps_them_first():
+    w = _out_done()
+    t, job, m = w.t, w.job, w.t._robots[CLEANER_NAME]
+    _lap_end(w, [3])
+    job.homing, job.stage = True, BACK
+    t._clean_leg_done(m, job, t._leg(BAY_IN, "P-1", [(0.12, 0.24), (0.12, 0.10)], None))
+    assert job.refuge and not w.events("CLEAN_LAP_DONE")
+    w.out += t.take_output()
+    assert job.skipped == [3]
+
+
+def test_a_zero_defer_limit_does_not_spin(monkeypatch):
+    params = replace(load_params(), clean_defer_limit=0)
+    w = World({"pode1": "P-3", CLEANER_NAME: "P-1"}, params=params)
+    w.step()
+    out = w.moves()[-1]
+    w.pos[CLEANER_NAME] = (out.x, out.y)
+    w.report()
+    monkeypatch.setattr(w.t, "_line_leg", lambda m, job, i: None)
+    w.finish(out.goal_id)
+    w.step()
+    assert len(w.events("CLEAN_LAP_START")) <= 3
+    assert w.job.stage == BACK
+
+
+# ---- 비킬 곳이 없어 집으로: 피하는 운반 로봇이 청소 로봇이 쥔 지점을 기다려도 떠난다 ----
+def _near_e2(w, monkeypatch, at):
+    t, m = w.t, w.t._robots[CLEANER_NAME]
+    w.pos["pode1"] = w.site.node_pose("O")
+    w.pos[CLEANER_NAME] = at
+    w.step()
+    band = [w.site.node_pose("O"), w.site.node_pose("E-2")]
+    monkeypatch.setattr(t, "_clean_band", lambda other, full=False: list(band))
+    monkeypatch.setattr(t, "_wanted", lambda other: ["E-2"] if other.name == "pode1" else [])
+    assert t.grants.take(CLEANER_NAME, [t._clean_plan.floor], ["E-2"])
+    return t, m, t._robots["pode1"]
+
+
+def test_going_home_leaves_the_node_the_transport_waits_for(monkeypatch):
+    w = _out_done()
+    t, m, other = _near_e2(w, monkeypatch, (0.352, 0.293))  # 띠 서쪽, E-2 옆(seed 20 막힘 자리)
+    assert t._clean_make_way(m, other, "test")
+    w.out += t.take_output()
+    assert w.events("CLEAN_HOME") and w.job.homing
+    assert [e for e in w.events("CLEAN_SENT") if e.detail.startswith("back to E-1")]
+
+
+def test_going_home_never_cuts_across_the_transport_way(monkeypatch):
+    w = _out_done()
+    t, m, other = _near_e2(w, monkeypatch, (0.55, 0.29))  # 띠 동쪽: 집 길이 띠를 가로지른다
+    monkeypatch.setattr(t, "_clean_yield_leg", lambda *args: None)
+    monkeypatch.setattr(t, "_clean_backup_leg", lambda *args: None)
+    t._clean_make_way(m, other, "test")
+    w.out += t.take_output()
+    assert w.events("CLEAN_HOME")
+    assert not [e for e in w.events("CLEAN_SENT") if e.detail.startswith("back")]
+    # 다음 tick에서 다시 보내도 같다
+    w.step()
+    assert not [e for e in w.events("CLEAN_SENT") if e.detail.startswith("back")]
