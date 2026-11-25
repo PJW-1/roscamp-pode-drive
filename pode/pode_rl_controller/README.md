@@ -21,6 +21,21 @@ start (prev_action 0, every history slot = the current frame) on activate, `rese
 moved more than 1 mm, and whenever the policy did not run in the previous control step (more than 2 control
 periods since its last call: the RotationShim rotated or the plugin turned in place at the goal).
 
+Deployment options, all off by default (off leaves the command bit-identical, `test_parity` checks it):
+- `ema_alpha_v`, `ema_alpha_w` (default 1.0 = off, allowed (0, 1], anything else stops configure): low-pass
+  of the policy's mapped target, `out = alpha * target + (1 - alpha) * previous out`, applied after the
+  policy and before the reverse guard, the speed limit and the rate limit. The prev_action memory keeps the
+  unsmoothed target (what the policy was trained to see). The filter resets wherever `ObsMemory` resets and
+  its first output after a reset starts from the command being sent then (`cmd_`: the last command, or the
+  measured velocity after a gap). It acts on the policy only, not on the turn in place at the goal. Mean
+  added delay at 20 Hz: `0.05 * (1 - alpha) / alpha` s (0.05 s at 0.5, 0.15 s at 0.25).
+- `scan_mask_deg` (default empty = off): flat list of base-frame angle pairs in degrees
+  `[lo, hi, lo, hi, ...]`, `-180 <= lo < hi <= 180` (a range over the back is written as two pairs), with
+  decimal points so YAML reads it as doubles. Beams inside a range become no return (inf, i.e. `obs_max`)
+  before the 360 training rays are built, so the reverse guard ignores them too. Meant for a real robot whose
+  lidar sees its own body (about 150 to 153 deg, `docs/report_2026-11-24_rl_real_prep.md` S1). An odd count
+  or a bad pair stops configure.
+
 Not loaded by default: `sim/fleet_gz_sim/nav_overrides/follow_path_rl.yaml` adds two controllers to
 one_pode (`nav_overrides:=<that file>`): `FollowPathRL`, the default RL option, is the policy wrapped in
 RotationShim; `FollowPathRLAlone` is the same policy unwrapped. `controller_selector` picks one.

@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <deque>
+#include <string>
 #include <vector>
 
 #include "pode_rl_controller/policy_spec.hpp"
@@ -75,5 +76,32 @@ private:
 
 bool memory_stale(bool policy_ran_before, double since_last_policy_s, double control_dt);
 bool new_episode(bool had_plan, const Point2 & old_end, const Point2 & new_end);
+
+// ---- 출력 평활: 정책 목표 (v, w)의 지수 이동 평균(alpha 1 = 끔) ----
+double check_ema_alpha(double alpha, const std::string & name);
+
+class TargetSmoother
+{
+public:
+  explicit TargetSmoother(double alpha_v = 1.0, double alpha_w = 1.0);
+  void reset();
+  Twist2 step(const Twist2 & target, const Twist2 & start);
+
+private:
+  double alpha_v_;
+  double alpha_w_;
+  bool primed_{false};
+  Twist2 out_{0.0, 0.0};
+};
+
+// ---- 스캔 가리기: base 기준 각도 범위(도)의 빔을 "돌아온 것 없음"으로 ----
+struct AngleRange
+{
+  double lo_deg;
+  double hi_deg;
+};
+
+std::vector<AngleRange> parse_scan_mask(const std::vector<double> & deg);
+void mask_scan(Scan & scan, double lidar_yaw, const std::vector<AngleRange> & mask);
 
 }  // namespace pode_rl_controller

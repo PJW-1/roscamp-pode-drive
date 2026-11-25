@@ -53,6 +53,10 @@ void FollowPathRL::configure(
   declare_parameter_if_not_declared(node, name_ + ".rear_stop_range", ParameterValue(0.0));
   declare_parameter_if_not_declared(node, name_ + ".rear_half_width_deg", ParameterValue(30.0));
   declare_parameter_if_not_declared(node, name_ + ".max_linear_vel", ParameterValue(0.0));
+  declare_parameter_if_not_declared(node, name_ + ".ema_alpha_v", ParameterValue(1.0));
+  declare_parameter_if_not_declared(node, name_ + ".ema_alpha_w", ParameterValue(1.0));
+  declare_parameter_if_not_declared(
+    node, name_ + ".scan_mask_deg", ParameterValue(std::vector<double>{}));
 
   const std::string policy = node->get_parameter(name_ + ".policy").as_string();
   const std::string rule_param = node->get_parameter(name_ + ".goal_rule").as_string();
@@ -66,6 +70,10 @@ void FollowPathRL::configure(
   rear_stop_range_ = node->get_parameter(name_ + ".rear_stop_range").as_double();
   rear_half_width_deg_ = node->get_parameter(name_ + ".rear_half_width_deg").as_double();
   const double max_v_param = node->get_parameter(name_ + ".max_linear_vel").as_double();
+  const double alpha_v = node->get_parameter(name_ + ".ema_alpha_v").as_double();
+  const double alpha_w = node->get_parameter(name_ + ".ema_alpha_w").as_double();
+  smoother_ = TargetSmoother(alpha_v, alpha_w);
+  scan_mask_ = parse_scan_mask(node->get_parameter(name_ + ".scan_mask_deg").as_double_array());
   const std::string dir = policy.rfind('/', 0) == 0 ? policy :
     ament_index_cpp::get_package_share_directory("pode_rl_controller") + "/policies/" + policy;
   spec_ = load_policy_spec(dir + "/policy_spec.json");
@@ -135,11 +143,17 @@ void FollowPathRL::configure(
   RCLCPP_INFO(
     logger_, "FollowPathRL %s: policy %s (obs %d, dt %.3f s, v %.2f..%.2f m/s, w %.2f rad/s), "
     "goal_rule %s (lookahead %.2f m, window %d points), scan %s, ORT CPU threads %d, "
-    "max linear vel %.2f m/s, spec format %d, obs blocks [%s], speed_cap %.3f m/s",
+    "max linear vel %.2f m/s, spec format %d, obs blocks [%s], speed_cap %.3f m/s, "
+    "ema alpha v %.3f w %.3f, scan mask %zu ranges",
     name_.c_str(), dir.c_str(), spec_.obs_dim, spec_.control_dt, spec_.action.v_min,
     spec_.action.v_max, spec_.action.w_max, rule_.rule.c_str(), rule_.lookahead_m,
     rule_.follow_window, scan_topic_.c_str(), threads, max_v_, spec_.format, blocks.c_str(),
-    speed_cap_);
+    speed_cap_, alpha_v, alpha_w, scan_mask_.size());
+  for (const auto & m : scan_mask_) {
+    RCLCPP_WARN(
+      logger_, "FollowPathRL %s: scan beams at %.1f..%.1f deg (base frame) are masked as no "
+      "return", name_.c_str(), m.lo_deg, m.hi_deg);
+  }
 }
 
 void FollowPathRL::cleanup()
@@ -168,6 +182,7 @@ void FollowPathRL::setPlan(const nav_msgs::msg::Path & path)
   if (!path_.empty()) {
     if (new_episode(have_plan_, plan_end_, path_.back())) {
       memory_.reset();
+      smoother_.reset();
       policy_ran_ = false;
     }
     plan_end_ = path_.back();
@@ -181,6 +196,7 @@ void FollowPathRL::reset()
   have_last_call_ = false;
   prog_ = 0;
   memory_.reset();
+  smoother_.reset();
   policy_ran_ = false;
   have_plan_ = false;
 }
@@ -286,16 +302,20 @@ geometry_msgs::msg::TwistStamped FollowPathRL::computeVelocityCommands(
   if (rotating) {
     target.w = std::clamp(rotate_gain_ * yaw_end, -lim.w_max, lim.w_max);
   } else {
-    const Scan s{scan->angle_min, scan->angle_increment, scan->range_min, scan->range_max,
+    Scan s{scan->angle_min, scan->angle_increment, scan->range_min, scan->range_max,
       scan->ranges};
-    const auto rays = scan_to_rays(s, lidar_yaw(scan->header.frame_id), spec_);
+    const double yaw_l = lidar_yaw(scan->header.frame_id);
+    mask_scan(s, yaw_l, scan_mask_);
+    const auto rays = scan_to_rays(s, yaw_l, spec_);
     auto obs = build_observation(
       rays, goal.dist, goal.angle, velocity.linear.x, velocity.angular.z, spec_);
     const std::vector<float> sectors(obs.begin(), obs.begin() + spec_.lidar.sectors);
+    // 직전 주기에 정책이 돌지 않았으면 기억과 평활 상태를 에피소드 시작으로 되돌린다
+    if (memory_stale(policy_ran_, (now - last_policy_).seconds(), spec_.control_dt)) {
+      memory_.reset();
+      smoother_.reset();
+    }
     if (!spec_.obs_blocks.empty()) {
-      if (memory_stale(policy_ran_, (now - last_policy_).seconds(), spec_.control_dt)) {
-        memory_.reset();
-      }
       const auto extra = memory_.blocks(sectors, speed_cap_);
       obs.insert(obs.end(), extra.begin(), extra.end());
     }
@@ -306,9 +326,11 @@ geometry_msgs::msg::TwistStamped FollowPathRL::computeVelocityCommands(
       throw nav2_core::NoValidControl("FollowPathRL: policy returned a non-finite action");
     }
     target = action_to_target(act[0], act[1], lim, v_top_);
+    // prev_action 기억은 평활 전 정책 목표를 담고, 평활은 후진 막기·속도 상한·가속 제한 앞에 둔다
     memory_.step(sectors, target);
     last_policy_ = now;
     policy_ran_ = true;
+    target = smoother_.step(target, cmd_);
     const double policy_v = target.v;
     target = block_reverse(target, rays, rear_stop_range_, rear_half_width_deg_, spec_);
     rear_blocks_ += target.v != policy_v ? 1 : 0;
