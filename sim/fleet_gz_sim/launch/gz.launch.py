@@ -94,11 +94,17 @@ ARGS = {
                         " 계획이 옆줄로 일찍 옮겨 몸 옆을 통로와 나란히 지난다. 0이면 없음."
                         " 비면 cleaners가 있을 때 0.30, 없으면 0"),
     "wheel_shape": ("", "바퀴 충돌 모양: sphere는 제조사 모델(반지름 0.028 m 구라 몸 옆으로 2 cm 넓다),"
-                        " disc는 실제 폭의 원판. 비면 cleaners가 있을 때 disc, 없으면 sphere"),
+                        " disc는 구동 바퀴 간격 자리의 얇은 원판(몸 안쪽). 비면 cleaners가 있을 때 disc, 없으면 sphere"),
+    "lidar_noise": ("", "라이다 거리 잡음 표준편차(m). 실물(서 있는 pode2의 scan)에서 잰 값은 0.001~0.002."
+                        " 비면 cleaners가 있을 때 0.003, 없으면 모델 기본값 0.02"),
+    "scan_filter_aisles": ("", "true면 스캔 거르개의 띠에 진열대 옆 좁은 통로(폭 0.45 m 이하)도 넣는다:"
+                               " 통로의 벽·진열대 면에 붙은 라이다 점이 costmap에서 빠진다."
+                               " 비면 cleaners가 있을 때 true, 없으면 false"),
 }
 # 청소 로봇이 있으면 운반 로봇이 붙어 선 청소 로봇 옆을 나란히 지난다: 인자가 비었을 때 (그때 값, 아닐 때 값)
 PASS_DEFAULTS = {"peer_standing_shape": ("footprint", "disc"), "peer_lane_m": ("0.30", "0.0"),
-                 "wheel_shape": ("disc", "sphere")}
+                 "wheel_shape": ("disc", "sphere"), "lidar_noise": ("0.003", "0.02"),
+                 "scan_filter_aisles": ("true", "false")}
 ARMS = "arm_left arm_right arm_ship"
 
 
@@ -354,7 +360,8 @@ def _start(context):
     through = flag(value("nav_pass_through"), "nav_pass_through")
     keepout = flag(value("keepout"), "keepout")
     fixed_check = flag(value("fixed_line_collision_check"), "fixed_line_collision_check")
-    strips = (narrow_strips(site, float(value("wall_band_m")))
+    strips = (narrow_strips(site, float(value("wall_band_m")),
+                            aisles=flag(passing("scan_filter_aisles"), "scan_filter_aisles"))
               if flag(value("scan_filter"), "scan_filter") else "")
     peers = flag(value("peer_obstacles"), "peer_obstacles")
     stand_in = flag(value("vision_stand_in"), "vision_stand_in")
@@ -398,6 +405,7 @@ def _start(context):
                                       plan_keep=keep, plan_keep_node=False, bt_xml=bt_xml,
                                       navigation_delay_s=late.get(robot, 0.0),
                                       wheel_shape=passing("wheel_shape"),
+                                      lidar_noise=float(passing("lidar_noise")),
                                       battery_topic=(launch_parts.BATTERY_TOPIC.format(robot=robot)
                                                      if battery else ""))
     if value("rviz") == "fleet":

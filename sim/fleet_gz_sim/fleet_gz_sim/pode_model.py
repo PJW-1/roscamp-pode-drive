@@ -2,7 +2,9 @@
 
 제조사 모델(pinky_description)의 바퀴 충돌 모양은 반지름 0.028 m 구다. 구는 몸 옆으로 0.0766 m까지 나와
 발자국 반폭 0.056 m보다 2 cm 넓다. 그래서 두 로봇이 나란히 지날 때 몸 사이가 4.1 cm보다 좁으면 바퀴끼리 닿는다.
-disc는 그 구를 바깥 면이 발자국 반폭에 오는 원판으로 바꾼다. 제조사 파일은 고치지 않는다.
+disc는 그 구를 얇은 원판으로 바꾸고, 원판을 구동 플러그인이 세는 바퀴 간격(wheel_separation)의 절반 자리에 둔다.
+원통은 모서리로 바닥에 닿으므로, 원판이 두껍거나 그 자리에서 벗어나면 제자리 회전의 주행 기록이 그만큼 틀린다.
+제조사 파일은 고치지 않는다.
 """
 import math
 import subprocess
@@ -12,11 +14,20 @@ import xml.etree.ElementTree as ET
 SPHERE, DISC = "sphere", "disc"
 SHAPES = (SPHERE, DISC)
 WHEELS = ("l_wheel", "r_wheel")
-DISC_WIDTH_M = 0.015  # 바퀴 축 방향 폭
+DISC_WIDTH_M = 0.0015  # 바퀴 축 방향 폭. 바닥에 닿는 자리가 이 폭 안에서만 움직인다
+
+
+def _joint_y(root, link_name: str) -> float:
+    """링크를 몸에 다는 관절의 y(몸 기준)."""
+    for joint in root.iter("joint"):
+        child, origin = joint.find("child"), joint.find("origin")
+        if child is not None and child.get("link") == link_name:
+            return float(origin.get("xyz").split()[1]) if origin is not None else 0.0
+    raise ValueError(f"no joint holds {link_name}")
 
 
 def thin_wheels(urdf: str) -> str:
-    """바퀴 링크의 구 충돌 모양을 같은 반지름의 원판(축은 바퀴 축)으로 바꾼 URDF."""
+    """바퀴 링크의 구 충돌 모양을 같은 반지름의 얇은 원판(축은 바퀴 축)으로 바꾼 URDF."""
     root = ET.fromstring(urdf)
     changed = 0
     for link in root.iter("link"):
@@ -27,12 +38,19 @@ def thin_wheels(urdf: str) -> str:
             ball = geometry.find("sphere") if geometry is not None else None
             if ball is None:
                 continue
+            separation = next(root.iter("wheel_separation"), None)
+            if separation is None:
+                raise ValueError("no wheel_separation in the drive plugin")
+            joint_y = _joint_y(root, link.get("name"))
             geometry.remove(ball)
             ET.SubElement(geometry, "cylinder", radius=ball.get("radius"),
                           length=str(DISC_WIDTH_M))
             origin = collision.find("origin")
             if origin is None:
                 origin = ET.SubElement(collision, "origin", xyz="0 0 0")
+            x, _, z = origin.get("xyz").split()
+            y = math.copysign(float(separation.text) / 2, joint_y) - joint_y
+            origin.set("xyz", f"{x} {y:.6g} {z}")
             origin.set("rpy", f"{math.pi / 2} 0 0")
             changed += 1
     if changed != len(WHEELS):

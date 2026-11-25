@@ -178,9 +178,59 @@ def shelf_end_boxes(shelves, band: float) -> list[tuple[float, float, float, flo
     return boxes
 
 
-def narrow_strips(site, band: float = 0.05) -> str:
+AISLE_MAX_M = 0.45  # 마주 보는 두 면 사이가 이 이하면 통로로 본다(fleet_core.tuck과 같다)
+AISLE_MIN_LEN_M = 0.25  # 이보다 짧은 면(충전 칸 칸막이)은 통로를 만들지 않는다
+
+
+def aisle_strips(shelves, bounds, band: float, max_gap: float = AISLE_MAX_M,
+                 min_len: float = AISLE_MIN_LEN_M) -> list[tuple[float, float, float, float]]:
+    """진열대 긴 면과 그 면이 마주 보는 벽·진열대 사이가 max_gap 이하인 통로 사각형들.
+    두 면을 band만큼 넘겨 잡고, 같은 폭으로 이어지는 통로는 진열대 사이 틈(max_gap 이하)을 넘어 하나로 잇는다."""
+    bx0, by0, bx1, by1 = bounds
+    rects = []
+    for i, (x0, y0, x1, y1) in enumerate(shelves):
+        along_x = x1 - x0 >= y1 - y0
+        if (x1 - x0 if along_x else y1 - y0) < min_len:
+            continue
+        # 긴 축을 a, 통로 폭 축을 c로 본다
+        a0, a1, c0, c1 = (x0, x1, y0, y1) if along_x else (y0, y1, x0, x1)
+        wall_lo, wall_hi = (by0, by1) if along_x else (bx0, bx1)
+        below, above = [wall_lo], [wall_hi]
+        for j, other in enumerate(shelves):
+            if j == i:
+                continue
+            o0, o1, p0, p1 = ((other[0], other[2], other[1], other[3]) if along_x
+                              else (other[1], other[3], other[0], other[2]))
+            if o1 <= a0 or o0 >= a1:
+                continue
+            if p1 <= c0:
+                below.append(p1)
+            if p0 >= c1:
+                above.append(p0)
+        for lo, hi in ((max(below), c0), (c1, min(above))):
+            if 1e-9 < hi - lo <= max_gap:
+                rects.append((along_x, a0, a1, lo - band, hi + band))
+    # 같은 폭의 통로끼리 긴 축 순서로 잇는다
+    merged = []
+    for along_x, lo, hi, a0, a1 in sorted((r[0], round(r[3], 6), round(r[4], 6), r[1], r[2])
+                                          for r in rects):
+        last = merged[-1] if merged else None
+        if last is not None and last[:3] == (along_x, lo, hi) and a0 - last[4] <= max_gap:
+            merged[-1] = (along_x, lo, hi, last[3], max(last[4], a1))
+        else:
+            merged.append((along_x, lo, hi, a0, a1))
+    out = [tuple(round(v, 6) for v in ((a0, lo, a1, hi) if along_x else (lo, a0, hi, a1)))
+           for along_x, lo, hi, a0, a1 in merged]
+    # 다른 띠 안에 든 띠는 뺀다
+    return sorted(r for r in out
+                  if not any(o != r and o[0] <= r[0] and o[1] <= r[1] and o[2] >= r[2] and o[3] >= r[3]
+                             for o in out))
+
+
+def narrow_strips(site, band: float = 0.05, aisles: bool = False) -> str:
     """스캔 거르개의 좁은 띠를 "x0,y0,x1,y1; ..." 글로 만든다.
     넓은 구역이 아닌 구역 사각형 뒤에 진열대 끝면 상자를 붙이고, 벽에 닿는 변은 band만큼 벽 너머로 넓힌다.
+    aisles면 진열대 옆 좁은 통로(aisle_strips)도 붙인다.
     """
     bx0, by0, bx1, by1 = site.bounds()
 
@@ -193,6 +243,8 @@ def narrow_strips(site, band: float = 0.05) -> str:
     rects = sorted(past_walls(rect) for zone in site.zones.values() if zone.kind != SHARED
                    for rect in zone.rects)
     rects += shelf_end_boxes(site.sim_shelves, band)
+    if aisles:
+        rects += aisle_strips(site.sim_shelves, site.bounds(), band)
     return "; ".join(",".join(f"{v:g}" for v in rect) for rect in rects)
 
 

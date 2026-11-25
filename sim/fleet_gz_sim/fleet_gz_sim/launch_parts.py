@@ -230,7 +230,7 @@ def model(ns: str, x, y, yaw, lidar_noise: float | None = None,
           wheel_shape: str = pode_model.SPHERE) -> list:
     """Pode 모델만(robot_state_publisher와 Gazebo에 놓기). Nav2와 pode_fsm은 없다.
     lidar_noise: 라이다 거리 잡음 표준편차(m). None이면 모델 기본값(0.02).
-    wheel_shape: 바퀴 충돌 모양. sphere는 제조사 모델 그대로, disc는 실제 폭의 원판(pode_model.py).
+    wheel_shape: 바퀴 충돌 모양. sphere는 제조사 모델 그대로, disc는 구동 바퀴 간격 자리의 얇은 원판(pode_model.py).
     """
     if wheel_shape not in pode_model.SHAPES:
         raise ValueError(f"wheel_shape must be one of {pode_model.SHAPES}, got {wheel_shape!r}")
