@@ -5,6 +5,7 @@
 # 도킹 대역을 PC에서 돌리면 DOCK_STUB=1 start.sh ...  (pode_fsm Dock 서버를 /<ns>/dock_fsm으로 비킨다)
 # 고정 경로 충돌 검사는 기본 꺼짐(시뮬과 같다). 켜 두려면 FIXED_LINE_CHECK=1 start.sh ...
 # Nav2 goal 길 유지 노드(해결안 A)는 기본 꺼짐. 켜려면 PLAN_KEEP=1 start.sh ...
+# RL 정책 controller를 더하려면 RL_POLICY=store_arena_acd3 start.sh ...  (쓰는 controller는 그대로 RPP, log_level info)
 # 동작 없음(설계 4.5)은 NO_MOTION=1 start.sh pode2 [X Y YAW]: pode_fsm만 띄우고 주행하지 않는다.
 #   자세를 안 주면 로봇별 주차 자리(v7 P-1~P-3)를 쓴다. stop.sh로 내린다.
 cd "$(dirname "$(readlink -f "$0")")" || exit 1
@@ -20,6 +21,7 @@ if [ -n "$nomo" ]; then
   [ $# -eq 1 ] || [ $# -eq 4 ] || { echo "usage: NO_MOTION=1 start.sh NAMESPACE [X Y YAW]"; exit 2; }
   # 실주행 선택은 함께 받지 않는다(PEER_ROBOTS는 비어야, 나머지는 비었거나 0이어야 한다)
   [ -z "${PEER_ROBOTS:-}" ] || { echo "NO_MOTION=1 does not take PEER_ROBOTS (no Nav2, no wheels)"; exit 2; }
+  [ -z "${RL_POLICY:-}" ] || { echo "NO_MOTION=1 does not take RL_POLICY (no Nav2, no wheels)"; exit 2; }
   for v in DOCK_STUB FIXED_LINE_CHECK PLAN_KEEP; do
     case ${!v:-} in ''|0) ;; *) echo "NO_MOTION=1 does not take $v (no Nav2, no wheels)"; exit 2 ;; esac
   done
@@ -67,6 +69,10 @@ case $keep in
   1) ;;
   *) echo "bad PLAN_KEEP: use 1 (or unset/0)"; exit 2 ;;
 esac
+# RL_POLICY는 정책 이름이면 RL controller 둘을 params에 더한다(이름 검사는 make_params.py). 비면 끔
+rlp=${RL_POLICY:-}
+rl=()
+[ -z "$rlp" ] || rl=(--rl-policy "$rlp")
 mkdir -p logs || exit 1
 # 동시에 두 번 시작하지 않게 잠근다(pid 파일이 써질 때까지 쥔다)
 exec 9> logs/start.lock || exit 1
@@ -75,7 +81,7 @@ if [ -s logs/launch.pid ] && pgrep -g "$(cat logs/launch.pid)" > /dev/null; then
   echo "already running (group $(cat logs/launch.pid)); run stop.sh first"; exit 1
 fi
 # 속도 사본을 먼저 만든다(틀린 속도면 아무것도 띄우지 않는다). 동작 없음은 Nav2가 없어 건너뛴다
-[ -n "$nomo" ] || python3 make_params.py --speed "$speed" --out params $fixed || exit 1
+[ -n "$nomo" ] || python3 make_params.py --speed "$speed" --out params $fixed "${rl[@]}" || exit 1
 source env.sh || exit 1
 log=logs/launch_$(date +%H%M%S).log
 rm -f logs/launch.pid
@@ -88,9 +94,11 @@ setsid bash -c 'echo $$ > logs/launch.pid
   extra=(); [ -z "$5" ] || extra=(peer_obstacles:=true peer_robots:="$5")
   [ -z "$6" ] || extra+=(dock_aside:=true)
   [ -z "$8" ] || extra+=(plan_keep:=true)
+  # RL 시간 로그(INFO)를 보려고 Nav2 log_level을 올린다
+  [ -z "$9" ] || extra+=(log_level:=info)
   exec ros2 launch ./real_pode.launch.py \
   namespace:="$1" initial_x:="$2" initial_y:="$3" initial_yaw:="$4" "${extra[@]}"' \
-  _ "$1" "$2" "$3" "$4" "$peers" "$dock" "$nomo" "$keep" \
+  _ "$1" "$2" "$3" "$4" "$peers" "$dock" "$nomo" "$keep" "$rlp" \
   > "$log" 2>&1 < /dev/null 9>&- &
 child=$!
 for _ in $(seq 50); do [ -s logs/launch.pid ] && break; sleep 0.1; done
@@ -111,4 +119,5 @@ if [ -n "$nomo" ]; then
   echo "started NO MOTION at ($2, $3, $4) (group $(cat logs/launch.pid)), log $PWD/$log"
 else
   echo "started (speed $speed m/s, group $(cat logs/launch.pid)), log $PWD/$log"
+  [ -z "$rlp" ] || echo "rl policy $rlp loaded as FollowPathRL, FollowPathRLAlone (active: FollowPathGoal)"
 fi
