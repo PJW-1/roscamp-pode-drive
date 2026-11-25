@@ -81,7 +81,7 @@ def test_robot_starts_in_free_space(world, kind):
 def test_corner_start_line_is_blocked_by_a_shelf(world):
     """두 시작 자세 사이 선분이 선반 박스에 막힘: 레이캐스트 거리가 두 중심 거리보다 짧음."""
     shelves = world[3]
-    for _, _, _, p, q, start in rows(world, "corner"):
+    for _, _, _, p, _q, start in rows(world, "corner"):
         d = start - p[0]
         hit = A.raycast_rects(
             torch.tensor(p[0:1], dtype=torch.float32),

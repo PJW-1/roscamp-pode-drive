@@ -140,6 +140,11 @@ class ArenaSpec:
     # 평가용 시나리오 (scenario_spec.SCENARIOS 를 쉼표로, "" 은 끔): 모든 env 가 후보 중 하나로 시작
     # 시나리오는 고르게, 그 안의 후보도 고르게 뽑음. robot_headon 과 같이 못 씀
     robot_scenario: str = ""
+    # ---- 자기 대국 (ghost_spec): 1 = env 2k, 2k+1 짝, 로봇 칸 0 이 짝 env 의 학습 로봇 ----
+    # 짝 에피소드는 박스 없는 배치 0, 같은 속도 상한, 같이 리셋. 짝 종류: 정면, tee/entry 짝 시나리오, 나머지 무작위
+    ghost_pairs: int = 0
+    ghost_headon_prob: float = 0.25
+    ghost_scenario_prob: float = 0.25
     intent_ablate: int = 0  # 1: intent 항목을 0 으로 (로봇이 없는 듯 보임), 평가 전용
 
 

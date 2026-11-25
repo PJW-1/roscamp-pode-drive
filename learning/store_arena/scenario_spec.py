@@ -32,6 +32,7 @@ PASSAGE_M = 0.40  # entry: 만남점의 좌우 빈 폭 상한
 # corner: 출발 때 막히고 중심 거리가 이 아래가 될 때까지 막힘. 4 cm 두께 선반은 0.5 m 안팎에서 로봇을
 # 드러내므로 이 아레나에서 더 줄일 수 없음
 CLOSE_M = 0.60
+PAIR_TOL_M = 0.15  # 자기 대국 시나리오: 만남점까지 두 경로 길이 차 상한 (최고속도에서 1.25 s)
 SAMPLE_M = 0.01  # 같이 달리기 검사의 한 걸음 [m]
 HEADING_M = 0.05  # 만남점 진행 방향을 재는 앞뒤 거리
 ROBOT_HALF = (0.5 * ROBOT.size[0], 0.5 * ROBOT.size[1])  # 스크립트 로봇 박스 반폭
@@ -159,13 +160,18 @@ def _meeting(p, q, kind: str, rects: np.ndarray):
     return None if best is None else best[1:]
 
 
-def candidate(p, q, kind: str, rects: np.ndarray, shelves: np.ndarray):
-    """(우리 경로 p, 로봇 경로 q) 가 kind 시나리오면 (s0, 만남점, 우리 만남 호장), 아니면 None."""
+def candidate(p, q, kind: str, rects: np.ndarray, shelves: np.ndarray, start_tol=None):
+    """(우리 경로 p, 로봇 경로 q) 가 kind 시나리오면 (s0, 만남점, 우리 만남 호장), 아니면 None.
+    start_tol 이 있으면 로봇은 q 시작(s0 = 0)에서 출발하고 만남점까지 두 길이 차가 start_tol 이하여야 함."""
     m = _meeting(p, q, kind, rects)
     if m is None:
         return None
     s_our, s_rob = m
     s0 = s_rob - s_our
+    if start_tol is not None:
+        if abs(s0) > start_tol:
+            return None
+        s0 = 0.0
     if s_our < MIN_MEET_M or s0 < 0.0:
         return None
     cp, cq = arc_of(p), arc_of(q)
@@ -251,3 +257,24 @@ def sample(packed: dict, n: int, gen=None) -> torch.Tensor:
     u = torch.rand(n, device=dev, generator=gen)
     off = (u * packed["count"][which]).long().clamp(max=packed["count"][which] - 1)
     return packed["lo"][which] + off
+
+
+def build_pair_scenario(kind: str, routes, rects: np.ndarray, shelves: np.ndarray,
+                        tol: float = PAIR_TOL_M) -> np.ndarray:
+    """자기 대국용 kind 후보 (C, 2): 두 학습 로봇의 경로 인덱스 (배치 0). 둘 다 자기 경로 시작 노드에서
+    출발하므로 만남점까지 두 경로 길이 차가 tol 이하인 쌍만 고른다. 없으면 (0, 2)."""
+    if kind not in SCENARIOS:
+        raise ValueError(f"scenario {kind!r} is not one of {SCENARIOS}")
+    rows = []
+    n = len(routes.pairs)
+    for i in range(n):
+        ri = i * routes.layouts
+        p = routes.path[ri, : routes.npts[ri]]
+        for j in range(n):
+            if routes.pairs[j][0] == routes.pairs[i][0] or routes.pairs[j][1] == routes.pairs[i][1]:
+                continue  # 같은 시작이나 같은 목표 노드는 뺌
+            rj = j * routes.layouts
+            q = routes.path[rj, : routes.npts[rj]]
+            if candidate(p, q, kind, rects, shelves, start_tol=tol) is not None:
+                rows.append((ri, rj))
+    return np.array(rows, dtype=np.int64).reshape(-1, 2)  # 없으면 (0, 2)
