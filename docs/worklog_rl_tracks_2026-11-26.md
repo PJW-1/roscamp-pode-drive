@@ -201,6 +201,20 @@ t_ctrl보다 높고, 이상 응답 두 칸(rand, head)에서는 t_ctrl보다 낮
 - **저장소만으로:** GitHub에서 새로 받은 `feat/rl-policy-onnx-2026-11-26` 사본의 빌드만 source한 셸에서
   `follow_path_rl_acd3.yaml`로 Q2→E-3 두 판을 달렸고 둘 다 SUCCEEDED였다(12.5 s, 15.2 s).
 
+### 7b. 저장소만으로: 플릿 시뮬 인자 `nav_rl:=rl_acd3` (Gazebo 다섯째 묶음)
+
+위 확인은 로봇 한 대 묶음(`one_pode` + `nav_overrides`)이었다. `docs/rl_quickstart.md` 3절이 안내하는 명령은 플릿 시뮬의
+`nav_rl:=rl_acd3`인데, 이 인자는 launch 배선 시험만 있고 Gazebo에서 돌린 적이 없다. 결과를 보기 전에 적는다.
+
+- 하는 일: GitHub에서 새로 받은 사본의 빌드만 source한 셸에서 `gz.launch.py layout:=v7 gui:=false rviz:=none
+  sim_dock_stub:=true nav_rl:=rl_acd3 nav_log_level:=info`를 띄우고, 세 로봇의 `controller_selector`에 `FollowPathRL`을
+  보낸 뒤 관제 시나리오(gz_v7)를 300초 돌린다. 도메인 74.
+- 통과 기준: 세 로봇의 controller_server가 정책 `store_arena_acd3`를 읽고(파라미터와 configure 로그), 선택 뒤 RL 추론
+  로그("calls, infer")가 Nav2 goal을 받은 로봇에서 나오며, 죽은 프로세스가 없다.
+- 이것은 배선이 실제로 도는지의 확인이다. 300초 안에 주문이 몇 건 끝나는지는 성능 비교로 읽지 않는다.
+
+결과: (채움)
+
 ## 8. 시연 조건 갈래 (사용자 설명, 11-26 00:40쯤)
 
 사용자가 학습 도중에 실제 시연 조건을 알려 주었다. 표현이 "~일 거야", "아마"라서 확정은 아니다.
