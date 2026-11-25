@@ -179,9 +179,9 @@ def test_corner_start_nodes_of_the_store_arena():
     rects = arena.boxes_tensor(arena.arena_boxes(arena.ARENA, site))
     near = arena.near_wall_starts(torch.as_tensor(xy, dtype=torch.float32), rects,
                                   arena.ARENA.corner_start_m)
-    # M_E(1.645, 0.55)는 남쪽 진열대 동쪽 것 북동 모서리에서 0.183 m라 들지 않는다
+    # M_E(1.645, 0.55)는 남쪽 진열대 동쪽 것 북동 모서리(1.574, 0.404)에서 0.162 m라 든다
     assert sorted(n for n, c in zip(names, near.tolist(), strict=True) if c) == [
-        "E-1", "E-3", "Q1", "Q2"]
+        "E-1", "E-3", "M_E", "Q1", "Q2"]
 
 
 def test_footprint_box_is_off_centre_like_the_body():
