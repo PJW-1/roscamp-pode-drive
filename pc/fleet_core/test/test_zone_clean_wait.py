@@ -7,10 +7,12 @@ from __future__ import annotations
 
 import math
 from dataclasses import replace
+from itertools import pairwise
 
 from fleet_core.common.commands import RetreatCmd
 from fleet_core.traffic.zone.cleaning import BACK, BAY_IN, LINE, LINES, YIELD, _path_gap
 from fleet_core.common.params import load_params
+from fleet_core.fleet_map.geometry import segments_cross
 from test_zone_cleaning import CLEANER_NAME, World
 
 
@@ -255,6 +257,8 @@ def _near_e2(w, monkeypatch, at):
 def test_going_home_leaves_the_node_the_transport_waits_for(monkeypatch):
     w = _out_done()
     t, m, other = _near_e2(w, monkeypatch, (0.352, 0.293))  # 띠 서쪽, E-2 옆(seed 20 막힘 자리)
+    monkeypatch.setattr(t, "_clean_yield_leg", lambda *args: None)  # seed 20처럼 비킬 곳이 없다
+    monkeypatch.setattr(t, "_clean_backup_leg", lambda *args: None)
     assert t._clean_make_way(m, other, "test")
     w.out += t.take_output()
     assert w.events("CLEAN_HOME") and w.job.homing
@@ -296,3 +300,28 @@ def test_a_one_point_home_leg_already_out_of_the_band_leaves_it():
     band = [(0.10, 0.10), (0.20, 0.10)]
     assert w.t._leaves_band(((0.90, 0.50),), band)
     assert not w.t._leaves_band(((0.15, 0.15),), band)
+
+
+# ---- 비킬 점으로 가는 길: 띠의 어느 구간도 가로지르지 않는다 ----
+def test_the_yield_way_never_crosses_any_part_of_the_band(monkeypatch):
+    w = _out_done()
+    # 첫 구간은 북쪽(y 0.75), 둘째 구간은 청소 로봇 0.11 m 동쪽(x 0.22)으로 내려온다(wallhit 1판: O_OUT → E-2)
+    band = [(0.70, 0.75), (0.22, 0.75), (0.22, 0.20)]
+    t, m = w.t, w.t._robots[CLEANER_NAME]
+    monkeypatch.setattr(t, "_clean_band", lambda other, full=False: list(band))
+    monkeypatch.setattr(t, "_wanted", lambda other: [])
+    w.pos["pode1"] = band[0]
+    w.pos[CLEANER_NAME] = (0.1125, 0.4875)
+    w.step()
+    leg = t._clean_yield_leg(m, t._robots["pode1"])
+    assert leg is None or not any(segments_cross(a, b, c, d) for a, b in pairwise(leg.points)
+                                  for c, d in pairwise(band))
+
+
+def test_stepping_off_a_band_the_body_already_covers_is_not_crossing_it():
+    w = _out_done()
+    t = w.t
+    band = [(1.0, 0.2), (1.0, 0.8)]
+    assert not t._crosses_band([(1.004, 0.5), (0.70, 0.5)], band)  # 중심선 0.004 m 옆에서 내려선다
+    assert t._crosses_band([(1.10, 0.5), (0.70, 0.5)], band)  # 0.10 m 옆에서 가로지른다
+    assert not t._crosses_band([(1.004, 0.5), (1.03, 0.5)], band)  # 몸 반지름보다 짧은 길
