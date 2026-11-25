@@ -26,6 +26,7 @@ import numpy as np  # noqa: E402
 import robot_spec as rbs  # noqa: E402
 import route_spec as rs  # noqa: E402
 import scenario_spec as scn  # noqa: E402
+import social_reward as sr  # noqa: E402
 import task_spec as ts  # noqa: E402
 import torch  # noqa: E402
 from goal_reach_env import GoalReachEnv, GoalReachEnvCfg  # noqa: E402
@@ -319,6 +320,12 @@ class StoreArenaEnv(GoalReachEnv):
         self.robot_clear = torch.full((n, nk), float("inf"), **f32)
         self.robot_last_xy = torch.zeros(n, nk, 2, **f32)  # 직전 _get_dones 의 로봇 위치
         self.robot_speed = torch.zeros(n, nk, **f32)
+        # 움직이는 것 근처 보상 (social_reward): 몸체 간격, 이번 스텝 전 위치
+        self.dyn_clear = torch.full((n,), float("inf"), **f32)
+        self.robot_step_prev = torch.zeros(n, nk, 2, **f32)
+        self.our_last_xy = torch.zeros(n, 2, **f32)
+        self.our_step_prev = torch.zeros(n, 2, **f32)
+        self.our_speed = torch.zeros(n, **f32)
         self._routes_ready = True
 
     def sample_start(self, n: int) -> tuple[torch.Tensor, torch.Tensor]:
@@ -450,6 +457,7 @@ class StoreArenaEnv(GoalReachEnv):
             self.robot_prev_xy[env_ids, k] = pos
             self.robot_last_xy[env_ids, k] = pos
         self.robot_speed[env_ids] = 0.0
+        self.our_last_xy[env_ids] = self.start_xy[env_ids]
 
     def _spin_up(self, env_ids, w0) -> None:
         """env_ids 를 w0 (n,) rad/s 로 제자리 회전하며 시작: 몸 yaw 속도, 바퀴 속도, 변화율 제한
@@ -742,7 +750,7 @@ class StoreArenaEnv(GoalReachEnv):
             self.d_goal, self.max_contact_force(), xy, self.start_xy, self.spec
         )
         clear = self.footprint_clearance(xy, yaw)
-        self._track_robots()
+        self._track_robots(xy)
         graze = arena.graze_flags(clear, self.arena.graze_m)
         self.graze_only = graze & ~self.collided  # 접촉 센서가 못 본 것
         self.collided = self.collided | graze
@@ -754,15 +762,20 @@ class StoreArenaEnv(GoalReachEnv):
             self.ep_limit if self.cap_active else self.max_episode_length,
         )
 
-    def _track_robots(self) -> None:
-        """로봇 속력과 만남 지표를 갱신한다 (footprint_clearance 뒤, 관측/보상에는 안 들어감)."""
+    def _track_robots(self, xy) -> None:
+        """이번 스텝 전후 위치, 로봇 속력, 만남 지표를 갱신한다 (footprint_clearance 뒤).
+        관측에는 안 들어가고 보상에는 social_reward 항이 켜졌을 때만 들어감."""
+        self.our_step_prev = self.our_last_xy
+        self.our_last_xy = xy.clone()
+        # 우리 속력도 로봇처럼 이번 스텝 위치 변화로 (평면 속력)
+        self.our_speed = (self.our_last_xy - self.our_step_prev).norm(dim=-1) / self.step_dt
         if not self.robot_objs:
             return
         pos = torch.stack([p for p, _, _ in self.robot_state()], 1)
         self.robot_speed = (pos - self.robot_last_xy).norm(dim=-1) / self.step_dt
+        self.robot_step_prev = self.robot_last_xy
         self.robot_last_xy = pos
-        v_ours = self.body_velocity()[:, 0].abs()
-        enc.update(self.enc, self.robot_clear, v_ours, self.robot_speed, self.step_dt)
+        enc.update(self.enc, self.robot_clear, self.our_speed, self.robot_speed, self.step_dt)
 
     def footprint_clearance(self, xy, yaw) -> torch.Tensor:
         """(n,) 우리 발자국에서 가장 가까운 장애물까지 거리, 벽/선반/박스 몫은 self.wall_clear 에 저장."""
@@ -776,18 +789,21 @@ class StoreArenaEnv(GoalReachEnv):
         self.wall_clear = arena.footprint_clearance(xy, yaw, h, rects)
         clear = self.wall_clear
         inf = torch.full_like(clear, float("inf"))
+        dyn = inf  # mover 와 로봇 몫 (social_reward)
         for shape, (pos, myaw, _, act) in zip(ms.MOVERS, self.mover_state(), strict=True):
             if shape.kind == "cylinder":
                 c = arena.cylinder_clearance(xy, yaw, h, pos, shape.size[0])
             else:
                 hm = (0.5 * shape.size[0], 0.5 * shape.size[1])
                 c = arena.box_clearance(xy, yaw, h, pos, myaw, hm)
-            clear = torch.minimum(clear, torch.where(act, c, inf))
+            dyn = torch.minimum(dyn, torch.where(act, c, inf))
         hr = (0.5 * rbs.ROBOT.size[0], 0.5 * rbs.ROBOT.size[1])
         for k, (pos, ryaw, act) in enumerate(self.robot_state()):
             c = arena.box_clearance(xy, yaw, h, pos, ryaw, hr)
             self.robot_clear[:, k] = torch.where(act, c, inf)
-            clear = torch.minimum(clear, self.robot_clear[:, k])
+            dyn = torch.minimum(dyn, self.robot_clear[:, k])
+        self.dyn_clear = dyn
+        clear = torch.minimum(clear, dyn)
         return clear
 
     def _get_rewards(self) -> torch.Tensor:
@@ -801,6 +817,19 @@ class StoreArenaEnv(GoalReachEnv):
         if s.w_action_rate or s.w_w_flip:
             terms.update(
                 ts.action_rate_terms(self.target, self.prev_target, self.target_flipped, s)
+            )
+        # 움직이는 것 근처 항: 켠 것만 더하고 기록 (끄면 이전과 같은 보상과 로그)
+        if a.near_dyn_m > 0 and a.w_near_dyn:
+            terms["near_dyn"] = sr.near_dyn_penalty(self.dyn_clear, a.near_dyn_m, a.w_near_dyn)
+        if a.yield_m > 0 and a.w_yield:
+            terms["yield"] = sr.yield_reward(
+                self.robot_clear, self.robot_priority.T, self.robot_step_prev, self.robot_last_xy,
+                self.our_step_prev, self.our_last_xy, a.yield_m, a.w_yield,
+            )
+        if a.block_m > 0 and a.w_block:
+            terms["block"] = sr.block_penalty(
+                self.robot_clear, self.our_speed, self.robot_speed, a.block_m,
+                a.block_v_mps, a.w_block,
             )
         for k, v in terms.items():
             self.ep_reward_terms.setdefault(k, torch.zeros_like(v))
