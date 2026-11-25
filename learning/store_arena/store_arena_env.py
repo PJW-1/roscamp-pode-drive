@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "goal_reach"))
 
 import arena_spec as arena  # noqa: E402
 import encounter as enc  # noqa: E402
+import ghost_spec as gh  # noqa: E402
 import mover_spec as ms  # noqa: E402
 import numpy as np  # noqa: E402
 import robot_spec as rbs  # noqa: E402
@@ -266,10 +267,10 @@ class StoreArenaEnv(GoalReachEnv):
         # 평가 시나리오 후보 (robot_scenario): 경로, 로봇 0 그래프 경로와 출발 호장
         self.scen_names = scn.scenario_names(a.robot_scenario)
         self.scen = None
+        shelves = np.array([(b.x0, b.y0, b.x1, b.y1) for b in self.boxes if b.kind == "shelf"])
         if self.scen_names:
             if nk < 1 or a.robot_headon:
                 raise ValueError("robot_scenario needs robot_max >= 1 and robot_headon=0")
-            shelves = np.array([(b.x0, b.y0, b.x1, b.y1) for b in self.boxes if b.kind == "shelf"])
             built = [scn.build_scenario(k_, r, g, static, shelves) for k_ in self.scen_names]
             for sc in built:
                 print(f"[ARENA] scenario {sc.name}: {sc.count} candidates, "
@@ -278,6 +279,28 @@ class StoreArenaEnv(GoalReachEnv):
         self.scen_pick = torch.full((n,), -1, dtype=torch.long, device=dev)  # 후보 행, -1 없음
         self.last_ep_scen = torch.full((n,), -1, dtype=torch.long, device=dev)
         self._new_scen = torch.full((n,), -1, dtype=torch.long, device=dev)
+        # 자기 대국 (ghost_pairs): 로봇 칸 0 이 짝 env 학습 로봇의 자세
+        self.ghost = bool(a.ghost_pairs)
+        if self.ghost:
+            if nk < 1 or n % 2 or self.scen_names or a.robot_headon:
+                raise ValueError(
+                    "ghost_pairs needs robot_max >= 1, an even num_envs, no robot_scenario and "
+                    "robot_headon=0"
+                )
+            scp = np.concatenate(
+                [scn.build_pair_scenario(k_, r, static, shelves) for k_ in ("tee", "entry")]
+            )
+            self.ghost_tab = gh.pair_tables(r, scn.START_SEP_M, scp, dev)
+            print(f"[ARENA] ghost pairs: {len(scp)} paired tee/entry scenarios")
+        self.ghost_xy = torch.zeros(n, 2, **f32)
+        self.ghost_yaw = torch.zeros(n, **f32)
+        self.ghost_kind = torch.full((n,), -1, dtype=torch.long, device=dev)  # ghost_spec.KINDS
+        self.last_ep_ghost_kind = torch.full((n,), -1, dtype=torch.long, device=dev)
+        self.ghost_hit_by = torch.zeros(n, dtype=torch.bool, device=dev)  # 짝이 ghost 와 부딪혀 끝남
+        self.start_yaw = torch.zeros(n, **f32)
+        self._new_gkind = torch.full((n,), -1, dtype=torch.long, device=dev)
+        self._new_gprio = torch.zeros(n, dtype=torch.bool, device=dev)
+        self._reset_ids = torch.arange(n, device=dev)
         self.robot_objs = [self.scene[f"fleet_robot_{k}"] for k in range(nk)]
         self.robot_park = torch.tensor([robot_park_xy(k) for k in range(nk)], **f32)
         lay = rbs.chain_route(
@@ -368,8 +391,42 @@ class StoreArenaEnv(GoalReachEnv):
             self._new_corner = torch.zeros_like(self._new_corner)
             self._new_handover = torch.zeros_like(self._new_handover)
             self._new_w0 = torch.zeros_like(self._new_w0)
+        if self.ghost:
+            yaw = self._pair_starts(n, yaw)
         self._new_yaw = yaw
         return self.r_start[self._new_route], yaw
+
+    def _pair_starts(self, n: int, yaw: torch.Tensor) -> torch.Tensor:
+        """짝 env 둘이 이번 리셋에 같이 있으면 경로를 함께 뽑는다 (ghost_spec.draw_pairs). 모두 배치 0.
+        정면과 시나리오 짝은 경로 쪽을 보고 시작. 우선권은 짝에 하나만 (pair_priority). 반환은 새 yaw."""
+        a, dev = self.arena, self.device
+        ids = self._reset_ids
+        lay = self.routes.layouts
+        self._new_route = (self._new_route // lay) * lay  # 짝 없이 리셋되는 env 도 박스 없음
+        self._new_corner = torch.zeros_like(self._new_corner)
+        self._new_handover = torch.zeros_like(self._new_handover)
+        self._new_w0 = torch.zeros_like(self._new_w0)
+        self._new_gkind = torch.full((n,), -1, dtype=torch.long, device=dev)
+        self._new_gprio = torch.zeros(n, dtype=torch.bool, device=dev)
+        pos_of = torch.full((self.num_envs,), -1, dtype=torch.long, device=dev)
+        pos_of[ids] = torch.arange(n, device=dev)
+        even = ids[(ids % 2 == 0) & (pos_of[ids ^ 1] >= 0)]
+        if len(even) == 0:
+            return yaw
+        ia, ib = pos_of[even], pos_of[even + 1]
+        pa, pb, kind = gh.draw_pairs(
+            self.ghost_tab, len(even), a.ghost_headon_prob, a.ghost_scenario_prob
+        )
+        self._new_route[ia], self._new_route[ib] = pa * lay, pb * lay
+        self._new_gkind[ia], self._new_gkind[ib] = kind, kind
+        qa, qb = gh.pair_priority(len(even), a.robot_priority_prob, device=dev)
+        self._new_gprio[ia], self._new_gprio[ib] = qa, qb
+        aimed = self._new_gkind > 0
+        return torch.where(aimed, arena.path_heading(self.r_path[self._new_route]), yaw)
+
+    def ghost_pose(self, xy, yaw) -> torch.Tensor:
+        """짝 로봇 base_link 자세의 몸체 박스 중심 (ghost 박스는 이 점에 놓음)."""
+        return arena.footprint_box(xy, yaw, self.arena.footprint_x, self.arena.footprint_y)[0]
 
     def _follow(self, ids, xy, yaw) -> None:
         """경로 진행, 남은 길이, lookahead 목표와 목표 거리를 갱신한다."""
@@ -398,13 +455,17 @@ class StoreArenaEnv(GoalReachEnv):
             self.last_ep_corner[env_ids] = self.corner_start[env_ids]
             self.last_ep_handover[env_ids] = self.handover_start[env_ids]
             self.last_ep_scen[env_ids] = self.scen_pick[env_ids]
+            self.last_ep_ghost_kind[env_ids] = self.ghost_kind[env_ids]
             for k_, v in enc.snapshot(self.enc, env_ids).items():
                 self.last_ep_enc[k_][env_ids] = v
+            self._reset_ids = env_ids  # sample_start 의 짝 뽑기용
         super()._reset_idx(env_ids)
         if not self._routes_ready:
             return
         self.corner_start[env_ids] = self._new_corner
         self.scen_pick[env_ids] = self._new_scen
+        self.ghost_kind[env_ids] = self._new_gkind
+        self.start_yaw[env_ids] = self._new_yaw
         enc.reset(self.enc, env_ids)
         self.handover_start[env_ids] = self._new_handover
         if self._new_handover.any():
@@ -412,6 +473,9 @@ class StoreArenaEnv(GoalReachEnv):
         s = self.spec
         if self.cap_varies:  # 아니면 뽑지 않음: 고정 상한 실행의 난수 순서 그대로
             self.v_cap[env_ids] = ts.sample_speed_cap(len(env_ids), self.device, s)
+            if self.ghost:  # 짝은 같은 상한 (같은 시간 한도)
+                odd = env_ids[(env_ids % 2 == 1) & torch.isin(env_ids - 1, env_ids)]
+                self.v_cap[odd] = self.v_cap[odd - 1]
         if self.cap_active:
             cap = self.v_cap[env_ids]
             steps = torch.ceil(self.arena.episode_s * ts.NAV_SPEED_MPS / cap / self.step_dt)
@@ -451,6 +515,13 @@ class StoreArenaEnv(GoalReachEnv):
         self._write_movers(env_ids)
         self.mover_gap[env_ids] = self.mover_gaps(self.start_xy[env_ids], env_ids)  # t = 0
         self._sample_robots(env_ids, r)
+        if self.ghost:  # 짝의 새 시작 자세 (짝이 같이 리셋되지 않았으면 지금 자세)
+            pe = gh.partner(env_ids)
+            both = torch.isin(pe, env_ids)
+            xy_now, yaw_now = self.robot_pose()
+            gxy = torch.where(both[:, None], self.start_xy[pe], xy_now[pe])
+            gyaw = torch.where(both, self.start_yaw[pe], yaw_now[pe])
+            self.ghost_xy[env_ids], self.ghost_yaw[env_ids] = self.ghost_pose(gxy, gyaw), gyaw
         self._write_robots(env_ids)
         self.robot_gap_min[env_ids] = self.robot_gaps(self.start_xy[env_ids], env_ids)
         for k, (pos, _, _) in enumerate(self.robot_state(env_ids)):
@@ -529,6 +600,9 @@ class StoreArenaEnv(GoalReachEnv):
             self.robot_back[k, env_ids] = 0.0
             if a.robot_priority_prob > 0:  # 아니면 난수를 안 뽑아 이전 실행과 같게 유지
                 self.robot_priority[k, env_ids] = torch.rand(n, device=dev) < a.robot_priority_prob
+        if self.ghost:  # 칸 0 은 늘 ghost
+            self.robot_active[0, env_ids] = True
+            self.robot_priority[0, env_ids] = self._new_gprio
 
     def our_nodes(self, ids=None) -> torch.Tensor:
         """(n, K) 우리 로봇이 잡고 있는 그래프 노드."""
@@ -543,7 +617,7 @@ class StoreArenaEnv(GoalReachEnv):
         n = self.num_envs
         rows = torch.arange(n, device=self.device)
         for j, route in enumerate(self.robot_routes):
-            if j == k:
+            if j == k or (j == 0 and self.ghost):  # ghost 는 노드를 안 잡음
                 continue
             act = self.robot_active[j]
             for node in rbs.robot_nodes(route, self.robot_t[j]):
@@ -558,6 +632,8 @@ class StoreArenaEnv(GoalReachEnv):
         for k, route in enumerate(self.robot_routes):
             sub = {key: v[ids] for key, v in route.items()}
             pos, yaw, _ = rbs.robot_pose(sub, self.robot_t[k, ids])
+            if k == 0 and self.ghost:
+                pos, yaw = self.ghost_xy[ids], self.ghost_yaw[ids]
             act = self.robot_active[k, ids]
             pos = torch.where(act[:, None], pos, self.robot_park[k].expand_as(pos))
             out.append((pos, yaw, act))
@@ -584,9 +660,18 @@ class StoreArenaEnv(GoalReachEnv):
         s = self.spec
         pts, dist, act = [], [], []
         for k, (pos, _, a_) in enumerate(self.robot_state()):
-            p = rbs.intent_points(
-                self.robot_routes[k], self.robot_t[k], s.intent_spacing_m, s.intent_points
-            )
+            if k == 0 and self.ghost:  # 짝 로봇의 자기 전역 경로 남은 부분
+                pe = gh.partner(torch.arange(len(xy), device=self.device))
+                pr = self.route[pe]
+                done = self.r_cum[pr].gather(1, self.prog[pe][:, None])[:, 0]
+                p = gh.path_ahead(
+                    self.r_path[pr], self.r_cum[pr], self.r_npts[pr], done, s.intent_spacing_m,
+                    s.intent_points,
+                )
+            else:
+                p = rbs.intent_points(
+                    self.robot_routes[k], self.robot_t[k], s.intent_spacing_m, s.intent_points
+                )
             pts.append(rbs.to_body(p, xy, yaw))
             dist.append(torch.where(a_, (pos - xy).norm(dim=-1), torch.full_like(xy[:, 0], 1e9)))
             act.append(a_)
@@ -713,7 +798,14 @@ class StoreArenaEnv(GoalReachEnv):
             all_ids = torch.arange(self.num_envs, device=self.device)
             self._write_movers(all_ids)
             a = self.arena
+            if self.ghost:  # 짝 학습 로봇의 이 스텝 시작 자세
+                xy_all, yaw_all = self.robot_pose()
+                pe = gh.partner(all_ids)
+                self.ghost_xy = self.ghost_pose(xy_all[pe], yaw_all[pe])
+                self.ghost_yaw = yaw_all[pe].clone()
             for k, route in enumerate(self.robot_routes):
+                if k == 0 and self.ghost:
+                    continue
                 # 앞선 로봇이 먼저 움직인 뒤: 한 스텝에 두 로봇이 한 노드를 못 잡음
                 blocked = self.blocked_nodes(k) if a.robot_reserve else None
                 yield_m = torch.where(self.robot_priority[k], 0.0, a.robot_yield_m)
@@ -756,11 +848,19 @@ class StoreArenaEnv(GoalReachEnv):
         self.collided = self.collided | graze
         self.success = self.success & ~graze
         self.oob = self.oob & ~graze
-        return ts.split_dones(
+        term, time_out = ts.split_dones(
             self.success | self.collided | self.oob,
             self.episode_length_buf,
             self.ep_limit if self.cap_active else self.max_episode_length,
         )
+        if self.ghost:  # 짝은 같이 끝남: ghost 와 부딪힌 충돌은 짝도 충돌
+            ghost_nearest = self.robot_clear[:, 0] <= self.robot_clear.amin(-1)
+            mutual = self.collided & (self.hit_kind == HIT_KINDS.index("robot")) & ghost_nearest
+            term, time_out, self.ghost_hit_by = gh.pair_dones(term, time_out, mutual)
+            self.collided = self.collided | self.ghost_hit_by
+            self.success = self.success & ~self.ghost_hit_by
+            self.oob = self.oob & ~self.ghost_hit_by
+        return term, time_out
 
     def _track_robots(self, xy) -> None:
         """이번 스텝 전후 위치, 로봇 속력, 만남 지표를 갱신한다 (footprint_clearance 뒤).

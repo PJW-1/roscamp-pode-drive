@@ -115,6 +115,7 @@ def main():
         # 센 에피소드별 만남 지표 (encounter.py) 와 시나리오 이름 인덱스 (-1: 시나리오 아님)
         enc_eps = {"min_gap": [], "enc_s": [], "enc_seen": [], "deadlock": []}
         scen_ids = []
+        ghost_kinds = []  # 센 에피소드별 자기 대국 짝 종류 (ghost_spec.KINDS, -1: 짝 아님)
         if raw.scen is not None:
             scen_of = torch.repeat_interleave(
                 torch.arange(len(raw.scen_names), device=raw.device), raw.scen["count"]
@@ -153,6 +154,7 @@ def main():
                 if raw.scen is not None:
                     pick = torch.where(pick >= 0, scen_of[pick.clamp(min=0)], -1)
                 scen_ids += pick.tolist()
+                ghost_kinds += raw.last_ep_ghost_kind[counted].tolist()
                 ep_env += counted.nonzero()[:, 0].tolist()
                 flips += raw.last_ep_cmd_flips[counted].tolist()
                 ep_len += raw.last_ep_len_s[counted].tolist()
@@ -276,6 +278,13 @@ def main():
                    **enc.summary(**{k_: np.array(v)[scen_ids == i] for k_, v in enc_eps.items()})}
             for i, name in enumerate(raw.scen_names)
         }
+        if raw.ghost:
+            import ghost_spec
+
+            gk = np.array(ghost_kinds)
+            report["by_ghost_kind"] = {
+                name: rates_of(gk == i) for i, name in enumerate(ghost_spec.KINDS)
+            }
         report["timeouts_tracked"] = {k: sum(r["kind"] == k for r in rows) for k in timeouts.KINDS}
         report["alone_timeouts"] = timeouts.alone_summary(tz, rows, max_episodes=E)
         with open(os.path.join(args_cli.out, "eval.json"), "w", encoding="utf-8") as f:

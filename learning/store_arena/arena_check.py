@@ -7,6 +7,8 @@
   obstacle  경로의 장애물 박스로 돌진해 충돌, 박스 고정, 라이다 감지를 확인
   mover     mover 가 구간을 따르는지, 라이다에 보이는지, 충돌이 나는지 확인
   robot     스크립트 로봇이 경로를 따르는지, 라이다/intent 에 잡히는지, 충돌이 나는지 확인
+  ghost     자기 대국 짝: ghost 가 스텝마다 짝 로봇 자세에 있는지, 짝이 같이 끝나는지, 한 env 의 충돌이 짝에도
+            충돌로 보이는지 확인 (ghost_pairs=1, --num_envs 짝수)
 
 contact, crossenv 는 --set obstacle_max=0 으로, scene/contact/crossenv/reset 은 mover 를 치워 둔다.
 <out>/<mode>.json 을 쓴다 (--render 면 scene_topdown.png 도).
@@ -26,7 +28,7 @@ from isaaclab.app import add_launcher_args, launch_simulation
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument(
     "--mode",
-    choices=("scene", "contact", "crossenv", "reset", "obstacle", "mover", "robot"),
+    choices=("scene", "contact", "crossenv", "reset", "obstacle", "mover", "robot", "ghost"),
     required=True,
 )
 parser.add_argument("--num_envs", type=int, default=4)
@@ -73,6 +75,10 @@ def main():
     if args_cli.mode == "robot":
         arena_over.setdefault("robot_max", 2)
         task_over.setdefault("intent_robots", 2)
+        arena_over.setdefault("mover_prob", 0.0)
+    if args_cli.mode == "ghost":
+        arena_over.setdefault("ghost_pairs", 1)
+        arena_over.setdefault("robot_max", 1)
         arena_over.setdefault("mover_prob", 0.0)
     env_cfg = sae.StoreArenaEnvCfg()
     env_cfg.scene.num_envs = args_cli.num_envs
@@ -871,6 +877,67 @@ def main():
                 and report["collisions_put_down_to_robot"] == len(ids)
                 and len(g) > 0
                 and float(g.max()) < 0.10
+            )
+
+        elif mode == "ghost":
+            import ghost_spec as gh_
+
+            n = env.num_envs
+            all_ids = torch.arange(n, device=env.device)
+            pe = gh_.partner(all_ids)
+            org = env.scene.env_origins[:, :2]
+            # 1) 짝끼리 마주 보고 0.24 m 떨어져 서서 0.10 m/s 로 마주 달림: 둘 다 같은 스텝에 충돌로 끝나야 함
+            even = all_ids[0::2]
+            a_xy = torch.tensor((1.10, 0.56), device=env.device).expand(len(even), 2)
+            place(even, a_xy, torch.zeros(len(even)))
+            place(even + 1, a_xy + torch.tensor((0.24, 0.0), device=env.device),
+                  torch.full((len(even),), math.pi))
+            first = torch.full((n,), -1, dtype=torch.long, device=env.device)
+            coll = torch.zeros(n, dtype=torch.bool, device=env.device)
+            go = action(0.10)
+            for k in range(60):
+                _, _, term, trunc, _ = env.step(go)
+                d = (term | trunc) & (first < 0)
+                first[d] = k + 1
+                coll[d] = env.collided[d]
+            report["pairs"] = len(even)
+            report["pairs_ended_same_step"] = int((first[even] == first[even + 1]).sum())
+            report["pairs_both_collided"] = int((coll[even] & coll[even + 1]).sum())
+            report["envs_never_ended"] = int((first < 0).sum())
+            collide_ok = (
+                report["pairs_ended_same_step"] == len(even)
+                and report["pairs_both_collided"] == len(even)
+                and report["envs_never_ended"] == 0
+            )
+            # 2) 스텝마다 ghost 가 짝 로봇의 스텝 시작 자세 (몸체 박스 중심) 에 있는지, 시뮬 박스도 그 자리인지
+            env.reset()
+            w = torch.where(all_ids % 4 < 2, 0.6, -0.6)
+            acts = action(0.08)
+            acts[:, 1] = w / lim.w_max
+            err_pose, err_sim, lag_max, desync, checked = 0.0, 0.0, 0.0, 0, 0
+            for k in range(200):
+                xy0, yaw0 = env.robot_pose()
+                want = env.ghost_pose(xy0[pe], yaw0[pe])
+                _, _, term, trunc, _ = env.step(acts)
+                done = term | trunc
+                desync += int((done != done[pe]).sum())
+                keep = ~done & ~done[pe]
+                checked += int(keep.sum())
+                if keep.any():
+                    err_pose = max(err_pose, float((env.ghost_xy - want).norm(dim=-1)[keep].max()))
+                    sim_xy = env.robot_objs[0].data.root_pos_w.torch[:, :2] - org
+                    err_sim = max(err_sim, float((sim_xy - env.ghost_xy).norm(dim=-1)[keep].max()))
+                    xy1, yaw1 = env.robot_pose()
+                    now = env.ghost_pose(xy1[pe], yaw1[pe])
+                    lag_max = max(lag_max, float((env.ghost_xy - now).norm(dim=-1)[keep].max()))
+            report["ghost_steps_checked"] = checked
+            report["ghost_vs_partner_step_start_m"] = round(err_pose, 6)
+            report["ghost_sim_box_vs_ghost_m"] = round(err_sim, 6)
+            report["ghost_lag_vs_partner_now_m"] = round(lag_max, 4)
+            report["pair_done_desync"] = desync
+            report["pass"] = (
+                collide_ok and checked > 0 and err_pose < 1e-4 and err_sim < 1e-3
+                and lag_max < 0.02 and desync == 0
             )
 
         report["gpu_mib_end"] = gpu_mib()
