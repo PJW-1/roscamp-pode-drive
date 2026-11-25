@@ -7,6 +7,7 @@
 #   BENCH_LOCK     같이 쓰는 무거운 작업 잠금 폴더(기본 /mnt/c/Users/pjw/ros2camp/.heavy_run.lock). 비우면 잠그지 않는다
 #   BENCH_REPEATS  시나리오마다 컨트롤러마다 판 수(기본은 scenarios.yaml의 repeats)
 #   BENCH_OVERRIDES  nav_overrides yaml(비교용 값 덮기). 비면 없음
+#   BENCH_LAUNCH_ARGS  one_pode.launch.py에 더 줄 인자(예: plan_keep:=true). 비면 없음
 #   BENCH_LOCK_GAP_S 잠금을 놓은 뒤 다음 시나리오 전에 쉬는 초(180 이상만 받는다. 기다리는 다른 작업이 잡게)
 # 시나리오마다 잠금을 잡고 놓는다(다른 작업이 오래 굶지 않게). 판마다의 기록은 OUT_DIR/legs/*.json이다.
 # 어느 시나리오든 bench_node가 실패하거나 Nav2가 뜨지 않으면 끝에 1로 끝난다.
@@ -44,12 +45,12 @@ for scenario in "$@"; do
   avail=$(free -m | awk '/Mem:/{print $7}')
   if [ "$avail" -lt 3072 ]; then echo "$scenario: only $avail MB free, stop"; exit 4; fi
   R=$OUT/$scenario; mkdir -p "$R"
-  echo "$scenario start $(date -Is) avail ${avail}MB domain $ROS_DOMAIN_ID" | tee -a "$OUT/runs.txt"
+  echo "$scenario start $(date -Is) avail ${avail}MB domain $ROS_DOMAIN_ID args ${BENCH_LAUNCH_ARGS:-}" | tee -a "$OUT/runs.txt"
   ovr=""; [ -n "${BENCH_OVERRIDES:-}" ] && ovr="nav_overrides:=$BENCH_OVERRIDES"
   ok=0
   for try in 1 2; do
     ( cd "$R" && BENCH_RUN=$$ GZ_PARTITION=nav_bench_$$_$scenario ros2 launch fleet_gz_sim one_pode.launch.py \
-        gui:=false rviz:=false fsm:=false start:=O_IN $ovr > "launch_$try.out" 2>&1 ) &
+        gui:=false rviz:=false fsm:=false start:=O_IN $ovr ${BENCH_LAUNCH_ARGS:-} > "launch_$try.out" 2>&1 ) &
     up=$!
     for i in $(seq 90); do
       kill -0 "$up" 2>/dev/null || break
