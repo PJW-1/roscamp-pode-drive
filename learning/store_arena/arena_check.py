@@ -553,7 +553,7 @@ def main():
             report["mover_pose_err_max_m"] = round(err, 6)
             report["standing_robots_hit_by_movers"] = hit_standing
             ray_ok = True
-            for name, rows_ in seen.items():
+            for shape, (name, rows_) in zip(ms_.MOVERS, seen.items(), strict=True):
                 t_ = torch.cat(rows_)
                 out = (t_[:, 1] - t_[:, 0]).clamp(min=0) + (t_[:, 0] - t_[:, 2]).clamp(min=0)
                 report[f"{name}_rays_compared"] = len(t_)
@@ -562,7 +562,8 @@ def main():
                         "max": round(float(out.max()), 4),
                         "p99": round(float(out.quantile(0.99)), 4),
                     }
-                ray_ok &= len(t_) > 0 and float(out.quantile(0.99)) < 0.01
+                if ms_.kind_on(spec_a, shape):  # mover_kinds로 꺼 둔 종류는 레이가 없어도 된다
+                    ray_ok &= len(t_) > 0 and float(out.quantile(0.99)) < 0.01
             act = [legs["active"].float().mean().item() for legs in env.mover_legs]
             report["mover_active_share"] = dict(
                 zip([m.name for m in ms_.MOVERS], [round(a, 3) for a in act], strict=True)
