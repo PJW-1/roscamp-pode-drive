@@ -7,6 +7,7 @@ from fleet_gz_sim.aisle_first import (
     OBSTACLES_ON,
     Rules,
     State,
+    active_goal,
     goal_active,
     goal_changed,
     log_line,
@@ -186,3 +187,12 @@ def test_the_detour_survives_a_recovery_pause_without_plans():
         assert state.mode == DETOUR and action == NONE
     # goal 상태 없이 경로 시각만 보면 같은 구간이 주행 끝으로 보인다
     assert not navigating(last_plan_t, t, RULES)
+
+
+def test_the_active_goal_is_the_latest_unfinished_one():
+    # (상태, goal id, 받아들인 시각)
+    assert active_goal([]) is None
+    assert active_goal([(4, b"a", 1.0), (6, b"b", 2.0)]) is None
+    assert active_goal([(4, b"a", 1.0), (2, b"b", 2.0)]) == b"b"
+    # 선점: 취소 중인 앞 goal과 새 goal이 같이 보이면 나중에 받아들인 쪽이다 (목록 순서와 무관)
+    assert active_goal([(2, b"b", 2.0), (3, b"a", 1.0)]) == b"b"

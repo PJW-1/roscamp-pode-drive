@@ -41,6 +41,13 @@ def goal_active(statuses) -> bool:
     return any(s in ACTIVE_STATUS for s in statuses)
 
 
+def active_goal(entries):
+    """(상태, goal id, 받아들인 시각) 목록에서 아직 끝나지 않은 goal 가운데 가장 나중에 받아들인 것의 id.
+    없으면 None."""
+    live = [e for e in entries if e[0] in ACTIVE_STATUS]
+    return max(live, key=lambda e: e[2])[1] if live else None
+
+
 def navigating(last_plan_t: float | None, now: float, rules: Rules = Rules(),
                active: bool | None = None) -> bool:
     """주행 중인지. 주행 action의 goal 상태를 받았으면 그것을 따른다(행동 트리가 복구 동작을 하는 동안에는
