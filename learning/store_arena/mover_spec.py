@@ -207,18 +207,17 @@ def yield_step(legs, t, dt: float, shape: MoverShape, robot_xy, yield_m: float, 
 CROSS_MOVERS = ("person",)  # 건넘 구간을 쓰는 mover
 OPEN_WIDTH_M = (0.15, 0.50)  # 틈으로 보는 폭 범위: 사람(지름 0.08)이 지나고 통로보다는 좁음
 OPEN_MARGIN_M = 0.02  # 틈 안에서 사람 표면과 선반 끝 사이 최소 여유
-WALL_TOL_M = 0.01  # 벽에서 이 안에 닿는 선반(충전 칸막이)은 통로를 나누지 않음
 AISLE_MIN_M = 0.15  # 틈 양쪽 통로의 최소 깊이
 
 
-def find_openings(shelves, bounds, width=OPEN_WIDTH_M, wall_tol=WALL_TOL_M) -> torch.Tensor:
+def find_openings(shelves, bounds, width=OPEN_WIDTH_M) -> torch.Tensor:
     """선반 rect (S, 4) 에서 두 통로를 잇는 틈 (K, 7): axis, g0, g1, far_lo, b0, b1, far_hi.
 
     axis 0 은 긴 변이 x 인 두 선반이 한 줄(y 범위가 겹침)로 서고 x 로 g0..g1 만큼 떨어진 틈이며
     사람은 y 로 건넌다. axis 1 은 x, y 를 바꾼 것이다. b0..b1 은 두 선반 두께를 합친 띠,
     far_lo / far_hi 는 틈 폭 범위 안에서 띠 양쪽으로 가장 가까운 선반 면이나 벽이다.
-    벽에 닿는 선반, 틈 안에 다른 선반이 있는 쌍, 폭이 width 밖이거나 통로가 AISLE_MIN_M 보다 얕은
-    틈은 뺀다."""
+    틈 안에 다른 선반이 있는 쌍, 폭이 width 밖이거나 통로가 AISLE_MIN_M 보다 얕은 틈은 뺀다.
+    v7 충전 칸막이는 긴 변이 벽에 수직이고 서로 한 줄이 아니라서 틈이 되지 않는다."""
     rects = [tuple(float(v) for v in r) for r in shelves]
     x0, y0, x1, y1 = (float(v) for v in bounds)
     out = []
@@ -226,13 +225,7 @@ def find_openings(shelves, bounds, width=OPEN_WIDTH_M, wall_tol=WALL_TOL_M) -> t
         # axis 1 은 x, y 를 바꿔 같은 규칙으로 찾음
         rs = rects if axis == 0 else [(r[1], r[0], r[3], r[2]) for r in rects]
         lo_c, hi_c = (y0, y1) if axis == 0 else (x0, x1)
-        lo_a, hi_a = (x0, x1) if axis == 0 else (y0, y1)
-        free = [
-            i for i, r in enumerate(rs)
-            if r[0] - lo_a > wall_tol and hi_a - r[2] > wall_tol
-            and r[1] - lo_c > wall_tol and hi_c - r[3] > wall_tol
-            and r[2] - r[0] > r[3] - r[1]
-        ]
+        free = [i for i, r in enumerate(rs) if r[2] - r[0] > r[3] - r[1]]
         for i in free:
             for j in free:
                 p, q = rs[i], rs[j]
@@ -296,13 +289,36 @@ def leg_valid(a, b, rects, bounds, path, npts, start, goal, r: float, spec) -> t
 
 def leg_on_path(a, b, path, npts, r: float) -> torch.Tensor:
     """(N,) 구간 a-b (N, 2) 위의 mover 몸(반지름 r)이 전역 경로 (N, L, 2) 를 덮는지.
-    경로점 간격(격자 0.025 m)이 2 r 보다 작아 경로가 구간을 가로지르면 반드시 잡힌다."""
+    경로점이 아니라 이웃 경로점을 잇는 선분과 구간 사이 거리로 본다."""
+    p, q = path[:, :-1], path[:, 1:]  # (N, L-1, 2) 경로 선분
+    a_, b_ = a[:, None].expand_as(p), b[:, None].expand_as(p)
+    d = torch.minimum(
+        torch.minimum(_point_seg(a_, p, q), _point_seg(b_, p, q)),
+        torch.minimum(_point_seg(p, a_, b_), _point_seg(q, a_, b_)),
+    )
+    d = torch.where(_segments_cross(a_, b_, p, q), torch.zeros_like(d), d)
+    seg_on = torch.arange(1, path.shape[1], device=a.device)[None] < npts[:, None]
+    d = torch.where(seg_on, d, torch.full_like(d, 9.0)).amin(-1)
+    # 점 하나짜리 경로는 그 점까지 거리
+    d0 = _point_seg(path[:, 0], a, b)
+    return torch.where(npts > 1, d, d0) < r
+
+
+def _point_seg(p, a, b):
+    """점 p 에서 선분 a-b 까지 거리, 모두 (..., 2)."""
     ab = b - a
-    t = ((path - a[:, None]) * ab[:, None]).sum(-1) / (ab * ab).sum(-1).clamp(min=1e-12)[:, None]
-    q = a[:, None] + t.clamp(0.0, 1.0)[..., None] * ab[:, None]
-    d = (path - q).norm(dim=-1)
-    on = torch.arange(path.shape[1], device=a.device)[None] < npts[:, None]
-    return torch.where(on, d, torch.full_like(d, 9.0)).amin(-1) < r
+    t = ((p - a) * ab).sum(-1) / (ab * ab).sum(-1).clamp(min=1e-12)
+    return (p - (a + t.clamp(0.0, 1.0)[..., None] * ab)).norm(dim=-1)
+
+
+def _segments_cross(a, b, p, q):
+    """선분 a-b 와 p-q 가 서로 가로지르는지 (..., 2), 닿기만 하는 경우는 거리 0 으로 잡힘."""
+    def side(o, u, v):
+        return (u[..., 0] - o[..., 0]) * (v[..., 1] - o[..., 1]) - (
+            u[..., 1] - o[..., 1]
+        ) * (v[..., 0] - o[..., 0])
+
+    return (side(a, b, p) * side(a, b, q) < 0) & (side(p, q, a) * side(p, q, b) < 0)
 
 
 def kind_on(spec, shape: MoverShape) -> bool:

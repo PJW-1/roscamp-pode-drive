@@ -134,6 +134,9 @@ def test_opening_rules_on_made_up_shelves():
     assert len(M.find_openings(stacked, bounds)) == 0
     shallow = [(0.3, 0.10, 0.8, 0.14), (1.0, 0.10, 1.5, 0.14)]  # 남쪽 통로 깊이 0.10
     assert len(M.find_openings(shallow, bounds)) == 0
+    from_wall = [(0.0, 1.0, 0.8, 1.04), (1.0, 1.0, 1.7, 1.04)]  # 한 선반 끝이 서쪽 벽에 닿음
+    o = M.find_openings(from_wall, bounds)
+    assert o.shape == (1, 7) and o[0, 1:3].tolist() == pytest.approx([0.8, 1.0])
 
 
 # ---- 건넘 구간 기하 ----
@@ -213,6 +216,11 @@ def test_crossing_flag_for_our_path():
     # 패딩 점은 안 셈
     on = M.leg_on_path(a[:1], b[:1], across[None], torch.tensor([5]), PERSON.radius)
     assert on.tolist() == [False]
+    # 경로점 둘 사이에서만 몸에 닿는 경로: 구간 끝 아래 0.0399 m, 점 간격 0.025 m (두 점은 0.0418 m)
+    end_y = 0.10 - 0.0399
+    edge = torch.tensor([[[1.14 - 0.0125, end_y], [1.14 + 0.0125, end_y]]])
+    on = M.leg_on_path(a[:1], b[:1], edge, torch.tensor([2]), PERSON.radius)
+    assert on.tolist() == [True]
 
 
 def test_crossing_flag_matches_a_dense_check_on_v7(batch):

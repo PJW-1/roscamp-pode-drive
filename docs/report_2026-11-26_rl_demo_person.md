@@ -14,7 +14,7 @@
 ## 건넘 구간
 
 - 틈 찾기 (`find_openings`): 긴 변 방향이 같은 두 선반이 한 줄에 서 있으면(두께 범위가 겹치면) 긴 변 방향으로 벌어진 사이를 틈으로 본다. 틈 폭은 0.15~0.50 m 이다(`OPEN_WIDTH_M`). 다음 경우는 틈에서 뺀다.
-  - 벽에서 0.01 m 안에 닿는 선반(충전 칸막이)
+  - 벽에 닿는 선반도 쓴다. v7 충전 칸막이는 긴 변이 벽에 수직이고 서로 한 줄이 아니라서 틈이 되지 않는다.
   - 틈 안에 다른 선반이 있는 쌍
   - 틈 양쪽 통로 중 한쪽이라도 0.15 m 보다 얕은 경우
   - 통로 끝은 틈 폭 범위 안에서 가장 가까운 선반 면이나 벽이다.
@@ -27,7 +27,7 @@
   - 건넘 에피소드에서는 `mover_on_path_prob` 와 `mover_leg_m` 를 쓰지 않는다. 위치는 틈이 정하고, 길이는 두 통로 중심선 사이 이상이다(v7 에서 약 0.40~0.67 m).
   - 속도, 양끝 정지, 시작 위치(phase), 양보(`mover_yield_m`, `mover_yield_mix`, `mover_wait_s` 뒤 돌아서기)는 보통 구간과 같다. 그래서 로봇이 가까이 오면 사람이 틈 안이나 통로에서 기다릴 수 있고, `mover_wait_s` 뒤에는 돌아선다.
   - `mover_kinds` 에서 사람을 빼면 건넘 구간도 나오지 않는다(active 가 꺼짐).
-- 경로 표시 (`leg_on_path`): 구간 위 사람 몸(반지름 0.04)이 우리 전역 경로를 덮으면 `cross_path` 다. 경로점 간격(격자 0.025 m)이 지름보다 작아서, 경로가 구간을 가로지르면 반드시 잡힌다. 양끝은 경로에서 떨어져 있으므로 덮는 곳은 구간 중간이다.
+- 경로 표시 (`leg_on_path`): 구간 위 사람 몸(반지름 0.04)이 우리 전역 경로를 덮으면 `cross_path` 다. 경로점이 아니라 이웃 경로점을 잇는 선분과 구간 사이 거리로 계산한다(선분끼리 가로지르면 0). 양끝은 경로에서 떨어져 있으므로 덮는 곳은 구간 중간이다.
 - 틈이 하나도 없는 배치에서 `mover_cross_prob > 0` 을 주면 `ValueError` 가 난다. 조용히 건넘 없이 돌지 않게 하려는 것이다.
 
 ## 기본값에서 달라지지 않음
@@ -44,10 +44,10 @@
 | 성질 | 테스트 |
 |---|---|
 | v7 에서 남쪽 진열대 틈 0.25 m 하나 | `test_v7_has_one_opening_the_south_shelf_gap` |
-| 세로 줄 틈, 벽 칸막이 제외, 폭 0.6 제외, 위아래로 쌓인 선반(통로) 제외, 얕은 통로 제외 | `test_opening_rules_on_made_up_shelves` |
+| 세로 줄 틈, 벽 칸막이 제외, 폭 0.6 제외, 위아래로 쌓인 선반(통로) 제외, 얕은 통로 제외, 한 끝이 벽에 닿은 선반의 틈은 찾음 | `test_opening_rules_on_made_up_shelves` |
 | 틈 통과와 0.02 여유, 양 통로 중심선 도달, 벽/선반/박스 여유(200 점), 시작/목표 간격, 끝점-경로 간격 | `test_crossing_legs_go_through_the_opening_from_aisle_centre_to_aisle_centre` |
 | 가림: 옆 통로 중심선 위 점(틈 중심에서 옆으로 0.35 m)에서 사람까지 직선이 구간 일부에서는 선반에 막히고 일부에서는 열림. 양쪽 통로에서 모두, 유효 구간 40개 | `test_a_shelf_hides_the_crossing_person_for_part_of_the_leg` |
-| 경로 표시: 손으로 만든 경우, 그리고 v7 에서 400 점 조밀 검사와 99% 이상 일치하며 참/거짓이 둘 다 나옴 | `test_crossing_flag_for_our_path`, `test_crossing_flag_matches_a_dense_check_on_v7` |
+| 경로 표시: 손으로 만든 경우(경로점 둘 사이에서만 몸에 닿는 경우 포함), 그리고 v7 에서 400 점 조밀 검사와 99% 이상 일치하며 참/거짓이 둘 다 나옴 | `test_crossing_flag_for_our_path`, `test_crossing_flag_matches_a_dense_check_on_v7` |
 | 수레는 건넘을 켜도 그대로. 사람의 속도/정지/phase 도 그대로이고 건넘 비율은 약 p. 틈이 없으면 오류 | `test_crossing_only_for_the_person_and_appended_draws` |
 | mover_kinds: 난수 상태가 같고, 남은 mover 는 그대로, 나머지는 비활성. 모르는 이름은 오류 | `test_mover_kinds_turns_off_the_others_without_changing_draws` |
 | 기본값 불변 (위 절) | `test_defaults_give_the_legs_and_draws_of_before` (4개) |
