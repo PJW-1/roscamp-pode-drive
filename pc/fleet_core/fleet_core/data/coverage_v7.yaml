@@ -10,8 +10,8 @@ home:
   pose: [0.12, 0.1]
   start: [0.1375, 0.2875]
   moved_to_nearest_free: true
-summary: {regions: 3, cells: 4, lines: 14, line_length_m: 6.9, transit_length_m: 3.124, lap_time_s: 83.5,
-  coverage_hall_floor: 0.5834, coverage_clean_grid: 0.9974, unreachable_free_cells: 0}
+summary: {regions: 3, cells: 4, lines: 14, line_length_m: 6.9, transit_length_m: 3.233, lap_time_s: 84.4,
+  coverage_hall_floor: 0.5816, coverage_clean_grid: 0.9974, unreachable_free_cells: 0}
 cells:
 - id: 0
   region: 0
@@ -83,9 +83,9 @@ transits:
   to: line 1
   points:
   - [0.5875, 0.3125]
-  - [0.5625, 0.4125]
+  - [0.5625, 0.3875]
   - [0.5875, 0.4125]
-  length_m: 0.128
+  length_m: 0.114
 - from: line 1
   to: line 2
   points:
@@ -108,9 +108,9 @@ transits:
   to: line 5
   points:
   - [0.5625, 0.6625]
-  - [0.6125, 0.6125]
+  - [0.6125, 0.5875]
   - [0.6625, 0.6125]
-  length_m: 0.121
+  length_m: 0.146
 - from: line 5
   to: line 6
   points:
@@ -131,11 +131,13 @@ transits:
   to: line 9
   points:
   - [0.6625, 0.5125]
-  - [1.0625, 0.5125]
-  - [1.1125, 0.3875]
-  - [1.1625, 0.2375]
+  - [0.7375, 0.5375]
+  - [1.0125, 0.5375]
+  - [1.1125, 0.4625]
+  - [1.1125, 0.2875]
+  - [1.1875, 0.2125]
   - [1.2625, 0.2125]
-  length_m: 0.796
+  length_m: 0.835
 - from: line 9
   to: line 10
   points:
@@ -163,9 +165,11 @@ transits:
   to: home
   points:
   - [1.2625, 0.2125]
+  - [1.1875, 0.2125]
   - [1.1125, 0.2875]
   - [1.1125, 0.4625]
-  - [0.9875, 0.5125]
-  - [0.6375, 0.5125]
+  - [1.0125, 0.5375]
+  - [0.6375, 0.5375]
+  - [0.1375, 0.3125]
   - [0.1375, 0.2875]
-  length_m: 1.376
+  length_m: 1.429

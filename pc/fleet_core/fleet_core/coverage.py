@@ -20,6 +20,8 @@ GRID_M = 0.025
 ROBOT_RADIUS_M = 0.083
 MARGIN_M = 0.01  # 다른 구역과 keepout_extra 경계에서 두는 여유
 SOLID_MARGIN_M = 0.03  # 벽과 진열대에서 두는 여유
+WAY_SLACK_M = 0.02  # 이동 구간이 막힌 것 옆을 지나칠 때 더 두는 여유
+NARROW_COST = 3.0  # 그 여유가 없는 칸으로 들어가는 걸음의 비용 배수
 MIN_LINE_M = 0.20  # 이보다 짧은 줄은 긋지 않는다
 MAX_LINE_M = 0.60  # 이보다 긴 줄은 같은 방향으로 이어지는 구간으로 나눈다
 LINE_SPACING_M = 0.10
@@ -42,6 +44,7 @@ class Params:
     robot_radius_m: float = ROBOT_RADIUS_M
     margin_m: float = MARGIN_M
     solid_margin_m: float = SOLID_MARGIN_M
+    way_slack_m: float = WAY_SLACK_M
     min_line_m: float = MIN_LINE_M
     max_line_m: float = MAX_LINE_M
     line_spacing_m: float = LINE_SPACING_M
@@ -149,6 +152,12 @@ class CleanGrid:
         for rect, need in self.blocked:
             free &= _rect_distance(rect, xs, ys) >= need - _EPS
         self.free = free
+        # 넓은 칸: 막힌 것에서 way_slack만큼 더 떨어진 빈칸. 이동 구간은 이 칸을 먼저 쓴다
+        self.way_slack = params.way_slack_m
+        wide = free.copy()
+        for rect, need in self.blocked:
+            wide &= _rect_distance(rect, xs, ys) >= need + self.way_slack - _EPS
+        self.wide = wide
         # 키우기 전 바닥: HALL 안이고 진열대 밖
         floor = hall & (wall > 0.0)
         for rect in shelves:
@@ -252,6 +261,15 @@ def path_clear(grid: CleanGrid, points: Sequence[Point]) -> bool:
                for a, b in pairwise(pts))
 
 
+def _passes_wide(grid: CleanGrid, a: Point, b: Point) -> bool:
+    """선분이 막힌 것 옆을 지나칠 때(두 끝점보다 가까워질 때)는 way_slack만큼 더 떨어져 있는가."""
+    for rect, need in grid.blocked:
+        near = _segment_rect(a, b, rect)
+        if near < min(need + grid.way_slack, _point_rect(a, rect), _point_rect(b, rect)) - _SAME_M:
+            return False
+    return True
+
+
 # ---- 격자 탐색: 8방향, 모서리 자르기 없음 ----
 _STEPS = [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)]
 
@@ -285,7 +303,8 @@ def distances(free: np.ndarray, start: Cell) -> np.ndarray:
     return dist
 
 
-def astar(free: np.ndarray, start: Cell, goal: Cell) -> list[Cell]:
+def astar(free: np.ndarray, start: Cell, goal: Cell, wide: np.ndarray | None = None) -> list[Cell]:
+    """wide를 주면 넓지 않은 칸으로 들어가는 걸음이 NARROW_COST배 비싸다(그 칸뿐이면 그래도 간다)."""
     def guess(c: Cell) -> float:
         dx, dy = abs(c[0] - goal[0]), abs(c[1] - goal[1])
         return max(dx, dy) + (math.sqrt(2.0) - 1.0) * min(dx, dy)
@@ -303,6 +322,8 @@ def astar(free: np.ndarray, start: Cell, goal: Cell) -> list[Cell]:
         if g > best[cell]:
             continue
         for nxt, cost in _neighbours(free, cell):
+            if wide is not None and not wide[nxt[1], nxt[0]]:
+                cost *= NARROW_COST
             ng = g + cost
             if ng < best.get(nxt, math.inf) - _EPS:
                 best[nxt] = ng
@@ -313,6 +334,19 @@ def astar(free: np.ndarray, start: Cell, goal: Cell) -> list[Cell]:
 
 # ---- 이동 구간: A* 칸 경로를 보이는 점끼리 이은 꺾은선(둥글게 바꿔도 빈칸) ----
 # away: (점, 거리) 목록. 경로가 그 점들에서 그 거리 넘게 떨어진다
+def _straight(pts: list[Point]) -> list[Point]:
+    """같은 방향으로 한 직선 위에 놓인 가운데 점을 뺀다."""
+    out = [pts[0]]
+    for p, q in pairwise(pts[1:]):
+        a = out[-1]
+        ux, uy, vx, vy = p[0] - a[0], p[1] - a[1], q[0] - p[0], q[1] - p[1]
+        if abs(ux * vy - uy * vx) > _EPS or ux * vx + uy * vy <= 0.0:
+            out.append(p)
+    if len(pts) > 1:
+        out.append(pts[-1])
+    return out
+
+
 def _shorten(grid: CleanGrid, pts: list[Point], radius: float, away=()) -> list[Point]:
     def clear(points) -> bool:
         return path_clear(grid, points) and all(
@@ -322,11 +356,13 @@ def _shorten(grid: CleanGrid, pts: list[Point], radius: float, away=()) -> list[
     while i < len(pts) - 1:
         j = i + 1
         for k in range(len(pts) - 1, i + 1, -1):
-            if clear([pts[i], pts[k]]) and clear(rounded([*out, pts[k]], radius)):
+            if (clear([pts[i], pts[k]]) and _passes_wide(grid, pts[i], pts[k])
+                    and clear(rounded([*out, pts[k]], radius))):
                 j = k
                 break
         out.append(pts[j])
         i = j
+    out = _straight(out)
     if clear(rounded(out, radius)):
         return out
     return pts
@@ -334,12 +370,13 @@ def _shorten(grid: CleanGrid, pts: list[Point], radius: float, away=()) -> list[
 
 def transit(grid: CleanGrid, free: np.ndarray, a: Point, b: Point, radius: float,
             away=()) -> list[Point]:
+    wide = grid.wide
     if away:
         xs, ys = np.meshgrid(grid.xs, grid.ys)
         free = free.copy()
         for q, gap in away:
             free &= np.hypot(xs - q[0], ys - q[1]) > gap
-    cells = astar(free, grid.cell(a), grid.cell(b))
+    cells = astar(free, grid.cell(a), grid.cell(b), wide)
     pts = _dedup([a, *(grid.centre(c) for c in cells[1:-1]), b])
     return _shorten(grid, pts, radius, away)
 

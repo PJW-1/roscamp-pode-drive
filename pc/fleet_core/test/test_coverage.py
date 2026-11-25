@@ -123,12 +123,14 @@ def test_regions_are_swept_in_the_order_the_map_lists_them():
     # 아래 통로를 위 통로보다 먼저 적으면 아래 통로부터 돈다(가까운 영역 순서가 아니다)
     site.clean_regions = (V7_REGIONS[0], V7_REGIONS[2], V7_REGIONS[1])
     plan = make_plan(site)
+    assert _region_order(plan) == sorted(_region_order(plan))
     assert list(dict.fromkeys(_region_order(plan))) == [0, 1, 2]
     first = {r: a[1] for (a, _, _), r in zip(plan.lines, _region_order(plan), strict=True)}
     assert first[1] < 0.3675 < first[2]
     # 집에서 먼 영역을 맨 앞에 적어도 그 영역부터 돈다
     site.clean_regions = (V7_REGIONS[1], V7_REGIONS[0], V7_REGIONS[2])
-    assert list(dict.fromkeys(_region_order(make_plan(site)))) == [0, 1, 2]
+    far = _region_order(make_plan(site))
+    assert far == sorted(far) and set(far) == {0, 1, 2}
 
 
 def test_floor_outside_every_region_rectangle_is_the_last_region():
@@ -195,8 +197,11 @@ def test_no_line_is_shorter_than_the_minimum(layout_plan):
 @pytest.mark.parametrize("longest", [0.225, 0.30, 0.375])
 def test_a_long_row_is_not_cut_into_pieces_shorter_than_the_minimum(longest):
     # 최대 길이로 나눈 조각이 최소 길이보다 짧아지면 덜 나눈다
-    plan = make_plan(load_fleet_map("v7"), Params(max_line_m=longest))
+    site = load_fleet_map("v7")
+    plan = make_plan(site, Params(max_line_m=longest))
     assert min(math.dist(a, b) for a, b, _ in plan.lines) >= plan.params.min_line_m - 1e-9
+    # 그래도 긴 줄은 나눈다
+    assert len(plan.lines) > len(make_plan(site, Params(max_line_m=0.0)).lines)
 
 
 def test_a_zero_minimum_brings_the_short_lines_back():
@@ -346,3 +351,66 @@ def test_rounded_matches_pode_fsm(points, radius):
 
 def test_turn_radius_matches_pode_fsm():
     assert Params().turn_radius_m == _load("params").FsmParams().turn_radius_m
+
+
+# ---- 이동 구간: 막힌 것 옆을 지나칠 때는 way_slack_m을 더 둔다(틈처럼 그럴 자리가 없으면 한가운데로) ----
+S_WEST, S_EAST, SHELF_A = (0.70, 0.3475, 0.99, 0.3875), (1.25, 0.3475, 1.56, 0.3875), (0.65, 0.735, 1.56, 0.775)
+
+
+def _rect_gap(rect, path):
+    return min(cov._segment_rect(a, b, rect) for a, b in zip(path, path[1:], strict=False))
+
+
+def _between_the_shelf_faces(path):
+    """경로를 5 mm마다 찍어 남쪽 진열대 두 면(y) 사이에 든 점의 x."""
+    out = []
+    for (ax, ay), (bx, by) in zip(path, path[1:], strict=False):
+        n = max(1, math.ceil(math.dist((ax, ay), (bx, by)) / 0.005))
+        for k in range(n + 1):
+            x, y = ax + (bx - ax) * k / n, ay + (by - ay) * k / n
+            if S_EAST[1] <= y <= S_EAST[3]:
+                out.append(x)
+    return out
+
+
+def _way(a, b, **changes):
+    """v7에서 a→b 이동 구간: (꺾은선, 둥글게 바꾼 경로)."""
+    params = Params(**changes)
+    grid = CleanGrid(load_fleet_map("v7"), params)
+    pts = cov.transit(grid, grid.free, a, b, params.turn_radius_m)
+    path = cov.rounded(pts, params.turn_radius_m)
+    assert cov.path_clear(grid, path)
+    return pts, path
+
+
+@pytest.mark.parametrize(("a", "b"), [((1.1375, 0.4625), (1.3125, 0.2125)),
+                                      ((1.3125, 0.2125), (1.0625, 0.5125)),
+                                      ((0.9125, 0.2125), (1.2125, 0.5125))])
+def test_a_way_through_the_shelf_gap_goes_down_its_middle(a, b):
+    _, path = _way(a, b)
+    # 틈에서 빈칸은 x = 1.1125 한 줄이다: 진열대 두 면 사이에서는 그 줄 위로만 지난다
+    inside = _between_the_shelf_faces(path)
+    assert inside and max(abs(x - 1.1125) for x in inside) <= 0.003
+
+
+@pytest.mark.parametrize(("a", "b", "shelf"), [
+    ((0.5375, 0.6625), (0.9125, 0.5875), SHELF_A),   # 서쪽 넓은 곳 위쪽에서 위 통로로
+    ((0.5625, 0.3375), (0.9125, 0.5375), S_WEST),    # 서쪽 넓은 곳 아래쪽에서 위 통로로
+    ((0.9125, 0.5375), (0.5625, 0.3375), S_WEST)])
+def test_a_way_round_a_shelf_end_keeps_the_extra_slack(a, b, shelf):
+    wide = Params().robot_radius_m + Params().solid_margin_m + Params().way_slack_m
+    pts, _ = _way(a, b)
+    assert _rect_gap(shelf, pts) >= wide - 1e-6
+
+
+def test_without_the_slack_a_way_hugs_the_shelf_end():
+    _, path = _way((1.1375, 0.4625), (1.3125, 0.2125), way_slack_m=0.0)
+    assert max(abs(x - 1.1125) for x in _between_the_shelf_faces(path)) > 0.01
+    assert _rect_gap(S_EAST, path) < 0.12
+
+
+def test_every_transit_of_the_plan_keeps_clear_after_rounding(layout_plan):
+    _, plan = layout_plan
+    assert cov.rounded_problems(plan) == []
+    for _, _, pts in plan.transits:
+        assert cov.path_clear(plan.grid, cov.rounded(pts, plan.params.turn_radius_m))
