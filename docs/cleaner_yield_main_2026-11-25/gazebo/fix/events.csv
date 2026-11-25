@@ -1,0 +1,691 @@
+time_s,level,source,code,detail
+6.112,NOTE,order_board,RUN_MODE,RUN
+8.512,NOTE,assignments,ASSIGNMENTS,
+8.608,INFO,pode1,ZONE_GRANTED,HALL to Q2
+8.648,INFO,pode1,ORDER_SENT,"pode1-1: base to Q2, horizon to W"
+8.648,INFO,pode3,CLEAN_LAP_START,"lap 1, 19 lines (0 gaps)"
+8.648,INFO,pode3,CLEAN_SENT,"out to clean_start, holds ['P-1', 'E-1']"
+8.652000000000001,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:WAIT::;pode3:CLEAN::
+9.708,INFO,pode1,SEGMENT_DONE,pode1-1 seq 1 (follow_path) to E-3
+10.24,INFO,pode3,CLEAN_SENT,"line 0 to clean_line_0, holds ['P-1', 'E-1']"
+16.024,INFO,pode3,CLEAN_LINE_DONE,line 0 (1/19)
+16.024,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (1): pode1's base passes near
+16.024,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (1): pode1's base passes near
+16.032,INFO,pode3,CLEAN_SENT,"line 3 to clean_line_3, holds ['O_IN', 'O_OUT', 'P-1', 'E-1']"
+17.6,INFO,pode1,ZONE_GRANTED,HALL to Q1
+17.604000000000003,INFO,pode1,ORDER_UPDATED,pode1-1 update 1: base to Q1
+19.504,INFO,pode1,ZONE_GRANTED,HALL+WORK_DOCK to W
+19.512,INFO,pode1,ORDER_UPDATED,pode1-1 update 2: base to W
+19.608,INFO,pode1,SEGMENT_DONE,pode1-1 seq 2 (nav_goal) to Q2
+20.0,INFO,central,ORDER_ACCEPTED,R-002
+20.108,INFO,pode2,DOCK_QUEUED,"WORK is busy, waits at P-2"
+20.112000000000002,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:TO_WORK:WORK:;pode3:CLEAN::
+23.312,INFO,pode2,ZONE_GRANTED,HALL to Q2
+23.312,INFO,pode2,DOCK_QUEUED,"WORK is busy, waits at Q2"
+23.312,INFO,pode2,ORDER_SENT,"pode2-7: base to Q2, horizon to W"
+23.404,INFO,pode1,SEGMENT_DONE,pode1-1 seq 3 (follow_path) to Q1
+24.132,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.438, 0.537): pode2 closes in (0.29 m)"
+24.136000000000003,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['O_IN']"
+24.408,INFO,pode2,SEGMENT_DONE,pode2-7 seq 1 (follow_path) to E-2
+25.1,INFO,pode1,SEGMENT_DONE,pode1-1 seq 4 (follow_path) to W
+27.808000000000003,INFO,pode3,CLEAN_SENT,"line 3 to clean_line_3, holds ['O_IN']"
+28.212000000000003,INFO,pode1,DOCKED,"at WORK: x -0.4 cm, y -3.9 cm, yaw 0.0 deg"
+28.212000000000003,INFO,pode1,ORDER_BOUND,R-001
+28.216,NOTE,assignments,ASSIGNMENTS,pode1:FILL:WORK:R-001;pode2:TO_WORK:WORK:;pode3:CLEAN::
+31.500000000000004,INFO,pode3,CLEAN_LINE_DONE,line 3 (2/19)
+31.504,INFO,pode3,CLEAN_SENT,"line 4 to clean_line_4, holds ['O_IN', 'O_OUT']"
+34.304,INFO,pode1,LANE_DIRECTION_SET,EXPRESS from W_X
+34.308,INFO,pode1,ZONE_GRANTED,WORK_DOCK+HALL+J_E+EXPRESS to O_X
+34.312000000000005,INFO,pode1,ORDER_SENT,"pode1-13: base to O_X, horizon to O"
+34.316,INFO,pode2,ZONE_WAIT,waits for Q1
+34.32,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-001;pode2:TO_WORK:WORK:;pode3:CLEAN::
+35.016000000000005,INFO,pode2,ZONE_GRANTED,HALL to Q1
+35.016000000000005,INFO,pode2,ORDER_UPDATED,pode2-7 update 1: base to Q1
+36.304,INFO,pode2,SEGMENT_DONE,pode2-7 seq 2 (nav_goal) to Q2
+36.312000000000005,INFO,pode2,DOCK_QUEUED,"WORK is busy, waits at Q2"
+37.6,INFO,pode2,ZONE_GRANTED,HALL+WORK_DOCK to W
+37.612,INFO,pode2,ORDER_UPDATED,pode2-7 update 2: base to W
+39.412,INFO,pode3,CLEAN_LINE_DONE,line 4 (3/19)
+39.416000000000004,INFO,pode3,CLEAN_SENT,"line 5 to clean_line_5, holds ['O_IN', 'O_OUT', 'M_E']"
+40.004000000000005,INFO,central,ORDER_ACCEPTED,R-003
+40.104,INFO,pode2,SEGMENT_DONE,pode2-7 seq 3 (follow_path) to Q1
+41.804,INFO,pode2,SEGMENT_DONE,pode2-7 seq 4 (follow_path) to W
+44.900000000000006,INFO,pode2,DOCKED,"at WORK: x -0.6 cm, y -3.9 cm, yaw 0.0 deg"
+44.904,INFO,pode2,ORDER_BOUND,R-002
+44.904,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-001;pode2:FILL:WORK:R-002;pode3:CLEAN::
+45.800000000000004,INFO,pode1,ZONE_GRANTED,EXPRESS+OUT_DOCK to O
+45.808,INFO,pode1,ORDER_UPDATED,pode1-13 update 1: base to O
+47.008,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.663, 0.562): pode1 closes in (0.28 m)"
+47.008,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['O_IN']"
+48.008,INFO,pode1,SEGMENT_DONE,pode1-13 seq 1 (follow_path) to O_X
+49.004000000000005,INFO,pode2,ZONE_GRANTED,WORK_DOCK+HALL to O_IN
+49.004000000000005,INFO,pode2,DOCK_QUEUED,"OUTBOUND is busy, waits at O_IN"
+49.004000000000005,INFO,pode2,ORDER_SENT,"pode2-21: base to O_IN, horizon to O"
+49.016000000000005,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-001;pode2:TO_OUTBOUND:OUTBOUND:R-002;pode3:CLEAN::
+50.624,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+50.624,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+51.108000000000004,INFO,pode1,SEGMENT_DONE,pode1-13 seq 2 (follow_path) to O
+52.0,INFO,pode2,SEGMENT_DONE,pode2-21 seq 1 (nav_goal) to M_E
+54.208000000000006,INFO,pode1,DOCKED,"at OUTBOUND: x 3.2 cm, y -0.9 cm, yaw 0.0 deg"
+54.216,NOTE,assignments,ASSIGNMENTS,pode1:SWAP:OUTBOUND:R-001;pode2:TO_OUTBOUND:OUTBOUND:R-002;pode3:CLEAN::
+55.156000000000006,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (1): O_IN is held by pode2
+55.156000000000006,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (1): O_IN is held by pode2
+55.156000000000006,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (1): O_IN is held by pode2
+55.156000000000006,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (1): M_E is held by pode2
+55.160000000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (1): M_E is held by pode2
+55.160000000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (1): M_E is held by pode2
+55.160000000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (1): M_E is held by pode2
+55.160000000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (1): pode2's base passes near
+55.160000000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (1): pode2's base passes near
+55.160000000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (1): pode2's base passes near
+55.160000000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (1): pode2's base passes near
+55.160000000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (1): pode2's base passes near
+55.164,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (1): M_E is held by pode2
+55.164,INFO,pode3,CLEAN_SENT,"line 18 to clean_line_18, holds ['E-2', 'E-3']"
+59.2,INFO,pode3,CLEAN_LINE_DONE,line 18 (4/19)
+59.816,INFO,pode3,CLEAN_SENT,"line 1 to clean_line_1, holds ['E-1', 'E-2', 'E-3']"
+60.00000000000001,INFO,central,ORDER_ACCEPTED,R-004
+62.30800000000001,INFO,pode1,ZONE_WAIT,waits for E-3
+62.30800000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.263, 0.312): pode1 waits for ['E-3'] it holds"
+62.32000000000001,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1', 'E-2']"
+62.328,INFO,central,ORDER_SHIPPED,"R-001 robot=pode1 placed=A:1,C:1 missing=-"
+62.328,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:TO_OUTBOUND:OUTBOUND:R-002;pode3:CLEAN::
+62.404,INFO,pode1,ZONE_GRANTED,OUT_DOCK+HALL to Q2
+62.408,INFO,pode1,ORDER_SENT,"pode1-28: base to Q2, horizon to W"
+65.61200000000001,INFO,pode2,SEGMENT_DONE,pode2-21 seq 2 (nav_goal) to O_IN
+65.61200000000001,INFO,pode2,BASE_END_WAIT,"stands at O_IN, the next stretch is not taken yet"
+66.50800000000001,INFO,pode1,SEGMENT_DONE,pode1-28 seq 1 (follow_path) to O_OUT
+67.2,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.138, 0.288): stands in pode1's way"
+67.2,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1', 'E-2']"
+67.504,INFO,pode1,LOCAL_YIELD,wait
+67.8,INFO,pode1,LOCAL_YIELD,ends MOVING after 0 s
+67.808,INFO,pode2,ZONE_GRANTED,HALL+OUT_DOCK to O
+67.808,INFO,pode2,ORDER_UPDATED,pode2-21 update 1: base to O
+69.556,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (2): E-3 is held by pode1
+69.56400000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (2): E-3 is held by pode1
+69.568,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (2): O_IN is held by pode2
+69.568,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (2): O_IN is held by pode2
+69.572,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (2): O_IN is held by pode2
+69.572,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (2): pode1 stands near
+69.572,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (2): pode1 stands near
+69.572,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (2): Q2 is held by pode1
+69.57600000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (2): Q2 is held by pode1
+69.57600000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (2): Q2 is held by pode1
+69.58,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (2): Q2 is held by pode1
+69.58,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (2): pode1 stands near
+69.584,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (2): pode1 stands near
+69.584,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (2): pode1 stands near
+69.584,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (2): pode1's base passes near
+71.7,INFO,pode2,SEGMENT_DONE,pode2-21 seq 3 (follow_path) to O
+74.548,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (3): E-3 is held by pode1
+74.548,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (3): E-3 is held by pode1
+74.552,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (3): pode1 stands near
+74.552,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (3): pode1 stands near
+74.552,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (3): pode1 stands near
+74.552,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (3): pode1 stands near
+74.552,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (3): pode1 stands near
+74.55600000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (3): Q2 is held by pode1
+74.55600000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (3): Q2 is held by pode1
+74.55600000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (3): Q2 is held by pode1
+74.55600000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (3): Q2 is held by pode1
+74.55600000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (3): pode1 stands near
+74.55600000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (3): pode1 stands near
+74.56,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (3): pode1 stands near
+74.56,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (3): pode1 stands near
+74.80000000000001,INFO,pode2,DOCKED,"at OUTBOUND: x 5.5 cm, y -0.9 cm, yaw 0.0 deg"
+74.804,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:SWAP:OUTBOUND:R-002;pode3:CLEAN::
+79.536,WARN,pode3,CLEAN_LINE_SKIPPED,line 1 gives up this lap after 3 deferrals: E-3 is held by pode1
+79.536,WARN,pode3,CLEAN_LINE_SKIPPED,line 2 gives up this lap after 3 deferrals: E-3 is held by pode1
+79.536,WARN,pode3,CLEAN_LINE_SKIPPED,line 5 gives up this lap after 3 deferrals: pode1's base passes near
+79.54,WARN,pode3,CLEAN_LINE_SKIPPED,line 6 gives up this lap after 3 deferrals: pode1's base passes near
+79.54,WARN,pode3,CLEAN_LINE_SKIPPED,line 7 gives up this lap after 3 deferrals: pode1's base passes near
+79.54,WARN,pode3,CLEAN_LINE_SKIPPED,line 8 gives up this lap after 3 deferrals: pode1's base passes near
+79.54,WARN,pode3,CLEAN_LINE_SKIPPED,line 9 gives up this lap after 3 deferrals: pode1's base passes near
+79.54,WARN,pode3,CLEAN_LINE_SKIPPED,line 10 gives up this lap after 3 deferrals: Q2 is held by pode1
+79.54,WARN,pode3,CLEAN_LINE_SKIPPED,line 11 gives up this lap after 3 deferrals: Q2 is held by pode1
+79.54,WARN,pode3,CLEAN_LINE_SKIPPED,line 12 gives up this lap after 3 deferrals: Q2 is held by pode1
+79.54,WARN,pode3,CLEAN_LINE_SKIPPED,line 13 gives up this lap after 3 deferrals: Q2 is held by pode1
+79.54,WARN,pode3,CLEAN_LINE_SKIPPED,line 14 gives up this lap after 3 deferrals: pode1's base passes near
+79.54,WARN,pode3,CLEAN_LINE_SKIPPED,line 15 gives up this lap after 3 deferrals: pode1's base passes near
+79.54,WARN,pode3,CLEAN_LINE_SKIPPED,line 16 gives up this lap after 3 deferrals: pode1's base passes near
+79.54400000000001,WARN,pode3,CLEAN_LINE_SKIPPED,line 17 gives up this lap after 3 deferrals: pode1's base passes near
+79.54400000000001,INFO,pode3,CLEAN_SENT,"back to E-1, holds ['P-1', 'E-1']"
+80.004,INFO,central,ORDER_ACCEPTED,R-005
+82.9,INFO,pode2,ZONE_GRANTED,OUT_DOCK+HALL to P-2
+82.90400000000001,INFO,pode2,ORDER_SENT,"pode2-34: base to O_OUT, horizon to P-2"
+82.90400000000001,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:TO_WORK:WORK:;pode3:CLEAN::
+82.908,INFO,central,ORDER_SHIPPED,R-002 robot=pode2 placed=B:1 missing=-
+83.80000000000001,INFO,pode1,ZONE_GRANTED,HALL to Q1
+83.80000000000001,INFO,pode1,ORDER_UPDATED,pode1-28 update 1: base to Q1
+84.0,INFO,pode3,CLEAN_SENT,"bay_in to P-1, holds ['P-1', 'E-1']"
+85.912,INFO,pode1,SEGMENT_DONE,pode1-28 seq 2 (nav_goal) to Q2
+85.91600000000001,INFO,pode1,ZONE_GRANTED,HALL+WORK_DOCK to W
+85.91600000000001,INFO,pode1,ORDER_UPDATED,pode1-28 update 2: base to W
+86.808,INFO,pode2,SEGMENT_DONE,pode2-34 seq 1 (follow_path) to O_OUT
+86.808,INFO,pode2,BASE_END_WAIT,"stands at O_OUT, the next stretch is not taken yet"
+86.808,INFO,pode2,ORDER_UPDATED,pode2-34 update 1: base to P-2
+87.504,INFO,pode3,CLEAN_LAP_DONE,"lap 1 in 78.8 s: 4/19 lines, 60 deferrals, skipped [1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], 0 gaps, covered 0.140 of the clean grid"
+87.504,INFO,pode3,CLEAN_LAP_START,"lap 2, 19 lines (0 gaps)"
+87.504,INFO,pode3,CLEAN_SENT,"out to clean_start, holds ['P-1', 'E-1']"
+88.50800000000001,INFO,pode3,CLEAN_SENT,"line 0 to clean_line_0, holds ['P-1', 'E-1']"
+88.7,INFO,pode3,CLEAN_LINE_DONE,line 0 (1/19)
+88.7,INFO,pode3,CLEAN_YIELD,stops for pode2: pode2 closes in (0.28 m)
+89.14800000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (1): E-2 is held by pode2
+89.152,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (1): E-2 is held by pode2
+89.152,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (1): O_OUT is held by pode2
+89.152,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (1): O_OUT is held by pode2
+89.152,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (1): O_OUT is held by pode2
+89.152,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (1): O_OUT is held by pode2
+89.152,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (1): O_OUT is held by pode2
+89.152,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (1): E-2 is held by pode2
+89.156,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (1): E-2 is held by pode2
+89.156,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (1): Q1 is held by pode1
+89.156,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (1): Q1 is held by pode1
+89.164,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (1): Q1 is held by pode1
+89.164,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (1): Q1 is held by pode1
+89.164,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (1): E-2 is held by pode2
+89.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (1): E-2 is held by pode2
+89.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (1): E-2 is held by pode2
+89.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (1): E-2 is held by pode2
+89.17200000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (1): E-2 is held by pode2
+89.4,INFO,pode2,ZONE_GRANTED,HALL to Q2
+89.40400000000001,INFO,pode2,DOCK_QUEUED,"WORK is busy, waits at Q2"
+89.412,INFO,pode2,STANDBY_LEFT,"W is free, drops the way to P-2"
+89.412,INFO,pode2,ORDER_SENT,"pode2-41: base to Q2, horizon to W"
+89.5,INFO,pode1,SEGMENT_DONE,pode1-28 seq 3 (follow_path) to Q1
+91.60000000000001,INFO,pode1,SEGMENT_DONE,pode1-28 seq 4 (follow_path) to W
+94.17200000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (2): pode2 stands near
+94.17200000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (2): pode2's base passes near
+94.17200000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (2): pode2's base passes near
+94.17200000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (2): pode2's base passes near
+94.176,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (2): pode2's base passes near
+94.18400000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (2): pode2's base passes near
+94.18400000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (2): pode2's base passes near
+94.18400000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (2): pode2's base passes near
+94.18400000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (2): pode2's base passes near
+94.188,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (2): Q1 is held by pode1
+94.188,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (2): Q1 is held by pode1
+94.188,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (2): Q1 is held by pode1
+94.188,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (2): Q1 is held by pode1
+94.188,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (2): pode2's base passes near
+94.188,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (2): pode2's base passes near
+94.188,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (2): pode2's base passes near
+94.20400000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (2): pode2's base passes near
+94.20800000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (2): pode2's base passes near
+94.712,INFO,pode1,DOCKED,"at WORK: x -1.1 cm, y -3.5 cm, yaw 0.0 deg"
+94.712,INFO,pode1,ORDER_BOUND,R-003
+94.71600000000001,NOTE,assignments,ASSIGNMENTS,pode1:FILL:WORK:R-003;pode2:TO_WORK:WORK:;pode3:CLEAN::
+99.144,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (3): pode2's base passes near
+99.144,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (3): pode2's base passes near
+99.144,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (3): pode2's base passes near
+99.14800000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (3): pode2's base passes near
+99.14800000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (3): pode2's base passes near
+99.14800000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (3): pode2's base passes near
+99.14800000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (3): pode2's base passes near
+99.14800000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (3): pode2's base passes near
+99.14800000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (3): pode2's base passes near
+99.14800000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (3): Q1 is held by pode1
+99.152,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (3): Q1 is held by pode1
+99.152,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (3): Q1 is held by pode1
+99.152,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (3): Q1 is held by pode1
+99.152,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (3): pode2 stands near
+99.152,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (3): pode2's base passes near
+99.156,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (3): pode2's base passes near
+99.156,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (3): pode2's base passes near
+99.156,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (3): pode2's base passes near
+99.4,INFO,pode2,ZONE_WAIT,waits for Q1
+100.0,INFO,central,ORDER_ACCEPTED,R-006
+100.80000000000001,INFO,pode1,LANE_DIRECTION_SET,EXPRESS from W_X
+100.804,INFO,pode1,ZONE_GRANTED,WORK_DOCK+HALL+J_E+EXPRESS to O_X
+100.804,INFO,pode1,ORDER_SENT,"pode1-44: base to O_X, horizon to O"
+100.808,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-003;pode2:TO_WORK:WORK:;pode3:CLEAN::
+101.40400000000001,INFO,pode2,ZONE_GRANTED,HALL to Q1
+101.412,INFO,pode2,ORDER_UPDATED,pode2-41 update 1: base to Q1
+101.7,INFO,pode2,SEGMENT_DONE,pode2-41 seq 1 (nav_goal) to Q2
+101.7,INFO,pode2,DOCK_QUEUED,"WORK is busy, waits at Q2"
+103.82000000000001,INFO,pode3,CLEAN_SENT,"line 1 to clean_line_1, holds ['P-1', 'E-1', 'E-2', 'E-3']"
+104.10400000000001,INFO,pode2,ZONE_GRANTED,HALL+WORK_DOCK to W
+104.11200000000001,INFO,pode2,ORDER_UPDATED,pode2-41 update 2: base to W
+105.00800000000001,INFO,pode2,SEGMENT_DONE,pode2-41 seq 2 (follow_path) to Q1
+106.7,INFO,pode2,SEGMENT_DONE,pode2-41 seq 3 (follow_path) to W
+109.804,INFO,pode2,DOCKED,"at WORK: x -0.2 cm, y -3.7 cm, yaw 0.0 deg"
+109.804,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-003;pode2:FILL:WORK:R-004;pode3:CLEAN::
+109.808,INFO,pode2,ORDER_BOUND,R-004
+110.10400000000001,INFO,pode3,CLEAN_LINE_DONE,line 1 (2/19)
+110.10400000000001,INFO,pode3,CLEAN_SENT,"line 2 to clean_line_2, holds ['E-1', 'E-2', 'E-3']"
+112.5,INFO,pode1,ZONE_GRANTED,EXPRESS+OUT_DOCK to O
+112.504,INFO,pode1,ORDER_UPDATED,pode1-44 update 1: base to O
+113.9,INFO,pode2,ZONE_GRANTED,WORK_DOCK+HALL to O_IN
+113.9,INFO,pode2,DOCK_QUEUED,"OUTBOUND is busy, waits at O_IN"
+113.908,INFO,pode2,ORDER_SENT,"pode2-52: base to O_IN, horizon to O"
+113.908,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-003;pode2:TO_OUTBOUND:OUTBOUND:R-004;pode3:CLEAN::
+114.504,INFO,pode1,SEGMENT_DONE,pode1-44 seq 1 (follow_path) to O_X
+117.40400000000001,INFO,pode2,SEGMENT_DONE,pode2-52 seq 1 (nav_goal) to M_E
+117.74400000000001,INFO,pode3,CLEAN_LINE_DONE,line 2 (3/19)
+117.748,WARN,pode3,CLEAN_LINE_SKIPPED,line 3 gives up this lap after 3 deferrals: O_IN is held by pode2
+117.75200000000001,WARN,pode3,CLEAN_LINE_SKIPPED,line 4 gives up this lap after 3 deferrals: O_IN is held by pode2
+117.75200000000001,WARN,pode3,CLEAN_LINE_SKIPPED,line 5 gives up this lap after 3 deferrals: O_IN is held by pode2
+117.75200000000001,WARN,pode3,CLEAN_LINE_SKIPPED,line 6 gives up this lap after 3 deferrals: O_IN is held by pode2
+117.75200000000001,WARN,pode3,CLEAN_LINE_SKIPPED,line 7 gives up this lap after 3 deferrals: O_IN is held by pode2
+117.75600000000001,WARN,pode3,CLEAN_LINE_SKIPPED,line 8 gives up this lap after 3 deferrals: O_IN is held by pode2
+117.75600000000001,WARN,pode3,CLEAN_LINE_SKIPPED,line 9 gives up this lap after 3 deferrals: O_IN is held by pode2
+117.75600000000001,WARN,pode3,CLEAN_LINE_SKIPPED,line 10 gives up this lap after 3 deferrals: O_IN is held by pode2
+117.75600000000001,WARN,pode3,CLEAN_LINE_SKIPPED,line 11 gives up this lap after 3 deferrals: O_IN is held by pode2
+117.75600000000001,WARN,pode3,CLEAN_LINE_SKIPPED,line 12 gives up this lap after 3 deferrals: O_IN is held by pode2
+117.75600000000001,WARN,pode3,CLEAN_LINE_SKIPPED,line 13 gives up this lap after 3 deferrals: O_IN is held by pode2
+117.76,WARN,pode3,CLEAN_LINE_SKIPPED,line 14 gives up this lap after 3 deferrals: O_IN is held by pode2
+117.76,WARN,pode3,CLEAN_LINE_SKIPPED,line 15 gives up this lap after 3 deferrals: O_IN is held by pode2
+117.76,WARN,pode3,CLEAN_LINE_SKIPPED,line 16 gives up this lap after 3 deferrals: O_IN is held by pode2
+117.768,WARN,pode3,CLEAN_LINE_SKIPPED,line 17 gives up this lap after 3 deferrals: O_IN is held by pode2
+117.768,INFO,pode3,CLEAN_SENT,"line 18 to clean_line_18, holds ['E-1', 'E-2']"
+117.772,INFO,pode1,SEGMENT_DONE,pode1-44 seq 2 (follow_path) to O
+120.00800000000001,INFO,central,ORDER_ACCEPTED,R-007
+120.81200000000001,INFO,pode1,DOCKED,"at OUTBOUND: x 4.5 cm, y -1.0 cm, yaw 0.0 deg"
+120.81200000000001,NOTE,assignments,ASSIGNMENTS,pode1:SWAP:OUTBOUND:R-003;pode2:TO_OUTBOUND:OUTBOUND:R-004;pode3:CLEAN::
+125.308,INFO,pode3,CLEAN_LINE_DONE,line 18 (4/19)
+125.31200000000001,INFO,pode3,CLEAN_SENT,"back to E-1, holds ['P-1', 'E-1', 'E-2']"
+128.90800000000002,INFO,pode1,ZONE_GRANTED,OUT_DOCK+HALL to Q2
+128.90800000000002,INFO,pode1,ORDER_SENT,"pode1-57: base to Q2, horizon to W"
+128.912,INFO,central,ORDER_SHIPPED,"R-003 robot=pode1 placed=A:1,D:1 missing=-"
+128.912,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:TO_OUTBOUND:OUTBOUND:R-004;pode3:CLEAN::
+130.8,INFO,pode2,SEGMENT_DONE,pode2-52 seq 2 (nav_goal) to O_IN
+130.8,INFO,pode2,BASE_END_WAIT,"stands at O_IN, the next stretch is not taken yet"
+131.1,INFO,pode3,CLEAN_SENT,"bay_in to P-1, holds ['P-1', 'E-1']"
+133.1,INFO,pode1,SEGMENT_DONE,pode1-57 seq 1 (follow_path) to O_OUT
+133.5,INFO,pode2,ZONE_GRANTED,HALL+OUT_DOCK to O
+133.50400000000002,INFO,pode2,ORDER_UPDATED,pode2-52 update 1: base to O
+134.5,INFO,pode3,CLEAN_LAP_DONE,"lap 2 in 46.9 s: 4/19 lines, 69 deferrals, skipped [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], 0 gaps, covered 0.132 of the clean grid"
+134.5,INFO,pode3,CLEAN_LAP_START,"lap 3, 19 lines (0 gaps)"
+134.5,INFO,pode3,CLEAN_SENT,"out to clean_start, holds ['P-1', 'E-1']"
+135.804,INFO,pode3,CLEAN_SENT,"line 0 to clean_line_0, holds ['P-1', 'E-1']"
+137.30800000000002,INFO,pode2,SEGMENT_DONE,pode2-52 seq 3 (follow_path) to O
+139.16400000000002,INFO,pode3,CLEAN_LINE_DONE,line 0 (1/19)
+139.16400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (1): E-3 is held by pode1
+139.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (1): E-3 is held by pode1
+139.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (1): pode1's base passes near
+139.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (1): pode1's base passes near
+139.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (1): pode1's base passes near
+139.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (1): pode1's base passes near
+139.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (1): pode1's base passes near
+139.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (1): pode1's base passes near
+139.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (1): pode1's base passes near
+139.17600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (1): Q2 is held by pode1
+139.18,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (1): Q2 is held by pode1
+139.18,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (1): Q2 is held by pode1
+139.18,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (1): Q2 is held by pode1
+139.18,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (1): pode1's base passes near
+139.18,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (1): pode1's base passes near
+139.184,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (1): pode1's base passes near
+139.184,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (1): pode1's base passes near
+139.184,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (1): pode1's base passes near
+140.0,INFO,central,ORDER_ACCEPTED,R-008
+140.4,INFO,pode2,DOCKED,"at OUTBOUND: x 5.3 cm, y -1.3 cm, yaw 0.0 deg"
+140.4,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:SWAP:OUTBOUND:R-004;pode3:CLEAN::
+144.16,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (2): E-3 is held by pode1
+144.16,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (2): E-3 is held by pode1
+144.16,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (2): pode1's base passes near
+144.16400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (2): pode1's base passes near
+144.16400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (2): pode1's base passes near
+144.16400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (2): pode1's base passes near
+144.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (2): pode1's base passes near
+144.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (2): pode1's base passes near
+144.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (2): pode1's base passes near
+144.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (2): Q2 is held by pode1
+144.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (2): Q2 is held by pode1
+144.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (2): Q2 is held by pode1
+144.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (2): Q2 is held by pode1
+144.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (2): pode1 stands near
+144.17600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (2): pode1's base passes near
+144.18,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (2): pode1's base passes near
+144.18,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (2): pode1's base passes near
+144.184,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (2): pode1's base passes near
+145.0,INFO,pode1,ZONE_GRANTED,HALL to Q1
+145.0,INFO,pode1,ORDER_UPDATED,pode1-57 update 1: base to Q1
+146.904,INFO,pode1,SEGMENT_DONE,pode1-57 seq 2 (nav_goal) to Q2
+146.904,INFO,pode1,ZONE_GRANTED,HALL+WORK_DOCK to W
+146.904,INFO,pode1,ORDER_UPDATED,pode1-57 update 2: base to W
+148.5,INFO,pode2,ZONE_GRANTED,OUT_DOCK+HALL to P-2
+148.508,INFO,pode2,ORDER_SENT,"pode2-66: base to O_OUT, horizon to P-2"
+148.512,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:TO_WORK:WORK:;pode3:CLEAN::
+148.51600000000002,INFO,central,ORDER_SHIPPED,R-004 robot=pode2 placed=C:1 missing=-
+149.16400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (3): E-2 is held by pode2
+149.16400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (3): E-2 is held by pode2
+149.16400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (3): O_OUT is held by pode2
+149.16400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (3): O_OUT is held by pode2
+149.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (3): O_OUT is held by pode2
+149.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (3): O_OUT is held by pode2
+149.17600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (3): O_OUT is held by pode2
+149.17600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (3): E-2 is held by pode2
+149.17600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (3): E-2 is held by pode2
+149.18,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (3): Q1 is held by pode1
+149.18,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (3): Q1 is held by pode1
+149.184,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (3): Q1 is held by pode1
+149.184,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (3): Q1 is held by pode1
+149.184,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (3): E-2 is held by pode2
+149.184,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (3): E-2 is held by pode2
+149.184,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (3): E-2 is held by pode2
+149.184,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (3): E-2 is held by pode2
+149.18800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (3): E-2 is held by pode2
+150.60000000000002,INFO,pode2,ZONE_GRANTED,HALL to Q2
+150.60000000000002,INFO,pode2,DOCK_QUEUED,"WORK is busy, waits at Q2"
+150.60000000000002,INFO,pode2,STANDBY_LEFT,"W is free, drops the way to P-2"
+150.608,INFO,pode2,ORDER_UPDATED,pode2-66 update 1: base to Q2
+150.704,INFO,pode1,SEGMENT_DONE,pode1-57 seq 3 (follow_path) to Q1
+152.5,INFO,pode2,SEGMENT_DONE,pode2-66 seq 1 (follow_path) to O_OUT
+152.70000000000002,INFO,pode1,SEGMENT_DONE,pode1-57 seq 4 (follow_path) to W
+154.108,WARN,pode3,CLEAN_LINE_SKIPPED,line 1 gives up this lap after 3 deferrals: E-3 is held by pode2
+154.108,WARN,pode3,CLEAN_LINE_SKIPPED,line 2 gives up this lap after 3 deferrals: E-3 is held by pode2
+154.108,WARN,pode3,CLEAN_LINE_SKIPPED,line 3 gives up this lap after 3 deferrals: O_OUT is held by pode2
+154.108,WARN,pode3,CLEAN_LINE_SKIPPED,line 4 gives up this lap after 3 deferrals: O_OUT is held by pode2
+154.108,WARN,pode3,CLEAN_LINE_SKIPPED,line 5 gives up this lap after 3 deferrals: O_OUT is held by pode2
+154.108,WARN,pode3,CLEAN_LINE_SKIPPED,line 6 gives up this lap after 3 deferrals: O_OUT is held by pode2
+154.11200000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 7 gives up this lap after 3 deferrals: O_OUT is held by pode2
+154.11200000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 8 gives up this lap after 3 deferrals: pode2's base passes near
+154.11200000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 9 gives up this lap after 3 deferrals: pode2's base passes near
+154.11200000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 10 gives up this lap after 3 deferrals: Q1 is held by pode1
+154.116,WARN,pode3,CLEAN_LINE_SKIPPED,line 11 gives up this lap after 3 deferrals: Q1 is held by pode1
+154.116,WARN,pode3,CLEAN_LINE_SKIPPED,line 12 gives up this lap after 3 deferrals: Q1 is held by pode1
+154.12,WARN,pode3,CLEAN_LINE_SKIPPED,line 13 gives up this lap after 3 deferrals: Q1 is held by pode1
+154.12,WARN,pode3,CLEAN_LINE_SKIPPED,line 14 gives up this lap after 3 deferrals: pode2's base passes near
+154.12,WARN,pode3,CLEAN_LINE_SKIPPED,line 15 gives up this lap after 3 deferrals: pode2's base passes near
+154.12,WARN,pode3,CLEAN_LINE_SKIPPED,line 16 gives up this lap after 3 deferrals: pode2's base passes near
+154.12,WARN,pode3,CLEAN_LINE_SKIPPED,line 17 gives up this lap after 3 deferrals: pode2's base passes near
+154.12400000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 18 gives up this lap after 3 deferrals: pode2's base passes near
+154.12400000000002,INFO,pode3,CLEAN_SENT,"back to E-1, holds ['P-1', 'E-1']"
+155.804,INFO,pode1,DOCKED,"at WORK: x -0.6 cm, y -4.0 cm, yaw 0.0 deg"
+155.804,INFO,pode1,ORDER_BOUND,R-005
+155.80800000000002,NOTE,assignments,ASSIGNMENTS,pode1:FILL:WORK:R-005;pode2:TO_WORK:WORK:;pode3:CLEAN::
+156.008,INFO,pode3,CLEAN_SENT,"bay_in to P-1, holds ['P-1', 'E-1']"
+158.604,INFO,pode3,CLEAN_LAP_DONE,"lap 3 in 24.0 s: 1/19 lines, 72 deferrals, skipped [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], 0 gaps, covered 0.010 of the clean grid"
+158.604,INFO,pode3,CLEAN_LAP_START,"lap 4, 19 lines (0 gaps)"
+158.608,INFO,pode3,CLEAN_SENT,"out to clean_start, holds ['P-1', 'E-1']"
+160.104,INFO,pode3,CLEAN_SENT,"line 0 to clean_line_0, holds ['P-1', 'E-1']"
+161.904,INFO,pode1,LANE_DIRECTION_SET,EXPRESS from W_X
+161.904,INFO,pode1,ZONE_GRANTED,WORK_DOCK+HALL+J_E+EXPRESS to O_X
+161.90800000000002,INFO,pode1,ORDER_SENT,"pode1-74: base to O_X, horizon to O"
+161.916,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-005;pode2:TO_WORK:WORK:;pode3:CLEAN::
+164.4,INFO,pode2,ZONE_GRANTED,HALL to Q1
+164.40800000000002,INFO,pode2,ORDER_UPDATED,pode2-66 update 2: base to Q1
+166.156,INFO,pode3,CLEAN_LINE_DONE,line 0 (1/19)
+166.156,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (1): E-3 is held by pode2
+166.16400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (1): E-3 is held by pode2
+166.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (1): pode2's base passes near
+166.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (1): pode2's base passes near
+166.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (1): pode2's base passes near
+166.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (1): pode2's base passes near
+166.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (1): pode2's base passes near
+166.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (1): pode2's base passes near
+166.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (1): pode2's base passes near
+166.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (1): Q1 is held by pode2
+166.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (1): Q1 is held by pode2
+166.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (1): Q1 is held by pode2
+166.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (1): Q1 is held by pode2
+166.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (1): pode2's base passes near
+166.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (1): pode2's base passes near
+166.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (1): pode2's base passes near
+166.172,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (1): meets pode1's way
+166.17600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (1): pode2's base passes near
+166.3,INFO,pode2,ZONE_GRANTED,HALL+WORK_DOCK to W
+166.304,INFO,pode2,ORDER_UPDATED,pode2-66 update 3: base to W
+166.608,INFO,pode2,SEGMENT_DONE,pode2-66 seq 2 (nav_goal) to Q2
+170.304,INFO,pode2,SEGMENT_DONE,pode2-66 seq 3 (follow_path) to Q1
+170.804,INFO,pode3,CLEAN_SENT,"line 1 to clean_line_1, holds ['P-1', 'E-1', 'E-2', 'E-3']"
+172.108,INFO,pode2,SEGMENT_DONE,pode2-66 seq 4 (follow_path) to W
+173.40400000000002,INFO,pode1,ZONE_GRANTED,EXPRESS+OUT_DOCK to O
+173.40800000000002,INFO,pode1,ORDER_UPDATED,pode1-74 update 1: base to O
+175.20000000000002,INFO,pode2,DOCKED,"at WORK: x -1.0 cm, y -3.9 cm, yaw 0.0 deg"
+175.20000000000002,INFO,pode2,ORDER_BOUND,R-006
+175.208,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-005;pode2:FILL:WORK:R-006;pode3:CLEAN::
+175.3,INFO,pode1,SEGMENT_DONE,pode1-74 seq 1 (follow_path) to O_X
+175.40800000000002,INFO,pode3,CLEAN_LINE_DONE,line 1 (2/19)
+175.412,INFO,pode3,CLEAN_SENT,"line 2 to clean_line_2, holds ['E-1', 'E-2', 'E-3']"
+178.616,INFO,pode1,SEGMENT_DONE,pode1-74 seq 2 (follow_path) to O
+179.304,INFO,pode2,LANE_DIRECTION_SET,EXPRESS from W_X
+179.304,INFO,pode2,ZONE_GRANTED,WORK_DOCK+HALL+J_E+EXPRESS to O_X
+179.304,INFO,pode2,DOCK_QUEUED,"OUTBOUND is busy, waits at O_X"
+179.304,INFO,pode2,ORDER_SENT,"pode2-83: base to O_X, horizon to O"
+179.316,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-005;pode2:TO_OUTBOUND:OUTBOUND:R-006;pode3:CLEAN::
+181.704,INFO,pode1,DOCKED,"at OUTBOUND: x 3.9 cm, y -1.3 cm, yaw 0.0 deg"
+181.708,NOTE,assignments,ASSIGNMENTS,pode1:SWAP:OUTBOUND:R-005;pode2:TO_OUTBOUND:OUTBOUND:R-006;pode3:CLEAN::
+182.604,INFO,pode3,CLEAN_LINE_DONE,line 2 (3/19)
+182.604,INFO,pode3,CLEAN_SENT,"line 3 to clean_line_3, holds ['O_IN', 'O_OUT', 'E-1']"
+189.812,INFO,pode1,ZONE_GRANTED,OUT_DOCK+HALL to Q2
+189.824,INFO,pode1,ORDER_SENT,"pode1-86: base to Q2, horizon to W"
+189.824,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.638, 0.613): its way meets pode1's way"
+189.828,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['O_IN']"
+189.83200000000002,INFO,central,ORDER_SHIPPED,"R-005 robot=pode1 placed=B:1,D:1 missing=-"
+189.83200000000002,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:TO_OUTBOUND:OUTBOUND:R-006;pode3:CLEAN::
+192.40400000000002,INFO,pode2,SEGMENT_DONE,pode2-83 seq 1 (follow_path) to O_X
+192.40400000000002,INFO,pode2,BASE_END_WAIT,"stands at O_X, the next stretch is not taken yet"
+193.52800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (2): pode1's base passes near
+193.52800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (2): O_OUT is held by pode1
+193.532,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (2): O_OUT is held by pode1
+193.532,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (2): O_OUT is held by pode1
+193.532,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (2): O_OUT is held by pode1
+193.532,INFO,pode3,CLEAN_SENT,"line 8 to clean_line_8, holds ['O_IN', 'M_E']"
+194.108,INFO,pode1,SEGMENT_DONE,pode1-86 seq 1 (follow_path) to O_OUT
+194.60000000000002,INFO,pode2,ZONE_GRANTED,EXPRESS+OUT_DOCK to O
+194.604,INFO,pode2,ORDER_UPDATED,pode2-83 update 1: base to O
+194.90400000000002,INFO,pode3,CLEAN_LINE_DONE,line 8 (4/19)
+194.90800000000002,INFO,pode3,CLEAN_YIELD,stops for pode2: pode2 closes in (0.29 m)
+195.02,INFO,pode3,CLEAN_SENT,"line 9 to clean_line_9, holds ['M_E']"
+195.10000000000002,INFO,pode3,CLEAN_LINE_DONE,line 9 (5/19)
+195.10000000000002,INFO,pode3,CLEAN_YIELD,stops for pode2: pode2 closes in (0.28 m)
+195.316,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (2): Q2 is held by pode1
+195.316,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (2): Q2 is held by pode1
+195.316,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (2): Q2 is held by pode1
+195.316,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (2): Q2 is held by pode1
+195.316,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (2): pode1's base passes near
+195.316,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (2): pode1's base passes near
+195.32000000000002,INFO,pode3,CLEAN_SENT,"line 16 to clean_line_16, holds []"
+195.328,INFO,pode3,CLEAN_YIELD,stops for pode2: pode2 closes in (0.28 m)
+195.4,INFO,pode3,CLEAN_SENT,"line 16 to clean_line_16, holds []"
+198.60000000000002,INFO,pode2,SEGMENT_DONE,pode2-83 seq 2 (follow_path) to O
+199.60000000000002,INFO,pode3,CLEAN_LINE_DONE,line 16 (6/19)
+199.604,INFO,pode3,CLEAN_SENT,"line 17 to clean_line_17, holds ['M_E']"
+201.70000000000002,INFO,pode2,DOCKED,"at OUTBOUND: x 1.2 cm, y -0.6 cm, yaw 0.0 deg"
+201.70000000000002,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:SWAP:OUTBOUND:R-006;pode3:CLEAN::
+204.92000000000002,INFO,pode3,CLEAN_LINE_DONE,line 17 (7/19)
+204.924,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (2): pode1's base passes near
+206.0,INFO,pode1,ZONE_GRANTED,HALL to Q1
+206.00400000000002,INFO,pode1,ORDER_UPDATED,pode1-86 update 1: base to Q1
+207.90400000000002,INFO,pode1,SEGMENT_DONE,pode1-86 seq 2 (nav_goal) to Q2
+207.90400000000002,INFO,pode1,ZONE_GRANTED,HALL+WORK_DOCK to W
+207.90400000000002,INFO,pode1,ORDER_UPDATED,pode1-86 update 2: base to W
+209.8,INFO,pode2,ZONE_GRANTED,OUT_DOCK+HALL to P-2
+209.8,INFO,pode2,ORDER_SENT,"pode2-98: base to O_OUT, horizon to P-2"
+209.804,INFO,central,ORDER_SHIPPED,R-006 robot=pode2 placed=A:1 missing=-
+209.804,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:TO_WORK:WORK:;pode3:CLEAN::
+209.90400000000002,INFO,pode3,CLEAN_SENT,"line 3 to clean_line_3, holds ['O_IN', 'M_E']"
+211.70000000000002,INFO,pode1,SEGMENT_DONE,pode1-86 seq 3 (follow_path) to Q1
+211.8,INFO,pode2,ZONE_GRANTED,HALL to Q2
+211.8,INFO,pode2,DOCK_QUEUED,"WORK is busy, waits at Q2"
+211.804,INFO,pode2,STANDBY_LEFT,"W is free, drops the way to P-2"
+211.80800000000002,INFO,pode2,ORDER_UPDATED,pode2-98 update 1: base to Q2
+211.80800000000002,INFO,pode3,CLEAN_YIELD,stops for pode2: its way meets pode2's way
+212.012,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (3): pode2's base passes near
+212.012,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (3): O_OUT is held by pode2
+212.012,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (3): O_OUT is held by pode2
+212.01600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (3): O_OUT is held by pode2
+212.01600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (3): O_OUT is held by pode2
+212.01600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (3): Q1 is held by pode1
+212.01600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (3): Q1 is held by pode1
+212.01600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (3): Q1 is held by pode1
+212.01600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (3): Q1 is held by pode1
+212.01600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (3): pode2's base passes near
+212.01600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (3): pode2's base passes near
+212.01600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (3): E-2 is held by pode2
+213.70000000000002,INFO,pode1,SEGMENT_DONE,pode1-86 seq 4 (follow_path) to W
+214.20800000000003,INFO,pode2,SEGMENT_DONE,pode2-98 seq 1 (follow_path) to O_OUT
+216.8,INFO,pode1,DOCKED,"at WORK: x -0.3 cm, y -3.4 cm, yaw 0.0 deg"
+216.8,INFO,pode1,ORDER_BOUND,R-007
+216.804,NOTE,assignments,ASSIGNMENTS,pode1:FILL:WORK:R-007;pode2:TO_WORK:WORK:;pode3:CLEAN::
+217.0,WARN,pode3,CLEAN_LINE_SKIPPED,line 3 gives up this lap after 3 deferrals: pode2's base passes near
+217.0,WARN,pode3,CLEAN_LINE_SKIPPED,line 4 gives up this lap after 3 deferrals: O_OUT is held by pode2
+217.008,WARN,pode3,CLEAN_LINE_SKIPPED,line 5 gives up this lap after 3 deferrals: O_OUT is held by pode2
+217.008,WARN,pode3,CLEAN_LINE_SKIPPED,line 6 gives up this lap after 3 deferrals: O_OUT is held by pode2
+217.008,WARN,pode3,CLEAN_LINE_SKIPPED,line 7 gives up this lap after 3 deferrals: O_OUT is held by pode2
+217.008,WARN,pode3,CLEAN_LINE_SKIPPED,line 10 gives up this lap after 3 deferrals: Q1 is held by pode1
+217.008,WARN,pode3,CLEAN_LINE_SKIPPED,line 11 gives up this lap after 3 deferrals: Q1 is held by pode1
+217.008,WARN,pode3,CLEAN_LINE_SKIPPED,line 12 gives up this lap after 3 deferrals: Q1 is held by pode1
+217.008,WARN,pode3,CLEAN_LINE_SKIPPED,line 13 gives up this lap after 3 deferrals: Q1 is held by pode1
+217.012,WARN,pode3,CLEAN_LINE_SKIPPED,line 14 gives up this lap after 3 deferrals: pode2's base passes near
+217.012,WARN,pode3,CLEAN_LINE_SKIPPED,line 15 gives up this lap after 3 deferrals: pode2's base passes near
+217.012,WARN,pode3,CLEAN_LINE_SKIPPED,line 18 gives up this lap after 3 deferrals: pode2's base passes near
+222.9,INFO,pode1,LANE_DIRECTION_SET,EXPRESS from W_X
+222.90400000000002,INFO,pode1,ZONE_GRANTED,WORK_DOCK+HALL+J_E+EXPRESS to O_X
+222.90400000000002,INFO,pode1,ORDER_SENT,"pode1-103: base to O_X, horizon to O"
+222.90800000000002,INFO,pode3,CLEAN_YIELD,"for pode1 to (1.562, 0.537): stands in pode1's way"
+222.90800000000002,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['M_E']"
+222.90800000000002,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-007;pode2:TO_WORK:WORK:;pode3:CLEAN::
+230.40800000000002,INFO,pode2,ZONE_GRANTED,HALL to Q1
+230.412,INFO,pode2,ORDER_UPDATED,pode2-98 update 2: base to Q1
+232.40800000000002,INFO,pode2,SEGMENT_DONE,pode2-98 seq 2 (nav_goal) to Q2
+232.412,INFO,pode2,ZONE_GRANTED,HALL+WORK_DOCK to W
+232.412,INFO,pode2,ORDER_UPDATED,pode2-98 update 3: base to W
+232.412,INFO,pode3,CLEAN_SENT,"back to E-1, holds ['M_E', 'P-1', 'E-1', 'E-2']"
+234.20000000000002,INFO,pode1,ZONE_GRANTED,EXPRESS+OUT_DOCK to O
+234.204,INFO,pode1,ORDER_UPDATED,pode1-103 update 1: base to O
+236.00000000000003,INFO,pode2,SEGMENT_DONE,pode2-98 seq 3 (follow_path) to Q1
+236.40400000000002,INFO,pode1,SEGMENT_DONE,pode1-103 seq 1 (follow_path) to O_X
+238.104,INFO,pode2,SEGMENT_DONE,pode2-98 seq 4 (follow_path) to W
+239.60000000000002,INFO,pode1,SEGMENT_DONE,pode1-103 seq 2 (follow_path) to O
+241.20000000000002,INFO,pode2,DOCKED,"at WORK: x 0.0 cm, y -4.2 cm, yaw 0.0 deg"
+241.20000000000002,INFO,pode2,ORDER_BOUND,R-008
+241.204,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-007;pode2:FILL:WORK:R-008;pode3:CLEAN::
+242.70000000000002,INFO,pode1,DOCKED,"at OUTBOUND: x 2.9 cm, y -0.4 cm, yaw 0.0 deg"
+242.70800000000003,NOTE,assignments,ASSIGNMENTS,pode1:SWAP:OUTBOUND:R-007;pode2:FILL:WORK:R-008;pode3:CLEAN::
+245.304,INFO,pode2,LANE_DIRECTION_SET,EXPRESS from W_X
+245.304,INFO,pode2,ZONE_GRANTED,WORK_DOCK+HALL+J_E+EXPRESS to O_X
+245.304,INFO,pode2,DOCK_QUEUED,"OUTBOUND is busy, waits at O_X"
+245.312,INFO,pode2,ORDER_SENT,"pode2-113: base to O_X, horizon to O"
+245.312,NOTE,assignments,ASSIGNMENTS,pode1:SWAP:OUTBOUND:R-007;pode2:TO_OUTBOUND:OUTBOUND:R-008;pode3:CLEAN::
+249.40400000000002,INFO,pode3,CLEAN_SENT,"bay_in to P-1, holds ['P-1', 'E-1']"
+250.8,INFO,pode1,ZONE_GRANTED,OUT_DOCK+HALL to P-2
+250.80800000000002,INFO,pode1,ORDER_SENT,pode1-115: base to P-2
+250.812,NOTE,assignments,ASSIGNMENTS,pode1:WAIT::;pode2:TO_OUTBOUND:OUTBOUND:R-008;pode3:CLEAN::
+250.83200000000002,INFO,central,ORDER_SHIPPED,"R-007 robot=pode1 placed=B:1,C:1 missing=-"
+252.4,INFO,pode3,CLEAN_LAP_DONE,"lap 4 in 93.8 s: 7/19 lines, 54 deferrals, skipped [3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 18], 0 gaps, covered 0.194 of the clean grid"
+252.4,INFO,pode3,CLEAN_LAP_START,"lap 5, 19 lines (0 gaps)"
+252.40400000000002,INFO,pode3,CLEAN_SENT,"out to clean_start, holds ['P-1', 'E-1']"
+253.608,INFO,pode3,CLEAN_SENT,"line 0 to clean_line_0, holds ['P-1', 'E-1']"
+255.00400000000002,INFO,pode1,SEGMENT_DONE,pode1-115 seq 1 (follow_path) to O_OUT
+256.672,INFO,pode3,CLEAN_LINE_DONE,line 0 (1/19)
+256.68,WARN,pode3,CLEAN_HOME,goes home to P-1: cannot yield to pode1: no place out of its way
+256.68,INFO,pode3,CLEAN_SENT,"back to E-1, holds ['P-1', 'E-1']"
+256.708,INFO,pode2,ZONE_GRANTED,EXPRESS+OUT_DOCK to O
+256.708,INFO,pode2,ORDER_UPDATED,pode2-113 update 1: base to O
+258.6,INFO,pode3,CLEAN_SENT,"bay_in to P-1, holds ['P-1', 'E-1']"
+258.80400000000003,INFO,pode2,SEGMENT_DONE,pode2-113 seq 1 (follow_path) to O_X
+261.10400000000004,INFO,pode3,CLEAN_AT_HOME,"waits at P-1, 18 lines left in lap 5"
+261.90000000000003,INFO,pode2,SEGMENT_DONE,pode2-113 seq 2 (follow_path) to O
+262.404,INFO,pode1,SEGMENT_DONE,pode1-115 seq 2 (nav_goal) to E-2
+265.004,INFO,pode2,DOCKED,"at OUTBOUND: x 4.1 cm, y 0.2 cm, yaw 0.0 deg"
+265.004,NOTE,assignments,ASSIGNMENTS,pode1:WAIT::;pode2:SWAP:OUTBOUND:R-008;pode3:CLEAN::
+265.30400000000003,INFO,pode1,SEGMENT_DONE,pode1-115 seq 3 (retreat) to P-2
+265.30400000000003,INFO,pode1,RETREAT_DONE,stands at P-2
+271.10400000000004,INFO,pode3,CLEAN_SENT,"out to clean_start, holds ['P-1', 'E-1']"
+272.312,INFO,pode3,CLEAN_SENT,"line 1 to clean_line_1, holds ['P-1', 'E-1', 'E-2', 'E-3']"
+273.1,INFO,pode2,ZONE_WAIT,waits for E-3
+273.10400000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.113, 0.263): pode2 waits for ['E-3'] it holds"
+273.10400000000004,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['P-1', 'E-1']"
+273.10400000000004,INFO,central,ORDER_SHIPPED,R-008 robot=pode2 placed=D:1 missing=-
+273.10400000000004,NOTE,assignments,ASSIGNMENTS,pode1:WAIT::;pode2:WAIT::;pode3:CLEAN::
+273.204,INFO,pode2,ZONE_GRANTED,OUT_DOCK+HALL to P-3
+273.212,INFO,pode2,ORDER_SENT,pode2-126: base to P-3
+274.6,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (1): E-3 is held by pode2
+274.6,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (1): E-3 is held by pode2
+274.60400000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (1): O_OUT is held by pode2
+274.608,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (1): O_OUT is held by pode2
+274.608,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (1): O_OUT is held by pode2
+274.612,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (1): O_OUT is held by pode2
+274.612,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (1): O_OUT is held by pode2
+274.612,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (1): pode2's base passes near
+274.612,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (1): pode2's base passes near
+274.612,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (1): pode2's base passes near
+274.612,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (1): P-3 is held by pode2
+274.612,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (1): P-3 is held by pode2
+274.612,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (1): P-3 is held by pode2
+274.612,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (1): pode2's base passes near
+274.61600000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (1): pode2's base passes near
+274.61600000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (1): pode2's base passes near
+274.61600000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (1): pode2's base passes near
+274.61600000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (1): pode1 stands near
+277.6,INFO,pode2,SEGMENT_DONE,pode2-126 seq 1 (follow_path) to O_OUT
+279.72,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (2): E-3 is held by pode2
+279.72,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (2): E-3 is held by pode2
+279.72,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (2): O_OUT is held by pode2
+279.72,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (2): O_OUT is held by pode2
+279.72,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (2): O_OUT is held by pode2
+279.724,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (2): O_OUT is held by pode2
+279.724,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (2): O_OUT is held by pode2
+279.728,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (2): pode2's base passes near
+279.728,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (2): pode2's base passes near
+279.728,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (2): pode2's base passes near
+279.728,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (2): P-3 is held by pode2
+279.728,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (2): P-3 is held by pode2
+279.728,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (2): P-3 is held by pode2
+279.728,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (2): pode2's base passes near
+279.728,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (2): pode2's base passes near
+279.732,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (2): pode2's base passes near
+279.736,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (2): pode2's base passes near
+279.736,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (2): pode1 stands near
+284.704,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (3): E-3 is held by pode2
+284.71200000000005,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (3): E-3 is held by pode2
+284.72,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (3): pode2's base passes near
+284.72,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (3): pode2's base passes near
+284.72,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (3): pode2's base passes near
+284.72,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (3): pode2's base passes near
+284.72,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (3): pode2's base passes near
+284.724,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (3): pode2's base passes near
+284.724,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (3): pode2's base passes near
+284.724,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (3): pode2's base passes near
+284.724,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (3): P-3 is held by pode2
+284.724,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (3): P-3 is held by pode2
+284.724,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (3): P-3 is held by pode2
+284.728,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (3): pode2's base passes near
+284.728,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (3): pode2's base passes near
+284.728,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (3): pode2's base passes near
+284.732,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (3): pode2's base passes near
+284.732,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (3): pode1 stands near
+286.1,INFO,pode2,SEGMENT_DONE,pode2-126 seq 2 (nav_goal) to E-3
+288.70000000000005,INFO,pode2,SEGMENT_DONE,pode2-126 seq 3 (retreat) to P-3
+288.70000000000005,INFO,pode2,RETREAT_DONE,stands at P-3
+289.312,INFO,pode3,CLEAN_SENT,"line 1 to clean_line_1, holds ['P-1', 'E-1', 'E-2', 'E-3']"
+295.404,INFO,pode3,CLEAN_LINE_DONE,line 1 (2/19)
+295.408,INFO,pode3,CLEAN_SENT,"line 2 to clean_line_2, holds ['E-1', 'E-2', 'E-3']"
+302.904,INFO,pode3,CLEAN_LINE_DONE,line 2 (3/19)
+302.908,INFO,pode3,CLEAN_SENT,"line 3 to clean_line_3, holds ['O_IN', 'O_OUT', 'E-1']"
+310.204,INFO,pode3,CLEAN_LINE_DONE,line 3 (4/19)
+310.208,INFO,pode3,CLEAN_SENT,"line 4 to clean_line_4, holds ['O_IN', 'O_OUT']"
+318.5,INFO,pode3,CLEAN_LINE_DONE,line 4 (5/19)
+318.504,INFO,pode3,CLEAN_SENT,"line 5 to clean_line_5, holds ['O_IN', 'O_OUT', 'M_E']"
+334.30400000000003,INFO,pode3,CLEAN_LINE_DONE,line 5 (6/19)
+334.30400000000003,INFO,pode3,CLEAN_SENT,"line 6 to clean_line_6, holds ['O_IN', 'O_OUT', 'M_E']"
+350.30400000000003,INFO,pode3,CLEAN_LINE_DONE,line 6 (7/19)
+350.30400000000003,INFO,pode3,CLEAN_SENT,"line 7 to clean_line_7, holds ['O_IN', 'O_OUT', 'M_E']"
+366.3,INFO,pode3,CLEAN_LINE_DONE,line 7 (8/19)
+366.312,INFO,pode3,CLEAN_SENT,"line 8 to clean_line_8, holds ['M_E']"
+369.704,INFO,pode3,CLEAN_LINE_DONE,line 8 (9/19)
+369.708,INFO,pode3,CLEAN_SENT,"line 9 to clean_line_9, holds ['M_E']"
+374.608,INFO,pode3,CLEAN_LINE_DONE,line 9 (10/19)
+374.608,INFO,pode3,CLEAN_SENT,"line 10 to clean_line_10, holds ['M_E', 'Q1', 'Q2']"
+381.028,INFO,pode3,CLEAN_LINE_DONE,line 10 (11/19)
+381.028,WARN,pode3,CLEAN_LINE_SKIPPED,line 11 gives up this lap after 3 deferrals: P-3 is held by pode2
+381.028,WARN,pode3,CLEAN_LINE_SKIPPED,line 12 gives up this lap after 3 deferrals: P-3 is held by pode2
+381.036,WARN,pode3,CLEAN_LINE_SKIPPED,line 13 gives up this lap after 3 deferrals: P-3 is held by pode2
+381.036,INFO,pode3,CLEAN_SENT,"line 14 to clean_line_14, holds ['GAP_S', 'Q2']"
+388.50800000000004,INFO,pode3,CLEAN_LINE_DONE,line 14 (12/19)
+388.50800000000004,INFO,pode3,CLEAN_SENT,"line 15 to clean_line_15, holds ['GAP_S']"
+393.30400000000003,INFO,pode3,CLEAN_LINE_DONE,line 15 (13/19)
+393.30400000000003,INFO,pode3,CLEAN_SENT,"line 16 to clean_line_16, holds ['GAP_S']"
+398.30800000000005,INFO,pode3,CLEAN_LINE_DONE,line 16 (14/19)
+398.30800000000005,INFO,pode3,CLEAN_SENT,"line 17 to clean_line_17, holds ['M_E']"
+404.12,INFO,pode3,CLEAN_LINE_DONE,line 17 (15/19)
+404.12,WARN,pode3,CLEAN_LINE_SKIPPED,line 18 gives up this lap after 3 deferrals: pode1 stands near
+404.124,INFO,pode3,CLEAN_SENT,"back to E-1, holds ['M_E', 'P-1', 'E-1', 'E-2']"
+423.5,INFO,pode3,CLEAN_SENT,"bay_in to P-1, holds ['P-1', 'E-1']"
+426.5,INFO,pode3,CLEAN_LAP_DONE,"lap 5 in 174.0 s: 15/19 lines, 58 deferrals, skipped [11, 12, 13, 18], 0 gaps, covered 0.749 of the clean grid"
+426.5,INFO,pode3,CLEAN_LAP_START,"lap 6, 19 lines (0 gaps)"
+426.50800000000004,INFO,pode3,CLEAN_SENT,"out to clean_start, holds ['P-1', 'E-1']"
+427.71200000000005,INFO,pode3,CLEAN_SENT,"line 0 to clean_line_0, holds ['P-1', 'E-1']"

@@ -1,0 +1,976 @@
+time_s,level,source,code,detail
+0.0,NOTE,order_board,RUN_MODE,RUN
+6.4,NOTE,assignments,ASSIGNMENTS,
+6.5,NOTE,assignments,ASSIGNMENTS,pode1:WAIT::;pode2:WAIT::
+6.6000000000000005,INFO,pode1,ZONE_GRANTED,HALL to Q2
+6.632000000000001,INFO,pode1,ORDER_SENT,"pode1-1: base to Q2, horizon to W"
+6.632000000000001,INFO,pode3,CLEAN_LAP_START,"lap 1, 19 lines (0 gaps)"
+6.632000000000001,INFO,pode3,CLEAN_SENT,"out to clean_start, holds ['P-1', 'E-1']"
+6.636,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:WAIT::;pode3:CLEAN::
+7.7,INFO,pode1,SEGMENT_DONE,pode1-1 seq 1 (follow_path) to E-3
+8.204,INFO,pode3,CLEAN_SENT,"line 0 to clean_line_0, holds ['P-1', 'E-1']"
+10.712000000000002,INFO,pode3,CLEAN_LINE_DONE,line 0 (1/19)
+10.712000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (1): E-3 is held by pode1
+10.716000000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (1): E-3 is held by pode1
+10.716000000000001,INFO,pode3,CLEAN_SENT,"line 3 to clean_line_3, holds ['O_IN', 'O_OUT', 'P-1', 'E-1']"
+15.3,INFO,pode1,ZONE_GRANTED,HALL to Q1
+15.308000000000002,INFO,pode1,ORDER_UPDATED,pode1-1 update 1: base to Q1
+17.5,INFO,pode1,SEGMENT_DONE,pode1-1 seq 2 (nav_goal) to Q2
+17.5,INFO,pode1,ZONE_GRANTED,HALL+WORK_DOCK to W
+17.504,INFO,pode1,ORDER_UPDATED,pode1-1 update 2: base to W
+20.0,INFO,central,ORDER_ACCEPTED,R-002
+20.004,INFO,pode3,CLEAN_LINE_DONE,line 3 (2/19)
+20.004,INFO,pode3,CLEAN_SENT,"line 4 to clean_line_4, holds ['O_IN', 'O_OUT']"
+20.1,INFO,pode2,DOCK_QUEUED,"WORK is busy, waits at P-2"
+20.1,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:TO_WORK:WORK:;pode3:CLEAN::
+21.1,INFO,pode1,SEGMENT_DONE,pode1-1 seq 3 (follow_path) to Q1
+21.1,INFO,pode2,ZONE_GRANTED,HALL to Q2
+21.104000000000003,INFO,pode2,DOCK_QUEUED,"WORK is busy, waits at Q2"
+21.104000000000003,INFO,pode2,ORDER_SENT,"pode2-8: base to Q2, horizon to W"
+22.200000000000003,INFO,pode2,SEGMENT_DONE,pode2-8 seq 1 (follow_path) to E-2
+23.0,INFO,pode1,SEGMENT_DONE,pode1-1 seq 4 (follow_path) to W
+26.1,INFO,pode1,DOCKED,"at WORK: x -0.9 cm, y -3.9 cm, yaw 0.0 deg"
+26.1,INFO,pode1,ORDER_BOUND,R-001
+26.104000000000003,NOTE,assignments,ASSIGNMENTS,pode1:FILL:WORK:R-001;pode2:TO_WORK:WORK:;pode3:CLEAN::
+28.0,INFO,pode3,CLEAN_LINE_DONE,line 4 (3/19)
+28.0,INFO,pode3,CLEAN_SENT,"line 5 to clean_line_5, holds ['O_IN', 'O_OUT', 'M_E']"
+32.1,INFO,pode2,ZONE_WAIT,waits for Q1
+32.2,INFO,pode1,LANE_DIRECTION_SET,EXPRESS from W_X
+32.204,INFO,pode1,ZONE_GRANTED,WORK_DOCK+HALL+J_E+EXPRESS to O_X
+32.208000000000006,INFO,pode1,ORDER_SENT,"pode1-12: base to O_X, horizon to O"
+32.208000000000006,INFO,pode3,CLEAN_YIELD,stops for pode1: its way meets pode1's way
+32.212,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-001;pode2:TO_WORK:WORK:;pode3:CLEAN::
+32.304,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (1): meets pode1's way
+32.308,INFO,pode3,CLEAN_SENT,"line 6 to clean_line_6, holds ['O_IN', 'O_OUT', 'M_E']"
+32.9,INFO,pode2,ZONE_GRANTED,HALL to Q1
+32.904,INFO,pode2,ORDER_UPDATED,pode2-8 update 1: base to Q1
+34.004000000000005,INFO,pode2,SEGMENT_DONE,pode2-8 seq 2 (nav_goal) to Q2
+34.008,INFO,pode2,DOCK_QUEUED,"WORK is busy, waits at Q2"
+35.5,INFO,pode2,ZONE_GRANTED,HALL+WORK_DOCK to W
+35.5,INFO,pode2,ORDER_UPDATED,pode2-8 update 2: base to W
+37.008,INFO,pode3,CLEAN_LINE_DONE,line 6 (4/19)
+37.008,INFO,pode3,CLEAN_SENT,"line 7 to clean_line_7, holds ['O_IN', 'O_OUT', 'M_E']"
+37.604,INFO,pode2,SEGMENT_DONE,pode2-8 seq 3 (follow_path) to Q1
+39.5,INFO,pode2,SEGMENT_DONE,pode2-8 seq 4 (follow_path) to W
+40.008,INFO,central,ORDER_ACCEPTED,R-003
+42.6,INFO,pode2,DOCKED,"at WORK: x -1.3 cm, y -2.7 cm, yaw 0.0 deg"
+42.6,INFO,pode2,ORDER_BOUND,R-002
+42.6,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-001;pode2:FILL:WORK:R-002;pode3:CLEAN::
+43.6,INFO,pode1,ZONE_GRANTED,EXPRESS+OUT_DOCK to O
+43.6,INFO,pode1,ORDER_UPDATED,pode1-12 update 1: base to O
+45.7,INFO,pode1,SEGMENT_DONE,pode1-12 seq 1 (follow_path) to O_X
+46.7,INFO,pode2,ZONE_WAIT,waits for M_E
+46.7,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.863, 0.488): pode2 waits for ['M_E'] it holds"
+46.7,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds []"
+46.7,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-001;pode2:TO_OUTBOUND:OUTBOUND:R-002;pode3:CLEAN::
+46.800000000000004,INFO,pode2,ZONE_GRANTED,WORK_DOCK+HALL to O_IN
+46.800000000000004,INFO,pode2,DOCK_QUEUED,"OUTBOUND is busy, waits at O_IN"
+46.800000000000004,INFO,pode2,ORDER_SENT,"pode2-21: base to O_IN, horizon to O"
+47.912000000000006,INFO,pode3,CLEAN_YIELD,"for pode2 to (1.088, 0.338): stands in pode2's way"
+47.912000000000006,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['GAP_S']"
+48.804,INFO,pode1,SEGMENT_DONE,pode1-12 seq 2 (follow_path) to O
+49.504000000000005,INFO,pode2,SEGMENT_DONE,pode2-21 seq 1 (nav_goal) to M_E
+51.904,INFO,pode1,DOCKED,"at OUTBOUND: x 4.6 cm, y 0.3 cm, yaw 0.0 deg"
+51.908,NOTE,assignments,ASSIGNMENTS,pode1:SWAP:OUTBOUND:R-001;pode2:TO_OUTBOUND:OUTBOUND:R-002;pode3:CLEAN::
+53.704,INFO,pode3,CLEAN_YIELD,"for pode2 to (1.088, 0.338): stands in pode2's way"
+53.704,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['GAP_S']"
+53.812000000000005,INFO,pode3,CLEAN_YIELD,"for pode2 to (1.088, 0.338): stands in pode2's way"
+53.812000000000005,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['GAP_S']"
+53.904,INFO,pode3,CLEAN_YIELD,"for pode2 to (1.088, 0.338): stands in pode2's way"
+53.904,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['GAP_S']"
+54.008,INFO,pode3,CLEAN_YIELD,"for pode2 to (1.088, 0.312): stands in pode2's way"
+54.012,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['GAP_S']"
+54.416000000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (1.113, 0.312): stands in pode2's way"
+54.428000000000004,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['GAP_S']"
+55.216,INFO,pode3,CLEAN_YIELD,"for pode2 to (1.113, 0.312): stands in pode2's way"
+55.220000000000006,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['GAP_S']"
+55.312000000000005,INFO,pode3,CLEAN_YIELD,"for pode2 to (1.113, 0.312): stands in pode2's way"
+55.312000000000005,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['GAP_S']"
+56.008,INFO,pode3,CLEAN_YIELD,"for pode2 to (1.088, 0.312): stands in pode2's way"
+56.012,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['GAP_S']"
+56.604000000000006,INFO,pode3,CLEAN_YIELD,"for pode2 to (1.088, 0.312): stands in pode2's way"
+56.612,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['GAP_S']"
+56.720000000000006,WARN,pode3,CLEAN_HOME,goes home to P-1: pode2 still meets it 10 s after yielding (stands in pode2's way)
+56.82,INFO,pode3,CLEAN_YIELD,"for pode2 to (1.088, 0.312) on the way home: waits on pode2's way to O"
+56.824000000000005,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['GAP_S']"
+58.736000000000004,INFO,pode2,LOCAL_YIELD,wait
+59.112,INFO,pode2,LOCAL_YIELD,ends MOVING after 0 s
+60.00000000000001,INFO,central,ORDER_ACCEPTED,R-004
+60.028000000000006,INFO,pode1,ZONE_GRANTED,OUT_DOCK+HALL to Q2
+60.036,INFO,pode1,ORDER_SENT,"pode1-35: base to Q2, horizon to W"
+60.044000000000004,INFO,central,ORDER_SHIPPED,"R-001 robot=pode1 placed=A:1,C:1 missing=-"
+60.044000000000004,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:TO_OUTBOUND:OUTBOUND:R-002;pode3:CLEAN::
+61.720000000000006,WARN,pode3,CLEAN_STUCK,"cannot go home to P-1 for 5 s, stands still (1 times)"
+61.92400000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (1.113, 0.438) on the way home: waits on pode1's way to W"
+61.932,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['GAP_S']"
+64.0,INFO,pode1,SEGMENT_DONE,pode1-35 seq 1 (follow_path) to O_OUT
+65.82000000000001,INFO,pode2,ZONE_GRANTED,HALL+OUT_DOCK to O
+65.82000000000001,INFO,pode2,ORDER_UPDATED,pode2-21 update 1: base to O
+66.932,INFO,pode3,CLEAN_YIELD,"for pode1 to (1.088, 0.438) on the way home: waits on pode1's way to W"
+66.94,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['GAP_S']"
+67.91600000000001,INFO,pode2,SEGMENT_DONE,pode2-21 seq 2 (nav_goal) to O_IN
+71.92,INFO,pode3,CLEAN_YIELD,"for pode1 to (1.088, 0.438) on the way home: waits on pode1's way to W"
+71.924,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['GAP_S']"
+73.03200000000001,INFO,pode2,SEGMENT_DONE,pode2-21 seq 3 (follow_path) to O
+75.91600000000001,INFO,pode1,ZONE_GRANTED,HALL to Q1
+75.91600000000001,INFO,pode1,ORDER_UPDATED,pode1-35 update 1: base to Q1
+76.12400000000001,INFO,pode2,DOCKED,"at OUTBOUND: x 6.6 cm, y -0.4 cm, yaw 0.0 deg"
+76.128,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:SWAP:OUTBOUND:R-002;pode3:CLEAN::
+76.91600000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (1.088, 0.438) on the way home: waits on pode1's way to W"
+76.92,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['GAP_S']"
+77.836,INFO,pode1,ZONE_GRANTED,HALL+WORK_DOCK to W
+77.84,INFO,pode1,ORDER_UPDATED,pode1-35 update 2: base to W
+77.956,INFO,pode1,SEGMENT_DONE,pode1-35 seq 2 (nav_goal) to Q2
+77.96000000000001,INFO,pode3,CLEAN_SENT,"back to E-1, holds ['O_IN', 'GAP_S', 'P-1', 'E-1']"
+80.00800000000001,INFO,central,ORDER_ACCEPTED,R-005
+81.504,INFO,pode1,SEGMENT_DONE,pode1-35 seq 3 (follow_path) to Q1
+83.604,INFO,pode1,SEGMENT_DONE,pode1-35 seq 4 (follow_path) to W
+84.20400000000001,INFO,pode2,ZONE_GRANTED,OUT_DOCK+HALL to Q2
+84.208,INFO,pode2,DOCK_QUEUED,"WORK is busy, waits at Q2"
+84.208,INFO,pode2,ORDER_SENT,"pode2-47: base to Q2, horizon to W"
+84.224,INFO,central,ORDER_SHIPPED,R-002 robot=pode2 placed=B:1 missing=-
+84.224,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:TO_WORK:WORK:;pode3:CLEAN::
+86.7,INFO,pode1,DOCKED,"at WORK: x -0.7 cm, y -4.0 cm, yaw 0.0 deg"
+86.7,INFO,pode1,ORDER_BOUND,R-003
+86.71600000000001,NOTE,assignments,ASSIGNMENTS,pode1:FILL:WORK:R-003;pode2:TO_WORK:WORK:;pode3:CLEAN::
+87.80000000000001,INFO,pode2,SEGMENT_DONE,pode2-47 seq 1 (follow_path) to O_OUT
+92.004,INFO,pode3,CLEAN_SENT,"bay_in to P-1, holds ['P-1', 'E-1']"
+92.804,INFO,pode1,LANE_DIRECTION_SET,EXPRESS from W_X
+92.804,INFO,pode1,ZONE_GRANTED,WORK_DOCK+HALL+J_E+EXPRESS to O_X
+92.804,INFO,pode1,ORDER_SENT,"pode1-50: base to O_X, horizon to O"
+92.804,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-003;pode2:TO_WORK:WORK:;pode3:CLEAN::
+95.308,INFO,pode3,CLEAN_AT_HOME,"waits at P-1, 15 lines left in lap 1"
+100.004,INFO,central,ORDER_ACCEPTED,R-006
+104.2,INFO,pode1,ZONE_GRANTED,EXPRESS+OUT_DOCK to O
+104.20400000000001,INFO,pode1,ORDER_UPDATED,pode1-50 update 1: base to O
+105.308,INFO,pode3,CLEAN_SENT,"out to clean_start, holds ['P-1', 'E-1']"
+106.21600000000001,INFO,pode2,ZONE_GRANTED,HALL to Q1
+106.22000000000001,INFO,pode2,ORDER_UPDATED,pode2-47 update 1: base to Q1
+106.308,INFO,pode1,SEGMENT_DONE,pode1-50 seq 1 (follow_path) to O_X
+106.876,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (1): pode2's base passes near
+106.876,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (1): pode2's base passes near
+106.88000000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (1): pode2's base passes near
+106.884,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (1): Q1 is held by pode2
+106.884,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (1): Q1 is held by pode2
+106.884,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (1): Q1 is held by pode2
+106.884,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (1): Q1 is held by pode2
+106.884,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (1): pode2's base passes near
+106.888,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (1): pode2's base passes near
+106.888,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (1): pode2's base passes near
+106.888,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (1): pode2's base passes near
+106.888,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (1): pode2's base passes near
+108.20800000000001,INFO,pode2,ZONE_GRANTED,HALL+WORK_DOCK to W
+108.212,INFO,pode2,ORDER_UPDATED,pode2-47 update 2: base to W
+108.30000000000001,INFO,pode2,SEGMENT_DONE,pode2-47 seq 2 (nav_goal) to Q2
+109.50800000000001,INFO,pode1,SEGMENT_DONE,pode1-50 seq 2 (follow_path) to O
+111.504,INFO,pode3,CLEAN_SENT,"line 1 to clean_line_1, holds ['P-1', 'E-1', 'E-2', 'E-3']"
+112.20400000000001,INFO,pode2,SEGMENT_DONE,pode2-47 seq 3 (follow_path) to Q1
+112.60000000000001,INFO,pode1,DOCKED,"at OUTBOUND: x 2.8 cm, y -0.4 cm, yaw 0.0 deg"
+112.61600000000001,NOTE,assignments,ASSIGNMENTS,pode1:SWAP:OUTBOUND:R-003;pode2:TO_WORK:WORK:;pode3:CLEAN::
+114.0,INFO,pode2,SEGMENT_DONE,pode2-47 seq 4 (follow_path) to W
+117.10000000000001,INFO,pode2,DOCKED,"at WORK: x -0.9 cm, y -3.7 cm, yaw 0.0 deg"
+117.11200000000001,INFO,pode2,ORDER_BOUND,R-004
+117.11600000000001,NOTE,assignments,ASSIGNMENTS,pode1:SWAP:OUTBOUND:R-003;pode2:FILL:WORK:R-004;pode3:CLEAN::
+117.804,INFO,pode3,CLEAN_LINE_DONE,line 1 (5/19)
+117.808,INFO,pode3,CLEAN_SENT,"line 2 to clean_line_2, holds ['E-1', 'E-2', 'E-3']"
+120.00000000000001,INFO,central,ORDER_ACCEPTED,R-007
+120.70800000000001,INFO,pode1,ZONE_WAIT,waits for E-3
+120.72000000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.338, 0.312): pode1 waits for ['E-3'] it holds"
+120.724,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-2', 'E-3']"
+120.72800000000001,INFO,central,ORDER_SHIPPED,"R-003 robot=pode1 placed=A:1,D:1 missing=-"
+120.72800000000001,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:FILL:WORK:R-004;pode3:CLEAN::
+121.20400000000001,INFO,pode2,LANE_DIRECTION_SET,EXPRESS from W_X
+121.20800000000001,INFO,pode2,ZONE_GRANTED,WORK_DOCK+HALL+J_E+EXPRESS to O_X
+121.212,INFO,pode2,DOCK_QUEUED,"OUTBOUND is busy, waits at O_X"
+121.22000000000001,INFO,pode2,ORDER_SENT,"pode2-62: base to O_X, horizon to O"
+121.22000000000001,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:TO_OUTBOUND:OUTBOUND:R-004;pode3:CLEAN::
+122.304,INFO,pode1,ZONE_GRANTED,OUT_DOCK+HALL to Q2
+122.304,INFO,pode1,DOCK_QUEUED,"WORK is busy, waits at Q1"
+122.308,INFO,pode1,ORDER_SENT,"pode1-63: base to Q2, horizon to W"
+123.504,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+123.50800000000001,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1', 'E-2']"
+125.108,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+125.108,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1', 'E-2']"
+125.2,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+125.20400000000001,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+125.304,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+125.316,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+125.516,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+125.528,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1', 'E-2']"
+125.60400000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+125.61200000000001,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+125.7,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+125.70400000000001,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+125.80000000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+125.808,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+125.90400000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+125.90400000000001,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+126.00800000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+126.016,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+126.10400000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+126.108,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+126.20400000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+126.20400000000001,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+126.304,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+126.304,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+126.40400000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+126.40400000000001,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+126.50800000000001,INFO,pode1,SEGMENT_DONE,pode1-63 seq 1 (follow_path) to O_OUT
+126.50800000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.188, 0.312): stands in pode1's way"
+126.516,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+126.60400000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.188, 0.312): stands in pode1's way"
+126.61200000000001,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+126.71600000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.188, 0.312): stands in pode1's way"
+126.71600000000001,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+126.80000000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.188, 0.312): stands in pode1's way"
+126.81200000000001,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+126.9,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.188, 0.312): stands in pode1's way"
+126.90400000000001,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+127.01200000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.188, 0.312): stands in pode1's way"
+127.01200000000001,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+127.11200000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.188, 0.312): stands in pode1's way"
+127.12,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+127.20400000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.188, 0.312): stands in pode1's way"
+127.20800000000001,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+127.308,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.188, 0.312): stands in pode1's way"
+127.308,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+127.40400000000001,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.188, 0.312): stands in pode1's way"
+127.40400000000001,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+127.504,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.188, 0.312): stands in pode1's way"
+127.51200000000001,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+127.82000000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (2): E-3 is held by pode1
+127.82400000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (2): O_OUT is held by pode1
+127.82400000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (2): pode1's base passes near
+127.82400000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (2): pode1's base passes near
+127.82400000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (2): pode1's base passes near
+127.82400000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (2): Q2 is held by pode1
+127.82400000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (2): Q2 is held by pode1
+127.828,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (2): Q2 is held by pode1
+127.828,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (2): Q2 is held by pode1
+127.828,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (2): pode1's base passes near
+127.828,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (2): pode1's base passes near
+127.828,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (2): pode1's base passes near
+127.828,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (2): pode1's base passes near
+127.828,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (2): pode1's base passes near
+132.4,INFO,pode2,ZONE_GRANTED,EXPRESS+OUT_DOCK to O
+132.4,INFO,pode2,ORDER_UPDATED,pode2-62 update 1: base to O
+132.864,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (3): E-3 is held by pode1
+132.864,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (3): pode1 stands near
+132.868,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (3): pode1 stands near
+132.868,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (3): pode1 stands near
+132.872,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (3): pode1 stands near
+132.876,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (3): Q2 is held by pode1
+132.876,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (3): Q2 is held by pode1
+132.876,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (3): Q2 is held by pode1
+132.876,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (3): Q2 is held by pode1
+132.876,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (3): pode1 stands near
+132.88,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (3): pode1 stands near
+132.88,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (3): pode1 stands near
+132.88,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (3): pode1 stands near
+132.88,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (3): pode1's base passes near
+134.5,INFO,pode2,SEGMENT_DONE,pode2-62 seq 1 (follow_path) to O_X
+137.788,WARN,pode3,CLEAN_LINE_SKIPPED,line 2 gives up this lap after 3 deferrals: E-3 is held by pode1
+137.788,WARN,pode3,CLEAN_LINE_SKIPPED,line 5 gives up this lap after 3 deferrals: pode1 stands near
+137.788,WARN,pode3,CLEAN_LINE_SKIPPED,line 7 gives up this lap after 3 deferrals: pode1 stands near
+137.788,WARN,pode3,CLEAN_LINE_SKIPPED,line 8 gives up this lap after 3 deferrals: pode1 stands near
+137.792,WARN,pode3,CLEAN_LINE_SKIPPED,line 9 gives up this lap after 3 deferrals: pode1 stands near
+137.79600000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 10 gives up this lap after 3 deferrals: Q2 is held by pode1
+137.79600000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 11 gives up this lap after 3 deferrals: Q2 is held by pode1
+137.8,WARN,pode3,CLEAN_LINE_SKIPPED,line 12 gives up this lap after 3 deferrals: Q2 is held by pode1
+137.80800000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 13 gives up this lap after 3 deferrals: Q2 is held by pode1
+137.80800000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 14 gives up this lap after 3 deferrals: pode1's base passes near
+137.80800000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 15 gives up this lap after 3 deferrals: pode1's base passes near
+137.80800000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 16 gives up this lap after 3 deferrals: pode1's base passes near
+137.80800000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 17 gives up this lap after 3 deferrals: pode1 stands near
+137.816,WARN,pode3,CLEAN_LINE_SKIPPED,line 18 gives up this lap after 3 deferrals: pode1's base passes near
+137.816,INFO,pode3,CLEAN_SENT,"back to E-1, holds ['P-1', 'E-1']"
+137.82000000000002,INFO,pode2,SEGMENT_DONE,pode2-62 seq 2 (follow_path) to O
+140.00400000000002,INFO,central,ORDER_ACCEPTED,R-008
+140.904,INFO,pode2,DOCKED,"at OUTBOUND: x 5.2 cm, y -0.6 cm, yaw 0.0 deg"
+140.90800000000002,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:SWAP:OUTBOUND:R-004;pode3:CLEAN::
+141.0,INFO,pode1,ZONE_GRANTED,HALL to Q1
+141.008,INFO,pode1,ORDER_UPDATED,pode1-63 update 1: base to Q1
+142.608,INFO,pode3,CLEAN_SENT,"bay_in to P-1, holds ['P-1', 'E-1']"
+143.10000000000002,INFO,pode1,ZONE_GRANTED,HALL+WORK_DOCK to W
+143.10000000000002,INFO,pode1,ORDER_UPDATED,pode1-63 update 2: base to W
+143.20000000000002,INFO,pode1,SEGMENT_DONE,pode1-63 seq 2 (nav_goal) to Q2
+146.0,INFO,pode3,CLEAN_LAP_DONE,"lap 1 in 139.3 s: 5/19 lines, 57 deferrals, skipped [2, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], 0 gaps, covered 0.525 of the clean grid"
+146.0,INFO,pode3,CLEAN_LAP_START,"lap 2, 19 lines (0 gaps)"
+146.00400000000002,INFO,pode3,CLEAN_SENT,"out to clean_start, holds ['P-1', 'E-1']"
+147.30800000000002,INFO,pode3,CLEAN_SENT,"line 0 to clean_line_0, holds ['P-1', 'E-1']"
+148.404,INFO,pode1,SEGMENT_DONE,pode1-63 seq 3 (follow_path) to Q1
+149.01600000000002,INFO,pode2,ZONE_GRANTED,OUT_DOCK+HALL to Q2
+149.01600000000002,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:TO_WORK:WORK:;pode3:CLEAN::
+149.01600000000002,INFO,pode2,DOCK_QUEUED,"WORK is busy, waits at Q2"
+149.01600000000002,INFO,pode2,ORDER_SENT,"pode2-98: base to Q2, horizon to W"
+149.01600000000002,INFO,central,ORDER_SHIPPED,R-004 robot=pode2 placed=C:1 missing=-
+150.24800000000002,INFO,pode3,CLEAN_LINE_DONE,line 0 (1/19)
+150.24800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (1): E-3 is held by pode2
+150.252,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (1): E-3 is held by pode2
+150.252,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (1): O_OUT is held by pode2
+150.252,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (1): O_OUT is held by pode2
+150.252,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (1): O_OUT is held by pode2
+150.252,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (1): O_OUT is held by pode2
+150.252,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (1): O_OUT is held by pode2
+150.252,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (1): pode2's base passes near
+150.252,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (1): pode1's base passes near
+150.256,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (1): Q1 is held by pode1
+150.256,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (1): Q1 is held by pode1
+150.256,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (1): Q1 is held by pode1
+150.26000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (1): Q1 is held by pode1
+150.26000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (1): pode2's base passes near
+150.26000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (1): pode2's base passes near
+150.26000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (1): pode2's base passes near
+150.264,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (1): pode2's base passes near
+150.268,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (1): pode2's base passes near
+150.40800000000002,INFO,pode1,SEGMENT_DONE,pode1-63 seq 4 (follow_path) to W
+153.104,INFO,pode2,SEGMENT_DONE,pode2-98 seq 1 (follow_path) to O_OUT
+153.5,INFO,pode1,DOCKED,"at WORK: x -1.0 cm, y -3.5 cm, yaw 0.0 deg"
+153.5,INFO,pode1,ORDER_BOUND,R-005
+153.508,NOTE,assignments,ASSIGNMENTS,pode1:FILL:WORK:R-005;pode2:TO_WORK:WORK:;pode3:CLEAN::
+159.66,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (2): the joined path is not clear after rounding
+159.66400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (2): the joined path is not clear after rounding
+159.66400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (2): the joined path is not clear after rounding
+159.672,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (2): the joined path is not clear after rounding
+159.672,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (2): the joined path is not clear after rounding
+159.672,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (2): the joined path is not clear after rounding
+159.672,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (2): the joined path is not clear after rounding
+159.67600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (2): the joined path is not clear after rounding
+159.67600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (2): the joined path is not clear after rounding
+159.67600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (2): the joined path is not clear after rounding
+159.67600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (2): the joined path is not clear after rounding
+159.67600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (2): the joined path is not clear after rounding
+159.67600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (2): the joined path is not clear after rounding
+159.67600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (2): the joined path is not clear after rounding
+159.68,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (2): the joined path is not clear after rounding
+159.68,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (2): the joined path is not clear after rounding
+159.68,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (2): the joined path is not clear after rounding
+159.684,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (2): the joined path is not clear after rounding
+159.692,INFO,pode1,LANE_DIRECTION_SET,EXPRESS from W_X
+159.692,INFO,pode1,ZONE_GRANTED,WORK_DOCK+HALL+J_E+EXPRESS to O_X
+159.70000000000002,INFO,pode1,ORDER_SENT,"pode1-101: base to O_X, horizon to O"
+159.70000000000002,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-005;pode2:TO_WORK:WORK:;pode3:CLEAN::
+164.496,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (3): the joined path is not clear after rounding
+164.496,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (3): the joined path is not clear after rounding
+164.5,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (3): the joined path is not clear after rounding
+164.5,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (3): the joined path is not clear after rounding
+164.5,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (3): the joined path is not clear after rounding
+164.5,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (3): the joined path is not clear after rounding
+164.512,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (3): the joined path is not clear after rounding
+164.51600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (3): the joined path is not clear after rounding
+164.51600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (3): the joined path is not clear after rounding
+164.51600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (3): the joined path is not clear after rounding
+164.51600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (3): the joined path is not clear after rounding
+164.51600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (3): the joined path is not clear after rounding
+164.51600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (3): the joined path is not clear after rounding
+164.52,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (3): the joined path is not clear after rounding
+164.52,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (3): the joined path is not clear after rounding
+164.52,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (3): the joined path is not clear after rounding
+164.524,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (3): the joined path is not clear after rounding
+164.524,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (3): the joined path is not clear after rounding
+164.52800000000002,INFO,pode2,ORDER_SENT,"pode2-102: base to Q2, horizon to W"
+169.5,WARN,pode3,CLEAN_LINE_SKIPPED,line 1 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.50400000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 2 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.508,WARN,pode3,CLEAN_LINE_SKIPPED,line 3 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.508,WARN,pode3,CLEAN_LINE_SKIPPED,line 4 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.512,WARN,pode3,CLEAN_LINE_SKIPPED,line 5 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.512,WARN,pode3,CLEAN_LINE_SKIPPED,line 6 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.512,WARN,pode3,CLEAN_LINE_SKIPPED,line 7 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.512,WARN,pode3,CLEAN_LINE_SKIPPED,line 8 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.512,WARN,pode3,CLEAN_LINE_SKIPPED,line 9 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.512,WARN,pode3,CLEAN_LINE_SKIPPED,line 10 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.512,WARN,pode3,CLEAN_LINE_SKIPPED,line 11 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.512,WARN,pode3,CLEAN_LINE_SKIPPED,line 12 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.52,WARN,pode3,CLEAN_LINE_SKIPPED,line 13 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.52,WARN,pode3,CLEAN_LINE_SKIPPED,line 14 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.52,WARN,pode3,CLEAN_LINE_SKIPPED,line 15 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.52,WARN,pode3,CLEAN_LINE_SKIPPED,line 16 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.52,WARN,pode3,CLEAN_LINE_SKIPPED,line 17 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.52,WARN,pode3,CLEAN_LINE_SKIPPED,line 18 gives up this lap after 3 deferrals: the joined path is not clear after rounding
+169.52,INFO,pode3,CLEAN_SENT,"back to E-1, holds ['P-1', 'E-1']"
+169.524,INFO,pode1,ORDER_SENT,"pode1-104: base to O_X, horizon to O"
+171.5,INFO,pode3,CLEAN_SENT,"bay_in to P-1, holds ['P-1', 'E-1']"
+171.604,INFO,pode2,ORDER_SENT,"pode2-106: base to Q2, horizon to W"
+174.30800000000002,INFO,pode3,CLEAN_LAP_DONE,"lap 2 in 28.3 s: 1/19 lines, 72 deferrals, skipped [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], 0 gaps, covered 0.010 of the clean grid"
+174.312,INFO,pode3,CLEAN_LAP_START,"lap 3, 19 lines (0 gaps)"
+174.312,INFO,pode3,CLEAN_SENT,"out to clean_start, holds ['P-1', 'E-1']"
+175.50400000000002,INFO,pode3,CLEAN_SENT,"line 0 to clean_line_0, holds ['P-1', 'E-1']"
+182.264,INFO,pode3,CLEAN_LINE_DONE,line 0 (1/19)
+182.264,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (1): the joined path is not clear after rounding
+182.264,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (1): the joined path is not clear after rounding
+182.268,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (1): the joined path is not clear after rounding
+182.268,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (1): the joined path is not clear after rounding
+182.268,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (1): the joined path is not clear after rounding
+182.268,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (1): the joined path is not clear after rounding
+182.268,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (1): the joined path is not clear after rounding
+182.268,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (1): the joined path is not clear after rounding
+182.276,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (1): the joined path is not clear after rounding
+182.276,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (1): the joined path is not clear after rounding
+182.276,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (1): the joined path is not clear after rounding
+182.276,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (1): the joined path is not clear after rounding
+182.276,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (1): the joined path is not clear after rounding
+182.276,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (1): the joined path is not clear after rounding
+182.276,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (1): the joined path is not clear after rounding
+182.288,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (1): the joined path is not clear after rounding
+182.288,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (1): the joined path is not clear after rounding
+182.288,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (1): the joined path is not clear after rounding
+183.14800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (2): E-3 is held by pode2
+183.156,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (2): E-3 is held by pode2
+183.156,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (2): pode2's base passes near
+183.16000000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (2): pode2's base passes near
+183.16000000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (2): pode2 stands near
+183.16000000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (2): pode2 stands near
+183.16400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (2): pode2 stands near
+183.16400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (2): pode2 stands near
+183.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (2): pode2 stands near
+183.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (2): Q2 is held by pode2
+183.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (2): Q2 is held by pode2
+183.168,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (2): Q2 is held by pode2
+183.17200000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (2): Q2 is held by pode2
+183.17600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (2): pode2 stands near
+183.17600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (2): pode2 stands near
+183.18,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (2): pode2 stands near
+183.18,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (2): pode2 stands near
+183.184,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (2): pode2's base passes near
+184.3,INFO,pode1,ORDER_SENT,"pode1-109: base to O_X, horizon to O"
+184.30800000000002,INFO,pode2,ORDER_SENT,"pode2-110: base to Q2, horizon to W"
+184.60000000000002,INFO,pode1,ZONE_GRANTED,EXPRESS+OUT_DOCK to O
+184.604,INFO,pode1,ORDER_UPDATED,pode1-109 update 1: base to O
+186.70000000000002,INFO,pode1,SEGMENT_DONE,pode1-109 seq 1 (follow_path) to O_X
+188.18800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (3): E-3 is held by pode2
+188.18800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (3): E-3 is held by pode2
+188.18800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (3): pode2's base passes near
+188.18800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (3): pode2's base passes near
+188.196,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (3): pode2 stands near
+188.196,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (3): pode2 stands near
+188.20000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (3): pode2 stands near
+188.20000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (3): pode2 stands near
+188.20000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (3): pode2 stands near
+188.20000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (3): Q2 is held by pode2
+188.20000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (3): Q2 is held by pode2
+188.20000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (3): Q2 is held by pode2
+188.20000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (3): Q2 is held by pode2
+188.20000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (3): pode2's base passes near
+188.20000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (3): pode2's base passes near
+188.20000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (3): pode2's base passes near
+188.20000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (3): pode2 stands near
+188.20000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (3): pode2's base passes near
+189.9,INFO,pode1,SEGMENT_DONE,pode1-109 seq 2 (follow_path) to O
+190.604,INFO,pode2,ZONE_GRANTED,HALL to Q1
+190.604,INFO,pode2,ORDER_UPDATED,pode2-110 update 1: base to Q1
+193.17600000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 1 gives up this lap after 3 deferrals: E-3 is held by pode2
+193.17600000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 2 gives up this lap after 3 deferrals: E-3 is held by pode2
+193.18,WARN,pode3,CLEAN_LINE_SKIPPED,line 3 gives up this lap after 3 deferrals: pode2's base passes near
+193.18,WARN,pode3,CLEAN_LINE_SKIPPED,line 4 gives up this lap after 3 deferrals: pode2's base passes near
+193.18400000000003,WARN,pode3,CLEAN_LINE_SKIPPED,line 5 gives up this lap after 3 deferrals: pode2's base passes near
+193.18400000000003,WARN,pode3,CLEAN_LINE_SKIPPED,line 6 gives up this lap after 3 deferrals: pode2's base passes near
+193.18400000000003,WARN,pode3,CLEAN_LINE_SKIPPED,line 7 gives up this lap after 3 deferrals: pode2's base passes near
+193.18400000000003,WARN,pode3,CLEAN_LINE_SKIPPED,line 8 gives up this lap after 3 deferrals: pode2's base passes near
+193.192,WARN,pode3,CLEAN_LINE_SKIPPED,line 9 gives up this lap after 3 deferrals: pode2 stands near
+193.192,WARN,pode3,CLEAN_LINE_SKIPPED,line 10 gives up this lap after 3 deferrals: Q1 is held by pode2
+193.196,WARN,pode3,CLEAN_LINE_SKIPPED,line 11 gives up this lap after 3 deferrals: Q1 is held by pode2
+193.196,WARN,pode3,CLEAN_LINE_SKIPPED,line 12 gives up this lap after 3 deferrals: Q1 is held by pode2
+193.196,WARN,pode3,CLEAN_LINE_SKIPPED,line 13 gives up this lap after 3 deferrals: Q1 is held by pode2
+193.196,WARN,pode3,CLEAN_LINE_SKIPPED,line 14 gives up this lap after 3 deferrals: pode2's base passes near
+193.196,WARN,pode3,CLEAN_LINE_SKIPPED,line 15 gives up this lap after 3 deferrals: pode2's base passes near
+193.196,WARN,pode3,CLEAN_LINE_SKIPPED,line 16 gives up this lap after 3 deferrals: pode2's base passes near
+193.196,WARN,pode3,CLEAN_LINE_SKIPPED,line 17 gives up this lap after 3 deferrals: pode2's base passes near
+193.196,WARN,pode3,CLEAN_LINE_SKIPPED,line 18 gives up this lap after 3 deferrals: pode2's base passes near
+193.196,INFO,pode3,CLEAN_SENT,"back to E-1, holds ['P-1', 'E-1']"
+193.208,INFO,pode2,SEGMENT_DONE,pode2-110 seq 1 (nav_goal) to Q2
+193.208,INFO,pode2,ZONE_GRANTED,HALL+WORK_DOCK to W
+193.21200000000002,INFO,pode2,ORDER_UPDATED,pode2-110 update 2: base to W
+193.304,INFO,pode1,DOCKED,"at OUTBOUND: x 4.4 cm, y -1.3 cm, yaw 0.0 deg"
+193.30800000000002,NOTE,assignments,ASSIGNMENTS,pode1:SWAP:OUTBOUND:R-005;pode2:TO_WORK:WORK:;pode3:CLEAN::
+195.20000000000002,INFO,pode3,CLEAN_SENT,"bay_in to P-1, holds ['P-1', 'E-1']"
+197.80800000000002,INFO,pode2,SEGMENT_DONE,pode2-110 seq 2 (follow_path) to Q1
+198.00400000000002,INFO,pode3,CLEAN_LAP_DONE,"lap 3 in 23.7 s: 1/19 lines, 72 deferrals, skipped [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], 0 gaps, covered 0.010 of the clean grid"
+198.00400000000002,INFO,pode3,CLEAN_LAP_START,"lap 4, 19 lines (0 gaps)"
+198.008,INFO,pode3,CLEAN_SENT,"out to clean_start, holds ['P-1', 'E-1']"
+199.5,INFO,pode3,CLEAN_SENT,"line 0 to clean_line_0, holds ['P-1', 'E-1']"
+199.70000000000002,INFO,pode2,SEGMENT_DONE,pode2-110 seq 3 (follow_path) to W
+201.41600000000003,INFO,pode1,ZONE_GRANTED,OUT_DOCK+HALL to Q2
+201.41600000000003,INFO,pode1,DOCK_QUEUED,"WORK is busy, waits at Q2"
+201.41600000000003,INFO,pode1,ORDER_SENT,"pode1-121: base to Q2, horizon to W"
+201.41600000000003,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:TO_WORK:WORK:;pode3:CLEAN::
+201.41600000000003,INFO,central,ORDER_SHIPPED,"R-005 robot=pode1 placed=B:1,D:1 missing=-"
+202.46800000000002,INFO,pode3,CLEAN_LINE_DONE,line 0 (1/19)
+202.46800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (1): E-3 is held by pode1
+202.46800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (1): E-3 is held by pode1
+202.472,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (1): O_OUT is held by pode1
+202.472,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (1): O_OUT is held by pode1
+202.472,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (1): O_OUT is held by pode1
+202.476,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (1): O_OUT is held by pode1
+202.476,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (1): O_OUT is held by pode1
+202.476,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (1): pode1's base passes near
+202.48000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (1): pode1's base passes near
+202.48000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (1): Q1 is held by pode2
+202.48000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (1): Q1 is held by pode2
+202.48000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (1): Q1 is held by pode2
+202.48000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (1): Q1 is held by pode2
+202.48000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (1): pode1's base passes near
+202.48000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (1): pode1's base passes near
+202.48000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (1): pode1's base passes near
+202.484,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (1): pode1's base passes near
+202.484,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (1): pode1's base passes near
+202.804,INFO,pode2,DOCKED,"at WORK: x -0.3 cm, y -4.0 cm, yaw 0.0 deg"
+202.80800000000002,INFO,pode2,ORDER_BOUND,R-006
+202.812,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:FILL:WORK:R-006;pode3:CLEAN::
+205.8,INFO,pode1,SEGMENT_DONE,pode1-121 seq 1 (follow_path) to O_OUT
+206.9,INFO,pode2,LANE_DIRECTION_SET,EXPRESS from W_X
+206.90400000000002,INFO,pode2,ZONE_GRANTED,WORK_DOCK+HALL+J_E+EXPRESS to O_X
+206.912,INFO,pode2,ORDER_SENT,"pode2-123: base to O_X, horizon to O"
+206.912,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:TO_OUTBOUND:OUTBOUND:R-006;pode3:CLEAN::
+207.50400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (2): E-3 is held by pode1
+207.508,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (2): E-3 is held by pode1
+207.508,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (2): O_OUT is held by pode1
+207.512,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (2): O_OUT is held by pode1
+207.512,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (2): O_OUT is held by pode1
+207.51600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (2): O_OUT is held by pode1
+207.52,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (2): O_OUT is held by pode1
+207.52,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (2): pode1's base passes near
+207.52,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (2): pode1's base passes near
+207.52,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (2): Q1 is held by pode2
+207.52,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (2): Q1 is held by pode2
+207.52800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (2): Q1 is held by pode2
+207.532,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (2): Q1 is held by pode2
+207.532,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (2): pode1's base passes near
+207.532,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (2): pode1's base passes near
+207.54000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (2): pode1's base passes near
+207.544,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (2): pode1's base passes near
+207.544,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (2): pode1's base passes near
+212.508,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (3): E-3 is held by pode1
+212.508,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (3): E-3 is held by pode1
+212.508,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (3): pode1 stands near
+212.51600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (3): pode1 stands near
+212.51600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (3): pode1 stands near
+212.52,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (3): pode1 stands near
+212.524,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (3): pode1 stands near
+212.524,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (3): pode1 stands near
+212.532,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (3): pode1 stands near
+212.532,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (3): Q2 is held by pode1
+212.532,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (3): Q2 is held by pode1
+212.532,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (3): Q2 is held by pode1
+212.532,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (3): Q2 is held by pode1
+212.536,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (3): pode1 stands near
+212.536,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (3): pode1 stands near
+212.536,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (3): pode1 stands near
+212.54000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (3): pode1 stands near
+212.54000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (3): pode1's base passes near
+216.90400000000002,INFO,pode1,LOCAL_YIELD,wait
+217.58800000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 1 gives up this lap after 3 deferrals: E-3 is held by pode1
+217.592,WARN,pode3,CLEAN_LINE_SKIPPED,line 2 gives up this lap after 3 deferrals: E-3 is held by pode1
+217.592,WARN,pode3,CLEAN_LINE_SKIPPED,line 3 gives up this lap after 3 deferrals: pode1 stands near
+217.592,WARN,pode3,CLEAN_LINE_SKIPPED,line 4 gives up this lap after 3 deferrals: pode1 stands near
+217.596,WARN,pode3,CLEAN_LINE_SKIPPED,line 5 gives up this lap after 3 deferrals: pode1 stands near
+217.596,WARN,pode3,CLEAN_LINE_SKIPPED,line 6 gives up this lap after 3 deferrals: pode1 stands near
+217.596,WARN,pode3,CLEAN_LINE_SKIPPED,line 7 gives up this lap after 3 deferrals: pode1 stands near
+217.596,WARN,pode3,CLEAN_LINE_SKIPPED,line 8 gives up this lap after 3 deferrals: pode1 stands near
+217.60000000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 9 gives up this lap after 3 deferrals: pode1 stands near
+217.60000000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 10 gives up this lap after 3 deferrals: Q2 is held by pode1
+217.60000000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 11 gives up this lap after 3 deferrals: Q2 is held by pode1
+217.60000000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 12 gives up this lap after 3 deferrals: Q2 is held by pode1
+217.604,WARN,pode3,CLEAN_LINE_SKIPPED,line 13 gives up this lap after 3 deferrals: Q2 is held by pode1
+217.604,WARN,pode3,CLEAN_LINE_SKIPPED,line 14 gives up this lap after 3 deferrals: pode1 stands near
+217.604,WARN,pode3,CLEAN_LINE_SKIPPED,line 15 gives up this lap after 3 deferrals: pode1 stands near
+217.604,WARN,pode3,CLEAN_LINE_SKIPPED,line 16 gives up this lap after 3 deferrals: pode1 stands near
+217.608,WARN,pode3,CLEAN_LINE_SKIPPED,line 17 gives up this lap after 3 deferrals: pode1 stands near
+217.608,WARN,pode3,CLEAN_LINE_SKIPPED,line 18 gives up this lap after 3 deferrals: pode1's base passes near
+217.608,INFO,pode3,CLEAN_SENT,"back to E-1, holds ['P-1', 'E-1']"
+218.3,INFO,pode2,ZONE_GRANTED,EXPRESS+OUT_DOCK to O
+218.30800000000002,INFO,pode2,ORDER_UPDATED,pode2-123 update 1: base to O
+218.8,INFO,pode1,LOCAL_YIELD,ends BLOCKED after 2 s
+218.8,INFO,pode1,BLOCKED_WAIT,stands before something on the way to Q2
+219.5,INFO,pode3,CLEAN_SENT,"bay_in to P-1, holds ['P-1', 'E-1']"
+220.40800000000002,INFO,pode2,SEGMENT_DONE,pode2-123 seq 1 (follow_path) to O_X
+222.0,INFO,pode3,CLEAN_LAP_DONE,"lap 4 in 24.0 s: 1/19 lines, 72 deferrals, skipped [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], 0 gaps, covered 0.010 of the clean grid"
+222.0,INFO,pode3,CLEAN_LAP_START,"lap 5, 19 lines (0 gaps)"
+222.00400000000002,INFO,pode3,CLEAN_SENT,"out to clean_start, holds ['P-1', 'E-1']"
+223.5,INFO,pode2,SEGMENT_DONE,pode2-123 seq 2 (follow_path) to O
+223.5,INFO,pode3,CLEAN_SENT,"line 0 to clean_line_0, holds ['P-1', 'E-1']"
+226.776,INFO,pode3,CLEAN_LINE_DONE,line 0 (1/19)
+226.776,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (1): E-3 is held by pode1
+226.78,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (1): E-3 is held by pode1
+226.78,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (1): pode1's base passes near
+226.78,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (1): pode1's base passes near
+226.78,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (1): pode1's base passes near
+226.78,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (1): pode1's base passes near
+226.78,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (1): pode1's base passes near
+226.78,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (1): pode1's base passes near
+226.78,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (1): pode1's base passes near
+226.78400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (1): Q2 is held by pode1
+226.78400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (1): Q2 is held by pode1
+226.78400000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (1): Q2 is held by pode1
+226.788,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (1): Q2 is held by pode1
+226.788,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (1): pode1 stands near
+226.788,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (1): pode1's base passes near
+226.788,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (1): pode1's base passes near
+226.788,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (1): pode1's base passes near
+226.788,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (1): pode1's base passes near
+226.79600000000002,INFO,pode2,DOCKED,"at OUTBOUND: x 4.1 cm, y -0.1 cm, yaw 0.0 deg"
+226.79600000000002,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:SWAP:OUTBOUND:R-006;pode3:CLEAN::
+228.40400000000002,INFO,pode1,ZONE_GRANTED,HALL to Q1
+228.42000000000002,INFO,pode1,ORDER_UPDATED,pode1-121 update 1: base to Q1
+230.508,INFO,pode1,SEGMENT_DONE,pode1-121 seq 2 (nav_goal) to Q2
+230.51600000000002,INFO,pode1,ZONE_GRANTED,HALL+WORK_DOCK to W
+230.51600000000002,INFO,pode1,ORDER_UPDATED,pode1-121 update 2: base to W
+231.40400000000002,INFO,pode3,CLEAN_SENT,"line 1 to clean_line_1, holds ['P-1', 'E-1', 'E-2', 'E-3']"
+234.20000000000002,INFO,pode1,SEGMENT_DONE,pode1-121 seq 3 (follow_path) to Q1
+234.91600000000003,INFO,pode2,ZONE_WAIT,waits for E-3
+234.92000000000002,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.338, 0.312): pode2 waits for ['E-3'] it holds"
+234.92800000000003,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-2']"
+234.92800000000003,INFO,central,ORDER_SHIPPED,R-006 robot=pode2 placed=A:1 missing=-
+234.92800000000003,NOTE,assignments,ASSIGNMENTS,pode1:TO_WORK:WORK:;pode2:TO_WORK:WORK:;pode3:CLEAN::
+235.008,INFO,pode2,ZONE_GRANTED,OUT_DOCK+HALL to Q2
+235.008,INFO,pode2,DOCK_QUEUED,"WORK is busy, waits at Q2"
+235.008,INFO,pode2,ORDER_SENT,"pode2-135: base to Q2, horizon to W"
+236.00000000000003,INFO,pode1,SEGMENT_DONE,pode1-121 seq 4 (follow_path) to W
+239.10000000000002,INFO,pode2,SEGMENT_DONE,pode2-135 seq 1 (follow_path) to O_OUT
+239.10000000000002,INFO,pode1,DOCKED,"at WORK: x -0.2 cm, y -3.7 cm, yaw 0.0 deg"
+239.108,INFO,pode1,ORDER_BOUND,R-007
+239.11200000000002,NOTE,assignments,ASSIGNMENTS,pode1:FILL:WORK:R-007;pode2:TO_WORK:WORK:;pode3:CLEAN::
+240.50400000000002,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.213, 0.312): stands in pode2's way"
+240.51200000000003,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1', 'E-2']"
+243.364,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (2): E-3 is held by pode2
+243.36800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (2): E-3 is held by pode2
+243.36800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (2): pode2 stands near
+243.36800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (2): pode2 stands near
+243.372,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (2): pode2 stands near
+243.376,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (2): pode2 stands near
+243.376,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (2): pode2 stands near
+243.376,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (2): pode2 stands near
+243.376,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (2): pode2 stands near
+243.376,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (2): Q1 is held by pode1
+243.38000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (2): Q1 is held by pode1
+243.38000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (2): Q1 is held by pode1
+243.38000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (2): Q1 is held by pode1
+243.38000000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (2): pode2 stands near
+243.38400000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (2): pode2 stands near
+243.38400000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (2): pode2 stands near
+243.38400000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (2): pode2 stands near
+243.38400000000001,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (2): pode2's base passes near
+245.204,INFO,pode1,LANE_DIRECTION_SET,EXPRESS from W_X
+245.204,INFO,pode1,ZONE_GRANTED,WORK_DOCK+HALL+J_E+EXPRESS to O_X
+245.20800000000003,INFO,pode1,ORDER_SENT,"pode1-139: base to O_X, horizon to O"
+245.20800000000003,NOTE,assignments,ASSIGNMENTS,pode1:TO_OUTBOUND:OUTBOUND:R-007;pode2:TO_WORK:WORK:;pode3:CLEAN::
+248.45600000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (3): E-3 is held by pode2
+248.46,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (3): E-3 is held by pode2
+248.46,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (3): pode2 stands near
+248.46,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (3): pode2 stands near
+248.46,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (3): pode2's base passes near
+248.46,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (3): pode2 stands near
+248.46,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (3): pode2 stands near
+248.46400000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (3): pode2 stands near
+248.46400000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (3): pode2 stands near
+248.46800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (3): Q2 is held by pode2
+248.46800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (3): Q2 is held by pode2
+248.46800000000002,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (3): Q2 is held by pode2
+248.472,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (3): Q2 is held by pode2
+248.472,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (3): pode2 stands near
+248.472,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (3): pode2 stands near
+248.472,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (3): pode2 stands near
+248.472,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (3): pode1's base passes near
+248.472,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (3): pode2 stands near
+253.46,WARN,pode3,CLEAN_LINE_SKIPPED,line 1 gives up this lap after 3 deferrals: E-3 is held by pode2
+253.46400000000003,WARN,pode3,CLEAN_LINE_SKIPPED,line 2 gives up this lap after 3 deferrals: E-3 is held by pode2
+253.46400000000003,WARN,pode3,CLEAN_LINE_SKIPPED,line 3 gives up this lap after 3 deferrals: pode2's base passes near
+253.46400000000003,WARN,pode3,CLEAN_LINE_SKIPPED,line 4 gives up this lap after 3 deferrals: pode2's base passes near
+253.46800000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 5 gives up this lap after 3 deferrals: pode2's base passes near
+253.46800000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 6 gives up this lap after 3 deferrals: pode2 stands near
+253.46800000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 7 gives up this lap after 3 deferrals: pode2's base passes near
+253.46800000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 8 gives up this lap after 3 deferrals: pode2 stands near
+253.484,WARN,pode3,CLEAN_LINE_SKIPPED,line 9 gives up this lap after 3 deferrals: pode2 stands near
+253.484,WARN,pode3,CLEAN_LINE_SKIPPED,line 10 gives up this lap after 3 deferrals: Q2 is held by pode2
+253.484,WARN,pode3,CLEAN_LINE_SKIPPED,line 11 gives up this lap after 3 deferrals: Q2 is held by pode2
+253.484,WARN,pode3,CLEAN_LINE_SKIPPED,line 12 gives up this lap after 3 deferrals: Q2 is held by pode2
+253.484,WARN,pode3,CLEAN_LINE_SKIPPED,line 13 gives up this lap after 3 deferrals: Q2 is held by pode2
+253.484,WARN,pode3,CLEAN_LINE_SKIPPED,line 14 gives up this lap after 3 deferrals: pode2 stands near
+253.49200000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 15 gives up this lap after 3 deferrals: pode2 stands near
+253.49200000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 16 gives up this lap after 3 deferrals: pode2 stands near
+253.49200000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 17 gives up this lap after 3 deferrals: pode2 stands near
+253.49200000000002,WARN,pode3,CLEAN_LINE_SKIPPED,line 18 gives up this lap after 3 deferrals: pode2 stands near
+253.49200000000002,INFO,pode3,CLEAN_SENT,"back to E-1, holds ['P-1', 'E-1', 'E-2']"
+256.404,INFO,pode1,ZONE_GRANTED,EXPRESS+OUT_DOCK to O
+256.404,INFO,pode1,ORDER_UPDATED,pode1-139 update 1: base to O
+258.40000000000003,INFO,pode1,SEGMENT_DONE,pode1-139 seq 1 (follow_path) to O_X
+258.704,INFO,pode3,CLEAN_SENT,"bay_in to P-1, holds ['P-1', 'E-1']"
+259.80400000000003,INFO,pode2,ZONE_GRANTED,HALL to Q1
+259.808,INFO,pode2,ORDER_UPDATED,pode2-135 update 1: base to Q1
+261.608,INFO,pode1,SEGMENT_DONE,pode1-139 seq 2 (follow_path) to O
+261.90000000000003,INFO,pode2,SEGMENT_DONE,pode2-135 seq 2 (nav_goal) to Q2
+261.90000000000003,INFO,pode2,ZONE_GRANTED,HALL+WORK_DOCK to W
+261.904,INFO,pode2,ORDER_UPDATED,pode2-135 update 2: base to W
+262.10400000000004,INFO,pode3,CLEAN_LAP_DONE,"lap 5 in 40.1 s: 1/19 lines, 72 deferrals, skipped [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], 0 gaps, covered 0.010 of the clean grid"
+262.10400000000004,INFO,pode3,CLEAN_LAP_START,"lap 6, 19 lines (0 gaps)"
+262.108,INFO,pode3,CLEAN_SENT,"out to clean_start, holds ['P-1', 'E-1']"
+263.41200000000003,INFO,pode3,CLEAN_SENT,"line 0 to clean_line_0, holds ['P-1', 'E-1']"
+264.704,INFO,pode1,DOCKED,"at OUTBOUND: x 3.9 cm, y -1.1 cm, yaw 0.0 deg"
+264.704,NOTE,assignments,ASSIGNMENTS,pode1:SWAP:OUTBOUND:R-007;pode2:TO_WORK:WORK:;pode3:CLEAN::
+265.704,INFO,pode2,SEGMENT_DONE,pode2-135 seq 3 (follow_path) to Q1
+267.91200000000003,INFO,pode2,SEGMENT_DONE,pode2-135 seq 4 (follow_path) to W
+268.916,INFO,pode3,CLEAN_LINE_DONE,line 0 (1/19)
+268.92,INFO,pode3,CLEAN_SENT,"line 1 to clean_line_1, holds ['P-1', 'E-1', 'E-2', 'E-3']"
+271.0,INFO,pode2,DOCKED,"at WORK: x -0.4 cm, y -4.1 cm, yaw 0.0 deg"
+271.0,INFO,pode2,ORDER_BOUND,R-008
+271.004,NOTE,assignments,ASSIGNMENTS,pode1:SWAP:OUTBOUND:R-007;pode2:FILL:WORK:R-008;pode3:CLEAN::
+272.81600000000003,INFO,pode1,ZONE_WAIT,waits for E-2
+272.82,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.338, 0.312): pode1 waits for ['E-3'] it holds"
+272.82,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-2', 'E-3']"
+272.82,NOTE,assignments,ASSIGNMENTS,pode1:WAIT::;pode2:FILL:WORK:R-008;pode3:CLEAN::
+272.82,INFO,central,ORDER_SHIPPED,"R-007 robot=pode1 placed=B:1,C:1 missing=-"
+275.1,INFO,pode2,LANE_DIRECTION_SET,EXPRESS from W_X
+275.1,INFO,pode2,ZONE_GRANTED,WORK_DOCK+HALL+J_E+EXPRESS to O_X
+275.10400000000004,INFO,pode2,DOCK_QUEUED,"OUTBOUND is busy, waits at O_X"
+275.12,INFO,pode2,ORDER_SENT,"pode2-153: base to O_X, horizon to O"
+275.12,NOTE,assignments,ASSIGNMENTS,pode1:WAIT::;pode2:TO_OUTBOUND:OUTBOUND:R-008;pode3:CLEAN::
+276.904,INFO,pode1,ZONE_GRANTED,OUT_DOCK+HALL to P-3
+276.91200000000003,INFO,pode1,ORDER_SENT,pode1-154: base to P-3
+278.30400000000003,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+278.30400000000003,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1', 'E-2']"
+280.504,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+280.512,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+280.60400000000004,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+280.60400000000004,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+280.704,INFO,pode3,CLEAN_YIELD,"for pode1 to (0.163, 0.312): stands in pode1's way"
+280.712,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-1']"
+281.288,INFO,pode1,SEGMENT_DONE,pode1-154 seq 1 (follow_path) to O_OUT
+281.29200000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (1): E-3 is held by pode1
+281.29200000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (1): E-3 is held by pode1
+281.29200000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (1): O_OUT is held by pode1
+281.29200000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (1): O_OUT is held by pode1
+281.29200000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (1): O_OUT is held by pode1
+281.29200000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (1): O_OUT is held by pode1
+281.29200000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (1): O_OUT is held by pode1
+281.296,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (1): pode1's base passes near
+281.296,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (1): pode1's base passes near
+281.296,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (1): pode1's base passes near
+281.296,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (1): P-3 is held by pode1
+281.3,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (1): P-3 is held by pode1
+281.3,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (1): P-3 is held by pode1
+281.3,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (1): pode1's base passes near
+281.3,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (1): pode1's base passes near
+281.3,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (1): pode1's base passes near
+281.30400000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (1): pode1's base passes near
+281.30400000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (1): pode1's base passes near
+286.408,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (2): E-3 is held by pode1
+286.41200000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (2): E-3 is held by pode1
+286.41200000000003,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (2): pode1 stands near
+286.42,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (2): pode1 stands near
+286.42,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (2): pode1's base passes near
+286.42400000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (2): pode1 stands near
+286.42400000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (2): pode1 stands near
+286.432,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (2): pode1 stands near
+286.432,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (2): pode1 stands near
+286.432,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (2): pode1 stands near
+286.43600000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (2): P-3 is held by pode1
+286.43600000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (2): P-3 is held by pode1
+286.43600000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (2): P-3 is held by pode1
+286.43600000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (2): pode1 stands near
+286.43600000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (2): pode1 stands near
+286.44,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (2): pode1 stands near
+286.44,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (2): pode1 stands near
+286.44,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (2): pode1 stands near
+286.504,INFO,pode2,ZONE_GRANTED,EXPRESS+OUT_DOCK to O
+286.504,INFO,pode2,ORDER_UPDATED,pode2-153 update 1: base to O
+288.612,INFO,pode2,SEGMENT_DONE,pode2-153 seq 1 (follow_path) to O_X
+291.5,INFO,pode3,CLEAN_LINE_DEFERRED,line 1 (3): E-3 is held by pode1
+291.5,INFO,pode3,CLEAN_LINE_DEFERRED,line 2 (3): E-3 is held by pode1
+291.5,INFO,pode3,CLEAN_LINE_DEFERRED,line 3 (3): pode1's base passes near
+291.504,INFO,pode3,CLEAN_LINE_DEFERRED,line 4 (3): pode1's base passes near
+291.50800000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 5 (3): pode1's base passes near
+291.516,INFO,pode3,CLEAN_LINE_DEFERRED,line 6 (3): pode1's base passes near
+291.516,INFO,pode3,CLEAN_LINE_DEFERRED,line 7 (3): pode1's base passes near
+291.52000000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 8 (3): pode1's base passes near
+291.528,INFO,pode3,CLEAN_LINE_DEFERRED,line 9 (3): pode1's base passes near
+291.528,INFO,pode3,CLEAN_LINE_DEFERRED,line 10 (3): pode1's base passes near
+291.528,INFO,pode3,CLEAN_LINE_DEFERRED,line 11 (3): P-3 is held by pode1
+291.528,INFO,pode3,CLEAN_LINE_DEFERRED,line 12 (3): P-3 is held by pode1
+291.528,INFO,pode3,CLEAN_LINE_DEFERRED,line 13 (3): P-3 is held by pode1
+291.528,INFO,pode3,CLEAN_LINE_DEFERRED,line 14 (3): pode1's base passes near
+291.528,INFO,pode3,CLEAN_LINE_DEFERRED,line 15 (3): pode1's base passes near
+291.528,INFO,pode3,CLEAN_LINE_DEFERRED,line 16 (3): pode1's base passes near
+291.528,INFO,pode3,CLEAN_LINE_DEFERRED,line 17 (3): pode1's base passes near
+291.53200000000004,INFO,pode3,CLEAN_LINE_DEFERRED,line 18 (3): pode1's base passes near
+291.548,INFO,pode1,SEGMENT_DONE,pode1-154 seq 2 (nav_goal) to E-3
+291.8,INFO,pode2,SEGMENT_DONE,pode2-153 seq 2 (follow_path) to O
+293.3,INFO,pode1,SEGMENT_DONE,pode1-154 seq 3 (retreat) to P-3
+293.312,INFO,pode1,RETREAT_DONE,stands at P-3
+294.90000000000003,INFO,pode2,DOCKED,"at OUTBOUND: x 3.2 cm, y -1.2 cm, yaw 0.0 deg"
+294.908,NOTE,assignments,ASSIGNMENTS,pode1:WAIT::;pode2:SWAP:OUTBOUND:R-008;pode3:CLEAN::
+296.1,INFO,pode3,CLEAN_SENT,"line 1 to clean_line_1, holds ['E-1', 'E-2', 'E-3']"
+302.30400000000003,INFO,pode3,CLEAN_LINE_DONE,line 1 (2/19)
+302.30400000000003,INFO,pode3,CLEAN_SENT,"line 2 to clean_line_2, holds ['E-1', 'E-2', 'E-3']"
+303.012,INFO,pode2,ZONE_WAIT,waits for E-2
+303.016,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): pode2 waits for ['E-2'] it holds"
+303.02000000000004,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+303.02000000000004,INFO,central,ORDER_SHIPPED,R-008 robot=pode2 placed=D:1 missing=-
+303.02000000000004,NOTE,assignments,ASSIGNMENTS,pode1:WAIT::;pode2:WAIT::;pode3:CLEAN::
+303.10400000000004,INFO,pode2,ZONE_GRANTED,OUT_DOCK+HALL to P-2
+303.108,INFO,pode2,ORDER_SENT,pode2-165: base to P-2
+304.60400000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+304.61600000000004,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+304.808,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+304.81600000000003,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+305.21200000000005,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+305.22,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+305.31600000000003,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+305.32,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+305.408,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+305.41200000000003,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+305.504,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+305.504,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+305.716,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+305.72400000000005,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+305.812,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+305.812,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+305.91200000000003,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+305.92,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+306.00800000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+306.00800000000004,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+306.10400000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+306.10400000000004,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+306.208,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+306.216,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+306.30400000000003,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+306.30400000000003,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+306.408,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+306.41200000000003,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+306.504,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+306.504,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+306.61600000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+306.61600000000004,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+306.716,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+306.72,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+306.8,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+306.808,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+306.91200000000003,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+306.916,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+307.00800000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+307.012,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+307.108,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+307.108,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+307.204,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+307.204,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+307.30400000000003,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+307.308,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+307.42400000000004,INFO,pode2,SEGMENT_DONE,pode2-165 seq 1 (follow_path) to O_OUT
+307.43600000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+307.44,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+307.516,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+307.516,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+307.608,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+307.608,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+307.708,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+307.72,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+307.8,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+307.81600000000003,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+307.908,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+307.91200000000003,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+308.00800000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+308.016,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+308.11600000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+308.12,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+308.208,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+308.216,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+308.30400000000003,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+308.308,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+308.404,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+308.408,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+308.504,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+308.512,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+308.6,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+308.608,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+308.70000000000005,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+308.708,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+308.82,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+308.82,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+308.904,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+308.904,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+309.012,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+309.02000000000004,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+309.11600000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+309.11600000000004,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+309.228,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+309.228,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+309.30400000000003,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+309.31600000000003,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+309.404,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+309.408,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+309.5,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+309.5,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+309.60400000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+309.624,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+309.82800000000003,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+309.82800000000003,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+309.904,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+309.916,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+310.012,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+310.016,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+310.10400000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+310.10400000000004,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+310.22,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+310.228,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+310.30400000000003,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+310.308,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+310.404,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+310.404,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+310.516,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+310.516,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+310.62,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+310.62,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+310.71200000000005,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+310.72,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+310.812,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+310.812,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+310.90000000000003,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+310.904,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+311.00800000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+311.012,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+311.10400000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+311.108,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+311.204,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+311.208,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+311.30400000000003,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+311.308,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+311.404,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+311.404,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+311.50800000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+311.512,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+311.60400000000004,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+311.61600000000004,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+311.71200000000005,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+311.72,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+311.808,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+311.812,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+311.904,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+311.908,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+312.012,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+312.016,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+312.1,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+312.10400000000004,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+312.208,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+312.21200000000005,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+312.3,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+312.3,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+312.40000000000003,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+312.40000000000003,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+312.504,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+312.504,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+312.608,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+312.608,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+312.70000000000005,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+312.704,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+312.808,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+312.812,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+312.904,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+312.908,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+313.0,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312): stands in pode2's way"
+313.004,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+313.108,WARN,pode3,CLEAN_HOME,goes home to P-1: pode2 still meets it 10 s after yielding (stands in pode2's way)
+313.22400000000005,INFO,pode3,CLEAN_YIELD,"for pode2 to (0.613, 0.312) on the way home: waits on pode2's way to P-2"
+313.22400000000005,INFO,pode3,CLEAN_SENT,"yield to clean_yield, holds ['E-3']"
+314.41200000000003,INFO,pode2,SEGMENT_DONE,pode2-165 seq 2 (nav_goal) to E-2
+317.308,INFO,pode2,SEGMENT_DONE,pode2-165 seq 3 (retreat) to P-2
+317.308,INFO,pode2,RETREAT_DONE,stands at P-2
+317.91200000000003,INFO,pode3,CLEAN_SENT,"back to E-1, holds ['P-1', 'E-1', 'E-2', 'E-3']"
+335.30400000000003,INFO,pode3,CLEAN_SENT,"bay_in to P-1, holds ['P-1', 'E-1']"
