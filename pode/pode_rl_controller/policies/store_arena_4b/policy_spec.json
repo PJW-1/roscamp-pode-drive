@@ -15,7 +15,13 @@
   "onnx_outputs": [
    "actions"
   ],
-  "action_clamp_in_graph": false
+  "action_clamp_in_graph": false,
+  "parent_checkpoint": "",
+  "iterations_this_run": 1000,
+  "iterations_total": 998,
+  "seed": 42,
+  "map_layout": "",
+  "run_config_sha256": ""
  },
  "control_dt": 0.05,
  "obs_dim": 41,

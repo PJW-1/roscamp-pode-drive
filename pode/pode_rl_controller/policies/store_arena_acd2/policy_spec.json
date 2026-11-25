@@ -15,7 +15,13 @@
   "onnx_outputs": [
    "actions"
   ],
-  "action_clamp_in_graph": false
+  "action_clamp_in_graph": false,
+  "parent_checkpoint": "D:/isaac/runs/store_arena/recipe/init_combo_acd.pt",
+  "iterations_this_run": 500,
+  "iterations_total": 1496,
+  "seed": 3,
+  "map_layout": "",
+  "run_config_sha256": ""
  },
  "control_dt": 0.05,
  "obs_dim": 44,

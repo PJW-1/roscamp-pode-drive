@@ -15,7 +15,13 @@
   "onnx_outputs": [
    "actions"
   ],
-  "action_clamp_in_graph": false
+  "action_clamp_in_graph": false,
+  "parent_checkpoint": "D:/isaac/runs/store_arena/recipe/init_c.pt",
+  "iterations_this_run": 200,
+  "iterations_total": 1197,
+  "seed": 1,
+  "map_layout": "",
+  "run_config_sha256": ""
  },
  "control_dt": 0.05,
  "obs_dim": 41,

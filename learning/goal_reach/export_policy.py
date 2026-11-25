@@ -9,6 +9,7 @@ torch, onnx, onnxruntime 이 필요하다. JSON 에 inf/nan 이 없어 픽스처
 """
 
 import argparse
+import hashlib
 import importlib.util
 import json
 import math
@@ -201,6 +202,53 @@ def action_cases(rng, spec=ts.SPEC) -> list[dict]:
                 case["speed_cap"] = cap
             cases.append(case)
     return cases
+
+
+def _read_run_file(folder: str):
+    """실행 폴더의 run_config.json (없으면 예전 run.json) 내용과 run_config.json 의 sha256."""
+    path = os.path.join(folder, "run_config.json")
+    if os.path.isfile(path):
+        with open(path, "rb") as f:
+            raw = f.read()
+        return json.loads(raw.decode("utf-8")), hashlib.sha256(raw).hexdigest()
+    path = os.path.join(folder, "run.json")
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8") as f:
+            return json.load(f), ""
+    return None, ""
+
+
+def run_provenance(checkpoint: str, iterations_total) -> dict:
+    """체크포인트 폴더의 실행 기록으로 정책 출처를 채운다.
+
+    resume 으로 이어 간 덩어리는 resume 경로의 폴더를 거슬러 올라가 반복 수를 더하고, 처음 덩어리의
+    init 을 부모로 둔다 (init 도 resume 도 없으면 처음부터 학습: 부모 ""). 기록이 없는 값은 "" / None.
+    iterations_total 은 체크포인트의 iter (rsl_rl 반복 번호)."""
+    folder = os.path.dirname(os.path.abspath(checkpoint))
+    cfg, sha = _read_run_file(folder)
+    out = {
+        "parent_checkpoint": "",
+        "iterations_this_run": None,
+        "iterations_total": iterations_total,
+        "seed": None,
+        "map_layout": "",
+        "run_config_sha256": sha,
+    }
+    if cfg is None:
+        return out
+    out["seed"] = cfg.get("seed")
+    out["map_layout"] = (cfg.get("map") or {}).get("layout", "")
+    iters, cur, seen = cfg.get("max_iterations"), cfg, {folder}
+    while iters is not None and not cur.get("init") and cur.get("resume"):
+        prev = os.path.dirname(os.path.abspath(cur["resume"]))
+        nxt = None if prev in seen else _read_run_file(prev)[0]
+        if nxt is None or nxt.get("max_iterations") is None:
+            break  # 이전 덩어리 기록이 없으면 resume 체크포인트를 부모로 둠
+        seen.add(prev)
+        iters, cur = iters + nxt["max_iterations"], nxt
+    out["iterations_this_run"] = iters
+    out["parent_checkpoint"] = (cur.get("init") or cur.get("resume") or "").replace("\\", "/")
+    return out
 
 
 def torch_policy(checkpoint: str):
@@ -412,6 +460,10 @@ def main():
         "onnx_inputs": [i.name for i in model.graph.input],
         "onnx_outputs": [o.name for o in model.graph.output],
         "action_clamp_in_graph": False,
+        **run_provenance(
+            args.checkpoint,
+            torch.load(args.checkpoint, map_location="cpu", weights_only=False).get("iter"),
+        ),
     }
     with open(os.path.join(args.out, "policy_spec.json"), "w", encoding="utf-8") as f:
         json.dump(make_spec(source, goal_rule, spec), f, indent=1)
