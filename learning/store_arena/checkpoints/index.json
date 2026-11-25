@@ -1,0 +1,32 @@
+[
+ {
+  "policy": "store_arena_4b",
+  "file": "store_arena_4b/model_998.pt",
+  "sha256": "e5013ad79846ad2f5421b8bfc1bc415c7b103220b0047db00e79075653e03159",
+  "bytes": 549363,
+  "iter": 998,
+  "obs_dim": 41,
+  "copied_from": "D:/isaac/runs/store_arena/ppo_k/c2/model_998.pt",
+  "run_json": "store_arena_4b/run.json"
+ },
+ {
+  "policy": "store_arena_acd2",
+  "file": "store_arena_acd2/model_1496.pt",
+  "sha256": "47ab93876cb5a4b4b82ea4145d404a0a171a232a28820cfe809ef57e285c69f6",
+  "bytes": 589749,
+  "iter": 1496,
+  "obs_dim": 44,
+  "copied_from": "D:/isaac/runs/store_arena/acd24/t_acd_s3_c2/model_1496.pt",
+  "run_json": "store_arena_acd2/run.json"
+ },
+ {
+  "policy": "store_arena_acd3",
+  "file": "store_arena_acd3/model_1745.pt",
+  "sha256": "06207f615b4f722d0bed0728cddf372a7d9f921cc5b5cd3259f4932d8f9ebde2",
+  "bytes": 589749,
+  "iter": 1745,
+  "obs_dim": 44,
+  "copied_from": "D:/isaac/runs/store_arena/acd3/t_wall/model_1745.pt",
+  "run_json": "store_arena_acd3/run.json"
+ }
+]

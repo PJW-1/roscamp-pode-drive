@@ -12,3 +12,4 @@ __pycache__/
 *.pt
 *.onnx
 !pode/pode_rl_controller/policies/*/policy.onnx
+!learning/store_arena/checkpoints/*/model_*.pt
