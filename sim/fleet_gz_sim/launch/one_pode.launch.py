@@ -35,6 +35,8 @@ ARGS = {
                             " 0.05는 D2 측정으로 고른 값(fixed_line_results.md)"),
     "plan_keep": ("false", "true면(시험 중) Nav2 goal을 다시 계획할 때 길이가 비슷한 다른 길로"
                            " 바꾸지 않고 지금 길을 지킨다(pode_plan_keep). false면 main과 같다"),
+    "aisle_first": ("false", "시뮬 시험. true면 전역 costmap 장애물 층을 끈 채 통로 안에서 지나가 보고,"
+                             " 못 움직이면 aisle_first 노드가 켜서 돌아가게 한다. false면 main과 같다"),
     "fixed_line_collision_check": ("false", "시뮬 전용. true면 고정 경로 controller 셋도 충돌"
                                            " 검사를 켠다. 마당 goal(FollowPathGoal)은 늘 켬"),
     "nav_map_variant": ("", "global costmap 지도 갈래(v7만): 비면 배치 기본(v7은 a, 2.5 cm),"
@@ -81,6 +83,9 @@ def _start(context):
     keep = value("plan_keep").strip().lower()
     if keep not in ("true", "false", "1", "0"):
         raise ValueError(f"plan_keep must be true or false, got {keep!r}")
+    aisle = value("aisle_first").strip().lower()
+    if aisle not in ("true", "false", "1", "0"):
+        raise ValueError(f"aisle_first must be true or false, got {aisle!r}")
     layout = layout_of(value("layout"))
     site = load_fleet_map(layout)
     arena = arena_for(layout, launch_parts.share("fleet_gz_sim"),
@@ -94,6 +99,8 @@ def _start(context):
     overrides = None
     if value("nav_overrides"):
         overrides = yaml.safe_load(Path(value("nav_overrides")).read_text(encoding="utf-8"))
+    if aisle in ("true", "1"):
+        overrides = launch_parts.with_aisle_first(overrides)
     obstacles_file = obstacles_path(value("obstacles"), launch_parts.share("fleet_gz_sim"))
     if obstacles_file:
         load_schedule(obstacles_file, site)  # 틀린 일정이면 Gazebo를 띄우기 전에 멈춘다
@@ -113,6 +120,8 @@ def _start(context):
                                    plan_keep=keep in ("true", "1"),
                                    lidar_noise=(float(value("lidar_noise"))
                                                 if value("lidar_noise") else None))]
+    if aisle in ("true", "1"):
+        actions.append(launch_parts.aisle_first(ns))
     if obstacles_file:
         actions.append(Node(package="fleet_gz_sim", executable="sim_obstacles",
                             name="sim_obstacles", output="screen",

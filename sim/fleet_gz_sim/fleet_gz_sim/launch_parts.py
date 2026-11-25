@@ -166,6 +166,22 @@ def replaced_mappings(into: dict, extra: dict, prefix: str = "") -> list[str]:
     return found
 
 
+# ---- 통로 먼저(시뮬 시험): 전역 장애물 층을 끈 채 시작하고 aisle_first 노드가 켜고 끈다 ----
+AISLE_FIRST_OVERRIDES = {"global_costmap": {"global_costmap": {"ros__parameters": {
+    "obstacle_layer": {"enabled": False}}}}}
+
+
+def with_aisle_first(overrides: dict | None) -> dict:
+    """nav_overrides 위에 전역 장애물 층 끔을 덮은 새 dict. overrides는 바꾸지 않는다."""
+    return merge(copy.deepcopy(overrides or {}), copy.deepcopy(AISLE_FIRST_OVERRIDES))
+
+
+def aisle_first(ns: str) -> Node:
+    return Node(package="fleet_gz_sim", executable="aisle_first", name="aisle_first",
+                namespace=ns, output="screen", remappings=TF_REMAPS,
+                parameters=[{"use_sim_time": True}])
+
+
 def avoidance_file(package: str = AVOIDANCE_PACKAGE) -> Path:
     return share(package) / AVOIDANCE_FILE
 
