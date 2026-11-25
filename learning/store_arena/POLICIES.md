@@ -127,8 +127,8 @@ d = 에피소드마다 최고 속도 U(0.08, 0.16)와 그 관측(RW:12-15). 최�
 | t_sysid (`n26/t_sysid`) | 11-26 | 같음 e51add4b | 같음 | 300 / (진행) | 3 | 같음 | `cmd_delay_steps_range=0,2 cmd_lag_tau_range=0.0,0.12 cmd_gain_v_range=0.95,1.05 cmd_gain_w_range=0.85,1.15` | a+c+d | 명령 응답 랜덤화(지연, 1차 지연, 이득) | 44 | (진행) | 없음 | 진행 | 작업 기록 3절, `docs/report_2026-11-26_rl_sysid.md` |
 | t_dyn (`n26/t_dyn`) | 11-26 | 같음 4015354f | 같음 | 300 / (진행) | 3 | 같음 | `near_dyn_m=0.10 w_near_dyn=-1.0` | a+c+d | 움직이는 물체·로봇 0.10 m 안 벌점 | 44 | (진행) | 없음 | 진행 | 작업 기록 5절 |
 | t_gam (`n26/t_gam`) | 11-26 | 같음 4015354f | 같음 | 300 / (진행) | 3 | 같음 | `--gamma 0.995 --init_std 0.3` | a+c+d | 할인율 0.99 → 0.995 | 44 | (진행) | 없음 | 진행 | 작업 기록 5절 |
-| t_demo (`n26/t_demo`) | 11-26 | 같음 c6a6bd02 | 같음 | 300 / (진행) | 3 | 같음 | `obstacle_demo_share=0.5 mover_cross_prob=0.5 robot_cleaner_prob=0.5` | a+c+d | 시연 조건을 절반 섞음: 통로 상자(경로가 상자를 지남), 틈을 건너는 사람, 청소 로봇 | 44 | (진행) | 없음 | 진행 | 작업 기록 8절, `docs/report_2026-11-26_rl_demo_*.md` |
-| t_demo_std (`n26/t_demo_std`) | 11-26 | 같음 c6a6bd02 | 같음 | 300 / (진행) | 3 | 같음 | t_demo + `--init_std 0.3` | a+c+d | 위 + 탐색 std를 0.3으로 되돌려 시작 | 44 | (진행) | 없음 | 진행(t_std 뒤에 건다) | 작업 기록 8절 |
+| t_demo (`n26/t_demo`) | 11-26 | 같음 f21329b7 | 같음 | 300 / (진행) | 3 | 같음 | `obstacle_demo_share=0.5 mover_cross_prob=0.5 robot_cleaner_prob=0.5` | a+c+d | 시연 조건을 절반 섞음: 통로 상자(경로가 상자를 지남), 틈을 건너는 사람, 청소 로봇 | 44 | (진행) | 없음 | 진행 | 작업 기록 8절, `docs/report_2026-11-26_rl_demo_*.md` |
+| t_demo_std (`n26/t_demo_std`) | 11-26 | 같음 f21329b7 | 같음 | 300 / (진행) | 3 | 같음 | t_demo + `--init_std 0.3` | a+c+d | 위 + 탐색 std를 0.3으로 되돌려 시작 | 44 | (진행) | 없음 | 진행(t_std 뒤에 건다) | 작업 기록 8절 |
 | t_caps (`n26/t_caps`) | 11-26 | 같음 c6a6bd02 | 같음 | 300 / (진행) | 3 | 같음 | `--caps_temporal 0.04 --caps_spatial 0.2 --caps_sigma 0.1`, `w_action_rate=0 w_w_flip=0` | a+c+d(부드러움 벌점 없음) | 부드러움을 보상 벌점 대신 손실(행동 평균)에 건다 | 44 | (진행) | 없음 | 진행 | 작업 기록 10절, `docs/report_2026-11-26_rl_caps.md` |
 | t_caps_std (`n26/t_caps_std`) | 11-26 | 같음 c6a6bd02 | 같음 | 300 / (진행) | 3 | 같음 | t_caps + `--init_std 0.3` | a+c+d(부드러움 벌점 없음) | 위 + 탐색 std를 0.3으로 되돌려 시작 | 44 | (진행) | 없음 | 진행 | 작업 기록 10절 |
 
