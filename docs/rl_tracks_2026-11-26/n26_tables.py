@@ -10,7 +10,7 @@ cells.csv       끝난 평가마다 한 줄: 결과 비율, 충돌의 가장 가
                 성공 시간 비
 paired.csv      COMPARISONS의 (정책, 칸) 쌍마다 짝 차이(%p)와 SE: 성공, 충돌, 시간 초과
                 (에피소드별 충돌 원인은 episodes.npz에 없어 mover·robot 충돌 짝 차이는 없다)
-regression.csv  e_acd3_rand와 e_acd3_rand_chk: 결과 코드가 다른 에피소드 수와 짝 차이
+regression.csv  e_acd3_rand와 e_acd3_rand_chk, e_acd3_rand_chk2: 결과 코드가 다른 에피소드 수와 짝 차이
 training.csv    학습마다 t_ctrl과 다른 설정, 걸린 시간
 curve.csv       학습마다 저장된 체크포인트 반복에서 metrics.csv 값과 행동 std (v, w)
 scenarios.csv   corner·tee·entry 평가와 같은 정책의 rand 줄: 결과, 충돌 원인, 만남 지표
@@ -40,7 +40,8 @@ COMPARISONS = (
     # 응답 범위가 한 값이면 난수를 쓰지 않아 realrand와 rand는 같은 에피소드다
     + [(p, "realrand", p, "rand") for p in ("acd3", "ctrl", "sysid")]
 )
-REGRESSION = ("e_acd3_rand", "e_acd3_rand_chk")
+# (기준, 다시 돌린 것): 같은 체크포인트·같은 seed를 병합 코드로 다시 돌린 칸
+REGRESSION = (("e_acd3_rand", "e_acd3_rand_chk"), ("e_acd3_rand", "e_acd3_rand_chk2"))
 SCENARIOS = ("corner", "tee", "entry")
 HIT_KINDS = ("wall_shelf", "box", "mover", "robot")
 CELL_RE = re.compile(r"^e_([a-z0-9]+)_(.+)$")
@@ -155,7 +156,10 @@ def pairs(ev):
 
 # ---- 3. 회귀 확인 ----
 def regression(runs, ev):
-    a, b = REGRESSION
+    return [row for a, b in REGRESSION for row in regression_pair(ev, a, b)]
+
+
+def regression_pair(ev, a, b):
     ka, kb = CELL_RE.match(a).groups(), CELL_RE.match(b).groups()
     if ka not in ev or kb not in ev:
         return []

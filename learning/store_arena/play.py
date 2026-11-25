@@ -311,6 +311,8 @@ def main():
             keys=np.array(keys),
             flips=flips,
             length_s=ep_len,
+            hit_kind=hits,
+            hit_kinds=np.array(sae.HIT_KINDS),
             scenario=scen_ids,
             scenario_names=np.array(raw.scen_names),
             **{f"enc_{k_}": np.array(v) for k_, v in enc_eps.items()},
