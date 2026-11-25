@@ -2,7 +2,7 @@
 # PC에서 저장소의 커밋된 HEAD를 로봇에 복사한다:  tools/real_pode/deploy.sh pinky@192.168.0.201
 # 패키지 -> ROBOT:~/nav2fleet_ws/src/<저장소 경로>/, 실행 묶음(지도 포함) -> ROBOT:~/nav2fleet_real/
 # 빌드와 실행은 하지 않는다. 지우기는 각 패키지 폴더 안에서만 한다(logs, params는 남는다).
-# RL controller도 보내려면 WITH_RL=1 deploy.sh ROBOT_HOST: 로봇의 onnxruntime_vendor를 먼저 확인하고,
+# RL controller도 보내려면 WITH_RL=1 deploy.sh ROBOT_HOST: 로봇의 onnxruntime_vendor와 RotationShim을 먼저 확인하고,
 # pode_rl_controller와 시뮬 RL 설정 파일을 보낸 뒤 그 패키지만 로봇에서 빌드한다.
 set -euo pipefail
 [ $# -eq 1 ] || { echo "usage: deploy.sh ROBOT_HOST"; exit 2; }
@@ -35,6 +35,14 @@ if [ -n "$with_rl" ]; then
     echo "  wget http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-onnxruntime-vendor/ros-jazzy-onnxruntime-vendor_0.1.1-1noble.20261026.232151_arm64.deb"
     echo "  sha256sum 값 62c7c56c47f898c58f9f40698268259c6ab322d7fa91ecf2fe960c6967ed2906 확인 뒤 scp, 로봇에서 sudo apt install ./<deb>"
     echo "확인: source /opt/ros/jazzy/setup.bash && ros2 pkg prefix onnxruntime_vendor"
+    exit 1
+  fi
+  # FollowPathRL은 RotationShim으로 감싸므로 shim이 없으면 controller_server가 설정에 실패한다
+  shim=0
+  ssh "$host" 'source /opt/ros/jazzy/setup.bash && ros2 pkg prefix nav2_rotation_shim_controller' > /dev/null || shim=$?
+  if [ "$shim" -ne 0 ]; then
+    echo "로봇에 nav2_rotation_shim_controller가 없다(또는 ssh 실패). 아무것도 복사하지 않았다:"
+    echo "  sudo apt install ros-jazzy-nav2-rotation-shim-controller"
     exit 1
   fi
 fi

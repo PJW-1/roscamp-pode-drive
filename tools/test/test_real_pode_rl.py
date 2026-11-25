@@ -19,6 +19,10 @@ POLICIES = ROOT / "pode" / "pode_rl_controller" / "policies"
 # RL 선택을 더하기 전 커밋(기본 출력 비교의 기준)
 BASE_COMMIT = "951d71bb"
 RL_NAMES = ("FollowPathRL", "FollowPathRLAlone")
+# RL 선택 전 deploy.sh가 보내던 패키지(기본 배포 비교의 기준)
+OLD_PACKAGES = ("interfaces/fleet_interfaces", "pode/pode_fsm", "pode/pode_nav_config",
+                "pode/pode_avoidance", "pode/pode_peer_obstacles", "pode/pode_scan_filter",
+                "pode/pode_dock", "pode/pode_plan_keep")
 
 sys.path.insert(0, str(KIT))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -227,15 +231,16 @@ def _fake_bin(tmp_path, scripts):
     return fake
 
 
-def _deploy(tmp_path, ort_ok, **extra):
+def _deploy(tmp_path, ort_ok, shim_ok=True, **extra):
     calls = tmp_path / "calls"
-    ort = "0" if ort_ok else "1"
+    ort, shim = ("0" if ort_ok else "1"), ("0" if shim_ok else "1")
     fake = _fake_bin(tmp_path, {
         "ssh": f'printf "ssh %s\\n" "$*" >> "{calls}"\n'
-               f'case "$*" in *onnxruntime_vendor*) exit {ort} ;; esac\nexit 0\n',
+               f'case "$*" in *onnxruntime_vendor*) exit {ort} ;;'
+               f' *rotation_shim*) exit {shim} ;; esac\nexit 0\n',
         "rsync": f'printf "rsync %s\\n" "$*" >> "{calls}"\n',
     })
-    env = {k: v for k, v in os.environ.items() if k != "WITH_RL"}
+    env = {k: v for k, v in os.environ.items() if k not in ("WITH_RL", "TMPDIR")}
     env.update(PATH=f"{fake}:{os.environ['PATH']}", **extra)
     run = subprocess.run(["bash", str(KIT / "deploy.sh"), "pinky@robot"], env=env,
                          capture_output=True, text=True, timeout=120)
@@ -247,9 +252,14 @@ def _deploy(tmp_path, ort_ok, **extra):
 def test_deploy_default_touches_no_rl(tmp_path, extra):
     run, calls = _deploy(tmp_path, ort_ok=False, **extra)
     assert run.returncode == 0, run.stdout + run.stderr
-    assert calls and not any(re.search(r"rl_controller|follow_path_rl|onnxruntime|colcon", c)
-                             for c in calls)
-    assert len([c for c in calls if c.startswith("rsync")]) == 9  # 패키지 8 + 실행 묶음
+    # 임시 폴더 이름만 빼고 예전 deploy.sh와 같은 호출이어야 한다
+    got = [re.sub(r"/tmp/tmp\.[A-Za-z0-9]+/", "TMP/", c) for c in calls]
+    want = ["ssh pinky@robot mkdir -p ~/nav2fleet_ws/src/interfaces ~/nav2fleet_ws/src/pode "
+            "~/nav2fleet_real"]
+    want += [f"rsync -a --delete TMP/{pkg}/ pinky@robot:~/nav2fleet_ws/src/{pkg}/"
+             for pkg in OLD_PACKAGES]
+    want.append("rsync -a TMP/tools/real_pode/ pinky@robot:~/nav2fleet_real/")
+    assert got == want
 
 
 @needs_bash
@@ -258,6 +268,14 @@ def test_deploy_rl_without_onnxruntime_changes_nothing(tmp_path):
     assert run.returncode == 1
     assert "sudo apt install ros-jazzy-onnxruntime-vendor" in run.stdout
     assert len(calls) == 1 and "onnxruntime_vendor" in calls[0]
+
+
+@needs_bash
+def test_deploy_rl_without_rotation_shim_changes_nothing(tmp_path):
+    run, calls = _deploy(tmp_path, ort_ok=True, shim_ok=False, WITH_RL="1")
+    assert run.returncode == 1
+    assert "ros-jazzy-nav2-rotation-shim-controller" in run.stdout
+    assert len(calls) == 2 and "rotation_shim" in calls[1]
 
 
 @needs_bash

@@ -101,7 +101,7 @@ Nav2 goal을 모는 컨트롤러(FollowPathGoal)의 속도는 `nav2_params.yaml`
 **이 길은 아직 로봇에서 돌려 보지 않았다.** PC에서는 스크립트를 대역 ssh·rsync·ros2로만 시험했다
 (`tools/test/test_real_pode_rl.py`). 아무것도 주지 않으면 배포와 시작은 예전과 똑같다.
 
-- `WITH_RL=1 deploy.sh HOST`: 먼저 로봇에 `onnxruntime_vendor`가 있는지 보고, 없으면 설치 방법을 찍고 아무것도 바꾸지 않은 채 끝난다(종료 1).
+- `WITH_RL=1 deploy.sh HOST`: 먼저 로봇에 `onnxruntime_vendor`와 `nav2_rotation_shim_controller`가 있는지 보고, 없으면 설치 방법을 찍고 아무것도 바꾸지 않은 채 끝난다(종료 1).
   있으면 평소 복사에 더해 `pode/pode_rl_controller`와 `sim/fleet_gz_sim/nav_overrides/follow_path_rl.yaml`을
   `~/nav2fleet_ws/src/` 아래 같은 경로로 보내고, 로봇에서 `pode_rl_controller`만 빌드한다(`-j1`, gtest 없이 `-DBUILD_TESTING=OFF`).
 - `RL_POLICY=<정책> start.sh ...`: `make_params.py --rl-policy <정책>`이 `params/nav2_params.yaml`에 `FollowPathRL`(RotationShim으로 감싼 정책)과
@@ -116,7 +116,8 @@ Nav2 goal을 모는 컨트롤러(FollowPathGoal)의 속도는 `nav2_params.yaml`
 2. 로봇: ONNX Runtime 확인. `source /opt/ros/jazzy/setup.bash && ros2 pkg prefix onnxruntime_vendor && ls "$(ros2 pkg prefix onnxruntime_vendor)"/opt/onnxruntime_vendor/lib/`
    (`libonnxruntime.so`가 보여야 한다). 없으면 `sudo apt update && sudo apt install ros-jazzy-onnxruntime-vendor`.
    인터넷이 없으면 PC에서 `ros-jazzy-onnxruntime-vendor_0.1.1-1noble.20261026.232151_arm64.deb`(packages.ros.org pool)를 받아 scp한 뒤 `sudo apt install ./<deb>`.
-   shim도 본다: `ros2 pkg prefix nav2_rotation_shim_controller`(없으면 `FollowPathRL`은 뜨지 못하고 `FollowPathRLAlone`만 쓸 수 있다고 보지만 확인하지 않았다).
+   shim도 있어야 한다: `ros2 pkg prefix nav2_rotation_shim_controller`. 없으면 `sudo apt install ros-jazzy-nav2-rotation-shim-controller`.
+   두 controller가 함께 실리므로 shim이 없으면 `FollowPathRLAlone`도 못 쓰고 controller_server가 뜨지 못한다고 본다(로봇에서 확인하지 않았다).
 3. PC(저장소 루트): `WITH_RL=1 tools/real_pode/deploy.sh pinky@<로봇 주소>`. 끝에 `pode_rl_controller` 빌드 결과가 나온다.
 4. 로봇: 나머지 패키지 빌드 `cd ~/nav2fleet_ws && colcon build` (평소와 같다).
 5. 로봇: bag을 먼저 켜고 RL을 더해 시작한다.
