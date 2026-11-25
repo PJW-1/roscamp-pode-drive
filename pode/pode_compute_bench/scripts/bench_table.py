@@ -63,8 +63,9 @@ def summarize(samples, runs):
 
 
 def markdown(rows, title):
-    head = ("| 경우 | 플러그인 | batch | steps | dt (s) | 주기 (Hz) | n | 오류 | 넘침 | p50 (ms) | "
-            "p99 (ms) | max (ms) | 평균 (ms) | p99 / 50 ms | 프로세스 CPU (%) | 측정 스레드 CPU (%) |")
+    head = ("| 경우 | 플러그인 | batch | steps | dt (s) | 주기 (Hz) | n | 오류 | 넘침 | "
+            "p50 (ms) | p99 (ms) | max (ms) | 평균 (ms) | p99 / 50 ms | 프로세스 CPU (%) | "
+            "측정 스레드 CPU (%) |")
     lines = [f"### {title}", "", head, "|" + "---|" * 16]
     for r in rows:
         lines.append(
@@ -72,8 +73,8 @@ def markdown(rows, title):
             f"{r['model_dt']} | {r['rate_hz']} | {r['n']} | {r['errors']} | {r['overruns']} | "
             f"{r['p50_ms']:.3f} | {r['p99_ms']:.3f} | {r['max_ms']:.3f} | {r['mean_ms']:.3f} | "
             f"{r['p99_over_50ms']:.3f} | {r['proc_cpu_pct']:.1f} | {r['thread_cpu_pct']:.1f} |")
-    lines += ["", "넘침: 그 경우의 주기(1/주기 Hz)보다 오래 걸린 호출 수. 프로세스 CPU: 측정 구간의 "
-              "(user+system) / 벽시계, 한 코어 = 100 %."]
+    lines += ["", "넘침: 그 경우의 주기(1/주기 Hz)보다 오래 걸린 호출 수. "
+              "프로세스 CPU: 측정 구간의 (user+system) / 벽시계, 한 코어 = 100 %."]
     return "\n".join(lines) + "\n"
 
 

@@ -46,12 +46,21 @@ PC 시험에서 확인한 것:
 
 - PC 시험의 `publishers.txt`(`docs/pi4_compute_2026-11-26/pc_dry_run/publishers.txt`): 27개, `cmd_vel`이 든 토픽 0개.
   모두 이 프로세스의 노드(`/compute_bench`, `/costmap`, TF listener)다. 로그 끝줄:
-  `27 publishers in the graph, 0 on a cmd_vel topic (list in publishers.txt)`, 스크립트 종료 코드 0.
+  `27 publishers in the graph, 0 on a cmd_vel topic (list in publishers.txt)`, 스크립트 종료 코드 0
+  (화면 출력은 `pc_dry_run/run.txt`. 그때 스크립트에는 아래 빈 그래프 검사가 아직 없었다).
 - 거부 경로는 가짜 `ros2`(PATH 앞에 둔 bash 스크립트)로 돌렸다. 실제 ROS 그래프로 cmd_vel publisher를 띄워 본 것은 아니다.
   - `nav2_mppi_controller` 없음 → `nav2_mppi_controller가 없다. 설치: sudo apt install ros-jazzy-nav2-mppi-controller`, 종료 1
   - `/pode1/cmd_vel` publisher 1개 → `/pode1/cmd_vel 에 publisher가 1 개 있다. 그 노드를 내린 뒤 다시 한다:` 와 노드 이름, 종료 1
   - `BENCH_DOMAIN=6` → `BENCH_DOMAIN=6 은 로봇 도메인이다. 다른 값을 쓴다`, 종료 1
-  - 세 경우 모두 결과 폴더를 만들기 전에 멈췄다.
+  - 노드가 하나도 안 보이는 그래프(디스커버리 서버에 닿지 못한 경우와 구별할 수 없다) → 시작하지 않는다, 종료 1.
+    스택을 모두 내린 것이 맞으면 `ALLOW_EMPTY_GRAPH=1`로 연다
+  - `Publisher count:` 줄을 읽지 못함 → `publisher 수를 읽지 못했다. 시작하지 않는다`, 종료 1
+  - 모든 거부 경우가 결과 폴더를 만들기 전에 멈췄다.
+- PC에는 도메인 71에 다른 노드가 없어, 빈 그래프 검사를 더한 뒤의 스크립트는 `ALLOW_EMPTY_GRAPH=1 N=50 WARMUP=10`으로
+  끝까지 다시 돌렸다(종료 코드 0, 8개 경우 모두 오류 0). 표의 숫자는 그 앞의 N=600 실행이다.
+- 남은 한계: 검사는 시작 전 한 번이고, 그 뒤에 생기는 cmd_vel publisher는 막지 못한다. 측정 프로세스 안의 publisher
+  목록도 경우마다 warm-up 뒤 한 번 모은다(플러그인 publisher는 configure에서 생겨 cleanup까지 남는다).
+  로봇 도메인 6 밖(예: 도메인 12)은 보지 않는다.
 
 ## 3. MPPI 단계를 고른 방법
 
@@ -79,7 +88,8 @@ batch_size x time_steps 궤적 점에 비례하므로 그 곱을 단계마다 �
   같이 돌 수 있었다(시작 때 loadavg 1.17). 숫자는 `docs/pi4_compute_2026-11-26/pc_dry_run/`(`table.md`, `summary.csv`,
   `runs.csv`, `samples.csv`, `sysinfo.txt`, `publishers.txt`).
 - 명령(WSL, 빌드한 install을 읽는 환경 파일을 `ENV_FILE`로 줬다):
-  `ENV_FILE=<pc 환경> OUT_ROOT=/tmp/cb_pc bash tools/real_pode/compute_bench.sh` (N=600, WARMUP=100, 약 6분)
+  `ENV_FILE=<pc 환경> OUT_ROOT=/tmp/cb_pc bash tools/real_pode/compute_bench.sh` (N=600, WARMUP=100, 약 6분).
+  지금 스크립트로 PC에서 돌리려면 `ALLOW_EMPTY_GRAPH=1`을 더한다(2절).
 
 | 경우 | 플러그인 | batch | steps | dt (s) | 주기 (Hz) | n | 오류 | 넘침 | p50 (ms) | p99 (ms) | max (ms) | 평균 (ms) | p99 / 50 ms | 프로세스 CPU (%) | 측정 스레드 CPU (%) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -99,7 +109,8 @@ batch_size x time_steps 궤적 점에 비례하므로 그 곱을 단계마다 �
 - 평균으로 MPPI L0(3.21 ms)은 RL 플러그인 전체(0.180 ms)의 약 18배, ONNX 추론만(0.074 ms)의 약 43배다. RPP는 0.290 ms.
 - MPPI 평균은 batch x 단계에 거의 비례해 줄었다(L0 → L1: 곱 0.34배, 시간 0.29배. L2: 0.14배, 0.13배).
 - 따로 잰 ONNX 추론 평균(0.074 ms)은 RL 플러그인 평균의 약 40 %다. 나머지는 스캔 → 광선 변환, 관측, TF 조회로 보인다
-  (플러그인 안의 추론 시간을 따로 표에 넣지는 않았다. 플러그인 로그 `infer mean`이 `bench.log`에 있다).
+  (플러그인 안의 추론 시간은 표에 없다. 로봇 결과에서는 `bench.log`의 플러그인 로그 `infer mean`으로 볼 수 있다.
+  이 PC 시험의 `bench.log`는 WSL이 다시 시작되며 /tmp에서 지워져 남지 않았다).
 - max 열은 PC의 다른 일과 WSL 스케줄링이 섞인 값이라 하나만 보고 판단하지 않는다(L0 max 25.6 ms, 넘침 0).
 - Pi 4(Cortex-A72 1.5 GHz)에서는 모두 몇 배 느려질 것으로 보이지만 배수는 모른다. Pi 4 숫자로 주장하려면 로봇 측정이 필요하다.
 
@@ -119,6 +130,7 @@ batch_size x time_steps 궤적 점에 비례하므로 그 곱을 단계마다 �
 6. 로봇: 측정  cd ~/nav2fleet_real && ./compute_bench.sh
    - "cmd_vel 에 publisher가 있다"로 멈추면 적힌 노드를 내리고 다시 한다
    - 디스커버리 서버(관제 PC)가 꺼져 있으면  DISCOVERY_SERVER=off ./compute_bench.sh
+   - "노드가 하나도 안 보인다"로 멈추고 스택을 모두 내린 것이 맞으면  ALLOW_EMPTY_GRAPH=1 ./compute_bench.sh
    - 다른 무거운 일(빌드, rosbag)은 돌리지 않는다. 끝에 표가 화면에 나온다
 7. 돌려받을 것: 폴더 통째로
    scp -r pinky@<로봇IP>:~/nav2fleet_real/logs/compute_bench/<날짜_시각> .
