@@ -118,6 +118,19 @@ def test_v7_sweeps_the_west_floor_then_the_upper_aisle_then_the_lower_aisle():
         assert max(rows.values()) >= 1.0
 
 
+def test_regions_are_swept_in_the_order_the_map_lists_them():
+    site = load_fleet_map("v7")
+    # 아래 통로를 위 통로보다 먼저 적으면 아래 통로부터 돈다(가까운 영역 순서가 아니다)
+    site.clean_regions = (V7_REGIONS[0], V7_REGIONS[2], V7_REGIONS[1])
+    plan = make_plan(site)
+    assert list(dict.fromkeys(_region_order(plan))) == [0, 1, 2]
+    first = {r: a[1] for (a, _, _), r in zip(plan.lines, _region_order(plan), strict=True)}
+    assert first[1] < 0.3675 < first[2]
+    # 집에서 먼 영역을 맨 앞에 적어도 그 영역부터 돈다
+    site.clean_regions = (V7_REGIONS[1], V7_REGIONS[0], V7_REGIONS[2])
+    assert list(dict.fromkeys(_region_order(make_plan(site)))) == [0, 1, 2]
+
+
 def test_floor_outside_every_region_rectangle_is_the_last_region():
     site = load_fleet_map("v7")
     site.clean_regions = (V7_REGIONS[0],)
@@ -176,6 +189,13 @@ def test_the_pieces_of_a_long_row_follow_each_other_without_turning():
 # ---- 줄 고르기: 짧은 줄과 다른 줄이 이미 덮는 줄은 긋지 않는다 ----
 def test_no_line_is_shorter_than_the_minimum(layout_plan):
     _, plan = layout_plan
+    assert min(math.dist(a, b) for a, b, _ in plan.lines) >= plan.params.min_line_m - 1e-9
+
+
+@pytest.mark.parametrize("longest", [0.225, 0.30, 0.375])
+def test_a_long_row_is_not_cut_into_pieces_shorter_than_the_minimum(longest):
+    # 최대 길이로 나눈 조각이 최소 길이보다 짧아지면 덜 나눈다
+    plan = make_plan(load_fleet_map("v7"), Params(max_line_m=longest))
     assert min(math.dist(a, b) for a, b, _ in plan.lines) >= plan.params.min_line_m - 1e-9
 
 

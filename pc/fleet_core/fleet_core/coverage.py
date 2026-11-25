@@ -405,7 +405,8 @@ def cell_lines(cell: list[tuple[int, int, int]], params: Params) -> list[tuple[i
         i0, i1 = rows[j]
         if i1 - i0 < least:
             continue
-        count = max(1, math.ceil((i1 - i0) / most)) if most else 1
+        # 조각이 가장 짧은 줄보다 짧아지면 덜 나눈다
+        count = max(1, min(math.ceil((i1 - i0) / most), (i1 - i0) // least)) if most else 1
         cuts = [i0 + math.floor(k * (i1 - i0) / count + 0.5) for k in range(count + 1)]
         out += [(j, a, b) for a, b in pairwise(cuts)]
     return out
@@ -512,9 +513,11 @@ def make_plan(site, params: Params = Params()) -> Plan:
     region = None
     while left:
         dist = distances(free, grid.cell(here))
-        # 지금 영역의 줄을 다 쓴 뒤에 다른 영역으로 간다
+        # 지금 영역의 줄을 다 쓴 뒤에 번호가 가장 앞선 남은 영역으로 간다
         # 줄은 끝이 가장 가까운 것부터, 같으면 짧은 줄부터
-        mine = [item for item in left if todo[item[0]][0] == region] or left
+        if not any(todo[index][0] == region for index, _ in left):
+            region = min(todo[index][0] for index, _ in left)
+        mine = [item for item in left if todo[item[0]][0] == region]
         best = None
         for item in mine:
             index, (j, i0, i1) = item
