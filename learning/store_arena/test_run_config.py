@@ -65,6 +65,17 @@ def test_the_file_is_json_and_its_hash_is_returned(tmp_path):
     assert sha == rc.sha256_of(path) and len(sha) == 64
 
 
+def test_symmetry_mode_is_recorded():
+    assert _config()["symmetry"] == {"mode": "off"}
+    c = _config(symmetry="both", mirror_loss_coeff=0.5)
+    assert c["symmetry"] == {
+        "mode": "both",
+        "use_data_augmentation": True,
+        "use_mirror_loss": True,
+        "mirror_loss_coeff": 0.5,
+    }
+
+
 def test_init_std_takes_one_value_or_a_pair():
     assert rc.parse_init_std("0") == (0.0, 0.0)
     assert rc.parse_init_std("0.3") == (0.3, 0.3)
