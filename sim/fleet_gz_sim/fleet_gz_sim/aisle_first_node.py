@@ -24,7 +24,7 @@ from fleet_gz_sim.aisle_first import (
     OBSTACLES_ON,
     Rules,
     State,
-    goal_active,
+    active_goal,
     goal_changed,
     log_line,
     navigating,
@@ -58,6 +58,7 @@ class AisleFirst(Node):
         self.state = State()
         self.last_plan_t = None
         self.active = None  # 주행 action에 끝나지 않은 goal이 있는지 (상태를 받기 전에는 None)
+        self.goal_id = None  # 마지막으로 본 끝나지 않은 goal의 id
         self.goal = None  # 마지막으로 받은 전역 경로의 끝점
         self.new_goal = False
         self.ops = []  # 차례로 낼 요청: ("set", bool) 또는 ("clear",)
@@ -83,12 +84,19 @@ class AisleFirst(Node):
         if not msg.poses:
             return
         end = msg.poses[-1].pose.position
-        if goal_changed(self.goal, (end.x, end.y), self.rules):
+        # goal 상태를 받고 있으면 새 goal은 goal id로 안다
+        if self.active is None and goal_changed(self.goal, (end.x, end.y), self.rules):
             self.new_goal = True
         self.goal = (end.x, end.y)
 
     def _on_status(self, msg):
-        self.active = goal_active(s.status for s in msg.status_list)
+        goal_id = active_goal(
+            (s.status, bytes(s.goal_info.goal_id.uuid),
+             s.goal_info.stamp.sec + s.goal_info.stamp.nanosec * 1e-9) for s in msg.status_list)
+        self.active = goal_id is not None
+        if goal_id is not None and goal_id != self.goal_id:
+            self.goal_id = goal_id
+            self.new_goal = True
 
     def position(self):
         try:

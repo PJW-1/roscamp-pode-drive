@@ -177,3 +177,58 @@ def test_the_detour_stays_on_without_plans_while_the_goal_is_active(ros):
         executor.shutdown()
         node.destroy_node()
         fake.destroy_node()
+
+
+def test_a_goal_that_takes_over_ends_the_detour_without_waiting_for_a_plan(ros):
+    from action_msgs.msg import GoalStatus, GoalStatusArray
+    from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
+
+    from fleet_gz_sim.aisle_first_node import AisleFirst
+    calls = []
+    fake = rclpy.create_node("fake_costmap", namespace=NAMESPACE)
+
+    def on_set(request, response):
+        calls.append(("set", request.parameters[0].value.bool_value))
+        response.results = [SetParametersResult(successful=True)]
+        return response
+
+    def on_clear(_request, response):
+        calls.append(("clear",))
+        return response
+
+    def goals(*pairs):
+        msg = GoalStatusArray()
+        for i, (code, tag) in enumerate(pairs):
+            one = GoalStatus(status=code)
+            one.goal_info.goal_id.uuid = [tag] * 16
+            one.goal_info.stamp.sec = i + 1
+            msg.status_list.append(one)
+        return msg
+
+    fake.create_service(SetParameters, "global_costmap/global_costmap/set_parameters", on_set)
+    fake.create_service(ClearEntireCostmap, "global_costmap/clear_entirely_global_costmap",
+                        on_clear)
+    latched = QoSProfile(depth=1, reliability=ReliabilityPolicy.RELIABLE,
+                         durability=DurabilityPolicy.TRANSIENT_LOCAL)
+    status = fake.create_publisher(GoalStatusArray, "navigate_to_pose/_action/status", latched)
+    node = AisleFirst(namespace=NAMESPACE, parameter_overrides=[
+        Parameter("stall_s", value=0.6), Parameter("tick_s", value=0.05)])
+    node.position = lambda: (1.0, 0.5)
+    executor = SingleThreadedExecutor()
+    executor.add_node(fake)
+    executor.add_node(node)
+    try:
+        status.publish(goals((GoalStatus.STATUS_EXECUTING, 1)))
+        assert spin_until(executor, lambda: calls == [("set", True)], 5.0)
+        assert node.state.mode == "detour"
+        # 새 goal 뒤에 다시 멈춤으로 판정되어 요청 차례가 바뀌지 않게 멈춤 판정을 길게 둔다
+        node.rules = replace(node.rules, stall_s=600.0)
+        # 새 goal이 앞 goal을 밀어내면 경로가 오기 전에 층을 끄고 지운다
+        status.publish(goals((GoalStatus.STATUS_ABORTED, 1), (GoalStatus.STATUS_EXECUTING, 2)))
+        assert spin_until(executor, lambda: len(calls) >= 3, 5.0)
+        assert calls[1:] == [("set", False), ("clear",)]
+        assert node.state.mode == "aisle" and node.state.reason == "new goal"
+    finally:
+        executor.shutdown()
+        node.destroy_node()
+        fake.destroy_node()
