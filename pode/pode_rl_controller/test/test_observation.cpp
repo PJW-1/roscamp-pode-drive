@@ -344,6 +344,11 @@ TEST(ScanMask, RangesMeetAcrossTheBack)
   EXPECT_EQ(scan.ranges[30], 0.5f);
   EXPECT_EQ(scan.ranges[690], 0.5f);
   EXPECT_EQ(scan.ranges[360], 0.5f);
+  for (const auto & one : std::vector<std::vector<double>>{{170.0, 180.0}, {-180.0, -170.0}}) {
+    pode_rl_controller::Scan back{-M_PI, 2.0 * M_PI / n, 0.05, 12.0, std::vector<float>(n, 0.5f)};
+    pode_rl_controller::mask_scan(back, 0.0, pode_rl_controller::parse_scan_mask(one));
+    EXPECT_TRUE(std::isinf(back.ranges[0])) << one[0];
+  }
 }
 
 TEST(ScanMask, MalformedListsAreRefused)

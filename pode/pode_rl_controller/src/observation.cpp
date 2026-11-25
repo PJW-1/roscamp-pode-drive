@@ -278,8 +278,10 @@ void mask_scan(Scan & scan, double lidar_yaw, const std::vector<AngleRange> & ma
   for (size_t i = 0; i < scan.ranges.size(); ++i) {
     const double rad = lidar_yaw + scan.angle_min + static_cast<double>(i) * scan.angle_increment;
     const double deg = std::remainder(rad * (180.0 / kPi), 360.0);
+    // 바로 뒤는 -180과 180 둘 다로 본다
+    const double alt = deg <= -180.0 ? 180.0 : (deg >= 180.0 ? -180.0 : deg);
     for (const auto & m : mask) {
-      if (deg >= m.lo_deg && deg <= m.hi_deg) {
+      if ((deg >= m.lo_deg && deg <= m.hi_deg) || (alt >= m.lo_deg && alt <= m.hi_deg)) {
         scan.ranges[i] = std::numeric_limits<float>::infinity();
         break;
       }
