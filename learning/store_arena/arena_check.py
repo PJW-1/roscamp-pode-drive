@@ -630,7 +630,11 @@ def main():
                 and ray_ok
                 and hit_standing == 0
                 and len(ids) >= 0.8 * n_with_mover
-                and min(target.count(0), target.count(1)) > 0
+                and all(  # mover_kinds로 켜 둔 종류마다 하나 이상
+                    target.count(m) > 0
+                    for m, shape in enumerate(ms_.MOVERS)
+                    if ms_.kind_on(spec_a, shape)
+                )
                 and bool(ok.all())
                 and len(g) > 0
                 and float(g.max()) < 0.10

@@ -85,7 +85,8 @@ def main():
         raw = sae.StoreArenaEnv(env_cfg)
         env = RslRlVecEnvWrapper(raw, clip_actions=agent_cfg.clip_actions)
         runner = create_rsl_rl_runner(env, agent_cfg)
-        runner.load(args_cli.checkpoint)
+        # 평가는 액터만 쓴다. critic 관측 크기는 robot_max에 따라 달라서 학습 때와 다른 칸에서는 맞지 않는다
+        runner.load(args_cli.checkpoint, load_cfg={"actor": True, "iteration": True})
         policy = runner.get_inference_policy(device=raw.device)
         if args_cli.still:
 
