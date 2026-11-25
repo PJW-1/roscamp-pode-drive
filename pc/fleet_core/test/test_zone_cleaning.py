@@ -239,13 +239,15 @@ def test_local_yield_is_not_counted():
     w = World()
     k, a, b, line = w.to_line()
     w.pos[CLEANER_NAME] = w.at(a, b, 0.1)
-    _blocked(w, 1.5)
+    # 영역 줄은 짧아서 0.5 m 앞을 장애물로 보면 복귀점이 줄 밖이다: 장애물 자리를 준다
+    seen = (*w.at(a, b, 0.2), "unknown")
+    _blocked(w, 1.5, obstacle=seen)
     w.state[CLEANER_NAME] = "RECOVERING"
     for _ in range(10):
         w.step()
-    _blocked(w, 1.5)
+    _blocked(w, 1.5, obstacle=seen)
     assert not w.events("CLEAN_DETOUR")
-    _blocked(w, 0.8)
+    _blocked(w, 0.8, obstacle=seen)
     assert w.events("CLEAN_DETOUR")
 
 

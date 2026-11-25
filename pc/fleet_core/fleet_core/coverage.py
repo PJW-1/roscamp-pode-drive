@@ -22,6 +22,7 @@ MARGIN_M = 0.01
 LINE_SPACING_M = 0.10
 CLEAN_WIDTH_M = 0.112
 SPEED_MPS = 0.12
+REGION_M = 0.60  # 줄 방향으로 이 폭 이하의 영역으로 나눠 한 영역씩 쓴다
 ARC_STEP_M = 0.01
 HOME = "P-1"
 FLOOR_ZONE = "HALL"
@@ -41,6 +42,7 @@ class Params:
     clean_width_m: float = CLEAN_WIDTH_M
     turn_radius_m: float = TURN_RADIUS_M
     speed_mps: float = SPEED_MPS
+    region_width_m: float = REGION_M
 
     def __post_init__(self):
         if self.line_spacing_m < self.grid_m:
@@ -336,8 +338,11 @@ def _runs(row: np.ndarray) -> list[tuple[int, int]]:
     return runs
 
 
-def decompose(free: np.ndarray) -> list[list[tuple[int, int, int]]]:
-    """셀 목록. 셀은 (j, i0, i1) 칸 구간을 j 순서로 담는다."""
+def decompose(free: np.ndarray, jump: int | None = None) -> list[list[tuple[int, int, int]]]:
+    """셀 목록. 셀은 (j, i0, i1) 칸 구간을 j 순서로 담는다.
+
+    jump: 아래 줄과 하나씩 이어져도 구간 끝이 이만큼 넘게(칸) 바뀌면 새 셀로 나눈다.
+    """
     cells: list[list[tuple[int, int, int]]] = []
     prev: list[tuple[int, int]] = []
     owner: dict[tuple[int, int], int] = {}
@@ -350,7 +355,11 @@ def decompose(free: np.ndarray) -> list[list[tuple[int, int, int]]]:
 
         for run in runs:
             below = touching(run, prev)
-            if len(below) == 1 and len(touching(below[0], runs)) == 1:
+            same = len(below) == 1 and len(touching(below[0], runs)) == 1
+            if same and jump is not None:
+                # 폭이 갑자기 바뀌면 고르게 고른 줄이 넓은 칸을 못 덮는다
+                same = max(abs(run[0] - below[0][0]), abs(run[1] - below[0][1])) <= jump
+            if same:
                 index = owner[below[0]]
             else:
                 index = len(cells)
@@ -373,7 +382,25 @@ def cell_lines(cell: list[tuple[int, int, int]], params: Params) -> list[tuple[i
     return [(j, *rows[j]) for j in picks if rows[j][1] > rows[j][0]]
 
 
-# ---- 계획: 셀 순서, 줄 방향, 이동 구간, 집 자리 왕복 ----
+# ---- 영역: 빈칸을 줄 방향(x)으로 region_width_m 이하 폭의 띠로 자른 마스크(서쪽부터) ----
+def regions(free: np.ndarray, params: Params) -> list[np.ndarray]:
+    cols = np.nonzero(free.any(axis=0))[0]
+    if params.region_width_m <= 0 or not len(cols):
+        return [free]
+    i0, i1 = int(cols[0]), int(cols[-1]) + 1
+    # 줄은 칸 중심을 잇는다: 영역 칸 수 - 1 칸이 region_width_m 이하
+    most = math.floor(params.region_width_m / params.grid_m + _EPS) + 1
+    count = max(1, math.ceil((i1 - i0) / most))
+    cuts = [i0 + math.floor(k * (i1 - i0) / count + 0.5) for k in range(count + 1)]
+    out = []
+    for a, b in pairwise(cuts):
+        mask = np.zeros_like(free)
+        mask[:, a:b] = free[:, a:b]
+        out.append(mask)
+    return out
+
+
+# ---- 계획: 영역 순서, 셀 순서, 줄 방향, 이동 구간, 집 자리 왕복 ----
 @dataclass
 class Plan:
     params: Params
@@ -408,17 +435,22 @@ def make_plan(site, params: Params = Params()) -> Plan:
     free = np.isfinite(reach)
     unreachable = int(grid.free.sum() - free.sum())
     todo = []
-    for raw in decompose(free):
-        lines = cell_lines(raw, params)
-        if lines:
-            todo.append((raw, lines))
+    jump = max(1, math.floor(params.line_spacing_m / params.grid_m + _EPS))
+    for region, mask in enumerate(regions(free, params)):
+        for raw in decompose(mask, jump):
+            lines = cell_lines(raw, params)
+            if lines:
+                todo.append((region, raw, lines))
     cells, lines, transits = [], [], []
     here, here_name = start, "home"
     radius = params.turn_radius_m
+    region = None
     while todo:
         dist = distances(free, grid.cell(here))
         best = None
-        for index, (raw, picks) in enumerate(todo):
+        # 지금 영역의 셀을 다 쓴 뒤에 가장 가까운 다른 영역으로 간다
+        mine = [t for t in todo if t[0] == region] or todo
+        for index, (_, raw, picks) in enumerate(mine):
             for up in (True, False):
                 sweep = picks if up else picks[::-1]
                 for east in (True, False):
@@ -428,11 +460,12 @@ def make_plan(site, params: Params = Params()) -> Plan:
                     if best is None or key < best[0]:
                         best = (key, index, sweep, east)
         _, index, sweep, east = best
-        raw, _ = todo.pop(index)
+        region, raw, _ = mine[index]
+        todo.remove(mine[index])
         number = len(cells)
         xs = [grid.xs[i] for _, i0, i1 in raw for i in (i0, i1)]
-        cells.append({"id": number, "box": [min(xs), grid.ys[raw[0][0]],
-                                            max(xs), grid.ys[raw[-1][0]]],
+        cells.append({"id": number, "region": region,
+                      "box": [min(xs), grid.ys[raw[0][0]], max(xs), grid.ys[raw[-1][0]]],
                       "lines": len(sweep)})
         for j, i0, i1 in sweep:
             a, b = grid.centre((i0, j)), grid.centre((i1, j))
@@ -508,6 +541,7 @@ def summary(plan: Plan) -> dict:
     move_m = sum(path_length(rounded(pts, radius)) for _, _, pts in plan.transits)
     floor_ratio, free_ratio = coverage(plan)
     return {
+        "regions": len({c["region"] for c in plan.cells}),
         "cells": len(plan.cells),
         "lines": len(plan.lines),
         "line_length_m": _mm(line_m),
@@ -528,12 +562,14 @@ def to_data(plan: Plan, layout: str) -> dict:
             "grid_m": p.grid_m, "robot_radius_m": p.robot_radius_m, "margin_m": p.margin_m,
             "line_spacing_m": p.line_spacing_m, "clean_width_m": p.clean_width_m,
             "turn_radius_m": p.turn_radius_m, "speed_mps": p.speed_mps,
+            "region_width_m": p.region_width_m,
             "line_direction": "x",
         },
         "home": {"node": HOME, "pose": _pt(plan.home), "start": _pt(plan.start),
                  "moved_to_nearest_free": plan.home_moved},
         "summary": summary(plan),
-        "cells": [{"id": c["id"], "box": [_xy(v) for v in c["box"]], "lines": c["lines"]}
+        "cells": [{"id": c["id"], "region": c["region"], "box": [_xy(v) for v in c["box"]],
+                   "lines": c["lines"]}
                   for c in plan.cells],
         "lines": [{"cell": cell, "start": _pt(a), "end": _pt(b)} for a, b, cell in plan.lines],
         "transits": [{"from": a, "to": b, "points": [_pt(q) for q in pts],

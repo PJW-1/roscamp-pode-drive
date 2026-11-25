@@ -83,7 +83,7 @@ def test_no_invariant_breaks_by_the_cleaner(fleet):
 @pytest.fixture(scope="module")
 def obstacle_run():
     w = ZoneWorld(layout="v7", seed=1, robots={CLEANER: "P-1"}, cleaners=(CLEANER,), orders=[],
-                  injections=[Obstacle(0.35, 0.4875, 0.05)])
+                  injections=[Obstacle(0.90, 0.5625, 0.05)])  # 가운데 영역 동쪽으로 가는 줄 15 앞쪽
     w.run_until(lambda: _laps(w, 1), 600)
     w.run_until(lambda: any(e.code == "CLEAN_LAP_START" and "lap 2" in e.detail
                             for _, e in w.events), 60)

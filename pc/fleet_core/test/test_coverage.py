@@ -71,6 +71,50 @@ def test_clean_grid_coverage(layout_plan):
     assert on_grid >= 0.99
 
 
+# ---- 영역 나누기: 줄을 region_width_m 띠 안에서 긋고 한 영역씩 끝낸다 ----
+def _region_order(plan):
+    return [plan.cells[cell]["region"] for _, _, cell in plan.lines]
+
+
+def test_lines_stay_inside_one_region(layout_plan):
+    _, plan = layout_plan
+    for a, b, _ in plan.lines:
+        assert abs(b[0] - a[0]) <= plan.params.region_width_m + 1e-9
+
+
+def test_regions_are_swept_one_after_another(layout_plan):
+    _, plan = layout_plan
+    seen = []
+    for region in _region_order(plan):
+        if not seen or seen[-1] != region:
+            assert region not in seen, f"comes back to region {region}"
+            seen.append(region)
+
+
+def test_v7_is_cut_into_regions_from_the_home_side():
+    plan = make_plan(load_fleet_map("v7"))
+    order = list(dict.fromkeys(_region_order(plan)))
+    assert len(order) >= 3
+    # 집 자리(서쪽)에서 가까운 영역부터
+    west = [min(a[0], b[0]) for a, b, _ in plan.lines]
+    firsts = [west[_region_order(plan).index(r)] for r in order]
+    assert firsts == sorted(firsts)
+
+
+def test_lines_alone_cover_the_clean_grid(layout_plan):
+    """관제는 줄만 덮은 것으로 센다: 이동 구간 없이도 키운 격자를 99 % 이상 덮는다."""
+    _, plan = layout_plan
+    hit = cov.covered_by(plan.grid, plan.params, [[a, b] for a, b, _ in plan.lines])
+    free = plan.grid.free
+    assert (hit & free).sum() / free.sum() >= 0.99
+
+
+def test_region_width_zero_keeps_whole_lines():
+    plan = make_plan(load_fleet_map("v7"), Params(region_width_m=0.0))
+    assert max(abs(b[0] - a[0]) for a, b, _ in plan.lines) > 1.4
+    assert {c["region"] for c in plan.cells} == {0}
+
+
 # ---- 정확한 거리 검사: 칸 중심이 아니라 경로의 모든 점 ----
 def _fake_site():
     zones = {"HALL": SimpleNamespace(id="HALL", rects=((0.0, 0.0, 2.0, 0.79),)),

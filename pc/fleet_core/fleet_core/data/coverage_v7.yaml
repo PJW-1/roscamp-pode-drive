@@ -3,41 +3,62 @@
 layout: v7
 command: python3 -m fleet_core.coverage --layout v7 --write
 params: {grid_m: 0.025, robot_radius_m: 0.083, margin_m: 0.01, line_spacing_m: 0.1, clean_width_m: 0.112,
-  turn_radius_m: 0.1, speed_mps: 0.12, line_direction: x}
+  turn_radius_m: 0.1, speed_mps: 0.12, region_width_m: 0.6, line_direction: x}
 home:
   node: P-1
   pose: [0.12, 0.1]
   start: [0.1125, 0.2625]
   moved_to_nearest_free: true
-summary: {cells: 9, lines: 19, line_length_m: 10.925, transit_length_m: 4.041, lap_time_s: 124.7, coverage_hall_floor: 0.6874,
-  coverage_clean_grid: 1.0, unreachable_free_cells: 0}
+summary: {regions: 3, cells: 12, lines: 28, line_length_m: 9.775, transit_length_m: 6.906, lap_time_s: 139.0,
+  coverage_hall_floor: 0.6843, coverage_clean_grid: 1.0, unreachable_free_cells: 0}
 cells:
 - id: 0
+  region: 0
   box: [0.1125, 0.2625, 0.1375, 0.2875]
   lines: 1
 - id: 1
-  box: [0.1125, 0.3125, 0.6375, 0.4625]
-  lines: 3
+  region: 0
+  box: [0.1125, 0.3125, 0.6875, 0.6625]
+  lines: 5
 - id: 2
-  box: [0.1125, 0.6625, 0.5875, 0.6625]
+  region: 0
+  box: [0.3625, 0.2875, 0.4125, 0.2875]
   lines: 1
 - id: 3
-  box: [0.1125, 0.4875, 1.6625, 0.6375]
-  lines: 3
+  region: 0
+  box: [0.6625, 0.1125, 0.6875, 0.2375]
+  lines: 1
 - id: 4
-  box: [1.6125, 0.2625, 1.8625, 0.4625]
+  region: 1
+  box: [0.7125, 0.1125, 1.2625, 0.2375]
   lines: 3
 - id: 5
-  box: [0.6625, 0.1125, 1.8625, 0.2375]
-  lines: 3
-- id: 6
+  region: 1
   box: [1.0375, 0.2625, 1.1875, 0.4625]
   lines: 3
+- id: 6
+  region: 1
+  box: [0.7125, 0.4875, 1.2625, 0.6375]
+  lines: 3
 - id: 7
-  box: [1.6375, 0.6625, 1.6875, 0.6625]
-  lines: 1
+  region: 2
+  box: [1.2875, 0.4875, 1.6625, 0.6375]
+  lines: 3
 - id: 8
-  box: [0.3625, 0.2875, 0.4125, 0.2875]
+  region: 2
+  box: [1.6375, 0.3125, 1.7125, 0.4625]
+  lines: 2
+- id: 9
+  region: 2
+  box: [1.6125, 0.2625, 1.8625, 0.2875]
+  lines: 2
+- id: 10
+  region: 2
+  box: [1.2875, 0.1125, 1.8625, 0.2375]
+  lines: 3
+- id: 11
+  region: 2
+  box: [1.6375, 0.6625, 1.6875, 0.6625]
   lines: 1
 lines:
 - cell: 0
@@ -47,56 +68,83 @@ lines:
   start: [0.1125, 0.3125]
   end: [0.6125, 0.3125]
 - cell: 1
-  start: [0.5875, 0.3875]
-  end: [0.1125, 0.3875]
+  start: [0.5875, 0.4125]
+  end: [0.1125, 0.4125]
 - cell: 1
-  start: [0.1125, 0.4625]
-  end: [0.6375, 0.4625]
-- cell: 2
-  start: [0.5875, 0.6625]
-  end: [0.1125, 0.6625]
-- cell: 3
-  start: [0.1125, 0.6375]
-  end: [1.6625, 0.6375]
-- cell: 3
-  start: [1.6625, 0.5625]
-  end: [0.1125, 0.5625]
-- cell: 3
   start: [0.1125, 0.4875]
-  end: [1.6625, 0.4875]
-- cell: 4
-  start: [1.6625, 0.4625]
-  end: [1.6375, 0.4625]
-- cell: 4
-  start: [1.6625, 0.3625]
-  end: [1.6875, 0.3625]
-- cell: 4
-  start: [1.8625, 0.2625]
-  end: [1.6125, 0.2625]
-- cell: 5
-  start: [1.8625, 0.2375]
-  end: [0.6625, 0.2375]
-- cell: 5
-  start: [0.6875, 0.1875]
-  end: [1.8625, 0.1875]
-- cell: 5
-  start: [1.8625, 0.1125]
-  end: [0.6875, 0.1125]
-- cell: 6
-  start: [1.0375, 0.2625]
-  end: [1.1875, 0.2625]
-- cell: 6
-  start: [1.1375, 0.3625]
-  end: [1.0875, 0.3625]
-- cell: 6
-  start: [1.0625, 0.4625]
-  end: [1.1875, 0.4625]
-- cell: 7
-  start: [1.6375, 0.6625]
-  end: [1.6875, 0.6625]
-- cell: 8
+  end: [0.6875, 0.4875]
+- cell: 1
+  start: [0.6875, 0.5875]
+  end: [0.1125, 0.5875]
+- cell: 1
+  start: [0.1125, 0.6625]
+  end: [0.5875, 0.6625]
+- cell: 2
   start: [0.4125, 0.2875]
   end: [0.3625, 0.2875]
+- cell: 3
+  start: [0.6875, 0.2375]
+  end: [0.6625, 0.2375]
+- cell: 4
+  start: [0.7125, 0.2375]
+  end: [1.2625, 0.2375]
+- cell: 4
+  start: [1.2625, 0.1875]
+  end: [0.7125, 0.1875]
+- cell: 4
+  start: [0.7125, 0.1125]
+  end: [1.2625, 0.1125]
+- cell: 5
+  start: [1.1875, 0.2625]
+  end: [1.0375, 0.2625]
+- cell: 5
+  start: [1.0875, 0.3625]
+  end: [1.1375, 0.3625]
+- cell: 5
+  start: [1.1875, 0.4625]
+  end: [1.0625, 0.4625]
+- cell: 6
+  start: [1.2625, 0.4875]
+  end: [0.7125, 0.4875]
+- cell: 6
+  start: [0.7125, 0.5625]
+  end: [1.2625, 0.5625]
+- cell: 6
+  start: [1.2625, 0.6375]
+  end: [0.7125, 0.6375]
+- cell: 7
+  start: [1.2875, 0.6375]
+  end: [1.6625, 0.6375]
+- cell: 7
+  start: [1.6625, 0.5625]
+  end: [1.2875, 0.5625]
+- cell: 7
+  start: [1.2875, 0.4875]
+  end: [1.6625, 0.4875]
+- cell: 8
+  start: [1.6625, 0.4625]
+  end: [1.6375, 0.4625]
+- cell: 8
+  start: [1.6625, 0.3125]
+  end: [1.7125, 0.3125]
+- cell: 9
+  start: [1.6375, 0.2875]
+  end: [1.8625, 0.2875]
+- cell: 9
+  start: [1.8625, 0.2625]
+  end: [1.6125, 0.2625]
+- cell: 10
+  start: [1.8625, 0.2375]
+  end: [1.2875, 0.2375]
+- cell: 10
+  start: [1.2875, 0.1875]
+  end: [1.8625, 0.1875]
+- cell: 10
+  start: [1.8625, 0.1125]
+  end: [1.2875, 0.1125]
+- cell: 11
+  start: [1.6375, 0.6625]
+  end: [1.6875, 0.6625]
 transits:
 - from: home
   to: line 0
@@ -114,112 +162,173 @@ transits:
   to: line 2
   points:
   - [0.6125, 0.3125]
-  - [0.5875, 0.3875]
-  length_m: 0.079
+  - [0.5875, 0.4125]
+  length_m: 0.103
 - from: line 2
   to: line 3
   points:
-  - [0.1125, 0.3875]
-  - [0.1125, 0.4625]
+  - [0.1125, 0.4125]
+  - [0.1125, 0.4875]
   length_m: 0.075
 - from: line 3
   to: line 4
   points:
-  - [0.6375, 0.4625]
-  - [0.5875, 0.6625]
-  length_m: 0.206
+  - [0.6875, 0.4875]
+  - [0.6875, 0.5875]
+  length_m: 0.1
 - from: line 4
   to: line 5
   points:
+  - [0.1125, 0.5875]
   - [0.1125, 0.6625]
-  - [0.1125, 0.6375]
-  length_m: 0.025
+  length_m: 0.075
 - from: line 5
   to: line 6
+  points:
+  - [0.5875, 0.6625]
+  - [0.4125, 0.2875]
+  length_m: 0.414
+- from: line 6
+  to: line 7
+  points:
+  - [0.3625, 0.2875]
+  - [0.6625, 0.4875]
+  - [1.0625, 0.4875]
+  - [1.0875, 0.3875]
+  - [1.0875, 0.2875]
+  - [0.9875, 0.2375]
+  - [0.6875, 0.2375]
+  length_m: 1.375
+- from: line 7
+  to: line 8
+  points:
+  - [0.6625, 0.2375]
+  - [0.7125, 0.2375]
+  length_m: 0.05
+- from: line 8
+  to: line 9
+  points:
+  - [1.2625, 0.2375]
+  - [1.2625, 0.1875]
+  length_m: 0.05
+- from: line 9
+  to: line 10
+  points:
+  - [0.7125, 0.1875]
+  - [0.7125, 0.1125]
+  length_m: 0.075
+- from: line 10
+  to: line 11
+  points:
+  - [1.2625, 0.1125]
+  - [1.1875, 0.2625]
+  length_m: 0.168
+- from: line 11
+  to: line 12
+  points:
+  - [1.0375, 0.2625]
+  - [1.0875, 0.3125]
+  - [1.0875, 0.3625]
+  length_m: 0.121
+- from: line 12
+  to: line 13
+  points:
+  - [1.1375, 0.3625]
+  - [1.1625, 0.4625]
+  - [1.1875, 0.4625]
+  length_m: 0.128
+- from: line 13
+  to: line 14
+  points:
+  - [1.0625, 0.4625]
+  - [1.2625, 0.4875]
+  length_m: 0.202
+- from: line 14
+  to: line 15
+  points:
+  - [0.7125, 0.4875]
+  - [0.7125, 0.5625]
+  length_m: 0.075
+- from: line 15
+  to: line 16
+  points:
+  - [1.2625, 0.5625]
+  - [1.2625, 0.6375]
+  length_m: 0.075
+- from: line 16
+  to: line 17
+  points:
+  - [0.7125, 0.6375]
+  - [1.2875, 0.6375]
+  length_m: 0.575
+- from: line 17
+  to: line 18
   points:
   - [1.6625, 0.6375]
   - [1.6625, 0.5625]
   length_m: 0.075
-- from: line 6
-  to: line 7
+- from: line 18
+  to: line 19
   points:
-  - [0.1125, 0.5625]
-  - [0.1125, 0.4875]
+  - [1.2875, 0.5625]
+  - [1.2875, 0.4875]
   length_m: 0.075
-- from: line 7
-  to: line 8
+- from: line 19
+  to: line 20
   points:
   - [1.6625, 0.4875]
   - [1.6625, 0.4625]
   length_m: 0.025
-- from: line 8
-  to: line 9
+- from: line 20
+  to: line 21
   points:
   - [1.6375, 0.4625]
   - [1.6625, 0.3625]
-  length_m: 0.103
-- from: line 9
-  to: line 10
+  - [1.6625, 0.3125]
+  length_m: 0.153
+- from: line 21
+  to: line 22
   points:
-  - [1.6875, 0.3625]
-  - [1.7375, 0.2875]
+  - [1.7125, 0.3125]
+  - [1.6375, 0.2875]
+  length_m: 0.079
+- from: line 22
+  to: line 23
+  points:
+  - [1.8625, 0.2875]
   - [1.8625, 0.2625]
-  length_m: 0.218
-- from: line 10
-  to: line 11
+  length_m: 0.025
+- from: line 23
+  to: line 24
   points:
   - [1.6125, 0.2625]
   - [1.8625, 0.2375]
   length_m: 0.251
-- from: line 11
-  to: line 12
+- from: line 24
+  to: line 25
   points:
-  - [0.6625, 0.2375]
-  - [0.6875, 0.1875]
-  length_m: 0.056
-- from: line 12
-  to: line 13
+  - [1.2875, 0.2375]
+  - [1.2875, 0.1875]
+  length_m: 0.05
+- from: line 25
+  to: line 26
   points:
   - [1.8625, 0.1875]
   - [1.8625, 0.1125]
   length_m: 0.075
-- from: line 13
-  to: line 14
+- from: line 26
+  to: line 27
   points:
-  - [0.6875, 0.1125]
-  - [1.0375, 0.2625]
-  length_m: 0.381
-- from: line 14
-  to: line 15
-  points:
-  - [1.1875, 0.2625]
-  - [1.1375, 0.3625]
-  length_m: 0.112
-- from: line 15
-  to: line 16
-  points:
-  - [1.0875, 0.3625]
-  - [1.0875, 0.4625]
-  - [1.0625, 0.4625]
-  length_m: 0.125
-- from: line 16
-  to: line 17
-  points:
-  - [1.1875, 0.4625]
+  - [1.2875, 0.1125]
+  - [1.6625, 0.2875]
   - [1.6375, 0.6625]
-  length_m: 0.492
-- from: line 17
-  to: line 18
-  points:
-  - [1.6875, 0.6625]
-  - [0.6875, 0.4875]
-  - [0.5875, 0.4375]
-  - [0.4125, 0.2875]
-  length_m: 1.357
-- from: line 18
+  length_m: 0.79
+- from: line 27
   to: home
   points:
-  - [0.3625, 0.2875]
-  - [0.1625, 0.3125]
+  - [1.6875, 0.6625]
+  - [1.2625, 0.5875]
+  - [0.6375, 0.4875]
+  - [0.1125, 0.2875]
   - [0.1125, 0.2625]
-  length_m: 0.272
+  length_m: 1.651
