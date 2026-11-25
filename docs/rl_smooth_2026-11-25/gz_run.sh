@@ -27,8 +27,10 @@ for d in q2e3 main; do
 done
 mkdir -p "$OUT"
 export BENCH_DOMAIN=${BENCH_DOMAIN:-72} BENCH_OVERRIDES=$HERE/gz_overrides.yaml
-export BENCH_CONTROLLERS="FollowPathGoal FollowPathMPPI FollowPathRLShimACD3 FollowPathRLShimACD3W50 FollowPathRLShimACD3W25"
-echo "smooth gz start $(date -Is) out $OUT repeats $REPEATS src $SRC build $B" | tee -a "$OUT/gz.txt"
+# 컨트롤러 목록은 바깥에서 줄일 수 있다(시간이 모자라면 MPPI를 빼는 식)
+ALL="FollowPathGoal FollowPathMPPI FollowPathRLShimACD3 FollowPathRLShimACD3W50 FollowPathRLShimACD3W25"
+export BENCH_CONTROLLERS=${BENCH_CONTROLLERS:-$ALL}
+echo "smooth gz start $(date -Is) out $OUT repeats $REPEATS src $SRC build $B controllers $BENCH_CONTROLLERS" | tee -a "$OUT/gz.txt"
 
 # ---- 멈출 때 run_bench와 그 아래 프로세스를 같이 내린다 ----
 CHILD=
