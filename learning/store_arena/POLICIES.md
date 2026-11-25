@@ -132,7 +132,7 @@ d = 에피소드마다 최고 속도 U(0.08, 0.16)와 그 관측(RW:12-15). 최�
 | t_caps (`n26/t_caps`) | 11-26 | 같음 c6a6bd02 | 같음 | 300 / (진행) | 3 | 같음 | `--caps_temporal 0.04 --caps_spatial 0.2 --caps_sigma 0.1`, `w_action_rate=0 w_w_flip=0` | a+c+d(부드러움 벌점 없음) | 부드러움을 보상 벌점 대신 손실(행동 평균)에 건다 | 44 | (진행) | 없음 | 진행 | 작업 기록 10절, `docs/report_2026-11-26_rl_caps.md` |
 | t_caps_std (`n26/t_caps_std`) | 11-26 | 같음 c6a6bd02 | 같음 | 300 / (진행) | 3 | 같음 | t_caps + `--init_std 0.3` | a+c+d(부드러움 벌점 없음) | 위 + 탐색 std를 0.3으로 되돌려 시작 | 44 | (진행) | 없음 | 진행 | 작업 기록 10절 |
 | t_sym (`n26/t_sym`) | 11-26 | 같음 3e770458 | 같음 | 300 / (진행) | 3 | 같음 | `--symmetry aug` | a+c+d | 좌우 거울 증강(표본마다 거울 사본을 붙여 학습) | 44 | (진행) | 없음 | 진행 | 작업 기록 11절, `docs/report_2026-11-26_rl_symmetry.md` |
-| t_demo_hist (`n26/t_demo_hist`) | 11-26 | 같음 @COMMIT@ | `n26/init_acd3_hist3.pt` (acd3에 `widen_checkpoint.py --add_lidar_history`) | 300 / (진행) | 3 | 같음 | t_demo_std 설정 + `lidar_frames=3 lidar_stride_steps=4` | a+b+c+d | 라이다 이력 + std 0.3 + 시연 조건 절반 | 116 | (진행) | 없음 | 진행 | 작업 기록 12절 |
+| t_demo_hist (`n26/t_demo_hist`) | 11-26 | 같음 51b51d39 | `n26/init_acd3_hist3.pt` (acd3에 `widen_checkpoint.py --add_lidar_history`) | 300 / (진행) | 3 | 같음 | t_demo_std 설정 + `lidar_frames=3 lidar_stride_steps=4` | a+b+c+d | 라이다 이력 + std 0.3 + 시연 조건 절반 | 116 | (진행) | 없음 | 진행 | 작업 기록 12절 |
 
 평가(모두 `--num_envs 4096 --episodes 1 --seed 7`, a+c+d 관측, `robot_max=2 robot_priority_prob=0.5 speed_cap_range=0.12,0.12`).
 칸 이름: rand(무작위), head(`robot_headon=1`), realrand(실측 명령 응답 고정: `cmd_delay_steps_range=1,1 cmd_lag_tau_range=0.065,0.065`),
