@@ -68,7 +68,7 @@ def test_mode_changes_set_the_layer_then_clear_in_order(ros):
         assert spin_until(executor, lambda: calls, 5.0, also=lambda: plan.publish(Path()))
         assert calls == [("set", "obstacle_layer.enabled", True)]
         # plan이 끊기면 주행 끝: 층을 끄고 나서 지운다
-        assert spin_until(executor, lambda: len(calls) == 3, 5.0)
+        assert spin_until(executor, lambda: len(calls) == 3 and not node.ops, 5.0)
         assert calls[1:] == [("set", "obstacle_layer.enabled", False), ("clear",)]
         assert node.state.mode == "aisle" and node.ops == []
     finally:
