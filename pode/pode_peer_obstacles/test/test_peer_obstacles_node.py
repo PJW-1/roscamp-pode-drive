@@ -218,3 +218,110 @@ def test_one_process_can_run_a_node_for_every_robot():
         for node in (*fleet, other):
             node.destroy_node()
         rclpy.try_shutdown()
+
+
+# ---- 선 로봇의 모양과 띠 ----
+@pytest.fixture
+def passing():
+    """pode1이 보는 쪽: 선 로봇은 발자국 모양, 선 pode3에서는 띠 0.30 m."""
+    rclpy.init()
+    from pode_peer_obstacles.node import PeerObstacles
+    node = PeerObstacles(parameter_overrides=[
+        Parameter("robot_id", value="pode1"),
+        Parameter("robots", value="pode1,pode2,pode3"),
+        Parameter("standing_shape", value="footprint"),
+        Parameter("lane_robots", value="pode3"),
+        Parameter("lane_m", value=0.30),
+        Parameter("rate_hz", value=20.0)])
+    other = rclpy.create_node("other_side")
+    executor = SingleThreadedExecutor()
+    executor.add_node(node)
+    executor.add_node(other)
+    yield node, other, executor
+    executor.shutdown()
+    node.destroy_node()
+    other.destroy_node()
+    rclpy.try_shutdown()
+
+
+def _senders(other):
+    return {name: other.create_publisher(RobotState, f"/{name}/state", STATE_QOS)
+            for name in ("pode1", "pode2", "pode3")}
+
+
+def test_a_standing_robot_is_marked_as_its_footprint_and_a_moving_one_as_the_disc(passing):
+    node, other, executor = passing
+    clouds = []
+    other.create_subscription(PointCloud2, "peer_obstacles", clouds.append, 5)
+    senders = _senders(other)
+
+    def seen():
+        senders["pode2"].publish(_state("pode2", 0.6, 0.6, state="MOVING"))
+        senders["pode3"].publish(_state("pode3", 1.40, 0.2615, state="IDLE"))
+        return bool(clouds) and len(_points(clouds[-1])) > 60
+
+    assert _spin_until(executor, seen)
+    points = _points(clouds[-1])
+    standing = [p for p in points if math.dist(p[:2], (1.40, 0.2615)) < 0.2]
+    moving = [p for p in points if math.dist(p[:2], (0.6, 0.6)) < 0.2]
+    assert min(p[1] for p in standing) == pytest.approx(0.2615 - 0.058, abs=1e-3)
+    assert min(p[1] for p in moving) == pytest.approx(0.6 - 0.075, abs=1e-3)
+
+
+def test_the_lane_goes_out_only_for_a_standing_cleaner_toward_this_robot(passing):
+    node, other, executor = passing
+    lanes = []
+    other.create_subscription(PointCloud2, "peer_lane", lanes.append, 5)
+    senders = _senders(other)
+    state = {"pode3": "IDLE"}
+
+    def send():
+        senders["pode1"].publish(_state("pode1", 0.64, 0.24))
+        senders["pode2"].publish(_state("pode2", 0.6, 0.6, state="IDLE"))
+        senders["pode3"].publish(_state("pode3", 1.40, 0.2615, state=state["pode3"]))
+
+    def seen():
+        send()
+        return bool(lanes) and len(_points(lanes[-1])) > 20
+
+    assert _spin_until(executor, seen)
+    points = _points(lanes[-1])
+    assert lanes[-1].header.frame_id == "map"
+    assert min(p[0] for p in points) == pytest.approx(1.024, abs=1e-3)
+    assert max(p[0] for p in points) == pytest.approx(1.324, abs=1e-3)
+    assert min(p[1] for p in points) == pytest.approx(0.2035, abs=1e-3)
+    assert max(p[1] for p in points) == pytest.approx(0.3195, abs=1e-3)
+    # 달리기 시작하면 띠는 사라지고 먼 점 하나만 남는다
+    state["pode3"] = "MOVING"
+
+    def gone():
+        send()
+        return not _points(lanes[-1]) and len(_all_points(lanes[-1])) == 1
+
+    assert _spin_until(executor, gone)
+
+
+def test_no_lane_goes_out_by_default(running):
+    node, other, executor = running
+    lanes = []
+    other.create_subscription(PointCloud2, "peer_lane", lanes.append, 5)
+    senders = _senders(other)
+
+    def sent():
+        senders["pode1"].publish(_state("pode1", 0.64, 0.24))
+        senders["pode3"].publish(_state("pode3", 1.40, 0.2615, state="IDLE"))
+        return len(lanes) >= 6
+
+    assert _spin_until(executor, sent)
+    assert not _points(lanes[-1]) and len(_all_points(lanes[-1])) == 1
+
+
+def test_an_unknown_standing_shape_is_refused():
+    rclpy.init()
+    try:
+        from pode_peer_obstacles.node import PeerObstacles
+        with pytest.raises(ValueError, match="standing_shape"):
+            PeerObstacles(parameter_overrides=[Parameter("robot_id", value="pode1"),
+                                               Parameter("standing_shape", value="ball")])
+    finally:
+        rclpy.try_shutdown()

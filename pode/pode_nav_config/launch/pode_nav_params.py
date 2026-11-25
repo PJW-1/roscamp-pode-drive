@@ -8,6 +8,8 @@ AVOIDANCE_KEYS = (GOAL_KEY, VISION_KEY, PEER_LAYER)
 GOAL_CONTROLLER = "FollowPathGoal"
 VISION_SOURCE = "vision"
 COSTMAPS = ("local_costmap", "global_costmap")
+PEER_LANE = "lane"  # peer_layer 안의 관측원 이름
+LANE_COSTMAP = "global_costmap"
 INFLATION_LAYER = "inflation_layer"
 
 
@@ -65,7 +67,13 @@ def with_peers(data: dict, overlay: dict) -> dict:
         if PEER_LAYER not in plugins:
             plugins.insert(plugins.index(INFLATION_LAYER), PEER_LAYER)
         node["plugins"] = plugins
-        node[PEER_LAYER] = copy.deepcopy(overlay[PEER_LAYER])
+        layer = copy.deepcopy(overlay[PEER_LAYER])
+        # 선 로봇에서 늘인 띠는 계획(global costmap)만 본다: local costmap에 넣으면 그 앞에서 선다
+        lane = layer.pop(PEER_LANE, None)
+        if lane is not None and name == LANE_COSTMAP:
+            layer[PEER_LANE] = lane
+            layer["observation_sources"] = f"{layer['observation_sources']} {PEER_LANE}"
+        node[PEER_LAYER] = layer
     return data
 
 

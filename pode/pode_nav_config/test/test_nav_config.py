@@ -576,6 +576,16 @@ def _costmap(data, costmap):
     return data[costmap][costmap]["ros__parameters"]
 
 
+def _peer_layer(overlay: dict, costmap: str) -> dict:
+    """costmap에 들어갈 peer_layer: 선 로봇의 띠(lane) 관측원은 global costmap에만 남는다."""
+    layer = copy.deepcopy(overlay["peer_layer"])
+    lane = layer.pop("lane")
+    if costmap == "global_costmap":
+        layer["lane"] = lane
+        layer["observation_sources"] = layer["observation_sources"] + " lane"
+    return layer
+
+
 def test_the_peer_layer_goes_into_both_costmaps_only_when_asked():
     for costmap in ("local_costmap", "global_costmap"):
         assert "peer_layer" not in _costmap(PARAMS, costmap)["plugins"]
@@ -586,13 +596,14 @@ def test_the_peer_layer_goes_into_both_costmaps_only_when_asked():
         at = after["plugins"].index("peer_layer")
         assert after["plugins"][at + 1] == "inflation_layer", "the bodies are inflated too"
         assert [p for p in after["plugins"] if p != "peer_layer"] == before["plugins"]
-        assert after["peer_layer"] == PEERS["peer_layer"]
+        assert after["peer_layer"] == _peer_layer(PEERS, costmap)
         assert after["obstacle_layer"] == before["obstacle_layer"], "the lidar layer is untouched"
 
 
 def test_the_peer_layer_can_be_taken_from_the_whole_avoidance_file():
     seen = owners.with_peers(copy.deepcopy(PARAMS), AVOIDANCE)
-    assert _costmap(seen, "local_costmap")["peer_layer"] == AVOIDANCE["peer_layer"]
+    for costmap in ("local_costmap", "global_costmap"):
+        assert _costmap(seen, costmap)["peer_layer"] == _peer_layer(AVOIDANCE, costmap)
 
 
 def test_the_peer_layer_is_added_once():

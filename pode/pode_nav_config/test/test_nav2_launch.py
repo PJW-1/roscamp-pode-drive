@@ -431,6 +431,17 @@ def test_peer_obstacles_adds_the_layer_to_both_costmaps_and_starts_the_node():
         assert costmap["obstacle_layer"]["observation_sources"] == "scan"
 
 
+def test_the_lane_of_a_standing_robot_is_a_source_of_the_global_costmap_only():
+    """선 로봇에서 늘인 띠는 계획만 본다: local costmap에 넣으면 운반 로봇이 그 앞에서 선다."""
+    _, found = _expand("false", peer_obstacles="true", peer_robots="pode1,pode2,pode3")
+    costmaps = _costmaps(found)
+    assert costmaps["global"]["peer_layer"]["observation_sources"] == "peers sweep lane"
+    lane = costmaps["global"]["peer_layer"]["lane"]
+    assert lane["topic"] == "/pode1/peer_lane" and lane["marking"] and not lane["clearing"]
+    assert costmaps["local"]["peer_layer"]["observation_sources"] == "peers sweep"
+    assert "lane" not in costmaps["local"]["peer_layer"]
+
+
 def test_the_composed_container_carries_the_peer_layer_for_the_costmap_sub_nodes():
     _, found = _expand("true", peer_obstacles="true", peer_robots="pode1,pode2")
     container = found[0][0]
