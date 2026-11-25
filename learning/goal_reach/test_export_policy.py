@@ -116,3 +116,13 @@ def test_a_chunk_without_max_iterations_still_gives_the_first_init(tmp_path):
     _write(c2, "run.json", {"max_iterations": 250, "seed": 3, "resume": str(c1 / "m.pt")})
     out = ep.run_provenance(str(c2 / "model_1496.pt"), 1496)
     assert out["parent_checkpoint"] == "D:/r/init.pt" and out["iterations_this_run"] is None
+
+
+def test_a_resume_from_a_mid_chunk_checkpoint_counts_only_up_to_it(tmp_path):
+    c1, c2 = tmp_path / "c1", tmp_path / "c2"
+    _write(c1, "run.json", {"max_iterations": 300, "seed": 1, "init": "", "resume": ""})
+    for n in (150, 299):
+        (c1 / f"model_{n}.pt").write_bytes(b"")
+    _write(c2, "run.json", {"max_iterations": 100, "seed": 1, "resume": str(c1 / "model_150.pt")})
+    out = ep.run_provenance(str(c2 / "model_249.pt"), 249)
+    assert out["iterations_this_run"] == 151 + 100 and out["parent_checkpoint"] == ""
