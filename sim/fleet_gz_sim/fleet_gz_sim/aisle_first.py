@@ -50,9 +50,11 @@ def step(state: State, now: float, xy: tuple[float, float] | None, moving: bool,
             if away > rules.resume_m:
                 return State(ref=xy, ref_t=now, reason=f"moved {away:.2f} m"), OBSTACLES_OFF
         return state, NONE
-    # ---- AISLE: 주행 중이 아니거나 위치를 모르면 세지 않는다 ----
-    if not moving or xy is None:
+    # ---- AISLE: 주행 중이 아니면 기준을 버리고, 위치를 모르면 판단을 미룬다 ----
+    if not moving:
         return replace(state, ref=None), NONE
+    if xy is None:
+        return state, NONE
     if state.ref is None or now < state.ref_t or math.dist(xy, state.ref) > rules.progress_m:
         return replace(state, ref=xy, ref_t=now), NONE
     stalled = now - state.ref_t

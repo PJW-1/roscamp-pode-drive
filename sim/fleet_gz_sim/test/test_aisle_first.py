@@ -65,9 +65,14 @@ def test_time_while_not_navigating_does_not_count():
 def test_unknown_position_never_triggers():
     state, actions = run([(t, None, True) for t in range(0, 30)])
     assert state.mode == AISLE and set(actions) == {NONE}
-    # 위치가 끊기면 기준도 버린다
-    state, actions = run(still(0.0, 4.0) + [(4.5, None, True), (6.0, (1.0, 0.5), True)])
+    # 위치를 모르는 동안에는 시간이 지나도 켜지지 않는다
+    state, actions = run(still(0.0, 4.0) + [(t, None, True) for t in range(5, 20)])
     assert state.mode == AISLE and set(actions) == {NONE}
+
+
+def test_a_short_position_gap_keeps_the_stall_already_counted():
+    state, actions = run(still(0.0, 4.0) + [(4.5, None, True), (5.0, (1.0, 0.5), True)])
+    assert actions[-2:] == [NONE, OBSTACLES_ON]
 
 
 def detour_state():
