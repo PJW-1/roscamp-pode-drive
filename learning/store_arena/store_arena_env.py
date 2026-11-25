@@ -20,10 +20,13 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "goal_reach"))
 
 import arena_spec as arena  # noqa: E402
+import encounter as enc  # noqa: E402
 import mover_spec as ms  # noqa: E402
 import numpy as np  # noqa: E402
 import robot_spec as rbs  # noqa: E402
 import route_spec as rs  # noqa: E402
+import scenario_spec as scn  # noqa: E402
+import social_reward as sr  # noqa: E402
 import task_spec as ts  # noqa: E402
 import torch  # noqa: E402
 from goal_reach_env import GoalReachEnv, GoalReachEnvCfg  # noqa: E402
@@ -260,6 +263,21 @@ class StoreArenaEnv(GoalReachEnv):
             device=dev,
         ).repeat_interleave(r.layouts, 0)  # (R, 2)
         nk = int(a.robot_max)
+        # 평가 시나리오 후보 (robot_scenario): 경로, 로봇 0 그래프 경로와 출발 호장
+        self.scen_names = scn.scenario_names(a.robot_scenario)
+        self.scen = None
+        if self.scen_names:
+            if nk < 1 or a.robot_headon:
+                raise ValueError("robot_scenario needs robot_max >= 1 and robot_headon=0")
+            shelves = np.array([(b.x0, b.y0, b.x1, b.y1) for b in self.boxes if b.kind == "shelf"])
+            built = [scn.build_scenario(k_, r, g, static, shelves) for k_ in self.scen_names]
+            for sc in built:
+                print(f"[ARENA] scenario {sc.name}: {sc.count} candidates, "
+                      f"{len(set(sc.route.tolist()))} start/goal pairs")
+            self.scen = scn.pack(built, dev)
+        self.scen_pick = torch.full((n,), -1, dtype=torch.long, device=dev)  # 후보 행, -1 없음
+        self.last_ep_scen = torch.full((n,), -1, dtype=torch.long, device=dev)
+        self._new_scen = torch.full((n,), -1, dtype=torch.long, device=dev)
         self.robot_objs = [self.scene[f"fleet_robot_{k}"] for k in range(nk)]
         self.robot_park = torch.tensor([robot_park_xy(k) for k in range(nk)], **f32)
         lay = rbs.chain_route(
@@ -296,6 +314,18 @@ class StoreArenaEnv(GoalReachEnv):
         self.lid_buf = torch.zeros(n, hist, s.lidar_sectors, **f32)
         self.lid_fresh = torch.ones(n, dtype=torch.bool, device=dev)
         self.robot_prev_xy = torch.zeros(n, nk, 2, **f32)
+        # 만남 지표 (encounter): 스텝마다 로봇별 몸체 간격과 속력
+        self.enc = enc.new_state(n, nk, dev)
+        self.last_ep_enc = enc.snapshot(self.enc, slice(None))
+        self.robot_clear = torch.full((n, nk), float("inf"), **f32)
+        self.robot_last_xy = torch.zeros(n, nk, 2, **f32)  # 직전 _get_dones 의 로봇 위치
+        self.robot_speed = torch.zeros(n, nk, **f32)
+        # 움직이는 것 근처 보상 (social_reward): 몸체 간격, 이번 스텝 전 위치
+        self.dyn_clear = torch.full((n,), float("inf"), **f32)
+        self.robot_step_prev = torch.zeros(n, nk, 2, **f32)
+        self.our_last_xy = torch.zeros(n, 2, **f32)
+        self.our_step_prev = torch.zeros(n, 2, **f32)
+        self.our_speed = torch.zeros(n, **f32)
         self._routes_ready = True
 
     def sample_start(self, n: int) -> tuple[torch.Tensor, torch.Tensor]:
@@ -330,6 +360,14 @@ class StoreArenaEnv(GoalReachEnv):
             yaw = torch.where(ho, ho_yaw, yaw)
             self._new_handover = ho
             self._new_w0 = torch.where(ho, w0, 0.0)
+        self._new_scen = torch.full((n,), -1, dtype=torch.long, device=self.device)
+        if self.scen is not None:  # 평가 시나리오: 경로를 덮고 경로 쪽을 보며 시작
+            self._new_scen = scn.sample(self.scen, n)
+            self._new_route = self.scen["route"][self._new_scen]
+            yaw = arena.path_heading(self.r_path[self._new_route])
+            self._new_corner = torch.zeros_like(self._new_corner)
+            self._new_handover = torch.zeros_like(self._new_handover)
+            self._new_w0 = torch.zeros_like(self._new_w0)
         self._new_yaw = yaw
         return self.r_start[self._new_route], yaw
 
@@ -359,10 +397,15 @@ class StoreArenaEnv(GoalReachEnv):
             self.last_ep_hit_kind[env_ids] = self.hit_kind[env_ids]
             self.last_ep_corner[env_ids] = self.corner_start[env_ids]
             self.last_ep_handover[env_ids] = self.handover_start[env_ids]
+            self.last_ep_scen[env_ids] = self.scen_pick[env_ids]
+            for k_, v in enc.snapshot(self.enc, env_ids).items():
+                self.last_ep_enc[k_][env_ids] = v
         super()._reset_idx(env_ids)
         if not self._routes_ready:
             return
         self.corner_start[env_ids] = self._new_corner
+        self.scen_pick[env_ids] = self._new_scen
+        enc.reset(self.enc, env_ids)
         self.handover_start[env_ids] = self._new_handover
         if self._new_handover.any():
             self._spin_up(env_ids, self._new_w0)
@@ -412,6 +455,9 @@ class StoreArenaEnv(GoalReachEnv):
         self.robot_gap_min[env_ids] = self.robot_gaps(self.start_xy[env_ids], env_ids)
         for k, (pos, _, _) in enumerate(self.robot_state(env_ids)):
             self.robot_prev_xy[env_ids, k] = pos
+            self.robot_last_xy[env_ids, k] = pos
+        self.robot_speed[env_ids] = 0.0
+        self.our_last_xy[env_ids] = self.start_xy[env_ids]
 
     def _spin_up(self, env_ids, w0) -> None:
         """env_ids 를 w0 (n,) rad/s 로 제자리 회전하며 시작: 몸 yaw 속도, 바퀴 속도, 변화율 제한
@@ -445,6 +491,9 @@ class StoreArenaEnv(GoalReachEnv):
         headon = bool(a.robot_headon) & (sg >= 0).all(-1)
         if a.robot_headon:
             count = torch.where(headon, count.clamp(min=1), count)
+        scen = self._new_scen >= 0
+        if self.scen is not None:
+            count = torch.where(scen, count.clamp(min=1), count)
         for k in range(nk):
             chain = rbs.sample_chains(self.g_t, n, legs, banned, start_banned=ours)
             if k == 0 and a.robot_headon:  # 우리 목표 -> 우리 시작, 이후 임의
@@ -452,7 +501,16 @@ class StoreArenaEnv(GoalReachEnv):
                 if legs > 1:
                     again = headon & (chain[:, 2] == sg[:, 0])
                     chain[again, 2] = sg[again, 1]
+            sc = self._new_scen.clamp(min=0)
+            if k == 0 and self.scen is not None:  # 시나리오 그래프 경로 a -> b, 이후 임의
+                ca, cb = self.scen["a"][sc], self.scen["b"][sc]
+                chain[scen, 0], chain[scen, 1] = ca[scen], cb[scen]
+                if legs > 1:
+                    again = scen & (chain[:, 2] == cb)
+                    chain[again, 2] = ca[again]
             speed = rbs.ROBOT.speed * (lo + torch.rand(n, device=dev) * (hi - lo))
+            if k == 0 and self.scen is not None:  # 시나리오 로봇은 최고속도 (만남 시각 맞춤)
+                speed = torch.where(scen, rbs.ROBOT.speed, speed)
             if self.cap_active:  # 스크립트 로봇은 에피소드 상한 x 자기 배율로 달림
                 speed = speed * self.v_cap[env_ids] / ts.NAV_SPEED_MPS
             pause = p0 + torch.rand(n, legs, device=dev) * (p1 - p0)
@@ -462,6 +520,12 @@ class StoreArenaEnv(GoalReachEnv):
             banned[torch.arange(n, device=dev), chain[:, 0]] = True
             self.robot_active[k, env_ids] = k < count
             self.robot_t[k, env_ids] = 0.0
+            if k == 0 and self.scen is not None:  # 호장 s0 에서 출발, 다른 로봇은 그 근처 노드 제외
+                t0 = self.scen["s0"][sc] / speed
+                self.robot_t[0, env_ids] = torch.where(scen, t0, 0.0)
+                p0_, _, _ = rbs.robot_pose(route, self.robot_t[0, env_ids])
+                near = (self.g_t["xy"][None] - p0_[:, None]).norm(dim=-1) < scn.START_SEP_M
+                banned = banned | (near & scen[:, None])
             self.robot_wait[k, env_ids] = 0.0
             self.robot_back[k, env_ids] = 0.0
             if a.robot_priority_prob > 0:  # 아니면 난수를 안 뽑아 이전 실행과 같게 유지
@@ -687,6 +751,7 @@ class StoreArenaEnv(GoalReachEnv):
             self.d_goal, self.max_contact_force(), xy, self.start_xy, self.spec
         )
         clear = self.footprint_clearance(xy, yaw)
+        self._track_robots(xy)
         graze = arena.graze_flags(clear, self.arena.graze_m)
         self.graze_only = graze & ~self.collided  # 접촉 센서가 못 본 것
         self.collided = self.collided | graze
@@ -697,6 +762,21 @@ class StoreArenaEnv(GoalReachEnv):
             self.episode_length_buf,
             self.ep_limit if self.cap_active else self.max_episode_length,
         )
+
+    def _track_robots(self, xy) -> None:
+        """이번 스텝 전후 위치, 로봇 속력, 만남 지표를 갱신한다 (footprint_clearance 뒤).
+        관측에는 안 들어가고 보상에는 social_reward 항이 켜졌을 때만 들어감."""
+        self.our_step_prev = self.our_last_xy
+        self.our_last_xy = xy.clone()
+        # 우리 속력도 로봇처럼 이번 스텝 위치 변화로 (평면 속력)
+        self.our_speed = (self.our_last_xy - self.our_step_prev).norm(dim=-1) / self.step_dt
+        if not self.robot_objs:
+            return
+        pos = torch.stack([p for p, _, _ in self.robot_state()], 1)
+        self.robot_speed = (pos - self.robot_last_xy).norm(dim=-1) / self.step_dt
+        self.robot_step_prev = self.robot_last_xy
+        self.robot_last_xy = pos
+        enc.update(self.enc, self.robot_clear, self.our_speed, self.robot_speed, self.step_dt)
 
     def footprint_clearance(self, xy, yaw) -> torch.Tensor:
         """(n,) 우리 발자국에서 가장 가까운 장애물까지 거리, 벽/선반/박스 몫은 self.wall_clear 에 저장."""
@@ -710,17 +790,21 @@ class StoreArenaEnv(GoalReachEnv):
         self.wall_clear = arena.footprint_clearance(xy, yaw, h, rects)
         clear = self.wall_clear
         inf = torch.full_like(clear, float("inf"))
+        dyn = inf  # mover 와 로봇 몫 (social_reward)
         for shape, (pos, myaw, _, act) in zip(ms.MOVERS, self.mover_state(), strict=True):
             if shape.kind == "cylinder":
                 c = arena.cylinder_clearance(xy, yaw, h, pos, shape.size[0])
             else:
                 hm = (0.5 * shape.size[0], 0.5 * shape.size[1])
                 c = arena.box_clearance(xy, yaw, h, pos, myaw, hm)
-            clear = torch.minimum(clear, torch.where(act, c, inf))
+            dyn = torch.minimum(dyn, torch.where(act, c, inf))
         hr = (0.5 * rbs.ROBOT.size[0], 0.5 * rbs.ROBOT.size[1])
-        for pos, ryaw, act in self.robot_state():
+        for k, (pos, ryaw, act) in enumerate(self.robot_state()):
             c = arena.box_clearance(xy, yaw, h, pos, ryaw, hr)
-            clear = torch.minimum(clear, torch.where(act, c, inf))
+            self.robot_clear[:, k] = torch.where(act, c, inf)
+            dyn = torch.minimum(dyn, self.robot_clear[:, k])
+        self.dyn_clear = dyn
+        clear = torch.minimum(clear, dyn)
         return clear
 
     def _get_rewards(self) -> torch.Tensor:
@@ -734,6 +818,19 @@ class StoreArenaEnv(GoalReachEnv):
         if s.w_action_rate or s.w_w_flip:
             terms.update(
                 ts.action_rate_terms(self.target, self.prev_target, self.target_flipped, s)
+            )
+        # 움직이는 것 근처 항: 켠 것만 더하고 기록 (끄면 이전과 같은 보상과 로그)
+        if a.near_dyn_m > 0 and a.w_near_dyn:
+            terms["near_dyn"] = sr.near_dyn_penalty(self.dyn_clear, a.near_dyn_m, a.w_near_dyn)
+        if a.yield_m > 0 and a.w_yield:
+            terms["yield"] = sr.yield_reward(
+                self.robot_clear, self.robot_priority.T, self.robot_step_prev, self.robot_last_xy,
+                self.our_step_prev, self.our_last_xy, a.yield_m, a.w_yield,
+            )
+        if a.block_m > 0 and a.w_block:
+            terms["block"] = sr.block_penalty(
+                self.robot_clear, self.our_speed, self.robot_speed, a.block_m,
+                a.block_v_mps, a.w_block,
             )
         for k, v in terms.items():
             self.ep_reward_terms.setdefault(k, torch.zeros_like(v))

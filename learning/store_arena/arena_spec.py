@@ -88,6 +88,17 @@ class ArenaSpec:
     graze_m: float = 0.005  # 여유가 이 이하면 충돌로 에피소드 종료
     near_wall_m: float = 0.05  # 벽/선반/박스 여유가 이 미만이면 벌점
     w_near_wall: float = -0.1  # 여유 0 에서 스텝당 벌점, near_wall_m 에서 0 까지 선형
+    # ---- 움직이는 것 근처 보상 (social_reward): 가중치 0 이면 꺼짐 ----
+    # 불편 거리: mover/로봇과 몸체 간격이 near_dyn_m 미만이면 스텝당 w_near_dyn * (near_dyn_m - 간격) / near_dyn_m
+    near_dyn_m: float = 0.0
+    w_near_dyn: float = 0.0
+    # 양보: 우선 로봇이 몸체 간격 yield_m 이내로 다가올 때 우리가 간격을 안 줄이면 스텝당 w_yield
+    yield_m: float = 0.0
+    w_yield: float = 0.0
+    # 서로 막힘: 로봇과 몸체 간격 block_m 미만에서 둘 다 block_v_mps 보다 느리면 스텝당 w_block
+    block_m: float = 0.0
+    w_block: float = 0.0
+    block_v_mps: float = 0.02
     # 시작 노드가 벽/선반 면에서 corner_start_m 이내인 경로로 시작하는 에피소드 비율
     # 로봇은 경로 반대쪽(± corner_yaw_jitter rad)을 봄
     corner_start_prob: float = 0.25
@@ -126,6 +137,9 @@ class ArenaSpec:
     robot_priority_prob: float = 0.0
     # 1: 평가용, 로봇 0 이 우리 목표 노드에서 시작 노드로 정면 주행
     robot_headon: int = 0
+    # 평가용 시나리오 (scenario_spec.SCENARIOS 를 쉼표로, "" 은 끔): 모든 env 가 후보 중 하나로 시작
+    # 시나리오는 고르게, 그 안의 후보도 고르게 뽑음. robot_headon 과 같이 못 씀
+    robot_scenario: str = ""
     intent_ablate: int = 0  # 1: intent 항목을 0 으로 (로봇이 없는 듯 보임), 평가 전용
 
 
