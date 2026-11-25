@@ -22,12 +22,12 @@ costmap으로 그 옆에 길을 다시 짜서 지나가며, 관제는 통로 지
 
 | 무엇 | 어디 | 내용 |
 |---|---|---|
-| 붙어 서기 | `pc/fleet_core/fleet_core/tuck.py`, `traffic/zone/cleaning.py` | 좁은 통로(면 사이 0.45 m 이하)에서 비켜야 하면 후진보다 먼저 좌표가 큰 쪽 면에 3 cm 띄워 붙고 통로와 나란히 선다. 지나간 뒤 붙기 전 줄을 복귀점부터 잇는다. 파라미터 `clean_tuck_rows`(3), `clean_tuck_clear_m`(0.03), `clean_tuck_wait_s`(30), `clean_tuck_lane_m`(0.30) |
+| 붙어 서기 | `pc/fleet_core/fleet_core/tuck.py`, `traffic/zone/cleaning.py` | 좁은 통로(면 사이 0.45 m 이하)에서 비켜야 하면 후진보다 먼저 좌표가 큰 쪽 면에 3 cm 띄워 붙고 통로와 나란히 선다. 줄 위에서 줄 방향으로 붙은 때에는 지나간 뒤 붙기 전 줄을 복귀점부터 잇는다. 파라미터 `clean_tuck_rows`(3), `clean_tuck_clear_m`(0.03), `clean_tuck_wait_s`(30), `clean_tuck_lane_m`(0.30) |
 | 선 로봇은 발자국 모양 | `pode/pode_peer_obstacles` `standing_shape` | 선(IDLE) 로봇을 몸 발자국(반폭 0.058 m)으로 찍는다. 달리는 로봇과 자세를 잃은 로봇은 반지름 0.075 m 원 그대로다 |
 | 선 청소 로봇에서 늘인 띠 | `pode_peer_obstacles` `lane_robots`, `lane_m`, 토픽 `peer_lane`; `pode_avoidance` `peer_layer.lane`; `pode_nav_config` `with_peers` | 선 청소 로봇의 몸에서 보는 운반 로봇 쪽으로 몸 폭 그대로 0.30 m 띠를 global costmap에만 찍는다. 보는 로봇에서 0.20 m 앞에서 끝난다 |
 | 바퀴 충돌 모양 | `sim/fleet_gz_sim/fleet_gz_sim/pode_model.py`, `wheel_shape` | 제조사 모델의 구(반지름 0.028 m)를 얇은 원판(폭 1.5 mm)으로 바꾸고, 구동 플러그인의 바퀴 간격(`wheel_separation` 0.0961 m) 절반 자리에 둔 URDF를 낸다. 제조사 파일은 그대로다 |
 | 라이다 잡음 | `gz.launch.py` `lidar_noise` | 라이다 거리 잡음 표준편차. 실물에서 잰 값에 맞춘 0.003 m를 쓸 수 있다 |
-| 통로 스캔 띠 | `sim/fleet_gz_sim/fleet_gz_sim/fleet_setup.py` `aisle_strips`, `gz.launch.py` `scan_filter_aisles` | 스캔 거르개(`pode_scan_filter`)의 띠에 진열대 옆 좁은 통로(면 사이 0.45 m 이하)를 넣는다. 통로의 벽·진열대 면에서 5 cm 안의 라이다 점이 costmap에서 빠진다(벽과 진열대는 지도 층에 그대로 있다) |
+| 통로 스캔 띠 | `sim/fleet_gz_sim/fleet_gz_sim/fleet_setup.py` `aisle_strips`, `gz.launch.py` `scan_filter_aisles` | 스캔 거르개(`pode_scan_filter`)의 띠에 진열대 옆 좁은 통로(면 사이 0.45 m 이하)를 넣는다. 통로 안에서 지도의 막힌 칸(벽·진열대)에서 5 cm 안에 든 칸의 라이다 점이 costmap에서 빠진다(벽과 진열대는 지도 층에 그대로 있다) |
 | launch 기본값 | `sim/fleet_gz_sim/launch/gz.launch.py` | `peer_standing_shape`, `peer_lane_m`, `wheel_shape`, `lidar_noise`, `scan_filter_aisles`를 비워 두면 `cleaners`가 있을 때 `footprint`, `0.30`, `disc`, `0.003`, `true`를 쓰고, 없을 때 예전 값(`disc`, `0`, `sphere`, `0.02`, `false`)을 쓴다 |
 | 시연 준비 도구 | `tools/aisle_pass_stage.py` | 청소 로봇을 남쪽 통로 진열대 쪽 (1.40, 0.2615)에 세운다(Gazebo 자리 옮기기 + AMCL 처음 자세) |
 | headless 모델 | `sim/fake_robots/fake_robots/world/` | 선 청소 로봇을 몸 폭 캡슐로 본다(커밋 ca5be2fa) |
@@ -135,7 +135,7 @@ td2는 판이 끝난 뒤 Gazebo 서버가 종료 신호에 끝나지 않아 강�
 | 선(IDLE) 로봇을 costmap에 찍는 반폭(청소 로봇이 있는 Gazebo 판) | 0.075 m 원 | 0.058 m 발자국 | 원은 옆줄 하나를 더 막는다. 선 로봇은 자세가 변하지 않는다 |
 | 바퀴 충돌 모양(청소 로봇이 있는 Gazebo 판) | 구(몸 옆으로 0.0766 m) | 얇은 원판(몸 옆으로 0.0488 m) | 구는 실제 로봇에 없는 접촉을 만든다. 원판은 구동 간격 자리에 있어야 주행 기록이 맞는다. 바퀴 옆면끼리 닿는 것은 이 모델에 없다 |
 | 라이다 잡음 표준편차(청소 로봇이 있는 Gazebo 판) | 0.02 m | 0.003 m | 실물 pode2의 선 scan에서 잰 값이 0.001~0.002 m다 |
-| 통로 벽·진열대 면에서 5 cm 안의 라이다 점(청소 로봇이 있는 Gazebo 판) | costmap에 찍힌다 | 스캔 거르개가 뺀다 | 벽에 붙은 점이 옆줄을 막는다. 벽과 진열대는 지도 층에 있다. 면에서 5 cm 안에 놓인, 지도에 없는 물체는 라이다로 찍히지 않는다 |
+| 통로 벽·진열대에서 5 cm쯤 안의 라이다 점(청소 로봇이 있는 Gazebo 판) | costmap에 찍힌다 | 스캔 거르개가 뺀다 | 벽에 붙은 점이 옆줄을 막는다. 벽과 진열대는 지도 층에 있다. 판정은 지도 칸 기준(막힌 칸에서 5 cm 안의 칸)이라 경계가 꼭 5 cm는 아니다. 그 안에 놓인, 지도에 없는 물체는 라이다로 찍히지 않는다 |
 | 통로 폭 0.45 m 판정(`aisle_strips`) | 0.45 m 이하 | 0.45 m + 1e-9 이하 | 꼭 0.45 m인 통로가 부동소수 오차로 빠지지 않게 한다 |
 | 붙어 선 청소 로봇이 집으로 가기까지 | `clean_yield_wait_s` 10 s | `clean_tuck_wait_s` 30 s | 운반 로봇이 옆으로 지나가는 데 걸리는 시간 |
 | `test_still_meeting_after_yielding_goes_home` | 기본 파라미터 | `clean_tuck_rows=0` | 10 s 기준은 붙지 않는 때의 것이다. 붙어 선 때의 30 s는 `test_zone_clean_tuck.py`가 본다 |
