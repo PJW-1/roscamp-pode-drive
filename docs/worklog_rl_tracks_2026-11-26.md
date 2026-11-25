@@ -213,7 +213,17 @@ t_ctrl보다 높고, 이상 응답 두 칸(rand, head)에서는 t_ctrl보다 낮
   로그("calls, infer")가 Nav2 goal을 받은 로봇에서 나오며, 죽은 프로세스가 없다.
 - 이것은 배선이 실제로 도는지의 확인이다. 300초 안에 주문이 몇 건 끝나는지는 성능 비교로 읽지 않는다.
 
-결과: (채움)
+결과 (03:00~03:04, `results/gz_fleet_clone/`): **통과.**
+
+- 세 로봇의 controller_server가 사본의 install 경로에서 정책 `store_arena_acd3`를 읽었다(파라미터 값과 configure 로그).
+- `controller_selector`를 보낸 뒤 세 로봇 모두에서 RL 추론 로그가 나왔다(1초마다 한 줄: pode1 32줄, pode2 56줄,
+  pode3 34줄. 추론 평균 약 60~85 µs).
+- 시나리오가 끝나기 전에 죽은 프로세스는 없다. 시나리오 판정은 PASS였다(주문 8건 모두 출고, 218 s, 로봇 사이 최소 거리
+  0.229 m). 판정이 끝나 launch가 스스로 내려갔으므로 300초를 다 돌지는 않았다.
+- Nav2 goal은 로봇마다 3~7번 시작했고 실패는 0이다. "Goal canceled"와 `Failed to get result for follow_path`
+  오류 로그 7줄은 pode_fsm이 goal을 바꿔 보낼 때(`goal ended: SUPERSEDED` 27번) 난 것이다. RPP로 돌 때도 같은 로그가
+  나는지는 이 묶음에서 견주지 않았다.
+- 첫 goal(pode1, 시작 13초 뒤)은 선택을 보내기 전이라 RPP로 갔다. 이것은 배선 확인이고 성능 비교가 아니다.
 
 ## 8. 시연 조건 갈래 (사용자 설명, 11-26 00:40쯤)
 
@@ -379,6 +389,11 @@ t_ctrl보다 높고, 이상 응답 두 칸(rand, head)에서는 t_ctrl보다 낮
 약한 판정이다.
 
 ### 8c. 결과: 나머지 (Isaac 묶음 6, Gazebo 넷째·여섯째)
+
+- 03:05 `c_clean`(청소 로봇을 켠 `--check robot`)이 36초 만에 실패했다. 원인은 확인 도구였다: 로봇을 세우려고 바꿔 끼우는
+  대역 함수가 키워드 인자를 받지 않는데, 환경은 `retreat` 옵션이 생긴 뒤로 `robot_step`을 키워드 인자로 부른다. 그 뒤로
+  이 확인 모드를 Isaac에서 돌린 적이 없어 드러나지 않았다. 학습·평가 경로와는 무관하다. db7bdc00에서 고쳤고, 그 커밋의
+  새 스냅숏(`pd-run-b8`)으로 세 확인(c_clean, c_cross, c_demo_box)을 다시 큐에 올렸다.
 
 결과: (채움)
 
