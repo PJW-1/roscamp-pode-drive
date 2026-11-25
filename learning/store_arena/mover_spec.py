@@ -290,6 +290,9 @@ def leg_valid(a, b, rects, bounds, path, npts, start, goal, r: float, spec) -> t
 def leg_on_path(a, b, path, npts, r: float) -> torch.Tensor:
     """(N,) 구간 a-b (N, 2) 위의 mover 몸(반지름 r)이 전역 경로 (N, L, 2) 를 덮는지.
     경로점이 아니라 이웃 경로점을 잇는 선분과 구간 사이 거리로 본다."""
+    d0 = _point_seg(path[:, 0], a, b)  # 점 하나짜리 경로는 그 점까지 거리
+    if path.shape[1] < 2:
+        return d0 < r
     p, q = path[:, :-1], path[:, 1:]  # (N, L-1, 2) 경로 선분
     a_, b_ = a[:, None].expand_as(p), b[:, None].expand_as(p)
     d = torch.minimum(
@@ -299,8 +302,6 @@ def leg_on_path(a, b, path, npts, r: float) -> torch.Tensor:
     d = torch.where(_segments_cross(a_, b_, p, q), torch.zeros_like(d), d)
     seg_on = torch.arange(1, path.shape[1], device=a.device)[None] < npts[:, None]
     d = torch.where(seg_on, d, torch.full_like(d, 9.0)).amin(-1)
-    # 점 하나짜리 경로는 그 점까지 거리
-    d0 = _point_seg(path[:, 0], a, b)
     return torch.where(npts > 1, d, d0) < r
 
 

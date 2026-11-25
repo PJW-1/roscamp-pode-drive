@@ -221,6 +221,12 @@ def test_crossing_flag_for_our_path():
     edge = torch.tensor([[[1.14 - 0.0125, end_y], [1.14 + 0.0125, end_y]]])
     on = M.leg_on_path(a[:1], b[:1], edge, torch.tensor([2]), PERSON.radius)
     assert on.tolist() == [True]
+    # 점 하나짜리 경로 (배열 길이 1 과 패딩 뒤 1 점)
+    one = torch.tensor([[[1.15, 0.3]], [[1.30, 0.3]]])
+    assert M.leg_on_path(a, b, one, torch.tensor([1, 1]), PERSON.radius).tolist() == [True, False]
+    padded = torch.cat((one, one + 0.5), 1)
+    on = M.leg_on_path(a, b, padded, torch.tensor([1, 1]), PERSON.radius)
+    assert on.tolist() == [True, False]
 
 
 def test_crossing_flag_matches_a_dense_check_on_v7(batch):
