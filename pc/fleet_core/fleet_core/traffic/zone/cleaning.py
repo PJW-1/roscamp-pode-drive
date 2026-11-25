@@ -444,7 +444,8 @@ class Cleaning:
     # ---- 겹침 검사: 막힌 구역, 남이 쥔 지점, 남의 자리와 base ----
     def _clean_conflict(self, m, leg, leaving: str = "") -> str:
         """leaving: 집으로 피하는 다리가 비켜 주는 운반 로봇. 그 로봇이 청소 로봇이 쥔 지점을
-        기다리는 것과 띠에 닿는 것은 막지 않고(떠나면 놓는다), 띠를 가로지르는 것만 막는다."""
+        기다리는 것은 막지 않는다(떠나면 놓는다). 띠는 다리가 띠를 가로지르거나 곧 띠에서 벗어나지
+        않거나 벗어난 뒤 다시 닿으면 막는다."""
         site, grants, reach = self.site, self.grants, self.params.clean_conflict_reach_m
         for node in leg.nodes:
             zone = site.nodes[node].zone
@@ -467,15 +468,34 @@ class Cleaning:
             if wanted:
                 return f"{other.name} waits for {wanted}"
             if escape:
-                band = self._clean_band(other) or []
-                if any(segments_cross(a, b, c, d) for a, b in pairwise(leg.points)
-                       for c, d in pairwise(band)):
-                    return f"crosses {other.name}'s way"
+                band = self._clean_band(other)
+                if band is not None and not self._leaves_band(leg.points, band):
+                    return f"does not leave {other.name}'s way"
                 continue
             band = self._clean_band(other) if self._band_on_legs() else None
             if band is not None and self._ways_meet(leg.points, band):
                 return f"meets {other.name}'s way"
         return ""
+
+    def _leaves_band(self, pts, band) -> bool:
+        """띠 안에서 떠나는 다리: 띠를 가로지르지 않고, clean_yield_band_m 안에 띠에서
+        clean_conflict_reach_m 밖으로 나가며, 나간 뒤로는 다시 닿지 않는다."""
+        reach, step = self.params.clean_conflict_reach_m, self._clean_plan.grid.res
+        if len(band) >= 2 and any(segments_cross(a, b, c, d) for a, b in pairwise(pts)
+                                  for c, d in pairwise(band)):
+            return False
+        walked = 0.0
+        for i, (a, b) in enumerate(pairwise(pts)):
+            span = math.dist(a, b)
+            for n in range(math.ceil(span / step) + 1):
+                s = min(n * step, span)
+                q = (a[0] + (b[0] - a[0]) * s / span, a[1] + (b[1] - a[1]) * s / span) if span else a
+                if walked + s > self.params.clean_yield_band_m + 1e-9:
+                    return False
+                if _path_gap(q, band) > reach:
+                    return not self._ways_meet([q, *pts[i + 1:]], band)
+            walked += span
+        return False
 
     def _band_on_legs(self) -> bool:
         """다리와 띠의 만남은 base를 모두 볼 때(clean_base_check all)만 본다. 보내기와 비키기가 같은 기준이다."""

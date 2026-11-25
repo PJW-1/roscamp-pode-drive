@@ -273,3 +273,19 @@ def test_going_home_never_cuts_across_the_transport_way(monkeypatch):
     # 다음 tick에서 다시 보내도 같다
     w.step()
     assert not [e for e in w.events("CLEAN_SENT") if e.detail.startswith("back")]
+
+
+def test_going_home_never_runs_along_the_transport_way(monkeypatch):
+    w = _out_done()
+    t, m, other = _near_e2(w, monkeypatch, (0.352, 0.293))
+    # 운반 로봇이 동쪽 멀리서 집 길을 따라 서쪽으로 온다: 띠를 가로지르지 않고 나란히 달린다
+    band = [(1.15, 0.28), (0.16, 0.28)]  # 집 다리 바로 아래로 나란히, 가로지르지 않는다
+    monkeypatch.setattr(t, "_clean_band", lambda other, full=False: list(band))
+    monkeypatch.setattr(t, "_clean_yield_leg", lambda *args: None)
+    monkeypatch.setattr(t, "_clean_backup_leg", lambda *args: None)
+    w.pos["pode1"] = band[0]
+    w.step()
+    t._clean_make_way(m, other, "test")
+    w.out += t.take_output()
+    assert w.events("CLEAN_HOME")
+    assert not [e for e in w.events("CLEAN_SENT") if e.detail.startswith("back")]
