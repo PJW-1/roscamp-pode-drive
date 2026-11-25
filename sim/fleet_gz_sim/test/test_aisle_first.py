@@ -8,7 +8,6 @@ from fleet_gz_sim.aisle_first import (
     Rules,
     State,
     active_goal,
-    goal_active,
     goal_changed,
     log_line,
     navigating,
@@ -163,13 +162,6 @@ def test_an_active_goal_means_navigating_even_without_plans():
     assert not navigating(9.9, 10.0, RULES, active=False)  # 경로가 막 왔어도 goal이 끝났으면 주행 끝
     # goal 상태를 받은 적이 없으면 경로 시각으로 본다
     assert navigating(9.9, 10.0, RULES, active=None) and not navigating(1.0, 10.0, RULES, active=None)
-
-
-def test_a_goal_is_active_until_it_reaches_a_final_status():
-    assert not goal_active([])
-    assert goal_active([1]) and goal_active([2]) and goal_active([3])
-    assert not goal_active([4, 5, 6])
-    assert goal_active([4, 2])  # 끝난 goal 뒤에 새 goal이 돈다
 
 
 def test_the_detour_survives_a_recovery_pause_without_plans():

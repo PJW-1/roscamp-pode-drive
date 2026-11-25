@@ -36,11 +36,6 @@ class State:
     reason: str = ""
 
 
-def goal_active(statuses) -> bool:
-    """주행 action의 goal 상태들 가운데 아직 끝나지 않은 것이 있는지."""
-    return any(s in ACTIVE_STATUS for s in statuses)
-
-
 def active_goal(entries):
     """(상태, goal id, 받아들인 시각) 목록에서 아직 끝나지 않은 goal 가운데 가장 나중에 받아들인 것의 id.
     없으면 None."""
