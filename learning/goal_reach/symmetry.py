@@ -116,6 +116,8 @@ def augment(env=None, obs=None, actions=None):
     out_obs = out_act = None
     if obs is not None:
         spec = env.unwrapped.spec
+        if not isinstance(spec, ts.TaskSpec):  # gym.Env.spec (EnvSpec) 가 아닌 과제 정의여야 함
+            raise TypeError(f"env.unwrapped.spec is {type(spec).__name__}, expected TaskSpec")
         out_obs = torch.cat((obs, mirror_groups(obs, spec)), dim=0)
     if actions is not None:
         out_act = torch.cat((actions, mirror_actions(actions)), dim=0)

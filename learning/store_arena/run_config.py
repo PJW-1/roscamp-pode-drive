@@ -18,6 +18,10 @@ FORMAT = 1
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
 MAP_DIR = os.path.join("pc", "fleet_core", "fleet_core", "data")
+# --symmetry: off 는 symmetry_cfg 없음 (기존 실행과 같음), aug 는 거울 사본 추가, loss 는 거울 손실
+SYMMETRY_MODES = ("off", "aug", "loss", "both")
+# 거울 손실 = 행동 평균의 MSE (행동 단위), value_loss_coef 1.0 과 같은 크기로 더함
+MIRROR_LOSS_COEFF = 1.0
 
 
 def _git(*args: str) -> str:
@@ -60,6 +64,8 @@ def build(
     task_spec,
     arena_spec,
     agent,
+    symmetry: str = "off",
+    mirror_loss_coeff: float = MIRROR_LOSS_COEFF,
 ) -> dict:
     """run_config.json 내용. task_spec, arena_spec 은 dataclass, agent 는 dict."""
     return {
@@ -73,6 +79,7 @@ def build(
         "init": init,
         "resume": resume,
         "init_std": list(parse_init_std(init_std)),
+        "symmetry": {"mode": symmetry, **(symmetry_settings(symmetry, mirror_loss_coeff) or {})},
         "task_spec": dataclasses.asdict(task_spec),
         "arena_spec": dataclasses.asdict(arena_spec),
         "agent": agent,
@@ -89,6 +96,22 @@ def parse_init_std(text: str) -> tuple[float, float]:
     if len(parts) != 2 or min(parts) < 0:
         raise ValueError(f"--init_std takes one value or v,w (each >= 0), got {text!r}")
     return parts[0], parts[1]
+
+
+def symmetry_settings(mode: str, mirror_loss_coeff: float = MIRROR_LOSS_COEFF) -> dict | None:
+    """--symmetry 값을 RslRlSymmetryCfg 인자로. off 는 None (symmetry_cfg 를 두지 않음)."""
+    if mode not in SYMMETRY_MODES:
+        raise ValueError(f"--symmetry takes one of {SYMMETRY_MODES}, got {mode!r}")
+    if mode == "off":
+        return None
+    loss = mode in ("loss", "both")
+    if loss and not mirror_loss_coeff > 0:
+        raise ValueError(f"--symmetry {mode} needs --mirror_loss_coeff above 0")
+    return {
+        "use_data_augmentation": mode in ("aug", "both"),
+        "use_mirror_loss": loss,
+        "mirror_loss_coeff": float(mirror_loss_coeff) if loss else 0.0,
+    }
 
 
 def sha256_of(path: str) -> str:

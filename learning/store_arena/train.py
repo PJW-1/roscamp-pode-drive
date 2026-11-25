@@ -39,6 +39,19 @@ parser.add_argument(
 parser.add_argument(
     "--set", action="append", default=[], metavar="FIELD=VALUE", help="TaskSpec/ArenaSpec field"
 )
+parser.add_argument(
+    "--symmetry",
+    choices=("off", "aug", "loss", "both"),
+    default="off",
+    help="left-right mirror (goal_reach/symmetry.py) through the rsl_rl symmetry extension: "
+    "aug = mirrored copies in every mini-batch, loss = mirror loss on the action mean, both",
+)
+parser.add_argument(
+    "--mirror_loss_coeff",
+    type=float,
+    default=1.0,
+    help="weight of the mirror loss with --symmetry loss|both (run_config.MIRROR_LOSS_COEFF)",
+)
 add_launcher_args(parser)
 args_cli = parser.parse_args()
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -52,6 +65,7 @@ def main():
     import store_arena_env as sae
 
     init_std = run_config.parse_init_std(args_cli.init_std)
+    sym_settings = run_config.symmetry_settings(args_cli.symmetry, args_cli.mirror_loss_coeff)
     if max(init_std) > 0 and not args_cli.init:
         raise SystemExit("--init_std needs --init (a resumed chunk keeps its own std)")
     task_over, arena_over = arena.split_overrides(args_cli.set)
@@ -82,6 +96,14 @@ def main():
         agent_cfg.seed = args_cli.seed
         if arena.ts.make_spec(task_over).critic_privileged:  # env 가 "critic" 그룹을 더함
             agent_cfg.obs_groups = {"actor": ["policy"], "critic": ["policy", "critic"]}
+        if sym_settings:
+            # 좌우 거울: 원본 뒤에 거울 사본 (symmetry.augment 는 env.unwrapped.spec 을 읽음)
+            import symmetry
+            from isaaclab_rl.rsl_rl import RslRlSymmetryCfg
+
+            agent_cfg.algorithm.symmetry_cfg = RslRlSymmetryCfg(
+                data_augmentation_func=symmetry.augment, **sym_settings
+            )
         agent_cfg = handle_deprecated_rsl_rl_cfg(agent_cfg, check_rsl_rl_version())
         env_cfg.metrics_every = agent_cfg.num_steps_per_env
         # 설정 스냅샷: 학습 전에 써서 중간에 멈춘 실행도 무엇으로 돌았는지 남는다
@@ -94,6 +116,8 @@ def main():
             init=args_cli.init,
             resume=args_cli.resume,
             init_std=args_cli.init_std,
+            symmetry=args_cli.symmetry,
+            mirror_loss_coeff=args_cli.mirror_loss_coeff,
             task_spec=arena.ts.make_spec(task_over),
             arena_spec=arena.make_arena_spec(arena_over),
             agent=agent_cfg.to_dict() if hasattr(agent_cfg, "to_dict") else dict(agent_cfg),
@@ -135,6 +159,7 @@ def main():
             "resume": args_cli.resume,
             "init": args_cli.init,
             "init_std": list(init_std),
+            "symmetry": args_cli.symmetry,
             "run_config_sha256": config_sha,
             "spec_overrides": task_over,
             "arena_overrides": arena_over,
