@@ -56,6 +56,9 @@ class SimStandIn(Node):
         self.declare_parameter("robots", ["pode1", "pode2", "pode3"])
         stub = bool(self.declare_parameter("dock_stub", False).value)
         self.declare_parameter("peer_obstacles", False)  # main이 읽는다(peer_nodes)
+        self.declare_parameter("peer_standing_shape", "disc")
+        self.declare_parameter("peer_lane_robots", "")
+        self.declare_parameter("peer_lane_m", 0.0)
         self.declare_parameter("plan_keep_nodes", False)  # main()이 읽는다
         if stub:  # 무엇보다 먼저: 격리된 Gazebo 실행 밖에서는 도크를 받지 않는다
             require_dock_stub_allowed(bool(self.get_parameter("use_sim_time").value),
@@ -194,7 +197,10 @@ def peer_nodes(node) -> list:
         return []
     from pode_peer_obstacles.node import make_fleet
     robots = ",".join(node.get_parameter("robots").value)
-    return make_fleet(robots, node.get_parameter("use_sim_time").value, node.context)
+    return make_fleet(robots, node.get_parameter("use_sim_time").value, node.context,
+                      standing_shape=node.get_parameter("peer_standing_shape").value,
+                      lane_robots=node.get_parameter("peer_lane_robots").value,
+                      lane_m=float(node.get_parameter("peer_lane_m").value))
 
 
 def plan_keep_nodes(node) -> list:

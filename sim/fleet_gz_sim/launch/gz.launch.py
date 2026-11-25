@@ -87,8 +87,24 @@ ARGS = {
     "nav_map_variant": ("", "global costmap 지도 갈래(v7만): 비면 배치 기본(v7은 a, 2.5 cm),"
                             " base는 5 cm 지도, b는 칸 중심 규칙, ab는 둘 다, a1은 a 규칙의 1 cm."
                             " 1 cm 지도와 keepout 마스크는 그대로"),
+    "peer_standing_shape": ("", "선(IDLE) 로봇을 costmap에 찍는 모양: disc는 달릴 때와 같은 원(반지름"
+                                  " 0.075 m), footprint는 몸 발자국(반폭 0.058 m)."
+                                  " 비면 cleaners가 있을 때 footprint, 없으면 disc"),
+    "peer_lane_m": ("", "선 청소 로봇(cleaners)의 몸에서 보는 로봇 쪽으로 global costmap에만 늘여 찍는 띠 길이(m)."
+                        " 계획이 옆줄로 일찍 옮겨 몸 옆을 통로와 나란히 지난다. 0이면 없음."
+                        " 비면 cleaners가 있을 때 0.30, 없으면 0"),
+    "wheel_shape": ("", "바퀴 충돌 모양: sphere는 제조사 모델(반지름 0.028 m 구라 몸 옆으로 2 cm 넓다),"
+                        " disc는 실제 폭의 원판. 비면 cleaners가 있을 때 disc, 없으면 sphere"),
 }
+# 청소 로봇이 있으면 운반 로봇이 붙어 선 청소 로봇 옆을 나란히 지난다: 인자가 비었을 때 (그때 값, 아닐 때 값)
+PASS_DEFAULTS = {"peer_standing_shape": ("footprint", "disc"), "peer_lane_m": ("0.30", "0.0"),
+                 "wheel_shape": ("disc", "sphere")}
 ARMS = "arm_left arm_right arm_ship"
+
+
+def pass_value(name: str, text: str, cleaners: str) -> str:
+    """나란히 지나기에 쓰는 인자 값. 비었으면 청소 로봇이 있는지에 따라 PASS_DEFAULTS에서 고른다."""
+    return text.strip() or PASS_DEFAULTS[name][0 if cleaners.strip() else 1]
 
 
 def flag(text: str, name: str) -> bool:
@@ -316,6 +332,9 @@ def _start(context):
     def value(name):
         return LaunchConfiguration(name).perform(context)
 
+    def passing(name):
+        return pass_value(name, value(name), value("cleaners"))
+
     layout = layout_of(value("layout"))
     gz_share, fake_share = launch_parts.share("fleet_gz_sim"), launch_parts.share("fake_robots")
     scenario_file = str(scenario_path(value("scenario") or f"gz_{layout}", gz_share, fake_share))
@@ -378,6 +397,7 @@ def _start(context):
                                       vision_stand_in=stand_in,
                                       plan_keep=keep, plan_keep_node=False, bt_xml=bt_xml,
                                       navigation_delay_s=late.get(robot, 0.0),
+                                      wheel_shape=passing("wheel_shape"),
                                       battery_topic=(launch_parts.BATTERY_TOPIC.format(robot=robot)
                                                      if battery else ""))
     if value("rviz") == "fleet":
@@ -387,6 +407,9 @@ def _start(context):
                         parameters=[{"use_sim_time": True, "robots": robots,
                                      "scenario_file": scenario_file, "dock_stub": stub,
                                      "peer_obstacles": peers,
+                                     "peer_standing_shape": passing("peer_standing_shape"),
+                                     "peer_lane_robots": ",".join(value("cleaners").split()),
+                                     "peer_lane_m": float(passing("peer_lane_m")),
                                      "plan_keep_nodes": keep,
                                      "map_file": layout,
                                      **({} if scenario_seed is None

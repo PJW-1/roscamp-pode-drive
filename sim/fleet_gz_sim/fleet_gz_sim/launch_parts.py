@@ -6,6 +6,7 @@ from __future__ import annotations
 import copy
 import math
 import os
+import sys
 import tempfile
 from pathlib import Path
 
@@ -25,6 +26,7 @@ from launch.substitutions import Command
 from launch_ros.actions import Node, SetRemap
 from launch_ros.parameter_descriptions import ParameterValue
 
+from fleet_gz_sim import pode_model
 from fleet_gz_sim.arena import WORLD
 
 TF_REMAPS = [("/tf", "tf"), ("/tf_static", "tf_static")]
@@ -224,14 +226,20 @@ def sim_nav_params(base: Path, out: Path, amcl: dict | None = None,
     return out
 
 
-def model(ns: str, x, y, yaw, lidar_noise: float | None = None) -> list:
+def model(ns: str, x, y, yaw, lidar_noise: float | None = None,
+          wheel_shape: str = pode_model.SPHERE) -> list:
     """Pode 모델만(robot_state_publisher와 Gazebo에 놓기). Nav2와 pode_fsm은 없다.
     lidar_noise: 라이다 거리 잡음 표준편차(m). None이면 모델 기본값(0.02).
+    wheel_shape: 바퀴 충돌 모양. sphere는 제조사 모델 그대로, disc는 실제 폭의 원판(pode_model.py).
     """
+    if wheel_shape not in pode_model.SHAPES:
+        raise ValueError(f"wheel_shape must be one of {pode_model.SHAPES}, got {wheel_shape!r}")
     me = share("fleet_gz_sim")
     noise = "" if lidar_noise is None else f" lidar_noise:={float(lidar_noise)}"
+    xacro = ("xacro " if wheel_shape == pode_model.SPHERE
+             else f"{sys.executable} -m fleet_gz_sim.pode_model {wheel_shape} ")
     description = ParameterValue(
-        Command(["xacro ", str(me / "urdf" / "pode_sim.urdf.xacro"), f" name:={ns}{noise}"]),
+        Command([xacro, str(me / "urdf" / "pode_sim.urdf.xacro"), f" name:={ns}{noise}"]),
         value_type=str)
     return [
         Node(package="robot_state_publisher", executable="robot_state_publisher",
@@ -252,7 +260,7 @@ def pode(ns: str, x, y, yaw, *, nav_map: str, nav_map_fine: str, keepout_mask: s
           wall_band_m: float = 0.05, peer_layer: bool = False,
           avoidance_package: str = AVOIDANCE_PACKAGE, vision_stand_in: bool = False,
           plan_keep: bool = False, plan_keep_node: bool = True, bt_xml: str = "",
-          navigation_delay_s: float = 0.0) -> list:
+          navigation_delay_s: float = 0.0, wheel_shape: str = pode_model.SPHERE) -> list:
     """Pode 한 대: 모델, Nav2, pode_fsm, RViz. 브리지는 bridge()에 이 로봇 이름을 넣는다.
     nav_map, nav_map_fine: 배치의 5 cm, 1 cm 지도. keepout_mask: 비면 keepout 없음. dock_aside: dock 서버를 /<ns>/dock_fsm으로 비킴.
     nav_max_speed: controller 최고 속도(m/s), None이면 nav_speed_mps(). fixed_line_check: 거짓이면 고정 경로 셋의 충돌 검사를 끈다.
@@ -260,12 +268,13 @@ def pode(ns: str, x, y, yaw, *, nav_map: str, nav_map_fine: str, keepout_mask: s
     plan_keep: 참이면 Nav2 goal을 다시 계획할 때 비슷한 다른 길로 바꾸지 않는다(pode_plan_keep). plan_keep_node가 거짓이면 그 노드를 sim_stand_in이 낸다.
     bt_xml: navigate_to_pose 행동 트리 파일, 비면 nav2.launch.py가 plan_keep에 따라 고른다.
     navigation_delay_s: 시험용, 0보다 크면 주행 쪽 서버만 이만큼 늦게 켠다.
+    wheel_shape: 바퀴 충돌 모양(model()).
     """
     nav = share("pode_nav_config")
     nav_max_speed = nav_speed_mps() if nav_max_speed is None else nav_max_speed
     x, y, yaw = str(x), str(y), str(yaw)
     actions = [
-        *model(ns, x, y, yaw, lidar_noise),
+        *model(ns, x, y, yaw, lidar_noise, wheel_shape),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(str(nav / "launch" / "nav2.launch.py")),
             launch_arguments={
