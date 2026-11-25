@@ -64,8 +64,8 @@ CAUSES = [("R1", "not a shared zone"), ("R2", " is held by "), ("R3", " stands n
 CAUSE_NAMES = [c for c, _ in CAUSES] + ["other"]
 TRANSPORT_BLOCK = {"BLOCKED", "BLOCKED_WAIT", "BLOCK_CONFIRMED", "ZONE_MARKED_BLOCKED"}
 TRANSPORT_YIELD = {"HALL_YIELD", "LOCAL_YIELD", "ZONE_WAIT", "RETREAT_WAIT", "BASE_END_WAIT"}
-# 청소 로봇 비키기(4-6) 사건: 판 전체에서 센다
-CLEAN_YIELD_CODES = ("CLEAN_YIELD", "CLEAN_HOME", "CLEAN_STUCK")
+# 청소 로봇 비키기(4-6)와 줄 앞 기다림 사건: 판 전체에서 센다. BACKUP은 후진으로 비킨 CLEAN_YIELD
+CLEAN_YIELD_CODES = ("CLEAN_YIELD", "BACKUP", "CLEAN_HOME", "CLEAN_STUCK", "CLEAN_LINE_WAIT")
 LAP = re.compile(r"lap 1 in ([\d.]+) s: (\d+)/(\d+) lines, (\d+) deferrals, skipped \[([^\]]*)\]"
                  r".*covered ([\d.]+)")
 
@@ -169,6 +169,8 @@ def run_one(name: str, layout: str, kind: str, extra: dict, seed: int, maps=None
     if not cleaning:
         return out
     cev = Counter(e.code for _, e in w.events if e.robot == CLEANER)
+    cev["BACKUP"] = sum(e.code == "CLEAN_YIELD" and e.detail.startswith("backs up")
+                        for _, e in w.events if e.robot == CLEANER)
     out["clean_yield_events"] = {c: cev[c] for c in CLEAN_YIELD_CODES}
 
     # ---- 첫 바퀴: 끝, 미룸 원인, 덮은 비율 ----
@@ -263,7 +265,7 @@ def markdown(rows: list[dict]) -> str:
              "| wait | 기타 "
              "| 포기 줄 | 덮은 비율(받은 위치) | 첫 바퀴 s | 주문 끝 s | 지연 평균/최대 s "
              "| 최소 거리 m | 위반(청소) | I5 | 운반 BLOCKED 사건/멈춤 | 운반 양보·기다림 "
-             "| 비키기/집/STUCK |",
+             "| 비키기/후진/집/STUCK/기다림 |",
              "|" + "---|" * 25]
     for r in rows:
         changed = ", ".join(f"{k.replace('clean_', '')}={v}" for k, v in r["overrides"].items())

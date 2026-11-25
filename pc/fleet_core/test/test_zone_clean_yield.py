@@ -127,13 +127,15 @@ def test_too_late_to_yield_goes_home_and_a_blocked_home_way_is_clean_stuck():
     assert w.t.clean_view(CLEANER_NAME)["stuck"] == 1
 
 
-def test_yield_saves_progress_and_resumes_from_it():
+def test_yield_saves_progress_and_resumes_from_it(monkeypatch):
     w = World({"pode1": "P-2", CLEANER_NAME: "P-1"})
     k, a, b, line = w.to_line()
     w.pos[CLEANER_NAME] = w.at(a, b, 0.3)
     w.pos["pode1"] = w.at(a, b, 0.5)
     w.step()
     t, job = w.t, w.job
+    # 후진이 안 되는 자리: 앞으로 비킬 점을 고른다(후진은 test_zone_clean_wait)
+    monkeypatch.setattr(t, "_clean_backup_leg", lambda *args: None)
     assert t._clean_make_way(t._robots[CLEANER_NAME], t._robots["pode1"], "test")
     w.out += t.take_output()
     assert _cancels(w, line.goal_id)
@@ -234,6 +236,7 @@ def test_no_yield_point_sends_the_cleaner_home_and_the_lap_goes_on(monkeypatch):
     w.step()
     t, job = w.t, w.job
     monkeypatch.setattr(t, "_clean_yield_leg", lambda *args: None)
+    monkeypatch.setattr(t, "_clean_backup_leg", lambda *args: None)
     monkeypatch.setattr(t, "_clear_of", lambda *args: False)
     lap = job.lap
     assert t._clean_make_way(t._robots[CLEANER_NAME], t._robots["pode1"], "test")

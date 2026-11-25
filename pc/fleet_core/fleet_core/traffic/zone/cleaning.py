@@ -6,7 +6,7 @@ from dataclasses import dataclass, field, replace
 from itertools import pairwise
 
 from fleet_core.common.commands import MoveCmd
-from fleet_core.fleet_map import FOLLOW_PATH, NAV_GOAL, RETREAT, SHARED
+from fleet_core.fleet_map import FOLLOW_PATH, NAV_GOAL, RETREAT, SHARED, Edge
 from fleet_core.fleet_map.geometry import (
     point_segment_distance,
     segment_rect_distance,
@@ -30,6 +30,7 @@ from .routes import heading, retreat_command
 CLEANER, TRANSPORT = "cleaner", "transport"
 HOME, OUT, LINES, BACK, BAY_IN = "home", "out", "lines", "back", "bay_in"
 LINE, DETOUR, BACK_NAV, YIELD = "line", "detour", "back_nav", "yield"
+BACKUP = "clean_backup"  # 비키기 다리 가운데 후진으로 보내는 것의 목표 이름
 PROGRESS_M = 0.02  # BLOCKED 기다림 중 진행점이 이만큼 앞으로 가면 기다림을 끝낸다
 YIELD_TRIES = 40  # 비킬 점 후보 가운데 A* 경로를 찾아 볼 개수(가까운 순)
 # ---- 겹침 검사 대상(clean_hold_check, clean_base_check): 전부, 가까운 앞쪽만, 끔 ----
@@ -72,6 +73,10 @@ class CleanJob:
     done: list = field(default_factory=list)
     skipped: list = field(default_factory=list)
     retry_at: float = 0.0
+    # 기다리는 다음 줄, 기다리기 시작한 시각, 다시 볼 시각
+    wait_line: int | None = None
+    wait_since: float | None = None
+    wait_check_at: float = 0.0
     segs: list = field(default_factory=list)
     gaps: list = field(default_factory=list)
     leg: Leg | None = None
@@ -286,6 +291,7 @@ class Cleaning:
         job.waiting, job.deferrals, job.done, job.skipped = [], {}, [], []
         job.detour = None
         job.retry_at = 0.0
+        job.wait_line = job.wait_since = None
         job.stage = OUT if at_home and plan.out_edge is not None else LINES
         m.phase = CLEANING
         self._event("INFO", "CLEAN_LAP_START", f"lap {job.lap}, {len(job.segs)} lines "
@@ -312,20 +318,69 @@ class Cleaning:
         while True:
             if not job.queue:
                 if not job.waiting:
+                    # 못 한 줄이 남았으면 집에 가지 않고 그 줄부터 다음 바퀴를 돈다
+                    if job.skipped and not job.homing:
+                        self._clean_carry_lap(m, job, now)
+                        continue
                     job.stage = BACK
                     return None
                 if now < job.retry_at:
                     return None
                 job.queue, job.waiting = sorted(job.waiting), []
-            k = job.queue.pop(0)
+            k = job.queue[0]
+            if job.wait_line == k and now < job.wait_check_at:
+                return None
             leg = self._line_leg(m, job, k)
             if leg is None:
                 why = "the joined path is not clear after rounding"
+            elif self._clean_off_floor(leg):
+                why = self._clean_conflict(m, leg)
             else:
                 leg, why = self._clean_admit(m, leg)
+                # 운반 로봇과 겹치면 다른 줄로 건너뛰지 않고 이 줄 앞에서 기다린다
+                if why and self._clean_wait(m, job, k, why, now):
+                    return None
+            job.queue.pop(0)
+            job.wait_line = job.wait_since = None
             if not why:
                 return leg
             self._clean_defer(m, job, k, why)
+
+    def _clean_off_floor(self, leg) -> bool:
+        """다리가 공유 구역이 아닌 지점을 지난다(R1): 기다려도 풀리지 않는다."""
+        site = self.site
+        return any(site.nodes[n].zone is None or site.zones[site.nodes[n].zone].kind != SHARED
+                   for n in leg.nodes)
+
+    def _clean_wait(self, m, job, k: int, why: str, now: float) -> bool:
+        """다음 줄 k를 clean_wait_max_s까지 기다린다. 기다리면 True, 다 기다렸으면 False."""
+        if job.wait_line != k or job.wait_since is None:
+            job.wait_line, job.wait_since = k, now
+            self._event("INFO", "CLEAN_LINE_WAIT", f"line {k}: {why}", m.name)
+        if now - job.wait_since >= self.params.clean_wait_max_s:
+            return False
+        job.wait_check_at = now + self.params.clean_wait_check_s
+        return True
+
+    def _clean_carry_lap(self, m, job, now: float) -> None:
+        """포기한 줄이 남은 바퀴를 끝내고, 집에 가지 않고 그 줄을 맨 앞에 둔 다음 바퀴를 시작한다."""
+        plan = self._clean_plan
+        self._clean_lap_report(m, job, "continues from the skipped lines without going home")
+        count = len(plan.lines)
+        left = sorted(k for k in job.skipped if k < count)
+        # 포기한 빈틈 줄은 다음 바퀴의 빈틈으로 넘긴다
+        gaps = [job.segs[k] for k in sorted(job.skipped) if k >= count] + job.gaps
+        job.lap += 1
+        job.lap_since = now
+        job.segs, job.gaps = [*plan.lines, *gaps], []
+        first = left + list(range(count, len(job.segs)))
+        job.queue = first + [k for k in range(len(job.segs)) if k not in first]
+        job.waiting, job.deferrals, job.done, job.skipped = [], {}, [], []
+        job.detour = None
+        job.retry_at = 0.0
+        job.wait_line = job.wait_since = None
+        self._event("INFO", "CLEAN_LAP_START", f"lap {job.lap}, {len(job.segs)} lines "
+                    f"({len(job.segs) - count} gaps), first {first}", m.name)
 
     def _clean_ready(self, m, leg):
         leg, why = self._clean_admit(m, leg)
@@ -543,13 +598,19 @@ class Cleaning:
         if clear:
             self._event("INFO", "CLEAN_YIELD", f"stops for {other.name}: {why}", m.name)
             return True
-        leg = self._clean_yield_leg(m, other)
+        # 먼저 몸 방향 그대로 후진해 빠지고, 안 되면 비킬 점으로 간다
+        leg = self._clean_backup_leg(m, other)
+        if leg is not None and self._clean_take(m, leg):
+            leg = None
+        how = "backs up" if leg is not None else "goes"
+        if leg is None:
+            leg = self._clean_yield_leg(m, other)
         refusal = "no place out of its way" if leg is None else self._clean_take(m, leg)
         if refusal:
             return self._clean_go_home(m, job, f"cannot yield to {other.name}: {refusal}")
         end = leg.points[-1]
-        self._event("INFO", "CLEAN_YIELD", f"for {other.name} to ({end[0]:.3f}, {end[1]:.3f}): "
-                    f"{why}", m.name)
+        self._event("INFO", "CLEAN_YIELD", f"{how} for {other.name} to ({end[0]:.3f}, "
+                    f"{end[1]:.3f}): {why}", m.name)
         self._clean_send(m, job, leg)
         return True
 
@@ -637,6 +698,38 @@ class Cleaning:
                    and _path_gap(site.node_pose(n), sent) < math.dist(site.node_pose(n), here) - 1e-6
                    for n, h in held):
                 continue
+            return replace(leg, nodes=tuple(n for n, h in held if h in ("", m.name)))
+        return None
+
+    def _clean_backup_leg(self, m, other):
+        """몸 방향 그대로 clean_backup_max_m 안에서 띠 밖(여유 포함)까지 후진하는 다리. 못 하면 None."""
+        plan, p, site = self._clean_plan, self.params, self.site
+        here, pos = (m.x, m.y), (other.x, other.y)
+        band = self._clean_band(other, full=True) or [pos]
+        need = self._band_reach() + p.clean_yield_margin_m
+        back = (-math.cos(m.yaw), -math.sin(m.yaw))
+        rest = [o for o in self._robots.values() if o is not m and o is not other and o.placed]
+        step = plan.grid.res
+        for n in range(1, math.floor(p.clean_backup_max_m / step + 1e-9) + 1):
+            end = (here[0] + back[0] * n * step, here[1] + back[1] * n * step)
+            if _path_gap(end, band) <= need:
+                continue
+            # 뒤가 막혔거나, 운반 로봇에 몸 너비보다 다가가거나, 띠를 가로지르면 더 가도 같다
+            if (not plan.clear([here, end])
+                    or point_segment_distance(pos, here, end)
+                    < min(2 * p.footprint_radius_m, math.dist(here, pos)) - 1e-6
+                    or any(segments_cross(here, end, a, b) for a, b in pairwise(band))
+                    or any(_path_gap((o.x, o.y), [here, end]) <= p.clean_conflict_reach_m
+                           for o in rest)):
+                return None
+            leg = self._leg(YIELD, BACKUP, [here, end], None)
+            if self._clean_off_floor(leg):
+                return None
+            held = [(n, self.grants.node_holder(n)) for n in leg.nodes]
+            if any(h not in ("", m.name)
+                   and _path_gap(site.node_pose(n), [here, end])
+                   < math.dist(site.node_pose(n), here) - 1e-6 for n, h in held):
+                return None
             return replace(leg, nodes=tuple(n for n, h in held if h in ("", m.name)))
         return None
 
@@ -749,8 +842,13 @@ class Cleaning:
     # ---- 보내기 ----
     def _clean_send(self, m, job, leg) -> None:
         goal_id = self._next_goal_id()
-        if leg.kind == BAY_IN:
-            edge = self._clean_plan.in_edge
+        if leg.kind == BAY_IN or leg.target == BACKUP:
+            if leg.kind == BAY_IN:
+                edge = self._clean_plan.in_edge
+            else:
+                pts = tuple(leg.points)
+                edge = Edge("", BACKUP, RETREAT, "", pts, (self._clean_plan.floor,),
+                            math.dist(pts[0], pts[-1]))
             self._out.append(retreat_command(self.params, m.name, goal_id, [edge], m.x, m.y))
             mode = RETREAT
         elif leg.kind in (DETOUR, BACK_NAV):
@@ -848,17 +946,20 @@ class Cleaning:
                     f"{len(job.queue) + len(job.waiting)} lines left in lap {job.lap}", m.name)
 
     def _clean_lap_done(self, m, job) -> None:
-        plan = self._clean_plan
         job.stage = HOME
         m.node, m.off_node = job.home, None
         m.phase = PARKED
+        self._clean_lap_report(m, job, f"at {job.home}")
+
+    def _clean_lap_report(self, m, job, where: str) -> None:
+        plan = self._clean_plan
         deferred = sum(job.deferrals.values())
         self._event("INFO", "CLEAN_LAP_DONE",
                     f"lap {job.lap} in {self._clock() - job.lap_since:.1f} s: "
                     f"{len(job.done)}/{len(job.segs)} lines, {deferred} deferrals, "
                     f"skipped {sorted(job.skipped)}, {len(job.gaps)} gaps, covered "
-                    f"{plan.covered([job.segs[k] for k in job.done]):.3f} of the clean grid",
-                    m.name)
+                    f"{plan.covered([job.segs[k] for k in job.done]):.3f} of the clean grid, "
+                    f"{where}", m.name)
 
     def _live(self, m, job, goal_id) -> bool:
         """지금 달리는 그 goal의 소식인가. 거둔 goal의 늦은 소식은 버린다."""

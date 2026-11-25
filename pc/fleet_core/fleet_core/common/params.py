@@ -133,6 +133,9 @@ class FleetParams:
     clean_yield_near_m: float = 0.30
     clean_yield_wait_s: float = 10.0
     clean_stuck_s: float = 5.0
+    clean_wait_max_s: float = 20.0
+    clean_wait_check_s: float = 1.0
+    clean_backup_max_m: float = 0.30
 
     # ---- 파라미터 값 검사 ----
     def __post_init__(self):

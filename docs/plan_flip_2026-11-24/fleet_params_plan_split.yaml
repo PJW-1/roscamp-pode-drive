@@ -107,3 +107,6 @@ clean_yield_margin_m: 0.05    # 비킬 점은 띠에서 반폭 + 몸 반지름�
 clean_yield_near_m: 0.30      # 청소 로봇이 움직이는 중 운반 로봇과 거리가 이 안에서 줄어들면 만난다(near_m과 같게)
 clean_yield_wait_s: 10.0      # 같은 운반 로봇과 처음 만난 뒤 이만큼 지나도 아직 만나면 집 자리로 간다(운반 로봇 막힘 표시 blocked_mark_s와 같게)
 clean_stuck_s: 5.0            # 집 자리로 가는 다리를 이만큼 못 보내면 CLEAN_STUCK 경고를 낸다(미룬 줄 다시 보기 clean_retry_s와 같게)
+clean_wait_max_s: 20.0       # 다음 줄이 운반 로봇과 겹치면 다른 줄로 건너뛰지 않고 이만큼까지 기다린 뒤 미룬다
+clean_wait_check_s: 1.0      # 기다리는 동안 다음 줄을 이 간격으로 다시 본다
+clean_backup_max_m: 0.30     # 운반 로봇 길을 막으면 먼저 몸 방향 그대로 이만큼 안에서 후진해 띠 밖으로 빠진다. 안 되면 비킬 점으로 간다
