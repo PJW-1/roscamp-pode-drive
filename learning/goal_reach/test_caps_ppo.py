@@ -89,6 +89,63 @@ def test_caps_update_changes_the_actor_and_restores_zero_grad():
     assert not torch.equal(p0["mlp.0.weight"], p1["mlp.0.weight"])
 
 
+def step_grads(cls, caps_fn=None, **kw):
+    """미니배치 1 개, epoch 1 번 update 에서 optimizer.step 직전 (자르기 뒤) 의 기울기."""
+    alg, obs, gen = make_alg(cls, **kw)
+    alg.num_learning_epochs = alg.num_mini_batches = 1
+    alg.max_grad_norm = 1e9
+    fill(alg, obs, gen)
+    if caps_fn is not None:
+        alg.caps_loss = caps_fn(alg)
+    seen = {}
+
+    def grab(opt, args, kwargs):
+        for i, p in enumerate(opt.param_groups[0]["params"]):
+            seen[i] = None if p.grad is None else p.grad.clone()
+
+    alg.optimizer.register_step_pre_hook(grab)
+    torch.manual_seed(7)
+    alg.update()
+    return alg, seen
+
+
+def test_caps_gradient_is_added_to_the_ppo_gradient():
+    """step 이 보는 기울기 = PPO 기울기 + CAPS 손실의 기울기 (같은 시작 가중치에서)."""
+    _, g0 = step_grads(PPO)
+    ref, _, _ = make_alg(cp.CapsPPO, caps_temporal=1.0)
+    x = torch.randn(10, D_POL, generator=torch.Generator().manual_seed(3))
+    fixed = td.TensorDict({"policy": x, "critic": torch.zeros(10, D_CRIT)}, batch_size=[10])
+
+    def caps_fn(alg):
+        def f(obs_flat, pair_idx, num_envs, size):
+            loss = 0.7 * cp.action_mean(alg._raw_actor, fixed).pow(2).mean()
+            return loss, loss.detach(), torch.zeros(())
+        return f
+
+    _, g1 = step_grads(cp.CapsPPO, caps_fn, caps_temporal=1.0)
+    ref.optimizer.zero_grad(set_to_none=True)
+    (0.7 * cp.action_mean(ref._raw_actor, fixed).pow(2).mean()).backward()
+    gc = [p.grad for p in ref.optimizer.param_groups[0]["params"]]
+    assert g0.keys() == g1.keys()
+    for i in g0:
+        want = g0[i] if gc[i] is None else g0[i] + gc[i]
+        assert torch.allclose(g1[i], want, atol=1e-6), i
+    assert any(g is not None and g.abs().sum() > 0 for g in gc)
+
+
+def test_zero_grad_is_restored_after_an_error():
+    alg, obs, gen = make_alg(cp.CapsPPO, caps_temporal=1.0)
+    fill(alg, obs, gen)
+
+    def boom(*a):
+        raise RuntimeError("boom")
+
+    alg.caps_loss = boom
+    with pytest.raises(RuntimeError):
+        alg.update()
+    assert "zero_grad" not in alg.optimizer.__dict__
+
+
 def identity_actor(d=2):
     """정규화 없음, MLP [d] 를 항등으로 (ELU 의 양수 구간): 행동 평균 = 관측."""
     obs = td.TensorDict({"policy": torch.zeros(1, d)}, batch_size=[1])
