@@ -9,12 +9,15 @@ from __future__ import annotations
 import math
 
 from .avoid import Avoidance
-from .geom import heading
+from .body import CLEANER_HALF_M
+from .geom import heading, segment_gap
 from .planner import plan
 from .runs import LOOK_M, Run, Turning, blocked_ahead, end_offset, jittered, move_along
 
 REPLAN_S = 1.0  # 막혔을 때 다시 계획하는 주기(NavigateToPose 기본 BT 1 Hz)
 PLAN_GAP_M = 0.03  # 계획할 때 다른 로봇과 물체를 이만큼 더 키운다(격자 반 칸 + 충돌 검사 틈)
+# 서 있는 청소 로봇 캡슐에 남기는 틈(Gazebo 통과 때 중심 거리 0.156 = 0.056 + 0.08 + 0.02)
+CLEANER_PLAN_GAP_M = 0.02
 PROGRESS_M = 0.02  # 이만큼 움직이면 나아간 것으로 본다
 # 이만큼 못 나아가면 BLOCKED. Pode의 blocked_after_s와 같아야 한다(test_timing_agreement.py가 본다)
 BLOCKED_AFTER_S = 10.0
@@ -24,12 +27,16 @@ ABORT_AFTER_S = 0.5  # 지도 위에 길이 없을 때 이만큼 뒤 NAV_ABORTED
 GIVE_UP_S = 60.0  # 이만큼 못 나아가면 NAV_ABORTED(Nav2 복구 여섯 번쯤)
 
 
-def plan_around(space, radius, start, target, others):
-    """다른 로봇과 물체(others: (x, y, 반지름))를 피한 길, 없으면 None. 목표 위의 것은 빼고 계획한다."""
+def plan_around(space, radius, start, target, others, bones=()):
+    """다른 로봇과 물체(others: (x, y, 반지름))와 서 있는 청소 로봇 캡슐(bones: 뼈대 선분)을
+    피한 길, 없으면 None. 목표 위의 것은 빼고 계획한다."""
     discs = [(x, y, radius + r + PLAN_GAP_M) for x, y, r in others]
     discs = [(x, y, min(reach, math.dist((x, y), start) - 0.5 * space.res))
              for x, y, reach in discs if math.dist((x, y), target) >= reach]
-    return plan(space, space.with_discs(discs), start, target)
+    reach = radius + CLEANER_HALF_M + CLEANER_PLAN_GAP_M
+    segs = [(a, b, min(reach, segment_gap(start, a, b) - 0.5 * space.res))
+            for a, b in bones if segment_gap(target, a, b) >= reach]
+    return plan(space, space.with_discs(discs, segs), start, target)
 
 
 class NavGoalRun(Run):
@@ -61,7 +68,7 @@ class NavGoalRun(Run):
 
     def _replan(self, ctx, robot) -> None:
         self.planned_at = ctx.t
-        self.way = plan_around(ctx.space, ctx.radius, robot.pose, self.target, ctx.discs(robot))
+        self.way = plan_around(ctx.space, ctx.radius, robot.pose, self.target, *ctx.bodies(robot))
 
     def _progress(self, ctx, robot) -> None:
         if math.dist(self.mark, robot.pose) >= PROGRESS_M:

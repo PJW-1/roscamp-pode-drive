@@ -57,7 +57,7 @@ class _Traffic:
 
 
 class RecordingManager:
-    def __init__(self, site, params, robots, clock):
+    def __init__(self, site, params, robots, clock, cleaners=()):
         self.site, self.params, self.robots, self._clock = site, params, list(robots), clock
         self.traffic = _Traffic()
         self.calls: list[tuple] = []  # (시각, 메서드, 인자들)

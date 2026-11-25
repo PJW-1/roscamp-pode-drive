@@ -20,6 +20,23 @@ def path_gap(p: Point, points) -> float:
     return min(segment_gap(p, a, b) for a, b in zip(points, points[1:], strict=False))
 
 
+def segments_gap(a: Point, b: Point, c: Point, d: Point) -> float:
+    """선분 ab와 cd 사이 가장 짧은 거리."""
+    def side(o, p, q):
+        return (p[0] - o[0]) * (q[1] - o[1]) - (p[1] - o[1]) * (q[0] - o[0])
+    if side(a, b, c) * side(a, b, d) < 0 and side(c, d, a) * side(c, d, b) < 0:
+        return 0.0
+    return min(segment_gap(a, c, d), segment_gap(b, c, d),
+               segment_gap(c, a, b), segment_gap(d, a, b))
+
+
+def path_segment_gap(points, a: Point, b: Point) -> float:
+    """꺾은선에서 선분 ab까지. 점이 하나면 그 점에서."""
+    if len(points) == 1:
+        return segment_gap(points[0], a, b)
+    return min(segments_gap(p, q, a, b) for p, q in zip(points, points[1:], strict=False))
+
+
 def length(points) -> float:
     return sum(math.dist(a, b) for a, b in zip(points, points[1:], strict=False))
 

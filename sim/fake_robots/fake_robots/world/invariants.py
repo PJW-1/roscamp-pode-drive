@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from fleet_core.fleet_map import DOCK, LANE, PASS, SHARED
 from fleet_core.fleet_map.geometry import sample
 
+from .body import body_gap
+
 INSIDE_TOL_M = 0.01  # 3번: 쥔 구역 밖 허용
 SHARED_GRACE_S = 2.0  # 3번: 자리가 있는 공유 구역에 쥐지 않고 이만큼 넘게 있으면 위반
 STILL_S = 5.0  # 5번: 한 줄 구역이나 갈림목에 이만큼 넘게 서 있으면 위반
@@ -32,8 +34,9 @@ class Violation:
 
 
 class Invariants:
-    def __init__(self, site, params):
+    def __init__(self, site, params, cleaners=()):
         self.site, self.params = site, params
+        self.cleaners = frozenset(cleaners)  # 서 있으면 몸 폭 캡슐로 본다(body.py)
         self.violations: list[Violation] = []
         self._active: set = set()
         self._now: set = set()
@@ -137,11 +140,11 @@ class Invariants:
                 self._flag(t, STANDING, name, f"{name} stands in {zone} since {since:.1f}", name)
 
     def _touch(self, t, robots) -> None:
-        least = 2 * self.params.robot_radius_m
         for (a, ra), (b, rb) in itertools.combinations(sorted(robots.items()), 2):
-            gap = ra.gap(rb)
+            gap, least = body_gap(ra, rb, self.params.robot_radius_m, self.cleaners)
             if gap < least - 1e-9:
-                self._flag(t, TOUCH, (a, b), f"{a} and {b} {gap:.3f} m apart")
+                body = "" if least == 2 * self.params.robot_radius_m else " from the cleaner body"
+                self._flag(t, TOUCH, (a, b), f"{a} and {b} {gap:.3f} m apart{body}")
 
     def _dock_two(self, t, robots) -> None:
         """7번: 도크 구역(도크, 갈림목)에 실제 자리(중심)로 두 대. 쥔 것과 상관없다."""

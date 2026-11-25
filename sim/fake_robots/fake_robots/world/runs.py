@@ -1,14 +1,25 @@
 """로봇이 하는 goal 하나: FollowPath, Retreat, Dock. Nav2 goal은 nav_goal.py.
 
 각 run은 step(ctx, robot)마다 로봇을 움직이고, 끝나면 Result를 돌려준다. ctx는 세계가 주는
-t, dt, radius, rng, discs(robot)(다른 로봇과 물체의 원 (x, y, 반지름))다.
+t, dt, radius, rng, bodies(robot)(다른 로봇과 물체의 원 (x, y, 반지름), 서 있는 청소 로봇의
+캡슐 뼈대(body.py))다.
 """
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass
 
-from .geom import advance, ahead, angle_diff, heading, nearest_index, path_gap
+from .body import CLEANER_HALF_M
+from .geom import (
+    advance,
+    ahead,
+    angle_diff,
+    heading,
+    nearest_index,
+    path_gap,
+    path_segment_gap,
+    segment_gap,
+)
 
 LOOK_M = 0.10  # 갈 길을 이만큼 앞까지 보고 몸이 닿을 것이 있으면 선다(충돌 검사)
 GAP_M = 0.01  # 몸과 물체 사이에 남기는 틈
@@ -28,11 +39,18 @@ class Result:
 
 
 def blocked_ahead(ctx, robot, way, look) -> bool:
-    """way(첫 점은 로봇)의 앞 look 안에 몸이 닿을 원이 있고, 가면 그 원에 더 가까워진다."""
+    """way(첫 점은 로봇)의 앞 look 안에 몸이 닿을 원이나 서 있는 청소 로봇 캡슐이 있고,
+    가면 그것에 더 가까워진다."""
     seg = ahead(way, look)
-    for ox, oy, reach in ctx.discs(robot):
+    discs, bones = ctx.bodies(robot)
+    for ox, oy, reach in discs:
         gap = path_gap((ox, oy), seg)
         if gap <= ctx.radius + reach + GAP_M and gap < math.dist((ox, oy), robot.pose) - 1e-9:
+            return True
+    for a, b in bones:
+        gap = path_segment_gap(seg, a, b)
+        if (gap <= ctx.radius + CLEANER_HALF_M + GAP_M
+                and gap < segment_gap(robot.pose, a, b) - 1e-9):
             return True
     return False
 
