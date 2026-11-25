@@ -160,6 +160,9 @@ def test_new_comparisons_are_listed():
     for cell in ("rand", "head", "aisle"):
         for a, b in (("sym", "ctrl"), ("sym", "acd3")):
             assert (a, cell, b, cell) in c
+    for cell in ("demo1", "demo2", "aisle", "rand", "head"):
+        for a, b in (("demohist", "demostd"), ("demohist", "acd3")):
+            assert (a, cell, b, cell) in c
     assert len(c) == len(nt.COMPARISONS)
 
 
@@ -326,3 +329,34 @@ def test_equal_box_layouts_pair_and_one_sided_layout_is_not_checked(tmp_path):
     rows = nt.main([str(tmp_path), str(tmp_path / "out")])["paired"]
     assert {r["same_episodes"] for r in rows} == {"yes (4 tracked envs)"}
     assert len(rows) == 3
+
+
+def test_cross_person_counts_person_hits_by_crossing_group_and_pairs_them(tmp_path):
+    import cross_person as cp
+    keys = np.array(["success", "collision", "oob", "timeout"])
+    kinds = np.array(["wall_shelf", "box", "mover", "robot"])
+    cross_path = np.array([1, 1, 1, 1, 0, 0, 0, 0], bool)
+    cross = np.array([1, 1, 1, 1, 1, 1, 0, 0], bool)
+
+    def save(name, code, hit):
+        d = tmp_path / name
+        d.mkdir()
+        np.savez(d / "episodes.npz", keys=keys, hit_kinds=kinds, code=np.array(code), hit_kind=np.array(hit),
+                 cross=cross, cross_path=cross_path, env=np.arange(8))
+        return d
+
+    # a: 경로 위 넷 가운데 사람 충돌 1 (성공으로 끝난 판의 hit_kind=mover는 세지 않는다)
+    a = cp.load(save("a", [1, 0, 1, 0, 0, 1, 0, 0], [2, 2, 1, 0, 0, 3, 0, 0]))
+    b = cp.load(save("b", [1, 1, 1, 0, 0, 0, 0, 0], [2, 2, 2, 0, 0, 0, 0, 0]))
+    ra, rb = cp.rates(a), cp.rates(b)
+    assert ra["cross_on_path"]["n"] == 4 and ra["cross_on_path"]["person_pct"] == 25.0
+    assert rb["cross_on_path"]["person_pct"] == 75.0
+    assert ra["cross_off_path"]["n"] == 2 and ra["no_cross"]["n"] == 2
+    assert ra["cross_off_path"]["person_pct"] == 0.0
+    d = cp.paired(a, b)["cross_on_path"]
+    assert d["n"] == 4 and d["diff_pp"] == -50.0
+    assert abs(d["se_pp"] - 100 * np.std([0, -1, -1, 0], ddof=1) / 2) < 1e-9
+    # 건넘 무리가 다르면 짝을 짓지 않는다
+    c = dict(b, cross_path=~cross_path)
+    with pytest.raises(ValueError, match="not the same episodes"):
+        cp.paired(a, c)

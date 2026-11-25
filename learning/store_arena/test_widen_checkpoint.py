@@ -151,3 +151,44 @@ def test_adding_intent_to_a_recipe_checkpoint_keeps_the_outputs(prio, privileged
     old_c = forward(ck["critic_state_dict"], x[:, keep])
     assert torch.equal(forward(new["actor_state_dict"], x[:, :a_dim]), old_a)
     assert torch.equal(forward(new["critic_state_dict"], x), old_c)
+
+
+@pytest.mark.parametrize("privileged", [0, 1])
+def test_adding_lidar_history_to_a_recipe_checkpoint_keeps_the_outputs(privileged):
+    recipe = {"prev_action_obs": 1, "speed_cap_obs": 1, "critic_privileged": privileged}
+    spec0 = dataclasses.replace(ts.SPEC, **recipe)
+    ck = wc.widen_checkpoint(fake_checkpoint(), spec0, wc.N_MOVERS + 2)
+    g0 = torch.Generator().manual_seed(5)
+    for key in ("actor_state_dict", "critic_state_dict"):  # 학습됨: 모든 열이 0 아님
+        w = ck[key]["mlp.0.weight"]
+        ck[key]["mlp.0.weight"] = torch.randn(w.shape, generator=g0) * 0.3
+    spec = dataclasses.replace(spec0, lidar_frames=3)
+    new = wc.add_lidar_history(ck, spec)
+    a0, a_dim = ts.obs_dim(spec0), ts.obs_dim(spec)
+    k, at = a_dim - a0, ts.BASE_DIM + 2  # 직전 행동 뒤, 속도 상한 앞
+    n_priv = ts.PRIV_PER_OBJECT * (wc.N_MOVERS + 2) if privileged else 0
+    assert k == 2 * ts.OBS_LIDAR
+    assert new["actor_state_dict"]["mlp.0.weight"].shape[1] == a_dim
+    assert new["critic_state_dict"]["mlp.0.weight"].shape[1] == a_dim + n_priv
+    assert "optimizer_state_dict" not in new
+    g = torch.Generator().manual_seed(2)
+    x = torch.rand(2048, a_dim + n_priv, generator=g, dtype=torch.float64) * 4 - 2
+    keep_a = torch.cat((torch.arange(at), torch.arange(at + k, a_dim)))
+    keep_c = torch.cat((torch.arange(at), torch.arange(at + k, a_dim + n_priv)))
+    old_a = forward(ck["actor_state_dict"], x[:, keep_a])
+    old_c = forward(ck["critic_state_dict"], x[:, keep_c])
+    assert torch.allclose(forward(new["actor_state_dict"], x[:, :a_dim]), old_a, rtol=0, atol=1e-12)
+    assert torch.allclose(forward(new["critic_state_dict"], x), old_c, rtol=0, atol=1e-12)
+    # 새 칸의 통계는 지금 프레임의 섹터 값을 따르고, 속도 상한 칸은 뒤로 밀린다
+    m, old = new["actor_state_dict"]["obs_normalizer._mean"][0], ck["actor_state_dict"]["obs_normalizer._mean"][0]
+    lid = ts.OBS_LIDAR
+    assert torch.equal(m[at : at + lid], old[:lid]) and torch.equal(m[at + lid : at + k], old[:lid])
+    assert torch.equal(m[at + k], old[at])
+
+
+def test_adding_lidar_history_refuses_a_checkpoint_of_another_layout():
+    spec = dataclasses.replace(ts.SPEC, prev_action_obs=1, speed_cap_obs=1, lidar_frames=3)
+    with pytest.raises(ValueError, match="takes 41"):
+        wc.add_lidar_history(fake_checkpoint(), spec)  # 기본 배치(41칸)는 직전 행동·속도 상한 칸이 없다
+    with pytest.raises(ValueError, match="no lidar history"):
+        wc.add_lidar_history(fake_checkpoint(), ts.SPEC)

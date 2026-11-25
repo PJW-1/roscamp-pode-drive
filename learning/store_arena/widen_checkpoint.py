@@ -6,6 +6,7 @@
 
 Isaac 불필요:
   python learning/store_arena/widen_checkpoint.py <model.pt> <out.pt> --set prev_action_obs=1 ...
+이미 넓힌 배치로 학습한 체크포인트에 라이다 이력만 더할 때는 --add_lidar_history (전체 배치를 --set 으로 준다).
 """
 
 import argparse
@@ -78,6 +79,29 @@ def add_intent(ck: dict, spec) -> dict:
     return out
 
 
+def add_lidar_history(ck: dict, spec) -> dict:
+    """lidar_frames=1 로 학습한 ck 에 이전 프레임 블록을 끼움 (spec 의 나머지 배치는 ck 와 같아야 함).
+    직전 행동 뒤, 속도 상한 앞에 첫 층 가중치 0 으로 넣어 두 출력이 그대로. 새 칸의 정규화 통계는 지금
+    프레임의 섹터 값을 따름."""
+    if spec.lidar_frames <= 1:
+        raise ValueError("spec has no lidar history block")
+    base = dataclasses.replace(spec, lidar_frames=1)
+    at = ts.BASE_DIM + 2 * int(spec.prev_action_obs > 0)
+    actor = ck["actor_state_dict"]
+    if actor["mlp.0.weight"].shape[1] != ts.obs_dim(base):
+        raise ValueError(
+            f"checkpoint actor takes {actor['mlp.0.weight'].shape[1]}, not {ts.obs_dim(base)}"
+        )
+    k = spec.lidar_frames - 1
+    out = {key: x for key, x in ck.items() if key != "optimizer_state_dict"}
+    for key in ("actor_state_dict", "critic_state_dict"):
+        sd = ck[key]
+        mean, var = sd["obs_normalizer._mean"][0], sd["obs_normalizer._var"][0]
+        lid = slice(0, ts.OBS_LIDAR)
+        out[key] = insert_state(sd, at, mean[lid].repeat(k), var[lid].repeat(k))
+    return out
+
+
 def block_stats(sd: dict, spec) -> tuple[torch.Tensor, torch.Tensor]:
     """spec 의 선택 actor 블록 (intent 제외) 정규화 평균·분산: 따라 하는 기본 항목 값, 속도 상한은
     speed_cap_range 균등."""
@@ -142,11 +166,21 @@ def main():
         help="the checkpoint already has the --set layout without intent (a recipe run): only "
         "insert the intent block",
     )
+    p.add_argument(
+        "--add_lidar_history",
+        action="store_true",
+        help="the checkpoint already has the --set layout with lidar_frames=1 (acd3 and later): "
+        "only insert the earlier-frame block",
+    )
     args = p.parse_args()
+    if args.add_intent and args.add_lidar_history:
+        raise SystemExit("--add_intent and --add_lidar_history cannot be combined")
     spec = ts.make_spec(ts.parse_overrides(args.set))
     ck = torch.load(args.checkpoint, map_location="cpu", weights_only=False)
     if args.add_intent:
         out = add_intent(ck, spec)
+    elif args.add_lidar_history:
+        out = add_lidar_history(ck, spec)
     else:
         out = widen_checkpoint(ck, spec, N_MOVERS + args.robot_max)
     out["widened_spec"] = {k: v for k, v in dataclasses.asdict(spec).items()}
