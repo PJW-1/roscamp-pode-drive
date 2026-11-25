@@ -1,0 +1,6 @@
+f_cart start 2026-11-26T06:11:32+09:00 avail 15345MB domain 72 args plan_keep:=true
+f_cart: exit 0, bench f_cart: 5/5 repeats, 14 resets
+f_cart end 2026-11-26T06:22:53+09:00
+g_demo start 2026-11-26T06:25:53+09:00 avail 15322MB domain 72 args plan_keep:=true
+g_demo: exit 0, bench g_demo: 5/5 repeats, 15 resets
+g_demo end 2026-11-26T06:52:24+09:00
