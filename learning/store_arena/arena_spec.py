@@ -64,6 +64,16 @@ class ArenaSpec:
     obstacle_lateral_m: float = 0.08  # 경로 위 박스의 옆 이동
     obstacle_node_clear_m: float = 0.25  # 박스 가장자리와 시작/목표 노드 간격
     route_seed: int = 0  # 배치는 env 생성 때 이 시드로 한 번 뽑음
+    # ---- 데모 배치 (demo_layout, region_spec): share 0 이면 위 표본기 그대로 ----
+    obstacle_demo_share: float = 0.0  # 배치 1.. 중 데모 규칙으로 만드는 비율 (1 = 전부)
+    obstacle_demo_counts: tuple[int, int] = (1, 2)  # 데모 배치의 박스 수, 양끝 포함 균등
+    obstacle_demo_aisle_prob: float = 0.7  # 경로가 지나는 통로에 박스 하나를 둘 확률
+    obstacle_demo_aisle_min_m: float = 0.30  # 통로 박스를 두는 통로 안 경로 길이 최소
+    obstacle_demo_gap_m: tuple[float, float] = (0.13, 0.25)  # 통로 박스 옆 지나갈 틈 균등 범위
+    # 1: 통로 박스가 있는 데모 배치는 전역 경로를 다시 계획하지 않고 빈 아레나 경로(박스를 지나는)를 씀
+    # 0: 다시 계획한 경로가 그 통로 안에서 박스 옆을 지날 때만 받음 (대개 다른 통로로 돌아가 다시 뽑힘)
+    # share 0 이면 이 값은 아무 영향 없음
+    obstacle_demo_keep_path: int = 1
     # ---- 이동 장애물 (4b, mover_spec.MOVERS), 리셋마다 뽑음 ----
     mover_prob: float = 0.75  # 각 mover 가 에피소드에 나올 확률
     mover_on_path_prob: float = 0.6  # 왕복 구간을 전역 경로 중심에 둘 확률

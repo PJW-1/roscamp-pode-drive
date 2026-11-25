@@ -52,6 +52,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "goal_reach"))
 def main():
     import arena_spec as arena
     import crossing_eval
+    import box_gap as bg
     import encounter as enc
     import store_arena_env as sae
     import timeouts
@@ -127,6 +128,8 @@ def main():
         scen_ids = []
         ghost_kinds = []  # 센 에피소드별 자기 대국 짝 종류 (ghost_spec.KINDS, -1: 짝 아님)
         crosses = []  # 센 에피소드별 (건넘 구간, 건넘이 경로를 덮음) (mover_cross_prob)
+        # 센 에피소드별 경로 위 통로 박스의 가장 작은 지나갈 틈 (box_gap, 없으면 NaN)
+        route_gap, box_gaps = bg.route_gaps(routes.obstacle_gap), []
         if raw.scen is not None:
             scen_of = torch.repeat_interleave(
                 torch.arange(len(raw.scen_names), device=raw.device), raw.scen["count"]
@@ -172,6 +175,7 @@ def main():
                 scen_ids += pick.tolist()
                 ghost_kinds += raw.last_ep_ghost_kind[counted].tolist()
                 crosses += raw.last_ep_cross[counted].tolist()
+                box_gaps += route_gap[route[counted].cpu().numpy()].tolist()
                 ep_env += counted.nonzero()[:, 0].tolist()
                 flips += raw.last_ep_cmd_flips[counted].tolist()
                 ep_len += raw.last_ep_len_s[counted].tolist()
@@ -306,6 +310,9 @@ def main():
         report["by_crossing"] = crossing_eval.rates_by_cross(
             codes, crosses[:, 0], crosses[:, 1], keys
         )
+        # 경로 위 통로 박스의 지나갈 틈별 결과와 통로 안 통과 비율 (box_gap)
+        report["by_gap"] = bg.by_gap(np.array(box_gaps), codes, keys)
+        report["in_aisle_pass"] = bg.in_aisle_pass(np.array(box_gaps), codes)
         report["timeouts_tracked"] = {k: sum(r["kind"] == k for r in rows) for k in timeouts.KINDS}
         report["alone_timeouts"] = timeouts.alone_summary(tz, rows, max_episodes=E)
         with open(os.path.join(args_cli.out, "eval.json"), "w", encoding="utf-8") as f:
@@ -325,6 +332,7 @@ def main():
             cross=crosses[:, 0],
             cross_path=crosses[:, 1],
             **{f"enc_{k_}": np.array(v) for k_, v in enc_eps.items()},
+            box_gap_m=np.array(box_gaps, dtype=float),
         )
         np.savez_compressed(
             os.path.join(args_cli.out, "rollouts.npz"),
