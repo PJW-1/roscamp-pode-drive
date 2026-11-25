@@ -168,7 +168,7 @@ def test_no_room_behind_falls_back_to_the_yield_point(monkeypatch):
 
 def test_after_backing_up_the_line_goes_on_from_its_progress():
     w = World({"pode1": "P-2", CLEANER_NAME: "P-1"})
-    k, a, b, line = w.to_line()
+    k, a, b, line = w.to_line(w.east_line())
     assert a[0] < b[0]  # 보고 yaw 0(동쪽)이 줄 방향이다
     w.pos[CLEANER_NAME] = w.at(a, b, 0.3)
     w.pos["pode1"] = w.at(a, b, 0.5)
@@ -317,6 +317,22 @@ def _beside_a_bent_band(monkeypatch, band):
     w.pos[CLEANER_NAME] = (0.1125, 0.4875)
     w.step()
     return t, m, t._robots["pode1"]
+
+
+def test_the_yield_point_is_the_nearest_along_the_way_not_across_a_shelf(monkeypatch):
+    """남쪽 진열대 건너편은 곧은 거리로 가깝지만 진열대 틈으로 돌아가야 한다: 가는 길이 짧은 위 통로로 비킨다."""
+    w = _out_done()
+    t, m = w.t, w.t._robots[CLEANER_NAME]
+    band = [(0.45, 0.70), (0.45, 0.25)]  # 서쪽 넓은 곳을 세로로 지나는 운반 로봇 길
+    monkeypatch.setattr(t, "_clean_band", lambda other, full=False: list(band))
+    monkeypatch.setattr(t, "_wanted", lambda other: [])
+    w.pos["pode1"] = band[0]
+    w.pos[CLEANER_NAME] = (0.5875, 0.3125)  # 서쪽 넓은 곳 맨 아랫줄 동쪽 끝
+    w.step()
+    leg = t._clean_yield_leg(m, t._robots["pode1"])
+    assert leg is not None
+    assert leg.points[-1][1] > 0.4, f"goes around the shelf to {leg.points[-1]}"
+    assert sum(math.dist(a, b) for a, b in pairwise(leg.points)) < 0.6
 
 
 def test_the_yield_way_never_crosses_the_band_the_transport_reaches_soon(monkeypatch):

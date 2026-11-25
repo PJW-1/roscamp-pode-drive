@@ -79,6 +79,12 @@ class World:
         self.step()
         return k, a, b, line
 
+    def east_line(self):
+        """위 통로에서 동쪽으로 가는 가장 긴 줄(충전 칸과 남쪽 통로의 운반 로봇에서 멀다)."""
+        lines = self.t._clean_plan.lines
+        return max((k for k, (a, b) in enumerate(lines) if a[0] < b[0] and a[1] > 0.5),
+                   key=lambda k: math.dist(*lines[k]))
+
     def at(self, a, b, s):
         span = math.dist(a, b)
         return (a[0] + (b[0] - a[0]) * s / span, a[1] + (b[1] - a[1]) * s / span)
@@ -500,14 +506,14 @@ def test_a_stop_just_inside_reach_still_joins_the_next_lines():
     """칸은 빈칸이어도 지금 자리가 reach 안이면 가장 가까운 빈칸 중심부터 검사해 다음 줄로 간다."""
     w = World()
     plan, job = w.t._clean_plan, w.job
-    here = (0.621, 0.317)  # 남쪽 진열대 서쪽 모서리에서 0.085 m(reach 0.093 m 안)
+    here = (0.598, 0.322)  # 남쪽 진열대 서쪽 모서리에서 0.105 m(진열대에서 떨어질 0.113 m 안)
     cell = plan.grid.cell(here)
     assert plan.free[cell[1], cell[0]] and not plan.clear([here])
     w.pos[CLEANER_NAME] = here
     w.report()
     m = w.t._robots[CLEANER_NAME]
     job.segs = list(plan.lines)
-    for k in range(2, len(plan.lines)):
+    for k in range(len(plan.lines)):
         leg = w.t._line_leg(m, job, k)
         assert leg is not None, k
         assert math.dist(leg.points[0], here) < 1e-9

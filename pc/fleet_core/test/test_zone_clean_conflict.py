@@ -11,7 +11,7 @@ from types import SimpleNamespace
 import pytest
 from fleet_core.common.params import load_params
 from fleet_core.fleet_map import load_fleet_map
-from fleet_core.traffic.zone.cleaning import LINE, _ahead
+from fleet_core.traffic.zone.cleaning import BACK, LINE, _ahead, _path_gap
 from fleet_core.traffic.zone.controller import ZoneTraffic
 from fleet_core.traffic.zone.routes import Route
 
@@ -143,3 +143,99 @@ def test_ahead_starts_at_the_foot_and_stops_at_the_limit():
     assert out[:2] == [(0.8, 0.0), (1.0, 0.0)]
     assert out[2] == pytest.approx((1.0, 0.3))
     assert _ahead((0.0, 0.0), [], 1.0) == []
+
+
+# ---- 집으로 피하는 다리: 남이 쥔 지점과 그 로봇의 base에서 멀어지기만 하면 보낸다 ----
+HOME_PTS = [(0.232, 0.482), (0.1375, 0.2875), (0.12, 0.24)]  # O_OUT 옆에서 E-1로
+
+
+def _on_the_way_from_o_out():
+    """pode1이 O에서 O_OUT, E-3으로 가는 길을 받았고 청소 로봇은 O_OUT 옆 그 길 위에 서 있다."""
+    site = load_fleet_map("v7")
+    t = ZoneTraffic(site, load_params(), ["pode1", "pode3"], lambda: 0.0, cleaners=("pode3",))
+    t.on_robot_state("pode1", *site.node_pose("O"), 0.0, "IDLE")
+    t.on_robot_state("pode3", *HOME_PTS[0], 0.0, "IDLE")
+    other = t._robots["pode1"]
+    other.route = Route("E-3", [site.edge("O", "O_OUT"), site.edge("O_OUT", "E-3")], granted=2)
+    # 청소 로봇은 줄을 거두고 서 있어 쥔 지점이 없다
+    for node in t.grants.nodes_of("pode3"):
+        t.grants.release_node("pode3", node)
+    assert t.grants.force("pode1", [], ["O_OUT", "E-3"])
+    return t, t._robots["pode3"], other
+
+
+def test_an_escape_leg_may_leave_a_node_another_robot_holds():
+    t, me, _ = _on_the_way_from_o_out()
+    leg = t._leg(BACK, "E-1", HOME_PTS, None)
+    assert "O_OUT" in leg.nodes
+    assert t._clean_conflict(me, leg, "pode1") == ""
+    sent, why = t._clean_admit(me, leg, "pode1")
+    assert why == "" and "O_OUT" not in sent.nodes
+    assert t.grants.node_holder("O_OUT") == "pode1"
+    assert t.grants.node_holder("E-1") == "pode3"
+
+
+def test_an_ordinary_leg_still_stops_at_a_held_node_it_starts_beside():
+    t, me, _ = _on_the_way_from_o_out()
+    leg = t._leg(BACK, "E-1", HOME_PTS, None)
+    assert t._clean_conflict(me, leg) == "O_OUT is held by pode1"
+
+
+def test_an_escape_leg_that_goes_nearer_the_held_node_is_refused():
+    t, me, _ = _on_the_way_from_o_out()
+    leg = t._leg(BACK, "E-1", [HOME_PTS[0], (0.21, 0.56)], None)
+    assert t._clean_conflict(me, leg, "pode1") == "O_OUT is held by pode1"
+
+
+def test_an_escape_leg_along_the_base_is_refused():
+    t, me, _ = _on_the_way_from_o_out()
+    # O_OUT에서 E-3으로 가는 base를 따라 나란히 간다
+    leg = t._leg(BACK, "E-1", [HOME_PTS[0], (0.40, 0.343), (0.50, 0.26)], None)
+    assert t._clean_conflict(me, leg, "pode1")
+
+
+
+# ---- 집으로 가는 길: 남이 쥔 지점 옆을 지나는 곧은 길은 그 지점을 돌아간다 ----
+def _parked_beside_home(here):
+    """d2: 운반 로봇이 청소 로봇 집(P-1) 옆 P-2에 주차했고 청소 로봇은 줄을 다 돌고 here에 서 있다."""
+    site = load_fleet_map("d2")
+    t = ZoneTraffic(site, load_params(), ["pode1", "pode3"], lambda: 0.0, cleaners=("pode3",))
+    t.on_robot_state("pode1", *site.node_pose("P-2"), 0.0, "IDLE")
+    t.on_robot_state("pode3", *here, 0.0, "IDLE")
+    for node in t.grants.nodes_of("pode3"):
+        t.grants.release_node("pode3", node)
+    assert t.grants.node_holder("P-2") == "pode1"
+    return t, t._robots["pode3"], t._cleaners["pode3"], site
+
+
+def test_the_way_home_goes_round_a_node_another_robot_holds():
+    here = (1.31, 0.64)
+    t, me, job, site = _parked_beside_home(here)
+    p2, home = site.node_pose("P-2"), site.node_pose("P-1")
+    # 곧은 길은 P-2 옆을 지난다
+    assert _path_gap(p2, [here, home]) < t.params.clean_reach_m
+    leg = t._back_leg(me, job)
+    assert leg.points[0] == pytest.approx(here) and leg.points[-1] == pytest.approx(home)
+    assert "P-2" not in leg.nodes
+    assert _path_gap(p2, t._clean_plan.cov.rounded(leg.points, t._clean_plan.radius)) > \
+        t.params.clean_reach_m
+    assert t._clean_plan.clear(leg.points)
+    assert t._clean_conflict(me, leg) == ""
+
+
+def test_the_way_home_stays_straight_when_no_held_node_is_near():
+    here = (0.14, 0.64)
+    t, me, job, site = _parked_beside_home(here)
+    leg = t._back_leg(me, job)
+    assert [tuple(round(v, 3) for v in p) for p in leg.points] == [(0.14, 0.64), (0.13, 0.15)]
+    assert t._clean_conflict(me, leg) == ""
+
+
+def test_the_way_home_is_the_straight_one_when_the_held_node_cannot_be_passed():
+    here = (1.31, 0.64)
+    t, me, job, site = _parked_beside_home(here)
+    # 집 바로 위 줄 전체를 남이 쥔 지점이 막으면 돌아갈 길이 없다: 곧은 길로 두고 판정이 미룬다
+    t.params = replace(t.params, clean_reach_m=0.24)
+    leg = t._back_leg(me, job)
+    assert "P-2" in leg.nodes
+    assert t._clean_conflict(me, leg) == "P-2 is held by pode1"

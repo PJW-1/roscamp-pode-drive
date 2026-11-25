@@ -18,11 +18,14 @@ from .fleet_map.fleet_map import DATA, TURN_RADIUS_M
 # ---- 기본 파라미터 ----
 GRID_M = 0.025
 ROBOT_RADIUS_M = 0.083
-MARGIN_M = 0.01
+MARGIN_M = 0.01  # 다른 구역과 keepout_extra 경계에서 두는 여유
+SOLID_MARGIN_M = 0.03  # 벽과 진열대에서 두는 여유
+MIN_LINE_M = 0.20  # 이보다 짧은 줄은 긋지 않는다
+MAX_LINE_M = 0.60  # 이보다 긴 줄은 같은 방향으로 이어지는 구간으로 나눈다
 LINE_SPACING_M = 0.10
 CLEAN_WIDTH_M = 0.112
 SPEED_MPS = 0.12
-REGION_M = 0.60  # 줄 방향으로 이 폭 이하의 영역으로 나눠 한 영역씩 쓴다
+REGION_M = 0.60  # 지도에 clean_regions가 없으면 줄 방향으로 이 폭 이하의 영역으로 나눈다
 ARC_STEP_M = 0.01
 HOME = "P-1"
 FLOOR_ZONE = "HALL"
@@ -38,6 +41,9 @@ class Params:
     grid_m: float = GRID_M
     robot_radius_m: float = ROBOT_RADIUS_M
     margin_m: float = MARGIN_M
+    solid_margin_m: float = SOLID_MARGIN_M
+    min_line_m: float = MIN_LINE_M
+    max_line_m: float = MAX_LINE_M
     line_spacing_m: float = LINE_SPACING_M
     clean_width_m: float = CLEAN_WIDTH_M
     turn_radius_m: float = TURN_RADIUS_M
@@ -100,7 +106,7 @@ def path_length(points: Sequence[Point]) -> float:
     return sum(math.dist(p, q) for p, q in pairwise(points))
 
 
-# ---- 청소 격자: HALL만 바닥, 막힌 것은 (반지름 + 여유)만큼 키움 ----
+# ---- 청소 격자: HALL만 바닥, 막힌 것은 (반지름 + 여유)만큼 키움. 벽과 진열대는 여유가 더 크다 ----
 def _rect_distance(rect, xs: np.ndarray, ys: np.ndarray) -> np.ndarray:
     dx = np.maximum(np.maximum(rect[0] - xs, 0.0), xs - rect[2])
     dy = np.maximum(np.maximum(rect[1] - ys, 0.0), ys - rect[3])
@@ -116,6 +122,7 @@ class CleanGrid:
     def __init__(self, site, params: Params):
         self.res = params.grid_m
         self.reach = params.robot_radius_m + params.margin_m
+        self.solid_reach = params.robot_radius_m + params.solid_margin_m
         x0, y0, x1, y1 = site.bounds()
         self.x0, self.y0 = x0, y0
         self.box = (x0, y0, x1, y1)
@@ -129,16 +136,18 @@ class CleanGrid:
         for rect in site.zones[FLOOR_ZONE].rects:
             hall |= _inside(rect, xs, ys)
         shelves = list(dict.fromkeys((*site.shelves, *site.sim_shelves)))
-        blocked = [rect for zone in sorted(site.zones.values(), key=lambda z: z.id)
-                   if zone.id != FLOOR_ZONE for rect in zone.rects]
-        blocked += list(site.keepout_extra) + shelves
-        self.blocked = tuple(blocked)
+        soft = [rect for zone in sorted(site.zones.values(), key=lambda z: z.id)
+                if zone.id != FLOOR_ZONE for rect in zone.rects]
+        soft += list(site.keepout_extra)
+        # (사각형, 떨어질 거리): 다른 구역과 keepout_extra는 reach, 진열대는 solid_reach
+        self.blocked = (*((rect, self.reach) for rect in soft),
+                        *((rect, self.solid_reach) for rect in shelves))
         self.hall_rects = tuple(site.zones[FLOOR_ZONE].rects)
-        # 키운 격자: 벽, 다른 구역, keepout_extra, 진열대에서 reach 이상
+        # 키운 격자: 벽과 진열대에서 solid_reach, 다른 구역과 keepout_extra에서 reach 이상
         wall = np.minimum(np.minimum(xs - x0, x1 - xs), np.minimum(ys - y0, y1 - ys))
-        free = hall & (wall >= self.reach - _EPS)
-        for rect in blocked:
-            free &= _rect_distance(rect, xs, ys) >= self.reach - _EPS
+        free = hall & (wall >= self.solid_reach - _EPS)
+        for rect, need in self.blocked:
+            free &= _rect_distance(rect, xs, ys) >= need - _EPS
         self.free = free
         # 키우기 전 바닥: HALL 안이고 진열대 밖
         floor = hall & (wall > 0.0)
@@ -214,10 +223,11 @@ def _wall(box, p: Point) -> float:
     return min(p[0] - box[0], box[2] - p[0], p[1] - box[1], box[3] - p[1])
 
 
-def segment_clearance(grid: CleanGrid, a: Point, b: Point) -> float:
+def segment_slack(grid: CleanGrid, a: Point, b: Point) -> float:
+    """선분이 떨어질 거리보다 더 떨어진 만큼. 음수면 너무 가깝다."""
     # 벽 거리는 선분 위에서 끝점이 가장 작다
-    return min(_wall(grid.box, a), _wall(grid.box, b),
-               *(_segment_rect(a, b, rect) for rect in grid.blocked))
+    return min(_wall(grid.box, a) - grid.solid_reach, _wall(grid.box, b) - grid.solid_reach,
+               *(_segment_rect(a, b, rect) - need for rect, need in grid.blocked))
 
 
 def _on_hall(grid: CleanGrid, a: Point, b: Point) -> bool:
@@ -234,11 +244,11 @@ def _on_hall(grid: CleanGrid, a: Point, b: Point) -> bool:
 
 
 def path_clear(grid: CleanGrid, points: Sequence[Point]) -> bool:
-    """경로의 모든 점이 HALL 안이고 막힌 것과 벽에서 (반지름 + 여유) 이상."""
+    """경로의 모든 점이 HALL 안이고 막힌 것과 벽에서 떨어질 거리 이상."""
     pts = _dedup(points)
     if len(pts) == 1:
         pts = [pts[0], pts[0]]
-    return all(segment_clearance(grid, a, b) >= grid.reach - _EPS and _on_hall(grid, a, b)
+    return all(segment_slack(grid, a, b) >= -_EPS and _on_hall(grid, a, b)
                for a, b in pairwise(pts))
 
 
@@ -302,29 +312,38 @@ def astar(free: np.ndarray, start: Cell, goal: Cell) -> list[Cell]:
 
 
 # ---- 이동 구간: A* 칸 경로를 보이는 점끼리 이은 꺾은선(둥글게 바꿔도 빈칸) ----
-def _shorten(grid: CleanGrid, pts: list[Point], radius: float) -> list[Point]:
+# away: (점, 거리) 목록. 경로가 그 점들에서 그 거리 넘게 떨어진다
+def _shorten(grid: CleanGrid, pts: list[Point], radius: float, away=()) -> list[Point]:
+    def clear(points) -> bool:
+        return path_clear(grid, points) and all(
+            _point_segment(q, a, b) > gap for q, gap in away for a, b in pairwise(points))
+
     out, i = [pts[0]], 0
     while i < len(pts) - 1:
         j = i + 1
         for k in range(len(pts) - 1, i + 1, -1):
-            if path_clear(grid, [pts[i], pts[k]]) and path_clear(
-                    grid, rounded([*out, pts[k]], radius)):
+            if clear([pts[i], pts[k]]) and clear(rounded([*out, pts[k]], radius)):
                 j = k
                 break
         out.append(pts[j])
         i = j
-    if path_clear(grid, rounded(out, radius)):
+    if clear(rounded(out, radius)):
         return out
     return pts
 
 
-def transit(grid: CleanGrid, free: np.ndarray, a: Point, b: Point, radius: float) -> list[Point]:
+def transit(grid: CleanGrid, free: np.ndarray, a: Point, b: Point, radius: float,
+            away=()) -> list[Point]:
+    if away:
+        xs, ys = np.meshgrid(grid.xs, grid.ys)
+        free = free.copy()
+        for q, gap in away:
+            free &= np.hypot(xs - q[0], ys - q[1]) > gap
     cells = astar(free, grid.cell(a), grid.cell(b))
     pts = _dedup([a, *(grid.centre(c) for c in cells[1:-1]), b])
-    return _shorten(grid, pts, radius)
+    return _shorten(grid, pts, radius, away)
 
 
-# ---- boustrophedon 셀 분해: 같은 y 칸 줄의 이어진 빈칸 구간을 위아래로 묶음 ----
 def _runs(row: np.ndarray) -> list[tuple[int, int]]:
     runs, start = [], None
     for i, ok in enumerate(row):
@@ -370,7 +389,7 @@ def decompose(free: np.ndarray, jump: int | None = None) -> list[list[tuple[int,
     return cells
 
 
-# ---- 셀마다 줄 고르기: 줄 간격 이하로 고르게 ----
+# ---- 셀마다 줄 고르기: 줄 간격 이하로 고르게. 짧은 줄은 빼고 긴 줄은 이어지는 구간으로 나눈다 ----
 def cell_lines(cell: list[tuple[int, int, int]], params: Params) -> list[tuple[int, int, int]]:
     step = max(1, math.floor(params.line_spacing_m / params.grid_m + _EPS))
     j0, j1 = cell[0][0], cell[-1][0]
@@ -379,11 +398,29 @@ def cell_lines(cell: list[tuple[int, int, int]], params: Params) -> list[tuple[i
     picks = sorted({j0 + math.floor(k * span / count + 0.5) for k in range(count + 1)}
                    if count else {j0})
     rows = {j: (i0, i1) for j, i0, i1 in cell}
-    return [(j, *rows[j]) for j in picks if rows[j][1] > rows[j][0]]
+    least = max(1, math.ceil(params.min_line_m / params.grid_m - _EPS))
+    most = math.floor(params.max_line_m / params.grid_m + _EPS) if params.max_line_m > 0 else 0
+    out = []
+    for j in picks:
+        i0, i1 = rows[j]
+        if i1 - i0 < least:
+            continue
+        count = max(1, math.ceil((i1 - i0) / most)) if most else 1
+        cuts = [i0 + math.floor(k * (i1 - i0) / count + 0.5) for k in range(count + 1)]
+        out += [(j, a, b) for a, b in pairwise(cuts)]
+    return out
 
 
-# ---- 영역: 빈칸을 줄 방향(x)으로 region_width_m 이하 폭의 띠로 자른 마스크(서쪽부터) ----
-def regions(free: np.ndarray, params: Params) -> list[np.ndarray]:
+# ---- 영역: 지도 clean_regions 사각형마다 빈칸 마스크. 없으면 줄 방향(x)으로 자른 띠(서쪽부터) ----
+def regions(grid: CleanGrid, free: np.ndarray, params: Params, rects=()) -> list[np.ndarray]:
+    if rects:
+        xs, ys = np.meshgrid(grid.xs, grid.ys)
+        left, out = free.copy(), []
+        for rect in rects:
+            out.append(left & _inside(rect, xs, ys))
+            left = left & ~out[-1]
+        # 어느 사각형에도 들지 않은 빈칸은 마지막 영역
+        return [mask for mask in (*out, left) if mask.any()]
     cols = np.nonzero(free.any(axis=0))[0]
     if params.region_width_m <= 0 or not len(cols):
         return [free]
@@ -400,7 +437,31 @@ def regions(free: np.ndarray, params: Params) -> list[np.ndarray]:
     return out
 
 
-# ---- 계획: 영역 순서, 셀 순서, 줄 방향, 이동 구간, 집 자리 왕복 ----
+# ---- 다른 줄이 이미 덮는 빈칸만 덮는 줄은 짧은 것부터 뺀다 ----
+def needed_lines(grid: CleanGrid, free: np.ndarray, params: Params, todo: list) -> list:
+    picked = {(index, k): line for index, (_, _, picks) in enumerate(todo)
+              for k, line in enumerate(picks)}
+    masks = {}
+    for key, (j, i0, i1) in picked.items():
+        ends = [grid.centre((i0, j)), grid.centre((i1, j))]
+        masks[key] = covered_by(grid, params, [ends]) & free
+    times = np.zeros(free.shape, dtype=int)
+    for mask in masks.values():
+        times += mask
+    drop = set()
+    for key in sorted(picked, key=lambda key: (picked[key][2] - picked[key][1], *key)):
+        if not (masks[key] & (times == 1)).any():
+            times -= masks[key]
+            drop.add(key)
+    out = []
+    for index, (region, raw, picks) in enumerate(todo):
+        keep = [line for k, line in enumerate(picks) if (index, k) not in drop]
+        if keep:
+            out.append((region, raw, keep))
+    return out
+
+
+# ---- 계획: 영역 순서, 줄 순서와 방향, 이동 구간, 집 자리 왕복 ----
 @dataclass
 class Plan:
     params: Params
@@ -436,46 +497,48 @@ def make_plan(site, params: Params = Params()) -> Plan:
     unreachable = int(grid.free.sum() - free.sum())
     todo = []
     jump = max(1, math.floor(params.line_spacing_m / params.grid_m + _EPS))
-    for region, mask in enumerate(regions(free, params)):
+    rects = getattr(site, "clean_regions", ())
+    for region, mask in enumerate(regions(grid, free, params, rects)):
         for raw in decompose(mask, jump):
             lines = cell_lines(raw, params)
             if lines:
                 todo.append((region, raw, lines))
+    todo = needed_lines(grid, free, params, todo)
     cells, lines, transits = [], [], []
     here, here_name = start, "home"
     radius = params.turn_radius_m
+    left = [(index, line) for index, (_, _, picks) in enumerate(todo) for line in picks]
+    numbers: dict[int, int] = {}
     region = None
-    while todo:
+    while left:
         dist = distances(free, grid.cell(here))
+        # 지금 영역의 줄을 다 쓴 뒤에 다른 영역으로 간다
+        # 줄은 끝이 가장 가까운 것부터, 같으면 짧은 줄부터
+        mine = [item for item in left if todo[item[0]][0] == region] or left
         best = None
-        # 지금 영역의 셀을 다 쓴 뒤에 가장 가까운 다른 영역으로 간다
-        mine = [t for t in todo if t[0] == region] or todo
-        for index, (_, raw, picks) in enumerate(mine):
-            for up in (True, False):
-                sweep = picks if up else picks[::-1]
-                for east in (True, False):
-                    j, i0, i1 = sweep[0]
-                    entry = (i0 if east else i1, j)
-                    key = (dist[entry[1], entry[0]], index, not up, not east)
-                    if best is None or key < best[0]:
-                        best = (key, index, sweep, east)
-        _, index, sweep, east = best
-        region, raw, _ = mine[index]
-        todo.remove(mine[index])
-        number = len(cells)
-        xs = [grid.xs[i] for _, i0, i1 in raw for i in (i0, i1)]
-        cells.append({"id": number, "region": region,
-                      "box": [min(xs), grid.ys[raw[0][0]], max(xs), grid.ys[raw[-1][0]]],
-                      "lines": len(sweep)})
-        for j, i0, i1 in sweep:
-            a, b = grid.centre((i0, j)), grid.centre((i1, j))
-            if not east:
-                a, b = b, a
-            name = f"line {len(lines)}"
-            transits.append((here_name, name, transit(grid, free, here, a, radius)))
-            lines.append((a, b, number))
-            here, here_name = b, name
-            east = not east
+        for item in mine:
+            index, (j, i0, i1) = item
+            for east in (True, False):
+                key = (round(float(dist[j, i0 if east else i1]), 6), i1 - i0, index, j, not east)
+                if best is None or key < best[0]:
+                    best = (key, item, east)
+        _, item, east = best
+        left.remove(item)
+        index, (j, i0, i1) = item
+        region, raw, picks = todo[index]
+        if index not in numbers:
+            numbers[index] = len(cells)
+            xs = [grid.xs[i] for _, a, b in raw for i in (a, b)]
+            cells.append({"id": numbers[index], "region": region,
+                          "box": [min(xs), grid.ys[raw[0][0]], max(xs), grid.ys[raw[-1][0]]],
+                          "lines": len(picks)})
+        a, b = grid.centre((i0, j)), grid.centre((i1, j))
+        if not east:
+            a, b = b, a
+        name = f"line {len(lines)}"
+        transits.append((here_name, name, transit(grid, free, here, a, radius)))
+        lines.append((a, b, numbers[index]))
+        here, here_name = b, name
     transits.append((here_name, "home", transit(grid, free, here, start, radius)))
     return Plan(params, grid, home, start, moved, unreachable, cells, lines, transits)
 
@@ -486,8 +549,7 @@ def rounded_problems(plan: Plan) -> list[str]:
     bad = []
     for k, path in enumerate(plan.paths()):
         if not path_clear(plan.grid, rounded(path, plan.params.turn_radius_m)):
-            bad.append(f"path {k} comes closer than {plan.grid.reach} m or leaves HALL "
-                       f"after rounding: {path}")
+            bad.append(f"path {k} comes too close or leaves HALL after rounding: {path}")
     return bad
 
 
@@ -560,6 +622,8 @@ def to_data(plan: Plan, layout: str) -> dict:
         "command": f"python3 -m fleet_core.coverage --layout {layout} --write",
         "params": {
             "grid_m": p.grid_m, "robot_radius_m": p.robot_radius_m, "margin_m": p.margin_m,
+            "solid_margin_m": p.solid_margin_m, "min_line_m": p.min_line_m,
+            "max_line_m": p.max_line_m,
             "line_spacing_m": p.line_spacing_m, "clean_width_m": p.clean_width_m,
             "turn_radius_m": p.turn_radius_m, "speed_mps": p.speed_mps,
             "region_width_m": p.region_width_m,

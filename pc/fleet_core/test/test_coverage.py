@@ -1,4 +1,4 @@
-"""청소 로봇 커버리지 경로: data 파일 일치, 둥근 경로 빈칸 검사, pode_fsm 둥글게와 같음, 커버율."""
+"""청소 로봇 커버리지 경로: data 파일 일치, 둥근 경로 빈칸 검사, 영역과 줄, 여유, 커버율."""
 import importlib.util
 import math
 import sys
@@ -20,7 +20,7 @@ from fleet_core.coverage import (
     rounded_problems,
     to_yaml,
 )
-from fleet_core.fleet_map import load_fleet_map
+from fleet_core.fleet_map import FleetMapError, fleet_map_from_text, load_fleet_map
 
 PODE_FSM = Path(__file__).resolve().parents[3] / "pode" / "pode_fsm" / "pode_fsm"
 LAYOUTS = ("v7", "d2")
@@ -64,22 +64,37 @@ def test_rounded_paths_with_narrow_spacing():
         assert rounded_problems(plan) == []
 
 
-# ---- 커버율: 키운 격자 빈칸 기준 99 % 이상 ----
+# ---- 커버율: 키운 격자 빈칸 기준 99 % 이상(줄과 이동 구간) ----
 def test_clean_grid_coverage(layout_plan):
     _, plan = layout_plan
     _, on_grid = coverage(plan)
     assert on_grid >= 0.99
 
 
-# ---- 영역 나누기: 줄을 region_width_m 띠 안에서 긋고 한 영역씩 끝낸다 ----
+# ---- 영역 나누기: 지도 clean_regions(없으면 region_width_m 띠)마다 줄을 긋고 한 영역씩 끝낸다 ----
+V7_REGIONS = ((0.0, 0.0, 0.65, 0.98), (0.65, 0.3675, 1.98, 0.98), (0.65, 0.0, 1.98, 0.3675))
+
+
 def _region_order(plan):
     return [plan.cells[cell]["region"] for _, _, cell in plan.lines]
 
 
+def _in(rect, p):
+    return rect[0] <= p[0] <= rect[2] and rect[1] <= p[1] <= rect[3]
+
+
+def test_v7_map_names_three_clean_regions():
+    assert load_fleet_map("v7").clean_regions == V7_REGIONS
+    assert load_fleet_map("d2").clean_regions == ()
+
+
 def test_lines_stay_inside_one_region(layout_plan):
-    _, plan = layout_plan
-    for a, b, _ in plan.lines:
-        assert abs(b[0] - a[0]) <= plan.params.region_width_m + 1e-9
+    layout, plan = layout_plan
+    for (a, b, _), region in zip(plan.lines, _region_order(plan), strict=True):
+        if layout == "v7":
+            assert _in(V7_REGIONS[region], a) and _in(V7_REGIONS[region], b), (a, b, region)
+        else:
+            assert abs(b[0] - a[0]) <= plan.params.region_width_m + 1e-9
 
 
 def test_regions_are_swept_one_after_another(layout_plan):
@@ -91,28 +106,143 @@ def test_regions_are_swept_one_after_another(layout_plan):
             seen.append(region)
 
 
-def test_v7_is_cut_into_regions_from_the_home_side():
+def test_v7_sweeps_the_west_floor_then_the_upper_aisle_then_the_lower_aisle():
     plan = make_plan(load_fleet_map("v7"))
-    order = list(dict.fromkeys(_region_order(plan)))
-    assert len(order) >= 3
-    # 집 자리(서쪽)에서 가까운 영역부터
-    west = [min(a[0], b[0]) for a, b, _ in plan.lines]
-    firsts = [west[_region_order(plan).index(r)] for r in order]
-    assert firsts == sorted(firsts)
+    assert list(dict.fromkeys(_region_order(plan))) == [0, 1, 2]
+    # 통로의 한 칸 줄은 끝에서 끝까지 쓴다(구간으로 나눠도 합치면 1 m 이상)
+    for region in (1, 2):
+        rows = {}
+        for (a, b, _), r in zip(plan.lines, _region_order(plan), strict=True):
+            if r == region:
+                rows[a[1]] = rows.get(a[1], 0.0) + abs(b[0] - a[0])
+        assert max(rows.values()) >= 1.0
+
+
+def test_floor_outside_every_region_rectangle_is_the_last_region():
+    site = load_fleet_map("v7")
+    site.clean_regions = (V7_REGIONS[0],)
+    plan = make_plan(site)
+    assert list(dict.fromkeys(_region_order(plan))) == [0, 1]
+    assert all(a[0] > 0.65 and b[0] > 0.65
+               for (a, b, _), r in zip(plan.lines, _region_order(plan), strict=True) if r == 1)
+
+
+def test_clean_regions_must_be_on_the_floor_and_apart():
+    text = load_fleet_map("v7").source_text
+    first = "  - [0.0, 0.0, 0.65, 0.98] "
+    assert text.count(first) == 1
+    with pytest.raises(FleetMapError, match="overlaps"):
+        fleet_map_from_text(text.replace(first, "  - [0.0, 0.0, 0.70, 0.98] "))
+    with pytest.raises(FleetMapError, match="outside the floor"):
+        fleet_map_from_text(text.replace(first, "  - [-0.1, 0.0, 0.65, 0.98] "))
 
 
 def test_lines_alone_cover_the_clean_grid(layout_plan):
-    """관제는 줄만 덮은 것으로 센다: 이동 구간 없이도 키운 격자를 99 % 이상 덮는다."""
+    """관제는 줄만 덮은 것으로 센다: 이동 구간 없이도 키운 격자를 98 % 이상 덮는다."""
     _, plan = layout_plan
     hit = cov.covered_by(plan.grid, plan.params, [[a, b] for a, b, _ in plan.lines])
     free = plan.grid.free
-    assert (hit & free).sum() / free.sum() >= 0.99
+    assert (hit & free).sum() / free.sum() >= 0.98
 
 
 def test_region_width_zero_keeps_whole_lines():
-    plan = make_plan(load_fleet_map("v7"), Params(region_width_m=0.0))
+    plan = make_plan(load_fleet_map("d2"), Params(region_width_m=0.0, max_line_m=0.0))
     assert max(abs(b[0] - a[0]) for a, b, _ in plan.lines) > 1.4
     assert {c["region"] for c in plan.cells} == {0}
+
+
+# ---- 긴 줄 나누기: max_line_m 이하 구간으로 나누고, 구간은 방향을 바꾸지 않고 이어진다 ----
+def test_no_line_is_longer_than_the_maximum(layout_plan):
+    _, plan = layout_plan
+    assert max(math.dist(a, b) for a, b, _ in plan.lines) <= plan.params.max_line_m + 1e-9
+
+
+def test_the_pieces_of_a_long_row_follow_each_other_without_turning():
+    site = load_fleet_map("v7")
+    plan, whole = make_plan(site), make_plan(site, Params(max_line_m=0.0))
+    assert len(plan.lines) > len(whole.lines)
+    joined = 0
+    for (a, b, _), (c, d, _) in zip(plan.lines, plan.lines[1:], strict=False):
+        if math.dist(b, c) < 1e-9:
+            joined += 1
+            assert a[1] == d[1] and (b[0] - a[0]) * (d[0] - c[0]) > 0.0, (a, b, c, d)
+    assert joined >= 1
+    # 나눠도 덮는 칸은 같다
+    def cover(p):
+        return cov.covered_by(p.grid, p.params, [[a, b] for a, b, _ in p.lines])
+    assert (cover(plan) == cover(whole)).all()
+
+
+# ---- 줄 고르기: 짧은 줄과 다른 줄이 이미 덮는 줄은 긋지 않는다 ----
+def test_no_line_is_shorter_than_the_minimum(layout_plan):
+    _, plan = layout_plan
+    assert min(math.dist(a, b) for a, b, _ in plan.lines) >= plan.params.min_line_m - 1e-9
+
+
+def test_a_zero_minimum_brings_the_short_lines_back():
+    site = load_fleet_map("v7")
+    short = make_plan(site, Params(min_line_m=0.0))
+    assert len(short.lines) > len(make_plan(site).lines)
+    assert min(math.dist(a, b) for a, b, _ in short.lines) < Params().min_line_m
+
+
+def test_every_line_covers_a_cell_no_other_line_covers(layout_plan):
+    _, plan = layout_plan
+    free = plan.grid.free
+    masks = [cov.covered_by(plan.grid, plan.params, [[a, b]]) & free for a, b, _ in plan.lines]
+    times = sum(mask.astype(int) for mask in masks)
+    for k, mask in enumerate(masks):
+        assert (mask & (times == 1)).any(), f"line {k} only covers what other lines cover"
+
+
+def test_a_line_that_covers_no_cell_of_its_own_is_dropped():
+    grid = cov.CleanGrid(load_fleet_map("v7"), Params())
+    js, iz = grid.free.nonzero()
+    j = int(js.min()) + 4
+    i0, i1 = int(iz[js == j].min()), int(iz[js == j].max())
+    row = (j, i0, i1)
+    twin = cov.needed_lines(grid, grid.free, Params(), [(0, None, [row, row])])
+    assert [len(picks) for _, _, picks in twin] == [1]
+    # 줄 간격만큼 떨어진 줄은 둘 다 남는다
+    far = (j + 4, i0, i1)
+    apart = cov.needed_lines(grid, grid.free, Params(), [(0, None, [row, far])])
+    assert [len(picks) for _, _, picks in apart] == [2]
+
+
+# ---- 여유: 벽과 진열대에서는 solid_margin_m, 다른 구역 경계에서는 margin_m ----
+def test_paths_keep_the_solid_margin_from_walls_and_shelves(layout_plan):
+    layout, plan = layout_plan
+    site = load_fleet_map(layout)
+    need = plan.params.robot_radius_m + plan.params.solid_margin_m
+    x0, y0, x1, y1 = site.bounds()
+    for path in plan.paths():
+        for x, y in rounded(path, plan.params.turn_radius_m):
+            assert min(x - x0, x1 - x, y - y0, y1 - y) >= need - 1e-9, (x, y)
+            for r in (*site.shelves, *site.sim_shelves):
+                gap = math.hypot(max(r[0] - x, 0.0, x - r[2]), max(r[1] - y, 0.0, y - r[3]))
+                assert gap >= need - 1e-9, (x, y, r)
+
+
+def test_the_solid_margin_is_wider_than_the_zone_margin():
+    p = Params()
+    assert p.solid_margin_m >= 0.03 > p.margin_m
+
+
+def _shelf_site():
+    zones = {"HALL": SimpleNamespace(id="HALL", rects=((0.0, 0.0, 2.0, 0.79),)),
+             "NORTH": SimpleNamespace(id="NORTH", rects=((0.0, 0.79, 2.0, 1.0),))}
+    return SimpleNamespace(bounds=lambda: (0.0, 0.0, 2.0, 1.0), zones=zones,
+                           shelves=((0.9, 0.3, 1.1, 0.34),), sim_shelves=(), keepout_extra=())
+
+
+def test_path_clear_keeps_farther_from_a_shelf_than_from_a_zone_border():
+    grid = CleanGrid(_shelf_site(), Params())
+    # 구역 경계(y 0.79)에서 0.10은 되고, 진열대 윗면(y 0.34)과 벽에서 0.10은 안 된다
+    assert path_clear(grid, [(0.3, 0.69), (0.8, 0.69)])
+    assert not path_clear(grid, [(0.95, 0.44), (1.05, 0.44)])
+    assert path_clear(grid, [(0.95, 0.46), (1.05, 0.46)])
+    assert not path_clear(grid, [(0.3, 0.10), (0.8, 0.10)])
+    assert path_clear(grid, [(0.3, 0.12), (0.8, 0.12)])
 
 
 # ---- 정확한 거리 검사: 칸 중심이 아니라 경로의 모든 점 ----

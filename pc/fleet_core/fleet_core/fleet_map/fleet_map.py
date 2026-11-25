@@ -17,6 +17,7 @@ from .checks import (
 from .geometry import inside, overlap_area, point_rect_distance
 from .model import WAITING_KINDS, Edge, FleetMapError
 from .parse import (
+    read_clean_regions,
     read_edges,
     read_keepout_extra,
     read_nodes,
@@ -50,6 +51,7 @@ class FleetMap:
         self.sim_shelves = self._read_sim_shelves(data)
         self.shelf_height_m = float(data.get("shelf_height_m", 0.15))
         self.keepout_extra = read_keepout_extra(data.get("keepout_extra"), self._bounds)
+        self.clean_regions = read_clean_regions(data.get("clean_regions"), self._bounds)
         self.zones = read_zones(data.get("zones"), self._bounds)
         self.nodes = read_nodes(data.get("nodes"), self.zones)
         self._edges = read_edges(data.get("paths"), data.get("nav"), self.nodes, self.zones)

@@ -123,17 +123,25 @@ class CleanPlan:
         self.in_edge = next((e for e in edges if e.b == self.home and e.mode == RETREAT), None)
 
     # ---- 지금 자리에서 점까지 청소 격자 위 꺾은선: (보낼 점들, 검사할 점들) ----
-    def way(self, here, to) -> tuple[list, list]:
+    # away: (점, 거리) 목록. 그 점들에서 그 거리 넘게 떨어진 길만 찾고, 없으면 ValueError
+    def way(self, here, to, away=()) -> tuple[list, list]:
         # 빈칸 안이어도 멈춤 오차로 reach 안에 서면 가장 가까운 빈칸 중심부터 검사한다
         cell = self.grid.cell(here)
         inside = (cell is not None and self.free[cell[1], cell[0]]
                   and self.cov.path_clear(self.grid, [here]))
         first = here if inside else self.grid.centre(self.grid.nearest_free(here))
-        pts = self.cov.transit(self.grid, self.free, first, to, self.radius)
+        pts = self.cov.transit(self.grid, self.free, first, to, self.radius, away)
         return ([] if inside else [here]) + pts, pts
 
     def clear(self, pts) -> bool:
         return self.cov.path_clear(self.grid, self.cov.rounded(pts, self.radius))
+
+    # ---- 지금 자리에서 빈칸마다 청소 격자 위로 가는 거리(칸 단위) ----
+    def steps(self, here):
+        cell = self.grid.cell(here)
+        if cell is None or not self.free[cell[1], cell[0]]:
+            cell = self.grid.nearest_free(here)
+        return self.cov.distances(self.free, cell)
 
     def covered(self, segs) -> float:
         hit = self.cov.covered_by(self.grid, self.params, [list(seg) for seg in segs])
@@ -310,8 +318,8 @@ class Cleaning:
             if leg is not None or job.stage != BACK:
                 return leg
         if job.stage == BACK:
-            return self._clean_ready(m, self._back_leg(m, job),
-                                     job.escape_from if job.homing else "")
+            leaving = job.escape_from if job.homing else ""
+            return self._clean_ready(m, self._back_leg(m, job, leaving), leaving)
         if job.stage == BAY_IN:
             return self._clean_ready(m, self._bay_leg(m))
         return None
@@ -403,7 +411,7 @@ class Cleaning:
         pts = [(m.x, m.y), *plan.out_edge.points[1:], plan.start]
         return self._leg(OUT, "clean_start", pts, None)
 
-    def _back_leg(self, m, job):
+    def _back_leg(self, m, job, leaving: str = ""):
         plan, site = self._clean_plan, self.site
         # 돌아오는 길이 막혔으면 출발점까지 Nav2 goal로 돌아간다
         if job.back_nav and math.dist((m.x, m.y), plan.start) > self.params.arrival_tolerance_m:
@@ -411,11 +419,29 @@ class Cleaning:
             return self._leg(BACK_NAV, "clean_start", [(m.x, m.y), plan.start],
                              heading(plan.start, end) if plan.start != end else 0.0)
         if plan.in_edge is None:
-            sent, _ = plan.way((m.x, m.y), site.node_pose(plan.home))
-            return self._leg(BACK, plan.home, sent, site.nodes[plan.home].yaw)
+            return self._home_leg(m, site.node_pose(plan.home), [], plan.home, leaving)
         entry = plan.in_edge.a
-        sent, _ = plan.way((m.x, m.y), plan.start)
-        return self._leg(BACK, entry, [*sent, site.node_pose(entry)], site.nodes[entry].yaw)
+        return self._home_leg(m, plan.start, [site.node_pose(entry)], entry, leaving)
+
+    # ---- 집으로 가는 다리: 남이 쥔 지점이 길을 막으면 그런 지점들을 돌아가는 길로 바꾼다 ----
+    def _home_leg(self, m, to, tail, target, leaving: str):
+        plan, here, yaw = self._clean_plan, (m.x, m.y), self.site.nodes[target].yaw
+        leg = self._leg(BACK, target, [*plan.way(here, to)[0], *tail], yaw)
+        if not any(self._held_against(m, node, leg.points, leaving) for node in leg.nodes):
+            return leg
+        gap = self.params.clean_reach_m + self.params.clean_yield_margin_m
+        away = []
+        for node in self.site.nodes:
+            pose = self.site.node_pose(node)
+            # 서 있는 자리나 끝 구간 옆 지점은 돌아갈 수 없다
+            if (self._held_against(m, node, leg.points, "") and math.dist(pose, here) > gap
+                    and _path_gap(pose, [to, *tail]) > gap):
+                away.append((pose, gap))
+        try:
+            sent, _ = plan.way(here, to, away)
+        except ValueError:
+            return leg
+        return self._leg(BACK, target, [*sent, *tail], yaw)
 
     def _bay_leg(self, m):
         edge = self._clean_plan.in_edge
@@ -436,7 +462,7 @@ class Cleaning:
         why = self._clean_conflict(m, leg, leaving)
         if why:
             return leg, why
-        if self.params.clean_hold_check != ALL:
+        if self.params.clean_hold_check != ALL or leaving:
             held = self.grants.node_holder
             leg = replace(leg, nodes=tuple(n for n in leg.nodes if held(n) in ("", m.name)))
         return leg, self._clean_take(m, leg)
@@ -444,25 +470,28 @@ class Cleaning:
     # ---- 겹침 검사: 막힌 구역, 남이 쥔 지점, 남의 자리와 base ----
     def _clean_conflict(self, m, leg, leaving: str = "") -> str:
         """leaving: 집으로 피하는 다리가 비켜 주는 운반 로봇. 그 로봇이 청소 로봇이 쥔 지점을
-        기다리는 것은 막지 않는다(떠나면 놓는다). 띠는 다리가 띠를 가로지르거나 곧 띠에서 벗어나지
-        않거나 벗어난 뒤 다시 닿으면 막는다."""
+        기다리는 것은 막지 않는다(떠나면 놓는다). 띠와 그 로봇의 base는 다리가 가로지르거나 곧
+        벗어나지 않거나 벗어난 뒤 다시 닿으면 막는다. 남이 쥔 지점은 다리가 다가갈 때만 막는다."""
         site, grants, reach = self.site, self.grants, self.params.clean_conflict_reach_m
         for node in leg.nodes:
             zone = site.nodes[node].zone
             if zone is None or site.zones[zone].kind != SHARED:
                 return f"{node} is in {zone}, not a shared zone"
-            holder = grants.node_holder(node)
-            if holder not in ("", m.name) and self._hold_counts(holder, node):
-                return f"{node} is held by {holder}"
+            if self._held_against(m, node, leg.points, leaving):
+                return f"{node} is held by {grants.node_holder(node)}"
         for other in self._robots.values():
             if other is m or not other.placed or other.health.fault == OUT_OF_SERVICE:
                 continue
             if _path_gap((other.x, other.y), leg.points) <= reach:
                 return f"{other.name} stands near"
-            if self._base_near(other, leg.points, reach):
+            escape = other.name == leaving
+            if escape:
+                base = self._base_line(other)
+                if len(base) >= 2 and not self._leaves_band(leg.points, base):
+                    return f"does not leave {other.name}'s base"
+            elif self._base_near(other, leg.points, reach):
                 return f"{other.name}'s base passes near"
             # 운반 로봇의 만남 띠(4-6)에 닿거나 그 로봇이 기다리는 지점을 지나는 다리는 보내지 않는다
-            escape = other.name == leaving
             wanted = [n for n in self._wanted(other) if n in leg.nodes
                       and not (escape and grants.node_holder(n) == m.name)]
             if wanted:
@@ -708,14 +737,18 @@ class Cleaning:
                 return
 
     def _clean_yield_leg(self, m, other):
-        """청소 격자에서 띠와 떨어진 가장 가까운 점까지 A* 다리. 운반 로봇 앞을 가로지르면 쓰지 않는다."""
+        """청소 격자에서 띠와 떨어진, 가는 길이 가장 짧은 점까지 A* 다리. 운반 로봇 앞을 가로지르면 쓰지 않는다."""
         plan, p, site = self._clean_plan, self.params, self.site
         here, pos = (m.x, m.y), (other.x, other.y)
         band = self._clean_band(other, full=True) or [pos]
         reach, ahead = self._band_reach(), self._band_ahead(band)
+        # 가까운 순서는 곧은 거리가 아니라 청소 격자 위로 가는 거리다(진열대 건너편은 멀다)
+        steps = plan.steps(here)
         js, iz = plan.free.nonzero()
-        spots = sorted(((float(plan.grid.xs[i]), float(plan.grid.ys[j])) for j, i in zip(js, iz)),
-                       key=lambda q: math.dist(here, q))
+        ranked = sorted((float(steps[j, i]), math.dist(here, q), q) for j, i in zip(js, iz)
+                        if math.isfinite(steps[j, i])
+                        for q in [(float(plan.grid.xs[i]), float(plan.grid.ys[j]))])
+        spots = [q for _, _, q in ranked]
         rest = [o for o in self._robots.values() if o is not m and o is not other and o.placed]
         body, start_gap = 2 * p.footprint_radius_m, math.dist(here, pos)
         tries = 0
@@ -801,7 +834,7 @@ class Cleaning:
         job.yield_for, job.yield_since = "", None
         job.escape_from = leaving
         self._event("WARN", "CLEAN_HOME", f"goes home to {job.home}: {why}", m.name)
-        leg = self._clean_ready(m, self._back_leg(m, job), leaving)
+        leg = self._clean_ready(m, self._back_leg(m, job, leaving), leaving)
         if leg is None:
             self._clean_note_stuck(m, job, self._clock())
             return False
@@ -848,6 +881,13 @@ class Cleaning:
             job.segs[k] = ((a[0] + u[0] * s, a[1] + u[1] * s), job.segs[k][1])
         job.queue.insert(0, k)
 
+    def _held_against(self, m, node: str, pts, leaving: str) -> bool:
+        """남이 쥔 지점이 다리를 막는가. 집으로 피하는 다리는 그 지점에 다가갈 때만 막힌다."""
+        holder = self.grants.node_holder(node)
+        if holder in ("", m.name) or not self._hold_counts(holder, node):
+            return False
+        return not leaving or self._nears(node, pts)
+
     def _hold_counts(self, holder: str, node: str) -> bool:
         """남이 쥔 지점을 볼 대상인가. ahead면 그 로봇 지금 위치에서 직선 clean_conflict_ahead_m 안만."""
         mode, other = self.params.clean_hold_check, self._robots.get(holder)
@@ -873,6 +913,23 @@ class Cleaning:
                 if any(_segments_gap(a, b, c, d) <= reach for a, b in pairwise(pts)):
                     return True
         return False
+
+    def _base_line(self, other) -> list:
+        """받은 구간(base)을 이은 꺾은선. clean_base_check가 off거나 경로가 없으면 빈 목록."""
+        route = other.route
+        if route is None or self.params.clean_base_check == OFF:
+            return []
+        pts = []
+        for edge in route.edges[route.done:route.granted]:
+            for q in edge.points:
+                if not pts or math.dist(pts[-1], q) > 1e-9:
+                    pts.append(tuple(q))
+        return pts
+
+    def _nears(self, node: str, pts) -> bool:
+        """다리가 출발 자리보다 그 지점에 다가가는가."""
+        pose = self.site.node_pose(node)
+        return _path_gap(pose, pts) < math.dist(pose, pts[0]) - 1e-6
 
     def _clean_take(self, m, leg) -> str:
         floor = self._clean_plan.floor

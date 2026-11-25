@@ -231,7 +231,7 @@ def test_the_meeting_clock_stays_while_on_the_rest_of_the_route():
 
 def test_no_yield_point_sends_the_cleaner_home_and_the_lap_goes_on(monkeypatch):
     w = World({"pode1": "P-3", CLEANER_NAME: "P-1"})
-    k, a, b, line = w.to_line()
+    k, a, b, line = w.to_line(w.east_line())
     w.pos[CLEANER_NAME] = w.at(a, b, 0.3)
     w.step()
     t, job = w.t, w.job
@@ -283,7 +283,7 @@ def test_still_meeting_after_yielding_goes_home(monkeypatch):
 
 def test_a_transport_blocked_by_the_cleaner_asks_it_to_yield():
     w = World({"pode1": "E-3", CLEANER_NAME: "P-1"})
-    k, a, b, line = w.to_line()
+    k, a, b, line = w.to_line(w.east_line())
     t = w.t
     m, c = t._robots["pode1"], t._robots[CLEANER_NAME]
     w.pos["pode1"] = w.at(a, b, 0.0)

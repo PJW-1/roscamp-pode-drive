@@ -54,6 +54,19 @@ def read_keepout_extra(raw, bounds: tuple) -> tuple:
     return rects
 
 
+# ---- 청소 영역 사각형 읽기 ----
+def read_clean_regions(raw, bounds: tuple) -> tuple:
+    """청소 로봇이 한 곳씩 끝내는 영역. 바닥 안이고 서로 겹치지 않아야 한다."""
+    rects = tuple(read_rect(rect, "clean_regions") for rect in raw or ())
+    for k, rect in enumerate(rects):
+        if not within(rect, bounds):
+            raise FleetMapError(f"clean_regions: {rect} is outside the floor {bounds}")
+        for other in rects[:k]:
+            if overlap_area(rect, other) > 0.0:
+                raise FleetMapError(f"clean_regions: {rect} overlaps {other}")
+    return rects
+
+
 # ---- 구역 읽기와 겹침 검사 ----
 def read_zones(raw: dict, bounds: tuple) -> dict[str, Zone]:
     zones: dict[str, Zone] = {}
