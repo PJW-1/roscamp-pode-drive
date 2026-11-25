@@ -21,6 +21,10 @@ so=$B/install/pode_rl_controller/lib/libpode_rl_controller.so
 grep -qa "ema_alpha_w" "$so" || { echo "$so has no ema_alpha_w: build the merged branch first"; exit 2; }
 HERE=$SRC/docs/rl_smooth_2026-11-25
 BENCH=$SRC/tools/nav_bench
+# 지난 판의 구간 기록이 섞이지 않게 이미 돌린 OUT은 받지 않는다
+for d in q2e3 main; do
+  [ -e "$OUT/$d" ] && { echo "$OUT/$d exists: give a new OUT"; exit 2; }
+done
 mkdir -p "$OUT"
 export BENCH_DOMAIN=${BENCH_DOMAIN:-72} BENCH_OVERRIDES=$HERE/gz_overrides.yaml
 export BENCH_CONTROLLERS="FollowPathGoal FollowPathMPPI FollowPathRLShimACD3 FollowPathRLShimACD3W50 FollowPathRLShimACD3W25"
