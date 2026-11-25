@@ -73,6 +73,11 @@ movers:
     size: [0.14, 0.09, 0.20]
     path: [[0.60, 0.44]]
     speed: 0.0
+  stander:  # 통로 카트 옆에 서 있는 사람. 카트와의 사이 0.084 m, 남쪽 진열대와의 사이 0.076 m라 몸(0.094 m)이 못 지나간다
+    shape: cylinder
+    size: [0.04, 0.25]
+    path: [[0.85, 0.52]]
+    speed: 0.0
 
 scenarios:
   a_hall: []
@@ -82,3 +87,4 @@ scenarios:
   e_corridor: [e_box, e_cart]
   f_cart: [demo_cart]  # 통로 안 정적 장애물 하나
   g_demo: [demo_cart, demo_cart_hall, person]  # 통로 하나 + 넓은 공간 하나 + 틈을 건너는 사람
+  h_block: [demo_cart, stander]  # 통로가 막힘: 카트 옆에 사람이 서 있어 그 통로로는 못 지나간다
