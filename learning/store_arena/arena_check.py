@@ -693,6 +693,9 @@ def main():
             # 리셋이 경로를 새로 뽑았으므로 경로 번호와 박스를 이 검사가 잰 것으로 되돌림
             # 경로 번호를 두면 스침 판정(경로 표의 박스 자리)이 시뮬에 없는 새 박스를 본다
             env.route[:] = route0
+            # 박스만 보려고 mover를 치운다 (리셋이 새 경로의 박스 배치에 맞춰 뽑아 되돌린 박스와 겹칠 수 있다)
+            for legs in env.mover_legs:
+                legs["active"][:] = False
             for k, obj in enumerate(env.obstacles):
                 pose = obj.data.root_pose_w.torch.clone()
                 pose[:, :2] = xy1[:, k] + env.scene.env_origins[:, :2]
