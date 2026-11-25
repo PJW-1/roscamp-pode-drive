@@ -484,6 +484,8 @@ class Cleaning:
         if len(band) >= 2 and any(segments_cross(a, b, c, d) for a, b in pairwise(pts)
                                   for c, d in pairwise(band)):
             return False
+        if len(pts) < 2:
+            return _path_gap(pts[0], band) > reach
         walked = 0.0
         for i, (a, b) in enumerate(pairwise(pts)):
             span = math.dist(a, b)

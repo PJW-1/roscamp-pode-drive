@@ -289,3 +289,10 @@ def test_going_home_never_runs_along_the_transport_way(monkeypatch):
     w.out += t.take_output()
     assert w.events("CLEAN_HOME")
     assert not [e for e in w.events("CLEAN_SENT") if e.detail.startswith("back")]
+
+
+def test_a_one_point_home_leg_already_out_of_the_band_leaves_it():
+    w = _out_done()
+    band = [(0.10, 0.10), (0.20, 0.10)]
+    assert w.t._leaves_band(((0.90, 0.50),), band)
+    assert not w.t._leaves_band(((0.15, 0.15),), band)
