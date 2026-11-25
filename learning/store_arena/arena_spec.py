@@ -81,6 +81,11 @@ class ArenaSpec:
     mover_noyield_prob: float = 0.0
     # 1: 에피소드마다 양보 비율 U(0, 1) 을 뽑아 mover 가 그 확률로 기다림 (mover_noyield_prob 대체)
     mover_yield_mix: int = 1
+    # 사람 구간이 선반 사이 틈을 지나 옆 통로로 건너는 에피소드 비율 (mover_spec.finish_legs)
+    # 0 이면 뽑지 않음
+    mover_cross_prob: float = 0.0
+    # 나오는 mover ("" = 모두, 쉼표 목록 예 "person" = 그것만): 난수 순서는 그대로 두고 나머지를 끔
+    mover_kinds: str = ""
     # ---- 벽 스침: 0 이면 끔. 접촉력 임계값이 못 잡는 mm 단위 스침을 막는다 ----
     # 우리 로봇 몸체 (base_link 기준)
     footprint_x: tuple[float, float] = (-0.0745, 0.0387)

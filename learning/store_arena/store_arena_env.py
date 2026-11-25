@@ -20,6 +20,7 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "goal_reach"))
 
 import arena_spec as arena  # noqa: E402
+import crossing_eval as cev  # noqa: E402
 import encounter as enc  # noqa: E402
 import ghost_spec as gh  # noqa: E402
 import mover_spec as ms  # noqa: E402
@@ -218,9 +219,15 @@ class StoreArenaEnv(GoalReachEnv):
                 "pause": torch.zeros(n, **f32),
                 "phase": torch.zeros(n, **f32),
                 "active": torch.zeros(n, dtype=torch.bool, device=dev),
+                "cross": torch.zeros(n, dtype=torch.bool, device=dev),
+                "cross_path": torch.zeros(n, dtype=torch.bool, device=dev),
             }
             for _ in ms.MOVERS
         ]
+        # 건넘 구간 (mover_cross_prob): 선반 틈, 에피소드별 건넘 / 건넘이 경로를 덮음
+        shelf_rects = [(b.x0, b.y0, b.x1, b.y1) for b in self.boxes if b.kind == "shelf"]
+        self.mover_openings = ms.find_openings(shelf_rects, self.routes_bounds).to(dev)
+        self.last_ep_cross = torch.zeros(n, 2, dtype=torch.bool, device=dev)
         self.mover_park = torch.tensor([mover_park_xy(i) for i in range(len(ms.MOVERS))], **f32)
         self.mover_t = torch.zeros(len(ms.MOVERS), n, **f32)  # mover 별 시계
         self.mover_held = torch.zeros(len(ms.MOVERS), n, dtype=torch.bool, device=dev)  # 대기 중
@@ -457,6 +464,7 @@ class StoreArenaEnv(GoalReachEnv):
             self.last_ep_handover[env_ids] = self.handover_start[env_ids]
             self.last_ep_scen[env_ids] = self.scen_pick[env_ids]
             self.last_ep_ghost_kind[env_ids] = self.ghost_kind[env_ids]
+            self.last_ep_cross[env_ids] = cev.episode_flags(self.mover_legs, env_ids)
             for k_, v in enc.snapshot(self.enc, env_ids).items():
                 self.last_ep_enc[k_][env_ids] = v
             self._reset_ids = env_ids  # sample_start 의 짝 뽑기용
@@ -725,6 +733,7 @@ class StoreArenaEnv(GoalReachEnv):
                     self.r_goal[rr],
                     shape,
                     self.arena,
+                    openings=self.mover_openings,
                 )
                 for k, v in new.items():
                     legs[k][ids] = v

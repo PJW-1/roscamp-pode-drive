@@ -51,6 +51,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "goal_reach"))
 
 def main():
     import arena_spec as arena
+    import crossing_eval
     import encounter as enc
     import store_arena_env as sae
     import timeouts
@@ -125,6 +126,7 @@ def main():
         enc_eps = {"min_gap": [], "enc_s": [], "enc_seen": [], "deadlock": []}
         scen_ids = []
         ghost_kinds = []  # 센 에피소드별 자기 대국 짝 종류 (ghost_spec.KINDS, -1: 짝 아님)
+        crosses = []  # 센 에피소드별 (건넘 구간, 건넘이 경로를 덮음) (mover_cross_prob)
         if raw.scen is not None:
             scen_of = torch.repeat_interleave(
                 torch.arange(len(raw.scen_names), device=raw.device), raw.scen["count"]
@@ -169,6 +171,7 @@ def main():
                     pick = torch.where(pick >= 0, scen_of[pick.clamp(min=0)], -1)
                 scen_ids += pick.tolist()
                 ghost_kinds += raw.last_ep_ghost_kind[counted].tolist()
+                crosses += raw.last_ep_cross[counted].tolist()
                 ep_env += counted.nonzero()[:, 0].tolist()
                 flips += raw.last_ep_cmd_flips[counted].tolist()
                 ep_len += raw.last_ep_len_s[counted].tolist()
@@ -299,6 +302,10 @@ def main():
             report["by_ghost_kind"] = {
                 name: rates_of(gk == i) for i, name in enumerate(ghost_spec.KINDS)
             }
+        crosses = np.array(crosses, dtype=bool).reshape(-1, 2)
+        report["by_crossing"] = crossing_eval.rates_by_cross(
+            codes, crosses[:, 0], crosses[:, 1], keys
+        )
         report["timeouts_tracked"] = {k: sum(r["kind"] == k for r in rows) for k in timeouts.KINDS}
         report["alone_timeouts"] = timeouts.alone_summary(tz, rows, max_episodes=E)
         with open(os.path.join(args_cli.out, "eval.json"), "w", encoding="utf-8") as f:
@@ -315,6 +322,8 @@ def main():
             hit_kinds=np.array(sae.HIT_KINDS),
             scenario=scen_ids,
             scenario_names=np.array(raw.scen_names),
+            cross=crosses[:, 0],
+            cross_path=crosses[:, 1],
             **{f"enc_{k_}": np.array(v) for k_, v in enc_eps.items()},
         )
         np.savez_compressed(
