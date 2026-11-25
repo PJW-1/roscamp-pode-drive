@@ -55,7 +55,7 @@ d = 에피소드마다 최고 속도 U(0.08, 0.16)와 그 관측(RW:12-15). 최�
 | acd2 = `store_arena_acd2` (`acd24/t_acd_s3_c1`, `c2`) | 11-24 | 같음(export 9c58d67, `policy_spec.json` source) | `recipe/init_combo_acd.pt`(c1 `run.json` init; c2는 c1 이어 감) | 500(250 × 2) / iter 1496 | 3 | v7 진열대 끝 바뀐 판(A3W:8) | a+c+d 설정 | a+c+d(의도 없음) | 행동 변화 벌점 | 44(형식 3) | 11-24 일곱 칸(seed 셋 평균): 어느 칸도 4b보다 낮지 않음, 0.12 무작위 74.75 ± 0.32 대 4b 73.14, 분당 부호 바뀜 80.3 → 45.9(A1:9, 19) | 11-24 Q2 → E-3·c_moving 20판: 둘 다 20/20(4b 19/20), Q2 → E-3 판별 몸 여유 중앙값 3.3 대 4b 6.5 cm(A1:47-50) | 실물 후보로 올리기를 권함(A1:67); 사용자 결정 기록 없음. acd3로 이어짐 | A1, AW |
 | acd3 형제 t_map (`acd3/t_map`) | 11-25 | `feat/rl-acd3-2026-11-25`(A3:3); 학습 커밋 모름 | `acd24/t_acd_s3_c2/model_1496.pt` | 250 / iter 1745 | 3 | v7 끝 고친 판(진열대 A 5 mm) | a+c+d 설정 | a+c+d | 지도만 | 44 | 다섯 칸 63.30(acd2 62.94, 짝)(A3:39) | 없음 | 탈락: 1 %p 안이면 t_wall 우선 규칙(A3:59) | A3, A3W |
 | acd3 형제 t_lidar (`acd3/t_lidar`) | 11-25 | 같음(319ec95, A3W:21) | `acd24/t_acd_s3_c2/model_1496.pt` | 250 / iter 1745 | 3 | 같음 | a+c+d 설정 + `lidar_scale_range=0.95,1.03` | a+c+d | lidar 거리 배율 0.95~1.03(관측에만) | 44 | 다섯 칸 62.99(A3:39) | 없음 | 탈락(같은 규칙) | A3, A3W |
-| acd3 = `store_arena_acd3` (`acd3/t_wall`) | 11-25 | 같음(export 4553dc4, A3:93) | `acd24/t_acd_s3_c2/model_1496.pt`(`run.json` init) | 250 / iter 1745 | 3 | v7 끝 고친 판(진열대 A 5 mm, A3:4, A4:5) | a+c+d 설정 + `near_wall_m=0.08 w_near_wall=-0.2` | a+c+d | 벽·진열대 0.08 m 안 벌점 −0.2 | 44(형식 3) | 다섯 칸 63.01(acd2 62.94, 짝 차이 모두 2 SE 안, A3:39, 45-49), 분당 부호 바뀜 감소(A3:34-37) | Q2 → E-3·c_moving 20판 모두 20/20(4b·acd2도 20/20); Q2 → E-3 몸 여유 중앙값 0.024 대 4b 0.058 m, 평균 차 −0.021(SE 0.005) 2 SE 밖(A3:68-81) | 실물 후보(커밋 c190452a 메시지 "the real-robot candidate"; A4:18 acd3 유지 권고). 사용자가 언제 골랐는지는 저장소 기록에 없음: 모름 | A3, A3W |
+| acd3 = `store_arena_acd3` (`acd3/t_wall`) | 11-25 | 같음(export 4553dc4, A3:93) | `acd24/t_acd_s3_c2/model_1496.pt`(`run.json` init) | 250 / iter 1745 | 3 | v7 끝 고친 판(진열대 A 5 mm, A3:4, A4:5) | a+c+d 설정 + `near_wall_m=0.08 w_near_wall=-0.2` | a+c+d | 벽·진열대 0.08 m 안 벌점 −0.2 | 44(형식 3) | 다섯 칸 63.01(acd2 62.94, 짝 차이 모두 2 SE 안, A3:39, 45-49), 분당 부호 바뀜 감소(A3:34-37) | Q2 → E-3·c_moving 20판 모두 20/20(4b·acd2도 20/20); Q2 → E-3 몸 여유 중앙값 0.024 대 4b 0.058 m, 평균 차 −0.021(SE 0.005) 2 SE 밖(A3:68-81) | 실물 후보(커밋 c190452a 메시지 "the real-robot candidate"; A4:18 acd3 유지 권고). 사용자 결정은 저장소 밖 기록에 있다: Drive 문서 「전체 할일 요약」의 "RL 실물 후보: 끝: acd3로 정함" 줄 | A3, A3W |
 | acd4 = s4 (`acd4/t_s4`) | 11-25 | `feat/rl-acd4-2026-11-25`(A4:3); 학습 커밋 모름 | `acd3/t_wall/model_1745.pt`(`run.json` init) | 150 / iter 1894 | 3 | v7 4 cm 진열대 판(A4:4) | t_wall과 같음 | a+c+d | 없음(지도만) | 44(체크포인트 첫 층) | 네 칸 60.32(같은 지도의 acd3 60.14, 짝 차이 넷 모두 2 SE 안, A4:13-14, 46-51) | 없음(A4:57) | 기록용: onnx로 내보내지 않음(A4:6), 후보를 바꿀 근거 없음(A4:17) | A4 |
 
 ## 계보 그림
@@ -113,13 +113,31 @@ d = 에피소드마다 최고 속도 U(0.08, 0.16)와 그 관측(RW:12-15). 최�
 
 ## 2026-11-26 밤 (진행)
 
-지도는 줄자로 잰 진열대 v7(main 3ccf2a3f)이다. 아래는 `pd-rl-base`의 `docs/rl_tracks_2026-11-26/jobs_base.txt`에서 옮긴 것이고,
-이 파일을 쓸 때 그 폴더에는 기준 평가 두 줄만 있었다(학습 줄 없음). 결과는 코디네이터가 채운다.
+지도는 줄자로 잰 진열대 v7(main 3ccf2a3f)이다. 계획과 판정 기준은 `docs/worklog_rl_tracks_2026-11-26.md`, 작업 목록은
+`docs/rl_tracks_2026-11-26/jobs_*.txt`, 결과 표는 `docs/rl_tracks_2026-11-26/results/tables.md`(도구 `n26_tables.py`)다.
+실행 폴더는 `D:/isaac/runs/store_arena/n26/<이름>`이고, 학습마다 `run_config.json`이 있다(커밋과 지도 sha256 포함).
 
-| 이름(실행 폴더) | 날짜 | 종류 | 체크포인트 | 설정 | 결과 | 상태 |
-|---|---|---|---|---|---|---|
-| e_acd3_rand (`store_arena/n26/e_acd3_rand`) | 11-26 | 평가 | `acd3/t_wall/model_1745.pt` | `--num_envs 4096 --episodes 1 --seed 7`, a+c+d 관측, `robot_max=2 robot_priority_prob=0.5 speed_cap_range=0.12,0.12` | (진행) | 진행 |
-| e_acd3_head (`store_arena/n26/e_acd3_head`) | 11-26 | 평가 | `acd3/t_wall/model_1745.pt` | 위 + `robot_headon=1` | (진행) | 진행 |
+학습은 모두 acd3(`acd3/t_wall/model_1745.pt`)에서 출발해 4096 env로 300번, seed 3이다. 설정은 acd3과 같은 a+c+d +
+`near_wall_m=0.08 w_near_wall=-0.2`에 아래 "다른 점"만 더했다. 관측은 모두 44칸(형식 3)이다.
+
+| 이름(실행 폴더) | 날짜 | 브랜치·커밋 | 부모 체크포인트 | 반복(이번/누적) | seed | 지도 판 | 기본과 다른 설정(acd3 설정에 더한 것) | 레시피 | 보상·랜덤화 변경 | 관측 칸 수 | 평가 세트와 결과(비교 대상, 짝 여부) | Gazebo 결과 | 상태와 이유 | 기록 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| t_ctrl (`n26/t_ctrl`) | 11-26 | `feat/rl-tracks-2026-11-26` 52719475 | `acd3/t_wall/model_1745.pt` | 300 / (진행) | 3 | 줄자 진열대 v7 | 없음 | a+c+d | 없음(같은 설정으로 300번 더: 다른 실험의 대조) | 44 | (진행) | 없음 | 진행 | 작업 기록 2절 |
+| t_std (`n26/t_std`) | 11-26 | 같음 52719475 | 같음 | 300 / (진행) | 3 | 같음 | `--init_std 0.3` | a+c+d | 탐색 std(v, w)를 0.3으로 되돌려 시작 | 44 | (진행) | 없음 | 진행 | 작업 기록 2절 |
+| t_sysid (`n26/t_sysid`) | 11-26 | 같음 e51add4b | 같음 | 300 / (진행) | 3 | 같음 | `cmd_delay_steps_range=0,2 cmd_lag_tau_range=0.0,0.12 cmd_gain_v_range=0.95,1.05 cmd_gain_w_range=0.85,1.15` | a+c+d | 명령 응답 랜덤화(지연, 1차 지연, 이득) | 44 | (진행) | 없음 | 진행 | 작업 기록 3절, `docs/report_2026-11-26_rl_sysid.md` |
+| t_dyn (`n26/t_dyn`) | 11-26 | 같음 4015354f | 같음 | 300 / (진행) | 3 | 같음 | `near_dyn_m=0.10 w_near_dyn=-1.0` | a+c+d | 움직이는 물체·로봇 0.10 m 안 벌점 | 44 | (진행) | 없음 | 진행 | 작업 기록 5절 |
+| t_gam (`n26/t_gam`) | 11-26 | 같음 4015354f | 같음 | 300 / (진행) | 3 | 같음 | `--gamma 0.995 --init_std 0.3` | a+c+d | 할인율 0.99 → 0.995 | 44 | (진행) | 없음 | 진행 | 작업 기록 5절 |
+
+평가(모두 `--num_envs 4096 --episodes 1 --seed 7`, a+c+d 관측, `robot_max=2 robot_priority_prob=0.5 speed_cap_range=0.12,0.12`).
+칸 이름: rand(무작위), head(`robot_headon=1`), realrand(실측 명령 응답 고정: `cmd_delay_steps_range=1,1 cmd_lag_tau_range=0.065,0.065`),
+corner·tee·entry(`robot_scenario=<이름> mover_prob=0`). 같은 칸의 판끼리만 짝 비교한다.
+
+| 이름 | 체크포인트 | 칸 | 결과 | 상태 |
+|---|---|---|---|---|
+| e_acd3_rand | acd3 | rand | 성공 76.32 %, 충돌 23.27 %, 시간 초과 0.42 %. 충돌의 가까운 것: 벽·진열대 114, 상자 45, 움직이는 물체 436, 로봇 358. w 부호 바뀜 43.3회/분 | 끝 |
+| e_acd3_head | acd3 | head | 성공 47.41 %, 충돌 52.17 %. 가까운 것: 벽·진열대 195, 상자 40, 움직이는 물체 414, 로봇 1488. 45.1회/분 | 끝 |
+| e_acd3_realrand, e_acd3_rand_chk, e_acd3_rand_chk2, e_acd3_corner, e_acd3_tee, e_acd3_entry | acd3 | 이름대로 | (진행) | 진행 |
+| e_ctrl_*, e_std_*, e_sysid_*, e_dyn_*, e_gam_* | 위 학습의 마지막 모델 | rand, head(+ sysid·ctrl은 realrand) | (진행) | 진행 |
 
 ## 기록 규칙
 
