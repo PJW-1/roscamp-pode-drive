@@ -414,3 +414,35 @@ def test_every_transit_of_the_plan_keeps_clear_after_rounding(layout_plan):
     assert cov.rounded_problems(plan) == []
     for _, _, pts in plan.transits:
         assert cov.path_clear(plan.grid, cov.rounded(pts, plan.params.turn_radius_m))
+
+
+# ---- 막다른 자리: 한 점 둘레를 지나지 않고는 출발점에 닿지 못하는 빈칸 ----
+def _pocket(centre, radius=0.18):
+    site = load_fleet_map("v7")
+    plan = cov.make_plan(site)
+    return plan.grid, cov.pocket(plan.grid, plan.grid.free, plan.start, centre, radius)
+
+
+def test_the_cells_behind_q2_are_shut_in_by_it():
+    grid, shut = _pocket((1.66, 0.15))
+    inside = [grid.centre((i, j)) for j, i in zip(*shut.nonzero())]
+    assert (1.8625, 0.2125) in [(round(x, 4), round(y, 4)) for x, y in inside]
+    # 모두 Q2 동쪽 구석이고 Q2 둘레 밖이다
+    assert all(x > 1.66 and y < 0.375 and math.dist((x, y), (1.66, 0.15)) > 0.18 for x, y in inside)
+    i, j = grid.cell((1.4125, 0.2125))
+    assert grid.free[j, i] and not shut[j, i]
+
+
+def test_the_whole_south_aisle_is_shut_in_by_the_shelf_gap():
+    grid, shut = _pocket((1.1125, 0.2125))
+    for x in (0.8125, 1.4125, 1.8625):
+        i, j = grid.cell((x, 0.2125))
+        assert grid.free[j, i] and shut[j, i]
+    i, j = grid.cell((1.1125, 0.5125))
+    assert grid.free[j, i] and not shut[j, i]
+
+
+def test_no_cell_is_shut_in_when_the_start_is_inside_the_circle():
+    site = load_fleet_map("v7")
+    plan = cov.make_plan(site)
+    assert not cov.pocket(plan.grid, plan.grid.free, plan.start, plan.start, 0.18).any()

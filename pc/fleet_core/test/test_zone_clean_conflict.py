@@ -239,3 +239,41 @@ def test_the_way_home_is_the_straight_one_when_the_held_node_cannot_be_passed():
     leg = t._back_leg(me, job)
     assert "P-2" in leg.nodes
     assert t._clean_conflict(me, leg) == "P-2 is held by pode1"
+
+
+# ---- 막다른 자리: 그 지점 둘레를 지나야만 나갈 수 있으면 지점을 놓지 않는다 ----
+def _standing(here, held):
+    """운반 pode1은 P-2에 서 있고, 청소 pode3이 here에서 goal을 끝냈다."""
+    site = load_fleet_map("v7")
+    starts = {"pode1": "P-2", "pode3": "P-1"}
+    t = ZoneTraffic(site, load_params(), list(starts), lambda: 0.0, cleaners=("pode3",))
+    for name, node in starts.items():
+        x, y = site.node_pose(node)
+        t.on_robot_state(name, x, y, 0.0, "IDLE")
+    t.tick()
+    me = t._robots["pode3"]
+    for node in t.grants.nodes_of("pode3"):
+        t.grants.release_node("pode3", node)
+    me.x, me.y = here
+    assert t.grants.take("pode3", [], list(held))
+    t._clean_release(me, t._cleaners["pode3"], ended=True)
+    return t
+
+
+# 둘째 자리는 Q2 둘레(0.18 m)를 5 mm 벗어났지만 그 칸의 중심은 둘레 안이다
+@pytest.mark.parametrize("here", [(1.8625, 0.2125), (1.845, 0.150)])
+def test_the_way_out_node_is_kept_at_the_dead_end_of_the_south_aisle(here):
+    """Q2 동쪽 구석은 Q2 둘레를 지나야만 나간다. 놓으면 운반 로봇이 Q2에 서서 입구를 막는다."""
+    t = _standing(here, ["Q1", "Q2"])
+    assert _path_gap(t.site.node_pose("Q2"), [here]) > t.params.clean_reach_m
+    assert t.grants.nodes_of("pode3") == ("Q1", "Q2")
+    assert not t.grants.take("pode1", [], ["Q2"])
+
+
+@pytest.mark.parametrize("here", [(1.4125, 0.2125), (1.475, 0.150)])
+def test_a_node_off_the_way_out_is_released_as_before(here):
+    """틈과 Q2 사이는 Q2를 지나지 않고 틈으로 나가므로 Q2를 놓는다."""
+    t = _standing(here, ["Q2"])
+    assert _path_gap(t.site.node_pose("Q2"), [here]) > t.params.clean_reach_m
+    assert t.grants.nodes_of("pode3") == ()
+    assert t.grants.take("pode1", [], ["Q2"])

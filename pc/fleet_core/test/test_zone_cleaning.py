@@ -188,7 +188,11 @@ def test_a_goal_not_sent_lets_go_of_its_nodes():
     m = w.t._robots[CLEANER_NAME]
     left = set(w.t.grants.nodes_of(CLEANER_NAME))
     assert left <= held
-    assert all(w.t._gap(m, node) <= w.params.clean_reach_m for node in left)
+    # 둘레 밖에 남는 것은 그 지점을 지나야만 나갈 수 있는 길목뿐이다(막다른 자리)
+    reach, here, plan = w.params.clean_reach_m, (m.x, m.y), w.t._clean_plan
+    assert all(w.t._gap(m, node) <= reach or plan.shut_in(here, w.t.site.node_pose(node), reach)
+               for node in left)
+    assert {"O_IN", "E-2"} <= held - left
 
 
 def test_the_cleaner_is_not_placed_in_a_dock_or_lane_zone():

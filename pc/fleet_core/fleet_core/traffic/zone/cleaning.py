@@ -121,6 +121,7 @@ class CleanPlan:
         self.out_edge = next((e for e in edges if e.a == self.home and e.mode == FOLLOW_PATH),
                              None)
         self.in_edge = next((e for e in edges if e.b == self.home and e.mode == RETREAT), None)
+        self._pockets = {}
 
     # ---- 지금 자리에서 점까지 청소 격자 위 꺾은선: (보낼 점들, 검사할 점들) ----
     # away: (점, 거리) 목록. 그 점들에서 그 거리 넘게 떨어진 길만 찾고, 없으면 ValueError
@@ -142,6 +143,13 @@ class CleanPlan:
         if cell is None or not self.free[cell[1], cell[0]]:
             cell = self.grid.nearest_free(here)
         return self.cov.distances(self.free, cell)
+
+    # ---- 막다른 자리: 그 점에서 reach 안을 지나야만 출발점으로 나갈 수 있는 자리인가 ----
+    def shut_in(self, here, pose, reach: float) -> bool:
+        key = (pose, reach)
+        if key not in self._pockets:
+            self._pockets[key] = self.cov.pocket(self.grid, self.free, self.start, pose, reach)
+        return self.cov.in_pocket(self.grid, self.free, self._pockets[key], pose, reach, here)
 
     def covered(self, segs) -> float:
         hit = self.cov.covered_by(self.grid, self.params, [list(seg) for seg in segs])
@@ -1312,12 +1320,15 @@ class Cleaning:
         return out
 
     def _clean_release(self, m, job, ended: bool) -> None:
-        """몸이 둘레에 든 지점은 기록하고, 들었다 나온 지점은 놓는다. goal이 끝나면 둘레 밖은 모두 놓는다."""
-        reach = self.params.clean_reach_m
+        """몸이 둘레에 든 지점은 기록하고, 들었다 나온 지점은 놓는다. goal이 끝나면 둘레 밖은 모두 놓는다.
+        그 지점 둘레를 지나야만 나갈 수 있는 막다른 자리에서는 놓지 않는다(놓으면 남이 입구에 선다)."""
+        reach, here, plan = self.params.clean_reach_m, (m.x, m.y), self._clean_plan
         for node in self.grants.nodes_of(m.name):
             if self._gap(m, node) <= reach:
                 job.entered.add(node)
             elif node in job.entered or ended:
+                if plan is not None and plan.shut_in(here, self.site.node_pose(node), reach):
+                    continue
                 self.grants.release_node(m.name, node)
                 job.entered.discard(node)
 

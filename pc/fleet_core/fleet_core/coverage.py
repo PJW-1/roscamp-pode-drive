@@ -381,6 +381,31 @@ def transit(grid: CleanGrid, free: np.ndarray, a: Point, b: Point, radius: float
     return _shorten(grid, pts, radius, away)
 
 
+def _outside(grid: CleanGrid, free: np.ndarray, centre: Point, radius: float) -> np.ndarray:
+    xs, ys = np.meshgrid(grid.xs, grid.ys)
+    return free & (np.hypot(xs - centre[0], ys - centre[1]) > radius)
+
+
+def pocket(grid: CleanGrid, free: np.ndarray, start: Point, centre: Point,
+           radius: float) -> np.ndarray:
+    """centre에서 radius 안을 지나지 않고는 start에 닿지 못하는 빈칸. start가 그 안이면 없다."""
+    left = _outside(grid, free, centre, radius)
+    cell = grid.cell(start)
+    if cell is None or not left[cell[1], cell[0]]:
+        return np.zeros_like(free)
+    return left & ~np.isfinite(distances(left, cell))
+
+
+def in_pocket(grid: CleanGrid, free: np.ndarray, shut: np.ndarray, centre: Point, radius: float,
+              p: Point) -> bool:
+    """p가 막다른 쪽인가: 둘레 밖 빈칸 가운데 p에 가장 가까운 칸으로 본다(둘레에 걸친 칸은 중심이 안쪽일 수 있다)."""
+    if not shut.any():
+        return False
+    js, iz = np.nonzero(_outside(grid, free, centre, radius))
+    k = int(np.argmin(np.hypot(grid.xs[iz] - p[0], grid.ys[js] - p[1])))
+    return bool(shut[js[k], iz[k]])
+
+
 def _runs(row: np.ndarray) -> list[tuple[int, int]]:
     runs, start = [], None
     for i, ok in enumerate(row):
