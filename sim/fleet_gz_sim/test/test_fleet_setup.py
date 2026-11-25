@@ -204,8 +204,8 @@ def test_aisle_strips_cover_the_two_aisles_beside_the_v7_shelves():
     strips = fleet_setup.aisle_strips(site.sim_shelves, site.bounds(), band=0.05)
     # 남쪽 통로: 남쪽 벽 너머 5 cm부터 남쪽 진열대 면 안쪽 5 cm까지, 두 진열대와 그 사이 틈을 잇는다
     assert (0.7, -0.05, 1.56, 0.3975) in strips
-    # 가운데 통로: 남쪽 진열대 윗면에서 긴 진열대 아랫면까지
-    assert (0.65, 0.3375, 1.56, 0.785) in strips
+    # 가운데 통로: 남쪽 진열대 윗면에서 긴 진열대 아랫면까지, 남쪽 진열대가 마주 보는 길이만
+    assert (0.7, 0.3375, 1.56, 0.785) in strips
     # 충전 칸 사이 칸막이(길이 0.1 m)는 통로가 아니다
     assert not [r for r in strips if r[2] <= 0.6 and r[3] <= 0.2]
 
@@ -215,6 +215,20 @@ def test_a_shelf_far_from_anything_makes_no_aisle_strip():
     # 벽에서 0.45 m 안이면 그쪽만 통로다
     assert fleet_setup.aisle_strips([(1.0, 0.4, 2.0, 0.44)], (0.0, 0.0, 3.0, 2.04), band=0.05) == [
         (1.0, -0.05, 2.0, 0.45)]
+
+
+def test_an_aisle_is_only_as_long_as_the_two_faces_look_at_each_other():
+    # 긴 진열대(x 1~3) 아래 0.3 m에 짧은 진열대(x 1~1.3)가 있다. 나머지 길이는 벽까지 멀어 통로가 아니다
+    long, short = (1.0, 1.0, 3.0, 1.04), (1.0, 0.66, 1.3, 0.70)
+    strips = fleet_setup.aisle_strips([long, short], (0.0, 0.0, 4.0, 2.5), band=0.05)
+    assert strips == [(1.0, 0.65, 1.3, 1.05)]
+    # 세로로 긴 진열대도 같다
+    turned = [(y0, x0, y1, x1) for x0, y0, x1, y1 in (long, short)]
+    assert fleet_setup.aisle_strips(turned, (0.0, 0.0, 2.5, 4.0), band=0.05) == [(0.65, 1.0, 1.05, 1.3)]
+    # 가까운 면이 일부만 가려도 나머지 길이의 벽 통로는 남는다
+    by_wall = fleet_setup.aisle_strips([(1.0, 0.4, 3.0, 0.44), (1.0, 0.1, 1.3, 0.14)],
+                                       (0.0, 0.0, 4.0, 2.5), band=0.05)
+    assert (1.3, -0.05, 3.0, 0.45) in by_wall and (1.0, 0.09, 1.3, 0.45) in by_wall
 
 
 def test_narrow_strips_add_the_aisles_only_when_asked():

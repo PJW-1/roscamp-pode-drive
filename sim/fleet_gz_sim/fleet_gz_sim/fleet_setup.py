@@ -185,31 +185,28 @@ AISLE_MIN_LEN_M = 0.25  # 이보다 짧은 면(충전 칸 칸막이)은 통로�
 def aisle_strips(shelves, bounds, band: float, max_gap: float = AISLE_MAX_M,
                  min_len: float = AISLE_MIN_LEN_M) -> list[tuple[float, float, float, float]]:
     """진열대 긴 면과 그 면이 마주 보는 벽·진열대 사이가 max_gap 이하인 통로 사각형들.
-    두 면을 band만큼 넘겨 잡고, 같은 폭으로 이어지는 통로는 진열대 사이 틈(max_gap 이하)을 넘어 하나로 잇는다."""
+    두 면이 마주 보는 길이만 잡고, 두 면을 band만큼 넘긴다.
+    같은 폭으로 이어지는 통로는 진열대 사이 틈(max_gap 이하)을 넘어 하나로 잇는다."""
     bx0, by0, bx1, by1 = bounds
     rects = []
     for i, (x0, y0, x1, y1) in enumerate(shelves):
         along_x = x1 - x0 >= y1 - y0
-        if (x1 - x0 if along_x else y1 - y0) < min_len:
-            continue
         # 긴 축을 a, 통로 폭 축을 c로 본다
         a0, a1, c0, c1 = (x0, x1, y0, y1) if along_x else (y0, y1, x0, x1)
+        if a1 - a0 < min_len:
+            continue
         wall_lo, wall_hi = (by0, by1) if along_x else (bx0, bx1)
-        below, above = [wall_lo], [wall_hi]
-        for j, other in enumerate(shelves):
-            if j == i:
-                continue
-            o0, o1, p0, p1 = ((other[0], other[2], other[1], other[3]) if along_x
-                              else (other[1], other[3], other[0], other[2]))
-            if o1 <= a0 or o0 >= a1:
-                continue
-            if p1 <= c0:
-                below.append(p1)
-            if p0 >= c1:
-                above.append(p0)
-        for lo, hi in ((max(below), c0), (c1, min(above))):
-            if 1e-9 < hi - lo <= max_gap:
-                rects.append((along_x, a0, a1, lo - band, hi + band))
+        others = [(o[0], o[2], o[1], o[3]) if along_x else (o[1], o[3], o[0], o[2])
+                  for j, o in enumerate(shelves) if j != i]
+        # 마주 보는 면이 바뀌는 자리에서 긴 축을 나눈다
+        cuts = sorted({a0, a1, *(v for o0, o1, _, _ in others for v in (o0, o1) if a0 < v < a1)})
+        for s0, s1 in zip(cuts, cuts[1:]):
+            facing = [(p0, p1) for o0, o1, p0, p1 in others if o0 < s1 and o1 > s0]
+            below = max([wall_lo, *(p1 for _, p1 in facing if p1 <= c0)])
+            above = min([wall_hi, *(p0 for p0, _ in facing if p0 >= c1)])
+            for lo, hi in ((below, c0), (c1, above)):
+                if 1e-9 < hi - lo <= max_gap:
+                    rects.append((along_x, s0, s1, lo - band, hi + band))
     # 같은 폭의 통로끼리 긴 축 순서로 잇는다
     merged = []
     for along_x, lo, hi, a0, a1 in sorted((r[0], round(r[3], 6), round(r[4], 6), r[1], r[2])

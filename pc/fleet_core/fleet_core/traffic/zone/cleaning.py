@@ -284,6 +284,8 @@ class Cleaning:
     def _clean_reap(self, m, job) -> None:
         if job.goal_id is None or (m.goal is not None and m.goal.id == job.goal_id):
             return
+        if job.leg is not None and job.leg.target == TUCK:
+            self._tuck_drop(job)
         job.goal_id, job.arrival_by = None, None
         job.blocked_since = job.blocked_at = None
         self._clean_release(m, job, ended=True)
@@ -687,8 +689,8 @@ class Cleaning:
         if job.homing:
             return job.goal_id is not None or self._clean_yield_on_the_way_home(m, job, other, why)
         # 붙어 서서 기다리는 것은 옆으로 지나갈 로봇에게만이다. 쥔 지점을 기다리는 로봇에게는 비킨다
-        tucked = self._tucked(m, job) and not set(self._wanted(other)) & set(
-            self.grants.nodes_of(m.name))
+        at_spot = self._tucked(m, job)
+        tucked = at_spot and not set(self._wanted(other)) & set(self.grants.nodes_of(m.name))
         if job.yield_since is None or (job.yield_for != other.name and not tucked):
             # 붙어 선 동안에는 만나는 로봇이 바뀌어도 시계를 잇는다
             job.yield_for, job.yield_since = other.name, now
@@ -709,8 +711,8 @@ class Cleaning:
         if clear:
             self._event("INFO", "CLEAN_YIELD", f"stops for {other.name}: {why}", m.name)
             return True
-        # 좁은 통로에서는 한쪽 면으로 붙어 서서 옆으로 지나가게 한다
-        if self._clean_tuck(m, job, other, why, line):
+        # 좁은 통로에서는 한쪽 면으로 붙어 서서 옆으로 지나가게 한다. 붙어 선 자리를 내줄 때는 다시 붙지 않는다
+        if not at_spot and self._clean_tuck(m, job, other, why, line):
             return True
         # 먼저 몸 방향 그대로 후진해 빠지고, 안 되면 비킬 점으로 간다
         leg = self._clean_backup_leg(m, other)
@@ -797,24 +799,26 @@ class Cleaning:
         줄 위에서 줄 방향으로 붙는 것이 아니면 None(줄은 진행점부터 그대로 다시 간다)."""
         if k < 0 or not job.queue or job.queue[0] != k:
             return None
-        a, u, span = self._axis(job.segs[k])
+        seg = job.segs[k]
+        a, u, span = self._axis(seg)
         along = u[0] * math.cos(spot.yaw) + u[1] * math.sin(spot.yaw)
         if math.dist((m.x, m.y), a) > self.params.arrival_tolerance_m / 2 or along < 0.99:
             return None
         s_back = min(max(self._along(a, u, spot.back), 0.0), span)
         back = (a[0] + u[0] * s_back, a[1] + u[1] * s_back)
-        return k, a, back, s_back, [*spot.path, back]
+        return k, seg, back, s_back, [*spot.path, back]
 
     def _tuck_arrived(self, m, job) -> None:
         """붙어 설 자리에 닿았다: 가던 줄을 복귀점부터로 줄이고, 건너뛰는 구간에서 덜 닦인 곳을 빈틈으로 남긴다."""
         rejoin, job.tuck_rejoin = job.tuck_rejoin, None
         if rejoin is None or job.tuck is None:
             return
-        k, a, back, s_back, trail = rejoin
-        if not job.queue or job.queue[0] != k or job.segs[k][0] != a:
+        k, seg, back, s_back, trail = rejoin
+        # 가는 동안 그 줄이 바뀌었으면 그대로 둔다
+        if not job.queue or job.queue[0] != k or k >= len(job.segs) or job.segs[k] != seg:
             return
-        self._clean_note_gaps(m, job, k, Detour(k, a, back, 0.0, s_back, trail=trail))
-        job.segs[k] = (back, job.segs[k][1])
+        self._clean_note_gaps(m, job, k, Detour(k, seg[0], back, 0.0, s_back, trail=trail))
+        job.segs[k] = (back, seg[1])
         job.tuck_line = k
 
     @staticmethod

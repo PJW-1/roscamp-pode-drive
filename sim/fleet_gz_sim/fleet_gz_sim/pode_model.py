@@ -15,6 +15,7 @@ SPHERE, DISC = "sphere", "disc"
 SHAPES = (SPHERE, DISC)
 WHEELS = ("l_wheel", "r_wheel")
 DISC_WIDTH_M = 0.0015  # 바퀴 축 방향 폭. 바닥에 닿는 자리가 이 폭 안에서만 움직인다
+BODY_HALF_M = 0.056  # 발자국 반폭
 
 
 def _joint_y(root, link_name: str) -> float:
@@ -26,35 +27,48 @@ def _joint_y(root, link_name: str) -> float:
     raise ValueError(f"no joint holds {link_name}")
 
 
-def thin_wheels(urdf: str) -> str:
-    """바퀴 링크의 구 충돌 모양을 같은 반지름의 얇은 원판(축은 바퀴 축)으로 바꾼 URDF."""
-    root = ET.fromstring(urdf)
-    changed = 0
+def _ball(root, link_name: str):
+    """바퀴 링크의 구 충돌 모양 하나: (collision, sphere). 하나가 아니면 ValueError."""
+    found = []
     for link in root.iter("link"):
-        if link.get("name") not in WHEELS:
+        if link.get("name") != link_name:
             continue
         for collision in link.findall("collision"):
             geometry = collision.find("geometry")
             ball = geometry.find("sphere") if geometry is not None else None
-            if ball is None:
-                continue
-            separation = next(root.iter("wheel_separation"), None)
-            if separation is None:
-                raise ValueError("no wheel_separation in the drive plugin")
-            joint_y = _joint_y(root, link.get("name"))
-            geometry.remove(ball)
-            ET.SubElement(geometry, "cylinder", radius=ball.get("radius"),
-                          length=str(DISC_WIDTH_M))
-            origin = collision.find("origin")
-            if origin is None:
-                origin = ET.SubElement(collision, "origin", xyz="0 0 0")
-            x, _, z = origin.get("xyz").split()
-            y = math.copysign(float(separation.text) / 2, joint_y) - joint_y
-            origin.set("xyz", f"{x} {y:.6g} {z}")
-            origin.set("rpy", f"{math.pi / 2} 0 0")
-            changed += 1
-    if changed != len(WHEELS):
-        raise ValueError(f"expected a sphere collision on each of {WHEELS}, changed {changed}")
+            if ball is not None:
+                found.append((collision, ball))
+    if len(found) != 1:
+        raise ValueError(f"expected one sphere collision on {link_name}, found {len(found)}")
+    return found[0]
+
+
+def thin_wheels(urdf: str) -> str:
+    """바퀴 링크의 구 충돌 모양을 같은 반지름의 얇은 원판(축은 바퀴 축)으로 바꾼 URDF."""
+    root = ET.fromstring(urdf)
+    balls = {name: _ball(root, name) for name in WHEELS}
+    separation = next(root.iter("wheel_separation"), None)
+    if separation is None:
+        raise ValueError("no wheel_separation in the drive plugin")
+    half = float(separation.text) / 2
+    if half + DISC_WIDTH_M / 2 > BODY_HALF_M:
+        raise ValueError(f"a disc at {half} m would stand outside the footprint ({BODY_HALF_M} m)")
+    for name, (collision, ball) in balls.items():
+        joint_y = _joint_y(root, name)
+        geometry = collision.find("geometry")
+        geometry.remove(ball)
+        ET.SubElement(geometry, "cylinder", radius=ball.get("radius"), length=str(DISC_WIDTH_M))
+        origin = collision.find("origin")
+        if origin is None:
+            origin = ET.SubElement(collision, "origin", xyz="0 0 0")
+        x, old_y, z = origin.get("xyz").split()
+        # 구가 있던 쪽(몸 기준)에 둔다
+        side = joint_y + float(old_y)
+        if side == 0.0:
+            raise ValueError(f"cannot tell which side {name} is on")
+        y = math.copysign(half, side) - joint_y
+        origin.set("xyz", f"{x} {y:.6g} {z}")
+        origin.set("rpy", f"{math.pi / 2} 0 0")
     return ET.tostring(root, encoding="unicode")
 
 

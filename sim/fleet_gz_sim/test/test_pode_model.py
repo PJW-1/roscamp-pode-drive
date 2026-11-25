@@ -70,6 +70,35 @@ def test_a_model_without_ball_wheels_is_refused():
         pode_model.thin_wheels("<robot><link name='l_wheel'/><link name='r_wheel'/></robot>")
 
 
+def _toy(left: str, right: str, separation: float = 0.0961, joint_y: float = 0.04055) -> str:
+    """바퀴 둘과 구동 플러그인만 있는 모델. left, right는 그 바퀴 링크의 충돌 모양들."""
+    ball = "<collision><origin xyz='0 {y} 0'/><geometry><sphere radius='0.028'/></geometry></collision>"
+    parts = {"ball+": ball.format(y=0.008), "ball-": ball.format(y=-0.008), "": ""}
+    links = "".join(f"<link name='{name}'>{''.join(parts[k] for k in kinds.split(','))}</link>"
+                    for name, kinds in (("l_wheel", left), ("r_wheel", right)))
+    joints = "".join(f"<joint name='{name}_joint' type='continuous'><origin xyz='0 {y} 0'/>"
+                     f"<parent link='base_link'/><child link='{name}'/></joint>"
+                     for name, y in (("l_wheel", joint_y), ("r_wheel", -joint_y if joint_y else 0)))
+    return (f"<robot><link name='base_link'/>{links}{joints}<gazebo><plugin>"
+            f"<wheel_separation>{separation}</wheel_separation></plugin></gazebo></robot>")
+
+
+def test_wheels_whose_joints_sit_on_the_body_line_still_go_to_their_own_side():
+    root = ET.fromstring(pode_model.thin_wheels(_toy("ball+", "ball-", joint_y=0.0)))
+    ys = [float(_wheel(root, name)[0].get("xyz").split()[1]) for name in pode_model.WHEELS]
+    assert ys == pytest.approx([0.04805, -0.04805])
+
+
+def test_each_wheel_needs_its_own_ball():
+    with pytest.raises(ValueError):
+        pode_model.thin_wheels(_toy("ball+,ball+", ""))
+
+
+def test_a_disc_outside_the_footprint_is_refused():
+    with pytest.raises(ValueError, match="footprint"):
+        pode_model.thin_wheels(_toy("ball+", "ball-", separation=0.112))
+
+
 def test_a_model_without_the_drive_wheel_separation_is_refused():
     urdf = _urdf().replace("wheel_separation", "wheel_gap")
     with pytest.raises(ValueError, match="wheel_separation"):

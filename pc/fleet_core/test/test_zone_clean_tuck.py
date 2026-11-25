@@ -195,6 +195,39 @@ def test_a_tuck_called_off_on_the_way_is_not_a_tuck(monkeypatch):
     assert w.job.segs[k][0] == pytest.approx(here)
 
 
+def test_a_tuck_whose_goal_is_taken_away_is_not_a_tuck(monkeypatch):
+    """밖에서 goal을 거둬 가도(STOP, 감시) 설 자리 둘레에 있다고 붙어 선 것으로 보지 않는다."""
+    w, t, m, other, k, a, b = _on_the_line(monkeypatch)
+    here = w.at(a, b, S)
+    assert t._clean_make_way(m, other, "test")
+    w.out += t.take_output()
+    assert w.job.tuck is not None and w.job.goal_id is not None
+    m.goal = None
+    t._clean_on_stop()
+    assert w.job.goal_id is None
+    assert w.job.tuck is None and not t._tucked(m, w.job) and w.job.tuck_rejoin is None
+    assert w.job.segs[k][0] == pytest.approx(here)
+
+
+@pytest.mark.parametrize("change", ["end", "short"])
+def test_a_line_that_changed_on_the_way_keeps_its_start(monkeypatch, change):
+    """붙으러 가는 동안 그 줄이 바뀌었으면 복귀점을 옮겨 적지 않는다."""
+    w, t, m, other, k, a, b = _on_the_line(monkeypatch)
+    assert t._clean_make_way(m, other, "test")
+    w.out += t.take_output()
+    cmd = w.moves("follow_path")[-1]
+    assert w.job.tuck_rejoin is not None
+    if change == "end":
+        start, end = w.job.segs[k]
+        w.job.segs[k] = (start, (end[0] - 0.10, end[1]))
+    else:
+        del w.job.segs[k:]
+    before = list(w.job.segs)
+    w.pos[CLEANER_NAME] = cmd.path[-1][:2]
+    t._tuck_arrived(m, w.job)
+    assert w.job.segs == before and w.job.tuck_line == -1
+
+
 # ---- 붙어 선 뒤 ----
 def test_a_tucked_cleaner_makes_way_for_a_transport_that_waits_for_a_node_it_holds(monkeypatch):
     """붙어 서서 기다리는 것은 옆으로 지나갈 로봇에게만이다. 쥔 지점을 기다리는 로봇에게는 예전 순서로 비킨다."""
@@ -209,6 +242,9 @@ def test_a_tucked_cleaner_makes_way_for_a_transport_that_waits_for_a_node_it_hol
     for _ in range(round((w.params.clean_yield_wait_s + 2.0) / 0.1)):
         w.step()
     assert len(w.moves()) > sent or w.events("CLEAN_HOME")
+    # 다시 붙으러 가지 않는다: 후진, 비킬 점, 집 가운데 하나다
+    assert len([e for e in w.events("CLEAN_YIELD") if "tucks in" in e.detail]) == 1
+    assert all(cmd.target_id != TUCK for cmd in w.moves("follow_path")[sent:])
 
 
 def test_the_tucked_wait_is_one_clock_when_the_met_transport_changes(monkeypatch):
