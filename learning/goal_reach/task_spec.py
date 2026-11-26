@@ -175,12 +175,17 @@ def parse_overrides(items, spec=SPEC) -> dict:
         key, text = item.split("=", 1)
         default = getattr(spec, key, None)
         if key in GROUPED:
-            parts = [x for x in text.split(",") if x.strip()]
-            if not parts or len(parts) % GROUPED[key]:
+            # 빈 항목을 건너뛰지 않는다: 141,,146 은 틀린 입력이다
+            parts = text.split(",")
+            try:
+                values = tuple(float(x) for x in parts)
+            except ValueError:
+                values = ()
+            if not values or len(values) % GROUPED[key]:
                 raise ValueError(
                     f"{key} takes groups of {GROUPED[key]} comma-separated numbers, got {text!r}"
                 )
-            out[key] = tuple(float(x) for x in parts)
+            out[key] = values
         elif isinstance(default, str):
             out[key] = text
         elif isinstance(default, int) and not isinstance(default, bool):
@@ -552,7 +557,8 @@ def scale_ranges(ranges: torch.Tensor, scale: torch.Tensor) -> torch.Tensor:
 
 def own_body_groups(spec: TaskSpec = SPEC) -> tuple[list, list]:
     """(lidar_posts 의 (lo, hi, 거리) 목록, lidar_mask_deg 의 (lo, hi) 목록).
-    각도는 -180 <= lo <= hi <= 180, 거리는 0 보다 커야 한다. 아니면 ValueError."""
+    각도는 -180 <= lo <= hi <= 180 (가림은 플러그인의 scan_mask_deg 처럼 lo < hi),
+    거리는 0 보다 크고 유한해야 한다. 아니면 ValueError."""
     out = []
     for name, size in GROUPED.items():
         flat = tuple(getattr(spec, name))
@@ -562,8 +568,10 @@ def own_body_groups(spec: TaskSpec = SPEC) -> tuple[list, list]:
         for g in groups:
             if not -180.0 <= g[0] <= g[1] <= 180.0:
                 raise ValueError(f"{name}: a range must be -180 <= lo <= hi <= 180, got {g[:2]}")
-            if size == 3 and not g[2] > 0.0:
-                raise ValueError(f"{name}: the distance must be above 0, got {g[2]}")
+            if size == 2 and not g[0] < g[1]:
+                raise ValueError(f"{name}: a range must have lo < hi, got {g}")
+            if size == 3 and not (g[2] > 0.0 and math.isfinite(g[2])):
+                raise ValueError(f"{name}: the distance must be finite and above 0, got {g[2]}")
         out.append(groups)
     return out[0], out[1]
 
@@ -588,7 +596,8 @@ def own_body_rays(ranges: torch.Tensor, spec: TaskSpec = SPEC) -> torch.Tensor:
     out = ranges.clone()
     for lo, hi, dist in posts:
         hit = within(lo, hi)
-        seen = torch.nan_to_num(out[:, hit], nan=float("inf"))
+        inf = float("inf")
+        seen = torch.nan_to_num(out[:, hit], nan=inf, posinf=inf, neginf=-inf)
         out[:, hit] = seen.clamp(max=dist)
     for lo, hi in masks:
         out[:, within(lo, hi)] = spec.lidar_obs_max

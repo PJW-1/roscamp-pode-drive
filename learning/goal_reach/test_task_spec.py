@@ -853,8 +853,11 @@ def test_lidar_posts_cap_only_the_rays_in_range_and_keep_nearer_readings():
     r[0, 180 + 143] = float("inf")  # 반환 없음도 기둥 거리로
     r[1, 180 + 144] = float("nan")
     r[1, 180 + 145] = 0.03  # 더 가까운 것은 그대로
+    before = r.clone()
     out = ts.own_body_rays(r, spec)
-    assert out is not r and torch.equal(r[0, :3], torch.ones(3))  # 받은 텐서는 바꾸지 않는다
+    # 받은 텐서는 바꾸지 않는다 (NaN 이 있어 -1 로 바꿔 견준다)
+    assert out is not r
+    assert torch.equal(torch.nan_to_num(r, nan=-1.0), torch.nan_to_num(before, nan=-1.0))
     deg = torch.arange(360) - 180
     left = (deg >= 141) & (deg <= 146)
     right = (deg >= -143) & (deg <= -140)
@@ -893,6 +896,18 @@ def test_own_body_ranges_meet_at_the_back_seam():
     assert torch.allclose(b[0, :2], torch.full((2,), 0.07)) and b[0, 2] == 0.5 and b[0, 359] == 0.5
 
 
+def test_lidar_posts_take_one_ray_ranges_and_keep_a_negative_infinity():
+    # 기둥은 레이 하나짜리 범위(lo == hi)도 받는다. -inf 는 min 의 뜻대로 그대로 둔다
+    spec = ts.make_spec(ts.parse_overrides(["lidar_posts=-149,-149,0.074"]))
+    r = torch.full((1, 360), 0.5)
+    r[0, 180 - 149] = float("-inf")
+    out = ts.own_body_rays(r, spec)
+    assert out[0, 180 - 149] == float("-inf")
+    r[0, 180 - 149] = 0.5
+    out = ts.own_body_rays(r, spec)
+    assert torch.isclose(out[0, 180 - 149], torch.tensor(0.074)) and (out != 0.5).sum() == 1
+
+
 @pytest.mark.parametrize("item", [
     "lidar_posts=141,146",  # 셋씩 묶이지 않는다
     "lidar_posts=146,141,0.07",  # lo > hi
@@ -902,6 +917,12 @@ def test_own_body_ranges_meet_at_the_back_seam():
     "lidar_mask_deg=157,138",
     "lidar_mask_deg=-181,-170",
     "lidar_posts=",  # 빈 값은 필드를 주지 않는 것으로 한다
+    "lidar_posts=141,,146,0.0715",  # 빈 항목을 건너뛰어 묶음을 맞추지 않는다
+    "lidar_mask_deg=138, ,157",
+    "lidar_mask_deg=140,140",  # 플러그인의 scan_mask_deg 처럼 lo < hi
+    "lidar_posts=141,146,inf",  # 거리는 유한해야 한다
+    "lidar_posts=141,146,nan",
+    "lidar_mask_deg=nan,150",
 ])
 def test_own_body_overrides_reject_bad_groups(item):
     with pytest.raises(ValueError, match=item.split("=")[0]):
