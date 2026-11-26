@@ -498,3 +498,203 @@ def test_cmd_delay_override_rejects_non_integer_steps():
         with pytest.raises(ValueError):
             ts.parse_overrides([text])
     assert ts.parse_overrides(["cmd_delay_steps_range=1.0,2"])["cmd_delay_steps_range"] == (1, 2)
+
+
+# ---- 움직이는 것 앞에서만 서는 규칙 (평가 전용) ----
+LIDAR_X = -0.017  # 시험 스캔의 라이다 자리 (base 에서 앞쪽 m)
+ROOM = (-1.0, -1.0, 1.5, 1.2)
+BOX = (0.30, -0.06, 0.42, 0.10)
+
+
+def _scan(origin, yaw, rects=(), circles=(), n_rays=360, far=9.0):
+    """시험용 2D 스캔 (R,): 원점과 yaw 에서 축에 나란한 사각형 (x0, y0, x1, y1) 과 원 (x, y, r)
+    까지의 레이 거리. 원점이 사각형 안이면 그 사각형은 방의 벽이다 (나가는 쪽 거리)."""
+    step = 360.0 / n_rays
+    ang = yaw + torch.deg2rad(-180.0 + torch.arange(n_rays, dtype=torch.float64) * step)
+    dx, dy = torch.cos(ang), torch.sin(ang)
+    ox, oy = float(origin[0]), float(origin[1])
+    best = torch.full((n_rays,), far, dtype=torch.float64)
+    miss = torch.full((n_rays,), float("inf"), dtype=torch.float64)
+    for x0, y0, x1, y1 in rects:
+        tx = torch.stack(((x0 - ox) / dx, (x1 - ox) / dx))
+        ty = torch.stack(((y0 - oy) / dy, (y1 - oy) / dy))
+        enter = torch.maximum(tx.amin(0), ty.amin(0))
+        leave = torch.minimum(tx.amax(0), ty.amax(0))
+        hit = leave >= torch.clamp(enter, min=0.0)
+        best = torch.minimum(best, torch.where(hit, torch.where(enter > 0.0, enter, leave), miss))
+    for cx, cy, r in circles:
+        fx, fy = ox - cx, oy - cy
+        b = fx * dx + fy * dy
+        disc = b * b - (fx * fx + fy * fy - r * r)
+        t = -b - torch.sqrt(torch.clamp(disc, min=0.0))
+        best = torch.minimum(best, torch.where((disc >= 0.0) & (t > 0.0), t, miss))
+    return best.float()
+
+
+def _drive(guard, poses, scene, target=(0.12, 0.3)):
+    """자세 열 (x, y, yaw) 을 따라 스캔을 만들어 guard.step 에 넣는다. scene(i) -> (사각형들, 원들).
+    돌려주는 값: 스텝별 (막혔는지, 목표 [v, w], 정면 +-60 deg 의 최소 거리)."""
+    out = []
+    for i, (x, y, yaw) in enumerate(poses):
+        rects, circles = scene(i)
+        lidar = (x + LIDAR_X * math.cos(yaw), y + LIDAR_X * math.sin(yaw))
+        rays = _scan(lidar, yaw, rects, circles)[None]
+        tgt, blocked = guard.step(
+            torch.tensor([target]), rays, torch.tensor([[x, y]]), torch.tensor([yaw])
+        )
+        out.append((bool(blocked[0]), tgt[0].tolist(), float(rays[0, 120:241].min())))
+    return out
+
+
+def test_static_ranges_moves_an_old_scan_into_the_pose_of_now():
+    rays = torch.full((1, 360), 5.0)
+    rays[0, 180] = 1.0  # 정면 1 m 에 점 하나
+    at0, yaw0 = torch.zeros(1, 2), torch.zeros(1)
+    # 0.1 m 앞으로 갔다: 그 점은 정면 0.9 m
+    out = ts.static_ranges(rays, at0, yaw0, torch.tensor([[0.1, 0.0]]), yaw0, 0)
+    assert out[0, 180].item() == pytest.approx(0.9, abs=1e-5)
+    # 왼쪽으로 10 deg 돌았다: 그 점은 오른쪽 10 deg (index 170)
+    out = ts.static_ranges(rays, at0, yaw0, at0, torch.tensor([math.radians(10.0)]), 0)
+    assert out[0, 170].item() == pytest.approx(1.0, abs=1e-5)
+    assert out[0, 180].item() == pytest.approx(5.0, abs=1e-5)
+    # 이웃 +-2 칸의 최솟값
+    out = ts.static_ranges(rays, at0, yaw0, at0, yaw0, 2)
+    assert out[0, 178:183].tolist() == pytest.approx([1.0] * 5, abs=1e-5)
+    assert out[0, [177, 183]].tolist() == pytest.approx([5.0, 5.0], abs=1e-5)
+    # 이웃은 한 바퀴를 넘어 이어진다 (index 0 은 -180 deg, 359 는 +179 deg)
+    back = torch.full((1, 360), 5.0)
+    back[0, 0] = 1.0
+    out = ts.static_ranges(back, at0, yaw0, at0, yaw0, 2)
+    assert out[0, [358, 359, 0, 1, 2]].tolist() == pytest.approx([1.0] * 5, abs=1e-5)
+    assert out[0, [357, 3]].tolist() == pytest.approx([5.0, 5.0], abs=1e-5)
+
+
+def test_closing_guard_stays_quiet_in_a_static_scene_while_the_robot_drives_and_turns():
+    guard = ts.ClosingGuard(0.05, 0.50, 90.0, lidar_x=LIDAR_X)  # 방 안의 거의 모든 것이 "가깝다"
+    x, y, yaw, poses = 0.0, 0.0, -0.5, []
+    for _ in range(30):  # 0.12 m/s 로 가며 0.8 rad/s 로 돈다: 상자 옆 0.1 m 쯤까지 다가간다
+        poses.append((x, y, yaw))
+        x, y, yaw = x + 0.006 * math.cos(yaw), y + 0.006 * math.sin(yaw), yaw + 0.04
+    steps = _drive(guard, poses, lambda i: ((ROOM, BOX), ()))
+    assert min(s[2] for s in steps) < 0.20  # 실제로 가까이 갔다
+    assert not any(s[0] for s in steps)
+    assert all(s[1] == pytest.approx([0.12, 0.3]) for s in steps)
+    # 같은 길에서 거리만 보는 앞 막기는 걸린다 (두 규칙이 다른 것을 본다는 대조)
+    last = poses[-1]
+    lidar = (last[0] + LIDAR_X * math.cos(last[2]), last[1] + LIDAR_X * math.sin(last[2]))
+    rays = _scan(lidar, last[2], (ROOM, BOX))[None]
+    assert ts.block_forward(torch.tensor([[0.12, 0.3]]), rays, 0.50, 90.0)[1].item()
+
+
+def test_closing_guard_stops_for_something_that_comes_closer_inside_the_cone():
+    def person(start, toward, speed=0.10):
+        """start 에서 toward 방향 (단위 벡터로 고침) 으로 걷는 반지름 0.04 m 원."""
+        n = math.hypot(*toward)
+        ux, uy = toward[0] / n, toward[1] / n
+        step = speed * 0.05
+        return lambda i: ((ROOM,), ((start[0] + ux * step * i, start[1] + uy * step * i, 0.04),))
+
+    still = [(0.0, 0.0, 0.0)] * 60
+
+    def guard(half_deg=60.0):
+        return ts.ClosingGuard(0.05, 0.26, half_deg, lidar_x=LIDAR_X)
+
+    # 앞 왼쪽에서 로봇 쪽으로 온다: 정면 +-60 deg 안에서 0.26 m 보다 가까워진 스텝부터 막는다
+    steps = _drive(guard(), still, person((0.50, 0.15), (-0.50, -0.15)))
+    first = next(i for i, s in enumerate(steps) if s[2] < 0.26)
+    assert 10 < first < 55
+    assert [s[0] for s in steps[:first]] == [False] * first
+    assert all(s[0] for s in steps[first:])
+    assert steps[first][1] == pytest.approx([0.0, 0.3])  # v 만 0, w 는 그대로
+    # 같은 자리에서 멀어진다: 가깝지만 막지 않는다
+    steps = _drive(guard(), still, person((0.15, 0.04), (0.50, 0.15)))
+    assert steps[0][2] < 0.26 and not any(s[0] for s in steps)
+    # 뒤에서 온다: 부채꼴 밖이라 막지 않고, 부채꼴을 한 바퀴로 넓히면 막는다
+    behind = person((-0.50, -0.15), (0.50, 0.15))
+    assert not any(s[0] for s in _drive(guard(), still, behind))
+    assert any(s[0] for s in _drive(guard(180.0), still, behind))
+
+
+def test_closing_guard_ignores_a_standing_thing_the_robot_drives_up_to():
+    guard = ts.ClosingGuard(0.05, 0.26, 60.0, lidar_x=LIDAR_X)
+    poses = [(0.006 * i, 0.0, 0.0) for i in range(40)]  # 0.12 m/s 로 서 있는 사람에게 다가간다
+    steps = _drive(guard, poses, lambda i: ((ROOM,), ((0.45, 0.02, 0.04),)))
+    assert steps[-1][2] < 0.20  # 0.26 m 안으로 들어갔다
+    assert not any(s[0] for s in steps)
+
+
+def _ramp_scan(front_m):
+    """정면 +-8 deg 만 front_m 이고 나머지는 1 m 인 스캔 (1, 360)."""
+    rays = torch.full((1, 360), 1.0)
+    rays[0, 172:189] = front_m
+    return rays
+
+
+def test_closing_guard_holds_after_the_last_trigger_and_never_blocks_a_backward_target():
+    guard = ts.ClosingGuard(0.05, 0.26, 60.0)
+    at0, yaw0, fwd = torch.zeros(1, 2), torch.zeros(1), torch.tensor([[0.12, 0.3]])
+    blocked = []
+    for i in range(34):  # 0.40 m 에서 0.2 m/s 로 다가오다가 스텝 20 에 0.20 m 에서 선다
+        front = 0.40 - 0.01 * min(i, 20)
+        blocked.append(bool(guard.step(fwd, _ramp_scan(front), at0, yaw0)[1][0]))
+    # 0.26 m 미만이 되는 스텝 15 부터 걸리고, 옛 스캔 (0.2 s 전) 과의 차이가 0.04 m/s 를 넘는
+    # 마지막은 스텝 23 이다. 그 뒤 0.3 s (6 스텝) 를 유지하고 스텝 30 에 풀린다
+    assert blocked == [False] * 15 + [True] * 15 + [False] * 4
+    # 걸린 채로도 후진 목표와 0 은 건드리지 않고 막았다고 세지 않는다
+    guard = ts.ClosingGuard(0.05, 0.26, 60.0)
+    for i in range(18):
+        back = torch.tensor([[-0.05, 0.3]]) if i % 2 else torch.tensor([[0.0, 0.3]])
+        out, b = guard.step(back, _ramp_scan(0.40 - 0.01 * i), at0, yaw0)
+        assert out.tolist() == back.tolist() and not b.item()
+
+
+def test_closing_guard_needs_fresh_scans_after_a_reset():
+    guard = ts.ClosingGuard(0.05, 0.26, 60.0)
+    at0, yaw0 = torch.zeros(2, 2), torch.zeros(2)
+    fwd = torch.tensor([[0.12, 0.0], [0.12, 0.0]])
+    blocked = []
+    for i in range(20):  # 두 env 가 같은 것을 본다: 0.30 m 에서 0.08 m/s 로 다가온다
+        rays = _ramp_scan(0.30 - 0.004 * i).repeat(2, 1)
+        blocked.append(guard.step(fwd, rays, at0, yaw0)[1].tolist())
+        if i == 12:
+            guard.reset(torch.tensor([0]))  # env 0 만 리셋
+    # 0.26 m 미만은 스텝 11 부터다. env 1 은 그때부터 계속 막히고, env 0 은 리셋 뒤 다섯 스텝
+    # (리셋 직후의 스캔은 기준으로 쓰지 않고, 그 뒤 0.2 s 를 채워야 한다) 은 풀려 있다
+    assert [b[1] for b in blocked] == [False] * 11 + [True] * 9
+    assert [b[0] for b in blocked] == [False] * 11 + [True] * 2 + [False] * 5 + [True] * 2
+    # 처음 다섯 스텝도 같다: 기준이 없으면 아무리 가까워져도 막지 않는다
+    guard = ts.ClosingGuard(0.05, 0.26, 60.0)
+    first = []
+    for i in range(6):
+        b = guard.step(fwd[:1], _ramp_scan(0.25 - 0.04 * i), at0[:1], yaw0[:1])[1]
+        first.append(b.item())
+    assert first == [False] * 5 + [True]
+
+
+def test_block_for_movers_stops_only_for_a_moving_active_mover_in_the_front_cone():
+    n = 9
+    xy, yaw = torch.zeros(n, 2), torch.full((n,), math.pi / 2)  # 로봇은 +y 를 본다
+
+    def at(deg, d):
+        a = math.radians(90.0 + deg)
+        return [d * math.cos(a), d * math.sin(a)]
+
+    spots = ((0, 0.25), (0, 0.25), (0, 0.25), (180, 0.25), (0, 0.35), (59, 0.25), (0, 0.25))
+    pos = torch.tensor([at(*s) for s in spots + ((61, 0.25), (-59, 0.25))])
+    vel = torch.tensor([[0.0, -0.1]] * n)
+    vel[1] = torch.tensor([0.0, -0.01])  # 서 있는 것으로 본다 (0.02 m/s 미만)
+    active = torch.ones(n, dtype=torch.bool)
+    active[2] = False
+    target = torch.tensor([[0.12, 0.4]] * n)
+    target[6, 0] = -0.05  # 후진 목표
+    out, blocked = ts.block_for_movers(target, xy, yaw, [(pos, vel, active)], 0.30, 60.0)
+    #                           앞   섬     꺼짐   뒤     멀다   59도  후진   61도   -59도
+    assert blocked.tolist() == [True, False, False, False, False, True, False, False, True]
+    assert out[:, 0].tolist() == pytest.approx([0.0, 0.12, 0.12, 0.12, 0.12, 0.0, -0.05, 0.12, 0.0])
+    assert out[:, 1].tolist() == pytest.approx([0.4] * n)
+    assert target[0, 0].item() == pytest.approx(0.12)  # 입력은 그대로
+    # mover 가 여럿이면 하나만 걸려도 막는다. 없으면 막지 않는다
+    far = (pos + 2.0, vel, active)
+    both = ts.block_for_movers(target, xy, yaw, [far, (pos, vel, active)], 0.30, 60.0)[1]
+    assert both.tolist() == blocked.tolist()
+    assert not ts.block_for_movers(target, xy, yaw, [], 0.30, 60.0)[1].any()

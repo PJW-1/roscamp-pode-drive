@@ -317,6 +317,152 @@ def block_forward(
     return out, blocked
 
 
+# ---- 움직이는 것 앞에서만 서는 규칙 (평가 전용) ----
+MOVING_MIN_MPS = 0.02  # m/s; 이보다 느린 mover 는 서 있는 것으로 본다
+CLOSING_LOOKBACK_S = 0.2  # s; 지금 스캔과 견주는 옛 스캔까지의 시간
+CLOSING_SPREAD_DEG = 8.0  # deg; 옛 스캔에서 최솟값을 찾는 이웃의 반각
+CLOSING_MIN_MPS = 0.04  # m/s; 로봇 자신의 이동을 뺀 다가옴이 이보다 빠르면 건다
+CLOSING_HOLD_S = 0.3  # s; 마지막으로 걸린 뒤 유지하는 시간
+RAY_CAP_M = 100.0  # m; 닿지 않은 레이를 유한한 거리로
+
+
+def ray_angles(n_rays: int, device=None) -> torch.Tensor:
+    """레이 i 의 base 프레임 방위 (rad): -180 deg 부터 고른 간격."""
+    return torch.deg2rad(-180.0 + torch.arange(n_rays, device=device) * (360.0 / n_rays))
+
+
+def block_for_movers(
+    target: torch.Tensor,
+    xy: torch.Tensor,
+    yaw: torch.Tensor,
+    movers: list,
+    stop_range: float,
+    half_width_deg: float,
+    min_speed: float = MOVING_MIN_MPS,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """사람 위치를 아는 막기 (play.py --person_stop): min_speed 이상으로 움직이는 활성 mover 의
+    중심이 로봇 중심에서 stop_range 안, 정면 +-half_width_deg 안에 있으면 전진 목표 v 를 0 으로
+    (w 는 그대로). 시뮬만 아는 정보라 실물에는 없다: 움직이는 것을 완벽히 가려낼 때의 위쪽
+    한계를 잰다.
+    movers 는 (위치 (N, 2), 속도 (N, 2), 활성 (N,)) 의 목록. 반환: (목표 (N, 2), 막았는지 (N,))."""
+    near = torch.zeros(len(target), dtype=torch.bool, device=target.device)
+    half = math.radians(half_width_deg)
+    for pos, vel, active in movers:
+        rel = pos - xy
+        bearing = torch.atan2(rel[:, 1], rel[:, 0]) - yaw
+        bearing = torch.atan2(torch.sin(bearing), torch.cos(bearing))  # -pi..pi
+        moving = active & (vel.norm(dim=-1) >= min_speed)
+        near |= moving & (rel.norm(dim=-1) < stop_range) & (bearing.abs() <= half)
+    blocked = near & (target[:, 0] > 0.0)
+    out = target.clone()
+    out[:, 0] = torch.where(blocked, torch.zeros_like(out[:, 0]), out[:, 0])
+    return out, blocked
+
+
+def static_ranges(
+    rays: torch.Tensor,
+    origin: torch.Tensor,
+    yaw: torch.Tensor,
+    origin_now: torch.Tensor,
+    yaw_now: torch.Tensor,
+    spread_bins: int,
+) -> torch.Tensor:
+    """옛 스캔의 점들이 서 있었다면 지금 레이마다 보일 가장 가까운 거리 (N, R).
+    옛 스캔 rays (N, R) 을 그때의 라이다 원점 origin (N, 2) 과 yaw (N,) 로 점으로 펴고, 지금의
+    원점과 yaw 에서 본 방위 칸에 넣어 칸마다 이웃 +-spread_bins 칸의 최솟값을 낸다 (이웃은 한 바퀴를
+    넘어 이어진다). 이웃에 옛 점이 없는 칸은 inf."""
+    n_rays = rays.shape[1]
+    world = yaw[:, None] + ray_angles(n_rays, rays.device)[None, :]
+    px = origin[:, 0:1] + rays * torch.cos(world) - origin_now[:, 0:1]
+    py = origin[:, 1:2] + rays * torch.sin(world) - origin_now[:, 1:2]
+    bearing = torch.atan2(py, px) - yaw_now[:, None]
+    bins = torch.round((bearing + math.pi) * (n_rays / (2.0 * math.pi))).long() % n_rays
+    nearest = torch.full_like(rays, float("inf")).scatter_reduce(
+        1, bins, torch.hypot(px, py), reduce="amin", include_self=True
+    )
+    if spread_bins > 0:
+        ring = torch.cat((nearest[:, -spread_bins:], nearest, nearest[:, :spread_bins]), dim=1)
+        pooled = torch.nn.functional.max_pool1d(-ring[:, None, :], 2 * spread_bins + 1, stride=1)
+        nearest = -pooled[:, 0, :]
+    return nearest
+
+
+class ClosingGuard:
+    """다가옴 막기 (play.py --closing_stop): 라이다와 자기 자세만으로 "다가오는 것" 앞에서 선다.
+    lookback_s 전의 스캔을 지금 자세로 옮겨 (static_ranges) 레이마다 "로봇 자신의 이동으로 설명되는
+    것보다 얼마나 빨리 가까워졌는가" 를 내고, 정면 +-half_width_deg 안에서 stop_range 보다 가깝고
+    그 값이 closing_mps 를 넘는 레이가 있으면 건다. 마지막으로 걸린 뒤 hold_s 동안 유지한다. 걸린
+    동안 전진 목표 v 를 0 으로 (w 는 그대로). 서 있는 것은 로봇이 다가가도 걸리지 않는다.
+    env 별 상태 (옛 스캔 고리, 유지 스텝) 를 갖고, 리셋한 env 는 reset() 으로 비운다."""
+
+    def __init__(
+        self,
+        step_dt: float,
+        stop_range: float,
+        half_width_deg: float,
+        *,
+        lidar_x: float = 0.0,
+        lookback_s: float = CLOSING_LOOKBACK_S,
+        spread_deg: float = CLOSING_SPREAD_DEG,
+        closing_mps: float = CLOSING_MIN_MPS,
+        hold_s: float = CLOSING_HOLD_S,
+    ):
+        self.step_dt, self.stop_range, self.half_width_deg = step_dt, stop_range, half_width_deg
+        self.lidar_x, self.spread_deg, self.closing_mps = lidar_x, spread_deg, closing_mps
+        self.back = max(1, round(lookback_s / step_dt))  # 옛 스캔까지의 스텝 수
+        self.hold_steps = max(0, round(hold_s / step_dt))
+        self.scans = None  # 첫 스텝에 스캔의 크기로 잡는다
+
+    def _allocate(self, rays: torch.Tensor) -> None:
+        n, n_rays = rays.shape
+        dev, slots = rays.device, self.back + 1
+        self.scans = torch.zeros(slots, n, n_rays, device=dev)
+        self.origins = torch.zeros(slots, n, 2, device=dev)
+        self.yaws = torch.zeros(slots, n, device=dev)
+        self.head = 0  # 이번 스캔을 적을 자리
+        # 리셋 뒤에 적은 스캔 수 - 1: 리셋 직후의 스캔은 기준으로 쓰지 않는다
+        self.filled = torch.full((n,), -1, dtype=torch.long, device=dev)
+        self.hold = torch.zeros(n, dtype=torch.long, device=dev)  # 남은 유지 스텝
+        self.hit = torch.zeros(n, dtype=torch.bool, device=dev)  # 이번 스텝에 걸렸는지 (유지 제외)
+        deg = torch.rad2deg(ray_angles(n_rays, dev))
+        self.front = deg.abs() <= self.half_width_deg + 1e-4
+        self.spread_bins = round(self.spread_deg * n_rays / 360.0)
+
+    def reset(self, env_ids) -> None:
+        if self.scans is not None:
+            self.filled[env_ids] = -1
+            self.hold[env_ids] = 0
+
+    def step(
+        self, target: torch.Tensor, rays: torch.Tensor, xy: torch.Tensor, yaw: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """rays (N, R) 는 라이다 중심에서의 거리, xy 와 yaw 는 base 의 자세.
+        반환: (목표 (N, 2), 막았는지 (N,))."""
+        if self.scans is None:
+            self._allocate(rays)
+        rays = rays.clamp(max=RAY_CAP_M)
+        origin = xy + self.lidar_x * torch.stack((torch.cos(yaw), torch.sin(yaw)), dim=-1)
+        slot = self.head
+        self.scans[slot], self.origins[slot], self.yaws[slot] = rays, origin, yaw
+        self.filled += 1
+        old = (slot + 1) % (self.back + 1)  # back 스텝 전에 적은 자리 (다음 스텝에 덮어쓴다)
+        self.head = old
+        static = static_ranges(
+            self.scans[old], self.origins[old], self.yaws[old], origin, yaw, self.spread_bins
+        )
+        closing = (static - rays) / (self.back * self.step_dt)
+        closing = torch.where(torch.isfinite(closing), closing, torch.zeros_like(closing))
+        near = self.front[None, :] & (rays < self.stop_range) & (closing > self.closing_mps)
+        self.hit = near.any(dim=-1) & (self.filled > self.back)
+        fresh_hold = torch.full_like(self.hold, self.hold_steps + 1)
+        self.hold = torch.where(self.hit, fresh_hold, self.hold)
+        blocked = (self.hold > 0) & (target[:, 0] > 0.0)
+        self.hold = (self.hold - 1).clamp(min=0)
+        out = target.clone()
+        out[:, 0] = torch.where(blocked, torch.zeros_like(out[:, 0]), out[:, 0])
+        return out, blocked
+
+
 def sample_speed_cap(n: int, device, spec: TaskSpec = SPEC) -> torch.Tensor:
     """에피소드별 최고속도 (n,), speed_cap_range 균등 (한 값이면 뽑지 않음)."""
     lo, hi = spec.speed_cap_range

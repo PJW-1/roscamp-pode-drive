@@ -843,6 +843,10 @@ class StoreArenaEnv(GoalReachEnv):
             out.append((pos, yaw, vel, act))
         return out
 
+    def moving_things(self) -> list:
+        """사람 위치를 아는 막기 (play.py --person_stop) 가 보는 mover 별 (위치, 속도, 활성)."""
+        return [(pos, vel, act) for pos, _, vel, act in self.mover_state()]
+
     def _write_movers(self, ids) -> None:
         origins = self.scene.env_origins[ids]
         for obj, (pos, yaw, _, _) in zip(self.mover_objs, self.mover_state(ids), strict=True):

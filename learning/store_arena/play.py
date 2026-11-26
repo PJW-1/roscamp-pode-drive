@@ -45,6 +45,24 @@ parser.add_argument(
     "kept (the front twin of the plugin's rear_stop_range; evaluation only)",
 )
 parser.add_argument(
+    "--closing_stop",
+    type=str,
+    default="",
+    metavar="RANGE_M,HALF_DEG",
+    help="closing stop on top of the policy: a forward v target becomes 0 while a lidar ray within "
+    "+-HALF_DEG of straight ahead is nearer than RANGE_M and gets nearer faster than the robot's "
+    "own motion explains (lidar and own pose only; task_spec.ClosingGuard; evaluation only)",
+)
+parser.add_argument(
+    "--person_stop",
+    type=str,
+    default="",
+    metavar="RANGE_M,HALF_DEG",
+    help="person stop on top of the policy: a forward v target becomes 0 while a moving mover's "
+    "centre is within RANGE_M of the robot centre and +-HALF_DEG of straight ahead (uses the "
+    "simulator's mover state, which a real robot does not have: an upper bound; evaluation only)",
+)
+parser.add_argument(
     "--dump_obs",
     type=int,
     default=0,
@@ -111,17 +129,55 @@ def main():
             def policy(obs):
                 return arena.ts.capped_action(trained(obs), raw.v_cap)
 
-        front_stop = None
-        if args_cli.front_stop:
+        # 평가 전용 막기 (셋 가운데 하나만): 정책의 전진 목표 v 를 0 으로 바꾸는 규칙
+        stops = {
+            "front_stop": args_cli.front_stop,
+            "closing_stop": args_cli.closing_stop,
+            "person_stop": args_cli.person_stop,
+        }
+        stop_on = [k for k, v in stops.items() if v]
+        if len(stop_on) > 1:
+            raise SystemExit("one of --front_stop, --closing_stop, --person_stop at a time")
+        stop_kind = stop_on[0] if stop_on else None
+        stop_cfg = None
+        if stop_kind:
             if args_cli.still:
-                raise SystemExit("--front_stop guards the policy's forward target: no --still")
+                raise SystemExit(f"--{stop_kind} guards the policy's forward target: no --still")
             try:
-                front_stop = arena.ts.parse_front_stop(args_cli.front_stop)
+                stop_cfg = arena.ts.parse_front_stop(stops[stop_kind])
             except ValueError as e:
-                raise SystemExit(f"--front_stop: {e}") from e
-            raw.front_stop = front_stop
-        # 앞 막기가 걸린 스텝 수와 센 스텝 수 (env 마다 첫 E 개 에피소드의 스텝만)
+                raise SystemExit(f"--{stop_kind}: {e}") from e
+            if stop_kind == "front_stop":
+                raw.front_stop = stop_cfg
+            elif stop_kind == "closing_stop":
+                raw.closing_guard = raw.make_closing_guard(*stop_cfg)
+            else:
+                raw.person_stop = stop_cfg
+        # 막기가 걸린 스텝 수와 센 스텝 수 (env 마다 첫 E 개 에피소드의 스텝만)
         blocked_steps, guarded_steps = 0, 0
+
+        def stop_report(kind):
+            """eval.json 의 막기 칸: 끄면 None. blocked_step_frac 은 센 스텝 가운데 막힌 비율."""
+            if kind != stop_kind:
+                return None
+            out = {
+                "range_m": stop_cfg[0],
+                "half_width_deg": stop_cfg[1],
+                "blocked_step_frac": round(blocked_steps / max(guarded_steps, 1), 5),
+            }
+            if kind == "closing_stop":
+                g = raw.closing_guard
+                out.update(
+                    lookback_steps=g.back,
+                    spread_deg=g.spread_deg,
+                    closing_mps=g.closing_mps,
+                    hold_steps=g.hold_steps,
+                    lidar_x_m=g.lidar_x,
+                )
+            if kind == "person_stop":
+                out["min_speed_mps"] = arena.ts.MOVING_MIN_MPS
+            return out
+
         routes = raw.routes
         n_boxes = torch.as_tensor(
             (~np.isnan(routes.obstacle_xy[..., 0])).sum(-1), device=raw.device
@@ -167,7 +223,7 @@ def main():
                     dump_act.append(act.cpu().numpy())
                 obs, _, dones, _ = env.step(act)
             step += 1
-            if front_stop is not None:
+            if stop_kind:
                 live = ep_done < E  # 이 스텝이 센 에피소드에 드는 env
                 blocked_steps += int((raw.front_blocked & live).sum())
                 guarded_steps += int(live.sum())
@@ -224,6 +280,8 @@ def main():
             traj["done"].append(d[:K].cpu().numpy())
             traj["route"].append(route[:K].cpu().numpy())
             traj["cmd"].append(raw.cmd[:K].cpu().numpy())
+            if stop_kind:  # 이 스텝에 막기가 전진 목표를 0 으로 했는지
+                traj.setdefault("blocked", []).append(raw.front_blocked[:K].cpu().numpy())
             traj["w_body"].append(raw.body_velocity()[:K, 1].cpu().numpy())
             traj["front_m"].append(raw.lidar_ranges()[:K, front].amin(-1).cpu().numpy())
             ms_state = raw.mover_state()
@@ -308,15 +366,8 @@ def main():
             "w_flips_per_min_success": flips_per_min(codes == 0),
             "still": bool(args_cli.still),
             "capped": bool(args_cli.capped),
-            # 앞 막기 (--front_stop): 끄면 None. blocked_step_frac 은 센 에피소드의 스텝 가운데
-            # 막힌 비율
-            "front_stop": None
-            if front_stop is None
-            else {
-                "range_m": front_stop[0],
-                "half_width_deg": front_stop[1],
-                "blocked_step_frac": round(blocked_steps / max(guarded_steps, 1), 5),
-            },
+            # 평가 전용 막기 (--front_stop, --closing_stop, --person_stop): 끄면 None
+            **{k: stop_report(k) for k in stops},
             "spec_overrides": task_over,
             "arena_overrides": arena_over,
         }

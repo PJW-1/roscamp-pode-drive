@@ -32,6 +32,7 @@ from pinky_cfg import BODY, make_newton_cfg, make_pinky_cfg  # noqa: E402
 
 PHYSICS_DT = 1.0 / 200.0
 DECIMATION = round(ts.SPEC.control_dt / PHYSICS_DT)  # 10 -> 20 Hz 제어
+LIDAR_POS = (-0.017, 0.0, 0.097)  # m; base_link 에서 본 rplidar_link
 
 
 def lidar_min_range_pattern(cfg, device):
@@ -51,7 +52,7 @@ def make_lidar_cfg(max_range: float) -> NewtonRaycastSensorCfg:
     """rplidar_link 의 라이다, base_link (-0.017, 0, 0.097); 레이 i 는 base 프레임 (-180 + i) deg."""
     return NewtonRaycastSensorCfg(
         prim_path="{ENV_REGEX_NS}/Robot/" + BODY,
-        offset=NewtonRaycastSensorCfg.OffsetCfg(pos=(-0.017, 0.0, 0.097)),
+        offset=NewtonRaycastSensorCfg.OffsetCfg(pos=LIDAR_POS),
         pattern_cfg=MinRangeLidarPatternCfg(
             channels=1,
             vertical_fov_range=(0.0, 0.0),
@@ -126,6 +127,10 @@ class GoalReachEnv(DirectRLEnv):
         # 앞 막기 (평가 전용, play.py --front_stop): (거리 m, 반각 deg) 이면 켬. 학습에서는 None
         self.front_stop = None
         self.front_blocked = torch.zeros(n, dtype=torch.bool, device=dev)  # 지난 스텝에 막았는지
+        # 움직이는 것 앞에서만 서는 규칙 둘 (평가 전용): play.py --closing_stop 은 ClosingGuard,
+        # --person_stop 은 (거리 m, 반각 deg). 학습에서는 None. 막았는지는 front_blocked 에 적는다
+        self.closing_guard = None
+        self.person_stop = None
         # 관측 라이다 거리 배율 (lidar_scale_range): 리셋 때 env 별로 뽑음
         self.lidar_scale = ts.sample_lidar_scale(n, dev, self.spec)
         # 명령 응답 모델 (cmd_*_range): 끄면 (기본) _pre_physics_step 이 건너뜀
@@ -187,6 +192,14 @@ class GoalReachEnv(DirectRLEnv):
         """정책 행동의 목표 (v, w) (매장 아레나는 v 를 에피소드별 상한에 맞춤)."""
         return ts.action_to_target(actions)
 
+    def moving_things(self) -> list:
+        """사람 위치를 아는 막기가 보는 mover 별 (위치, 속도, 활성). 이 과제에는 없다."""
+        return []
+
+    def make_closing_guard(self, stop_range: float, half_width_deg: float) -> ts.ClosingGuard:
+        """다가옴 막기 (play.py --closing_stop) 를 이 env 의 제어 주기와 라이다 자리로 만든다."""
+        return ts.ClosingGuard(self.step_dt, stop_range, half_width_deg, lidar_x=LIDAR_POS[0])
+
     def reward_v_cap(self) -> torch.Tensor | None:
         """진행 보상의 env 별 최고속도 (None: ActionLimits.v_max)."""
         return None
@@ -198,6 +211,14 @@ class GoalReachEnv(DirectRLEnv):
         if self.front_stop is not None:
             target, self.front_blocked = ts.block_forward(
                 target, self.lidar_ranges(), *self.front_stop
+            )
+        if self.closing_guard is not None:
+            target, self.front_blocked = self.closing_guard.step(
+                target, self.lidar_ranges(), *self.robot_pose()
+            )
+        if self.person_stop is not None:
+            target, self.front_blocked = ts.block_for_movers(
+                target, *self.robot_pose(), self.moving_things(), *self.person_stop
             )
         if self.cmd_response:  # 정책 목표 -> 실물 응답 모델 -> 변화율 제한
             target, self.resp_buf = ts.cmd_response_step(
@@ -324,6 +345,8 @@ class GoalReachEnv(DirectRLEnv):
         self.robot.write_joint_position_to_sim_index(position=jp, env_ids=env_ids)
         self.robot.write_joint_velocity_to_sim_index(velocity=torch.zeros_like(jp), env_ids=env_ids)
         self.cmd[env_ids] = 0.0
+        if self.closing_guard is not None:
+            self.closing_guard.reset(env_ids)
         self.start_xy[env_ids] = start
         offset = ts.sample_goal(n, self.device, self.spec)
         self.goal_xy[env_ids] = start + offset
