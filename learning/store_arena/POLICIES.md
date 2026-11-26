@@ -117,23 +117,23 @@ d = 에피소드마다 최고 속도 U(0.08, 0.16)와 그 관측(RW:12-15). 최�
 `docs/rl_tracks_2026-11-26/jobs_*.txt`, 결과 표는 `docs/rl_tracks_2026-11-26/results/tables.md`(도구 `n26_tables.py`)다.
 실행 폴더는 `D:/isaac/runs/store_arena/n26/<이름>`이고, 학습마다 `run_config.json`이 있다(커밋과 지도 sha256 포함).
 
-학습은 모두 acd3(`acd3/t_wall/model_1745.pt`)에서 출발해 4096 env로 300번, seed 3이다. 설정은 acd3과 같은 a+c+d +
-`near_wall_m=0.08 w_near_wall=-0.2`에 아래 "다른 점"만 더했다. 관측은 모두 44칸(형식 3)이다.
+학습은 모두 acd3(`acd3/t_wall/model_1745.pt`)에서 출발해 4096 env로 300번(이어 학습 둘은 600번), seed 3이다. 설정은 acd3과 같은 a+c+d +
+`near_wall_m=0.08 w_near_wall=-0.2`에 아래 "다른 점"만 더했다. 관측은 라이다 이력을 쓴 실행(116칸)을 빼고 모두 44칸(형식 3)이다.
 
 | 이름(실행 폴더) | 날짜 | 브랜치·커밋 | 부모 체크포인트 | 반복(이번/누적) | seed | 지도 판 | 기본과 다른 설정(acd3 설정에 더한 것) | 레시피 | 보상·랜덤화 변경 | 관측 칸 수 | 평가 세트와 결과(비교 대상, 짝 여부) | Gazebo 결과 | 상태와 이유 | 기록 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| t_ctrl (`n26/t_ctrl`) | 11-26 | `feat/rl-tracks-2026-11-26` 52719475 | `acd3/t_wall/model_1745.pt` | 300 / (진행) | 3 | 줄자 진열대 v7 | 없음 | a+c+d | 없음(같은 설정으로 300번 더: 다른 실험의 대조) | 44 | (진행) | 없음 | 진행 | 작업 기록 2절 |
-| t_std (`n26/t_std`) | 11-26 | 같음 52719475 | 같음 | 300 / (진행) | 3 | 같음 | `--init_std 0.3` | a+c+d | 탐색 std(v, w)를 0.3으로 되돌려 시작 | 44 | (진행) | 없음 | 진행 | 작업 기록 2절 |
+| t_ctrl (`n26/t_ctrl`) | 11-26 | `feat/rl-tracks-2026-11-26` 52719475 | `acd3/t_wall/model_1745.pt` | 300 / 2044 | 3 | 줄자 진열대 v7 | 없음 | a+c+d | 없음(같은 설정으로 300번 더: 다른 실험의 대조) | 44 | rand 75.95 %(acd3와 짝 차이 -0.37 %p, SE 0.34: 2 SE 안), aisle 55.35 %, demo1 43.33 %, demo2 39.70 %. head는 평가 전 | 없음 | 끝. 대조로만 쓴다(acd3와 차이가 없다) | 작업 기록 2절, 8c절 끝 |
+| t_std (`n26/t_std`) | 11-26 | 같음 52719475 | 같음 | 300 / 2044 | 3 | 같음 | `--init_std 0.3` | a+c+d | 탐색 std(v, w)를 0.3으로 되돌려 시작 | 44 | aisle 67.90 %(acd3 +11.28 %p, SE 0.66. t_ctrl +12.55, 0.66), demo1 52.49 %(acd3 +8.84, 0.67. t_ctrl +9.16, 0.66), demo2 48.49 %(acd3 +8.18, 0.61. t_ctrl +8.79, 0.60). 모두 같은 에피소드 짝. rand, head는 평가 전 | 없음(열한째 묶음 예정, 작업 기록 17절) | 끝. 둘째 후보: 시연 칸의 성공이 t_demo_hist와 2 SE 안이고 충돌이 더 적다(시간 초과는 더 많다). rand 조건은 평가 뒤에 확인 | 작업 기록 2절, 8c절 끝, 17절 |
 | t_sysid (`n26/t_sysid`) | 11-26 | 같음 e51add4b | 같음 | 300 / (진행) | 3 | 같음 | `cmd_delay_steps_range=0,2 cmd_lag_tau_range=0.0,0.12 cmd_gain_v_range=0.95,1.05 cmd_gain_w_range=0.85,1.15` | a+c+d | 명령 응답 랜덤화(지연, 1차 지연, 이득) | 44 | (진행) | 없음 | 진행 | 작업 기록 3절, `docs/report_2026-11-26_rl_sysid.md` |
-| t_dyn (`n26/t_dyn`) | 11-26 | 같음 4015354f | 같음 | 300 / (진행) | 3 | 같음 | `near_dyn_m=0.10 w_near_dyn=-1.0` | a+c+d | 움직이는 물체·로봇 0.10 m 안 벌점 | 44 | (진행) | 없음 | 진행 | 작업 기록 5절 |
+| t_dyn (`n26/t_dyn`) | 11-26 | 같음 4015354f | 같음 | 300 / 2044 | 3 | 같음 | `near_dyn_m=0.10 w_near_dyn=-1.0` | a+c+d | 움직이는 물체·로봇 0.10 m 안 벌점 | 44 | (진행) | 없음 | 학습 끝, 평가 대기 | 작업 기록 5절 |
 | t_gam (`n26/t_gam`) | 11-26 | 같음 4015354f | 같음 | 300 / (진행) | 3 | 같음 | `--gamma 0.995 --init_std 0.3` | a+c+d | 할인율 0.99 → 0.995 | 44 | (진행) | 없음 | 진행 | 작업 기록 5절 |
-| t_demo (`n26/t_demo`) | 11-26 | 같음 f21329b7 | 같음 | 300 / (진행) | 3 | 같음 | `obstacle_demo_share=0.5 mover_cross_prob=0.5 robot_cleaner_prob=0.5` | a+c+d | 시연 조건을 절반 섞음: 통로 상자(경로가 상자를 지남), 틈을 건너는 사람, 청소 로봇 | 44 | (진행) | 없음 | 진행 | 작업 기록 8절, `docs/report_2026-11-26_rl_demo_*.md` |
-| t_demo_std (`n26/t_demo_std`) | 11-26 | 같음 f21329b7 | 같음 | 300 / (진행) | 3 | 같음 | t_demo + `--init_std 0.3` | a+c+d | 위 + 탐색 std를 0.3으로 되돌려 시작 | 44 | (진행) | 없음 | 진행(t_std 뒤에 건다) | 작업 기록 8절 |
+| t_demo (`n26/t_demo`) | 11-26 | 같음 f21329b7 | 같음 | 300 / 2044 | 3 | 같음 | `obstacle_demo_share=0.5 mover_cross_prob=0.5 robot_cleaner_prob=0.5` | a+c+d | 시연 조건을 절반 섞음: 통로 상자(경로가 상자를 지남), 틈을 건너는 사람, 청소 로봇 | 44 | rand 75.02 %(acd3 -1.29, SE 0.37: 2 SE 넘게 낮다), head 45.07 %(acd3 -2.34, 0.46), aisle 55.98 %, demo1 41.65 %(t_ctrl -1.68, 0.47), demo2 39.36 %(t_ctrl -0.34, 0.41). 같은 에피소드 짝 | 없음 | 탈락: 시연 칸이 오르지 않았고(H-c를 채우지 못함) rand가 떨어졌다. 저장소에 넣지 않는다 | 작업 기록 8절, 8c절 끝, 13절, `docs/report_2026-11-26_rl_demo_*.md` |
+| t_demo_std (`n26/t_demo_std`) | 11-26 | 같음 f21329b7 | 같음 | 300 / 2044 | 3 | 같음 | t_demo + `--init_std 0.3` | a+c+d | 위 + 탐색 std를 0.3으로 되돌려 시작 | 44 | rand 77.51 %(acd3 +1.20, SE 0.48), head 48.10 %(acd3 +0.68, 0.59), aisle 70.41 %(acd3 +13.79, 0.67. t_std +2.51, 0.54), demo1 51.25 %(acd3 +7.59, 0.66. t_std -1.25, 0.59), demo2 47.80 %(acd3 +7.50, 0.59. t_std -0.68, 0.56). 같은 에피소드 짝 | `j_cross`, `k_cross` 5판씩(13b, 13c절, 판정하지 않음): 사람과 닿지 않고 도착한 판 0/5, 0/5. 벤치에만 올렸고 저장소에는 넣지 않았다 | 끝. t_demo_hist의 대조. 후보로 올리지 않는다(demo1에서 t_demo_hist보다 2 SE 넘게 낮다) | 작업 기록 8절, 8c절 끝, 12절, 13절 |
 | t_caps (`n26/t_caps`) | 11-26 | 같음 c6a6bd02 | 같음 | 300 / (진행) | 3 | 같음 | `--caps_temporal 0.04 --caps_spatial 0.2 --caps_sigma 0.1`, `w_action_rate=0 w_w_flip=0` | a+c+d(부드러움 벌점 없음) | 부드러움을 보상 벌점 대신 손실(행동 평균)에 건다 | 44 | (진행) | 없음 | 진행 | 작업 기록 10절, `docs/report_2026-11-26_rl_caps.md` |
 | t_caps_std (`n26/t_caps_std`) | 11-26 | 같음 c6a6bd02 | 같음 | 300 / (진행) | 3 | 같음 | t_caps + `--init_std 0.3` | a+c+d(부드러움 벌점 없음) | 위 + 탐색 std를 0.3으로 되돌려 시작 | 44 | (진행) | 없음 | 진행 | 작업 기록 10절 |
 | t_sym (`n26/t_sym`) | 11-26 | 같음 3e770458 | 같음 | 300 / (진행) | 3 | 같음 | `--symmetry aug` | a+c+d | 좌우 거울 증강(표본마다 거울 사본을 붙여 학습) | 44 | (진행) | 없음 | 진행 | 작업 기록 11절, `docs/report_2026-11-26_rl_symmetry.md` |
-| t_demo_hist (`n26/t_demo_hist`) | 11-26 | 같음 51b51d39 | `n26/init_acd3_hist3.pt` (acd3에 `widen_checkpoint.py --add_lidar_history`) | 300 / (진행) | 3 | 같음 | t_demo_std 설정 + `lidar_frames=3 lidar_stride_steps=4` | a+b+c+d | 라이다 이력 + std 0.3 + 시연 조건 절반 | 116 | (진행) | 없음 | 진행 | 작업 기록 12절 |
-| t_demo_hist2 (`n26/t_demo_hist2`) | 11-26 | 같음 74e82c53 | `n26/t_demo_hist/model_2044.pt` (`--resume`) | 600 / (진행) | 3 | 같음 | t_demo_hist와 같다(이어 학습이라 `--init`, `--init_std` 없음) | a+b+c+d | 없음(같은 설정으로 600번 더) | 116 | (진행) | 없음 | 진행 | 작업 기록 15절 |
+| t_demo_hist (`n26/t_demo_hist`) | 11-26 | 같음 51b51d39 | `n26/init_acd3_hist3.pt` (acd3에 `widen_checkpoint.py --add_lidar_history`) | 300 / 2044 | 3 | 같음 | t_demo_std 설정 + `lidar_frames=3 lidar_stride_steps=4` | a+b+c+d | 라이다 이력 + std 0.3 + 시연 조건 절반 | 116 | rand 77.37 %(acd3 +1.05, SE 0.47), head 51.12 %(acd3 +3.71, 0.68. t_demo_std +3.03, 0.62), aisle 72.19 %(acd3 +15.58, 0.71. t_std +4.30, 0.57), demo1 52.81 %(acd3 +9.16, 0.68. t_demo_std +1.56, 0.56. t_std +0.32, 0.60), demo2 48.27 %(acd3 +7.96, 0.63). demo1에서 건넘이 경로 위인 에피소드의 사람 충돌 15.3 %(t_demo_std 17.3 %, 짝 차이 -2.07 %p, SE 0.68). 같은 에피소드 짝 | 아홉째 묶음(13절): `f_cart` 통로 판 5/5, 충돌 0. `g_demo` 도착 4/5(acd3 3/5, 판정하지 않음). 보충 묶음 `j_cross`, `k_cross`(13b, 13c절): 닿지 않고 지난 판 없음(acd3도 같다). 플릿 시뮬 세 번 PASS(7c절) | 끝. 후보: `store_arena_demohist`로 저장소에 넣었다(`nav_rl:=rl_demohist`). 실물에서는 돌려 보지 않았다 | 작업 기록 7c절, 8c절 끝, 12절, 13절 |
+| t_demo_hist2 (`n26/t_demo_hist2`) | 11-26 | 같음 74e82c53 | `n26/t_demo_hist/model_2044.pt` (`--resume`) | 600 / (진행) | 3 | 같음 | t_demo_hist와 같다(이어 학습이라 `--init`, `--init_std` 없음) | a+b+c+d | 없음(같은 설정으로 600번 더) | 116 | (진행) | 없음 | 학습 중(14:24 시작) | 작업 기록 15절 |
 | t_demo_std2 (`n26/t_demo_std2`) | 11-26 | 같음 74e82c53 | `n26/t_demo_std` 마지막 모델 (`--resume`) | 600 / (진행) | 3 | 같음 | t_demo_std와 같다(이어 학습) | a+c+d | 없음(같은 설정으로 600번 더) | 44 | (진행) | 없음 | 진행 | 작업 기록 15절 |
 | t_demo_hist_dyn (`n26/t_demo_hist_dyn`) | 11-26 | 같음 e9e19c69 | `n26/init_acd3_hist3.pt` (t_demo_hist와 같다) | 300 / (진행) | 3 | 같음 | t_demo_hist 설정 + `near_dyn_m=0.10 w_near_dyn=-1.0` | a+b+c+d | 위 + 움직이는 것(사람, 움직이는 카트, 로봇) 0.10 m 안 벌점 | 116 | (진행) | 없음 | 진행 | 작업 기록 16절 |
 
@@ -146,9 +146,22 @@ corner·tee·entry(`robot_scenario=<이름> mover_prob=0`). 같은 칸의 판끼
 | e_acd3_rand | acd3 | rand | 성공 76.32 %, 충돌 23.27 %, 시간 초과 0.42 %. 충돌의 가까운 것: 벽·진열대 114, 상자 45, 움직이는 물체 436, 로봇 358. w 부호 바뀜 43.3회/분 | 끝 |
 | e_acd3_head | acd3 | head | 성공 47.41 %, 충돌 52.17 %. 가까운 것: 벽·진열대 195, 상자 40, 움직이는 물체 414, 로봇 1488. 45.1회/분 | 끝 |
 | e_acd3_realrand, e_acd3_rand_chk, e_acd3_rand_chk2, e_acd3_corner, e_acd3_tee, e_acd3_entry | acd3 | 이름대로 | (진행) | 진행 |
-| e_ctrl_*, e_std_*, e_sysid_*, e_dyn_*, e_gam_* | 위 학습의 마지막 모델 | rand, head(+ sysid·ctrl은 realrand) | (진행) | 진행 |
-| e_{acd3, ctrl, std, demo, demostd}_{aisle, demo1, demo2} | acd3 또는 위 학습의 마지막 모델 | aisle(통로 상자 하나, 사람·로봇 없음), demo1·demo2(상자 1·2 + 틈을 건너는 사람 + 운반 1·청소 1). 설정은 작업 기록 8절 | (진행) | 진행 |
-| e_demo_*, e_demostd_*, e_caps_*, e_capsstd_* | 위 학습의 마지막 모델 | rand, head | (진행) | 진행 |
+| e_ctrl_rand | t_ctrl | rand | 성공 75.95 %, 충돌 23.29 %, 시간 초과 0.76 %(acd3와 짝 차이 -0.37 %p, SE 0.34) | 끝 |
+| e_ctrl_head, e_std_rand, e_std_head, e_sysid_*, e_dyn_*, e_gam_* | 위 학습의 마지막 모델 | rand, head(+ sysid·ctrl은 realrand) | (진행) | 진행(e_std_rand, e_std_head는 앞당겼다: 작업 기록 17절) |
+| e_{acd3, ctrl, std, demo, demostd, demohist}_{aisle, demo1, demo2} | acd3 또는 위 학습의 마지막 모델 | aisle(통로 상자 하나, 사람·로봇 없음), demo1·demo2(상자 1·2 + 틈을 건너는 사람 + 운반 1·청소 1). 설정은 작업 기록 8절 | 성공 %는 아래 표. 짝 차이와 충돌 종류는 작업 기록 8c절 끝, 12절 | 끝 |
+| e_{demo, demostd, demohist}_{rand, head} | 위 학습의 마지막 모델 | rand, head | 성공 %는 아래 표. 짝 차이는 작업 기록 12절, 13절 | 끝 |
+| e_caps_*, e_capsstd_*, e_sym_*, e_demohist2_*, e_demostd2_*, e_demohistdyn_* | 위 학습의 마지막 모델 | 작업 기록 10, 11, 15, 16절 | (진행) | 진행 |
+
+끝난 평가의 성공 %(4096 에피소드. 전체 표는 `docs/rl_tracks_2026-11-26/results/tables.md`):
+
+| 정책 | rand | head | aisle | demo1 | demo2 |
+|---|---|---|---|---|---|
+| acd3 | 76.32 | 47.41 | 56.62 | 43.65 | 40.31 |
+| t_ctrl | 75.95 | 평가 전 | 55.35 | 43.33 | 39.70 |
+| t_std | 평가 전 | 평가 전 | 67.90 | 52.49 | 48.49 |
+| t_demo | 75.02 | 45.07 | 55.98 | 41.65 | 39.36 |
+| t_demo_std | 77.51 | 48.10 | 70.41 | 51.25 | 47.80 |
+| t_demo_hist | 77.37 | 51.12 | 72.19 | 52.81 | 48.27 |
 
 ## 기록 규칙
 

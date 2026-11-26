@@ -49,8 +49,8 @@ CAPS_PAIRS = [("caps", "ctrl"), ("capsstd", "std"), ("capsstd", "caps"), ("caps"
               ("capsstd", "acd3")]
 # 좌우 거울 증강 (대조는 ctrl)
 SYM_PAIRS = [("sym", "ctrl"), ("sym", "acd3")]
-# 라이다 이력 + std 되돌리기 + 시연 조건 (대조는 이력만 없는 demostd)
-HIST_PAIRS = [("demohist", "demostd"), ("demohist", "acd3")]
+# 라이다 이력 + std 되돌리기 + 시연 조건 (대조는 이력만 없는 demostd, std만 되돌린 std와도 견준다)
+HIST_PAIRS = [("demohist", "demostd"), ("demohist", "acd3"), ("demohist", "std")]
 # 이력 정책에 움직이는 물체 근접 벌점을 더한 것 (대조는 벌점 없는 이력 정책)
 DYN_PAIRS = [("demohistdyn", "demohist"), ("demohistdyn", "acd3")]
 # 600번 더 이어 학습한 것 (대조는 이어 학습 전의 자신). 이름 끝의 m은 중간 점(누적 2350)
