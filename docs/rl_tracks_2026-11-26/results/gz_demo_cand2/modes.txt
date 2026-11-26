@@ -1,0 +1,84 @@
+== f_cart: 20 legs, 0 detour-on lines in the whole run
+f_cart_FollowPathRLShimACD3_0      SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimDemoHist_0  SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimDemoHist2_0 SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimStd_0       SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimDemoHist_1  SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimStd_1       SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimACD3_1      SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimDemoHist2_1 SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimStd_2       SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimDemoHist2_2 SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimDemoHist_2  SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimACD3_2      SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimDemoHist2_3 SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimACD3_3      SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimStd_3       SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimDemoHist_3  SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimStd_4       SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimDemoHist2_4 SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimDemoHist_4  SUCC start_mode aisle  detour_on 0  
+f_cart_FollowPathRLShimACD3_4      SUCC start_mode aisle  detour_on 0  
+== g_demo: 20 legs, 40 detour-on lines in the whole run
+g_demo_FollowPathRLShimACD3_0      ABOR start_mode aisle  detour_on 2  5s detour on at (0.53, 0.62) after 5.0 s without progress; 9s back to aisle mode (moved 0.42 m) at (0.91, 0.44); 14s detour on at (0.92, 0.39) after 5.0 s without progres
+g_demo_FollowPathRLShimDemoHist_0  ABOR start_mode aisle  detour_on 1  25s detour on at (1.00, 0.85) after 5.0 s without progress
+g_demo_FollowPathRLShimDemoHist2_0 SUCC start_mode aisle  detour_on 0  
+g_demo_FollowPathRLShimStd_0       SUCC start_mode aisle  detour_on 0  
+g_demo_FollowPathRLShimDemoHist_1  ABOR start_mode aisle  detour_on 1  25s detour on at (1.21, 0.35) after 5.0 s without progress
+g_demo_FollowPathRLShimStd_1       SUCC start_mode aisle  detour_on 0  
+g_demo_FollowPathRLShimACD3_1      SUCC start_mode aisle  detour_on 0  
+g_demo_FollowPathRLShimDemoHist2_1 SUCC start_mode aisle  detour_on 0  
+g_demo_FollowPathRLShimStd_2       SUCC start_mode aisle  detour_on 0  
+g_demo_FollowPathRLShimDemoHist2_2 SUCC start_mode aisle  detour_on 0  
+g_demo_FollowPathRLShimDemoHist_2  ABOR start_mode aisle  detour_on 1  17s detour on at (1.00, 0.41) after 5.0 s without progress
+g_demo_FollowPathRLShimACD3_2      SUCC start_mode aisle  detour_on 0  
+g_demo_FollowPathRLShimDemoHist2_3 SUCC start_mode aisle  detour_on 0  
+g_demo_FollowPathRLShimACD3_3      ABOR start_mode aisle  detour_on 1  15s detour on at (0.95, 0.41) after 5.0 s without progress; 35s back to aisle mode (navigation ended) at (0.95, 0.41)
+g_demo_FollowPathRLShimStd_3       ABOR start_mode aisle  detour_on 1  25s detour on at (1.26, 0.41) after 5.0 s without progress
+g_demo_FollowPathRLShimDemoHist_3  SUCC start_mode aisle  detour_on 0  
+g_demo_FollowPathRLShimStd_4       ABOR start_mode aisle  detour_on 1  14s detour on at (0.92, 0.35) after 5.0 s without progress
+g_demo_FollowPathRLShimDemoHist2_4 SUCC start_mode aisle  detour_on 0  
+g_demo_FollowPathRLShimDemoHist_4  ABOR start_mode aisle  detour_on 1  34s detour on at (1.29, 0.58) after 5.0 s without progress
+g_demo_FollowPathRLShimACD3_4      ABOR start_mode aisle  detour_on 1  15s detour on at (0.91, 0.38) after 5.0 s without progress
+== j_cross: 20 legs, 12 detour-on lines in the whole run
+j_cross_FollowPathRLShimACD3_0     SUCC start_mode aisle  detour_on 0  
+j_cross_FollowPathRLShimDemoHist_0 ABOR start_mode aisle  detour_on 1  19s detour on at (1.16, 0.93) after 5.0 s without progress
+j_cross_FollowPathRLShimDemoHist2_0 SUCC start_mode aisle  detour_on 0  
+j_cross_FollowPathRLShimStd_0      SUCC start_mode aisle  detour_on 0  
+j_cross_FollowPathRLShimDemoHist_1 SUCC start_mode aisle  detour_on 0  
+j_cross_FollowPathRLShimStd_1      ABOR start_mode aisle  detour_on 1  24s detour on at (1.29, 0.80) after 5.0 s without progress
+j_cross_FollowPathRLShimACD3_1     SUCC start_mode aisle  detour_on 0  
+j_cross_FollowPathRLShimDemoHist2_1 SUCC start_mode aisle  detour_on 0  
+j_cross_FollowPathRLShimStd_2      SUCC start_mode aisle  detour_on 0  
+j_cross_FollowPathRLShimDemoHist2_2 SUCC start_mode aisle  detour_on 0  
+j_cross_FollowPathRLShimDemoHist_2 SUCC start_mode aisle  detour_on 0  
+j_cross_FollowPathRLShimACD3_2     SUCC start_mode aisle  detour_on 0  
+j_cross_FollowPathRLShimDemoHist2_3 SUCC start_mode aisle  detour_on 0  
+j_cross_FollowPathRLShimACD3_3     SUCC start_mode aisle  detour_on 0  
+j_cross_FollowPathRLShimStd_3      SUCC start_mode aisle  detour_on 0  
+j_cross_FollowPathRLShimDemoHist_3 SUCC start_mode aisle  detour_on 0  
+j_cross_FollowPathRLShimStd_4      SUCC start_mode aisle  detour_on 0  
+j_cross_FollowPathRLShimDemoHist2_4 SUCC start_mode aisle  detour_on 0  
+j_cross_FollowPathRLShimDemoHist_4 ABOR start_mode aisle  detour_on 1  28s detour on at (1.42, 0.78) after 5.0 s without progress
+j_cross_FollowPathRLShimACD3_4     SUCC start_mode aisle  detour_on 0  
+== k_cross: 20 legs, 24 detour-on lines in the whole run
+k_cross_FollowPathRLShimACD3_0     SUCC start_mode aisle  detour_on 0  
+k_cross_FollowPathRLShimDemoHist_0 ABOR start_mode aisle  detour_on 1  27s detour on at (1.44, 0.82) after 5.0 s without progress
+k_cross_FollowPathRLShimDemoHist2_0 ABOR start_mode aisle  detour_on 1  22s detour on at (1.15, 0.83) after 5.0 s without progress
+k_cross_FollowPathRLShimStd_0      SUCC start_mode aisle  detour_on 0  
+k_cross_FollowPathRLShimDemoHist_1 SUCC start_mode aisle  detour_on 0  
+k_cross_FollowPathRLShimStd_1      SUCC start_mode aisle  detour_on 0  
+k_cross_FollowPathRLShimACD3_1     SUCC start_mode aisle  detour_on 0  
+k_cross_FollowPathRLShimDemoHist2_1 SUCC start_mode aisle  detour_on 0  
+k_cross_FollowPathRLShimStd_2      SUCC start_mode aisle  detour_on 0  
+k_cross_FollowPathRLShimDemoHist2_2 ABOR start_mode aisle  detour_on 1  19s detour on at (1.19, 0.80) after 5.0 s without progress
+k_cross_FollowPathRLShimDemoHist_2 ABOR start_mode aisle  detour_on 1  29s detour on at (1.21, 0.81) after 5.0 s without progress
+k_cross_FollowPathRLShimACD3_2     SUCC start_mode aisle  detour_on 0  
+k_cross_FollowPathRLShimDemoHist2_3 SUCC start_mode aisle  detour_on 0  
+k_cross_FollowPathRLShimACD3_3     ABOR start_mode aisle  detour_on 1  40s detour on at (1.49, 0.41) after 5.0 s without progress
+k_cross_FollowPathRLShimStd_3      SUCC start_mode aisle  detour_on 0  
+k_cross_FollowPathRLShimDemoHist_3 ABOR start_mode aisle  detour_on 1  16s detour on at (1.31, 0.79) after 5.0 s without progress
+k_cross_FollowPathRLShimStd_4      SUCC start_mode aisle  detour_on 0  
+k_cross_FollowPathRLShimDemoHist2_4 SUCC start_mode aisle  detour_on 0  
+k_cross_FollowPathRLShimDemoHist_4 SUCC start_mode aisle  detour_on 0  
+k_cross_FollowPathRLShimACD3_4     SUCC start_mode aisle  detour_on 0  

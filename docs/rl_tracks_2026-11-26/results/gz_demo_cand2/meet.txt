@@ -1,0 +1,72 @@
+g_demo   RLShimACD3       0 ABOR ok False person_started True meet False zone_min inf slowed_before False no contact
+g_demo   RLShimACD3       1 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 9.2s robot (1.14,0.55) v_1s 0.118 person (1.14,0.45)
+g_demo   RLShimACD3       2 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 9.1s robot (1.16,0.54) v_1s 0.120 person (1.14,0.44)
+g_demo   RLShimACD3       3 ABOR ok False person_started True meet False zone_min inf slowed_before False no contact
+g_demo   RLShimACD3       4 ABOR ok False person_started True meet False zone_min inf slowed_before False no contact
+g_demo   RLShimDemoHist2  0 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 9.7s robot (1.07,0.57) v_1s 0.115 person (1.14,0.50)
+g_demo   RLShimDemoHist2  1 SUCC ok True person_started True meet True zone_min 0.006 slowed_before False no contact
+g_demo   RLShimDemoHist2  2 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 10.1s robot (1.04,0.56) v_1s 0.118 person (1.14,0.53)
+g_demo   RLShimDemoHist2  3 SUCC ok True person_started True meet True zone_min 0.048 slowed_before False no contact
+g_demo   RLShimDemoHist2  4 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 9.3s robot (1.18,0.55) v_1s 0.115 person (1.14,0.46)
+g_demo   RLShimDemoHist   0 ABOR ok False person_started True meet True zone_min 0.000 slowed_before True first contact 12.0s robot (1.07,0.56) v_1s 0.061 person (1.14,0.64)
+g_demo   RLShimDemoHist   1 ABOR ok False person_started True meet True zone_min 0.000 slowed_before True first contact 9.9s robot (1.09,0.59) v_1s 0.117 person (1.14,0.52)
+g_demo   RLShimDemoHist   2 ABOR ok False person_started True meet False zone_min inf slowed_before False no contact
+g_demo   RLShimDemoHist   3 SUCC ok True person_started True meet True zone_min 0.052 slowed_before True no contact
+g_demo   RLShimDemoHist   4 ABOR ok False person_started True meet False zone_min inf slowed_before True no contact
+g_demo   RLShimStd        0 SUCC ok True person_started True meet True zone_min 0.000 slowed_before True first contact 12.3s robot (1.11,0.51) v_1s 0.115 person (1.14,0.61)
+g_demo   RLShimStd        1 SUCC ok True person_started True meet True zone_min 0.103 slowed_before True no contact
+g_demo   RLShimStd        2 SUCC ok False person_started True meet True zone_min 0.000 slowed_before False first contact 9.4s robot (1.08,0.56) v_1s 0.116 person (1.14,0.47)
+g_demo   RLShimStd        3 ABOR ok False person_started True meet True zone_min 0.000 slowed_before False first contact 9.7s robot (1.05,0.55) v_1s 0.120 person (1.14,0.50)
+g_demo   RLShimStd        4 ABOR ok False person_started True meet False zone_min inf slowed_before False no contact
+j_cross  RLShimACD3       0 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.6s robot (1.07,0.52) v_1s 0.116 person (1.14,0.60)
+j_cross  RLShimACD3       1 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.7s robot (1.09,0.51) v_1s 0.115 person (1.14,0.61)
+j_cross  RLShimACD3       2 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.7s robot (1.09,0.51) v_1s 0.114 person (1.14,0.60)
+j_cross  RLShimACD3       3 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.9s robot (1.10,0.50) v_1s 0.111 person (1.14,0.59)
+j_cross  RLShimACD3       4 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.8s robot (1.08,0.51) v_1s 0.114 person (1.14,0.60)
+j_cross  RLShimDemoHist2  0 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.6s robot (1.09,0.53) v_1s 0.118 person (1.14,0.62)
+j_cross  RLShimDemoHist2  1 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.6s robot (1.11,0.52) v_1s 0.120 person (1.14,0.61)
+j_cross  RLShimDemoHist2  2 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.6s robot (1.11,0.52) v_1s 0.120 person (1.14,0.61)
+j_cross  RLShimDemoHist2  3 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.7s robot (1.11,0.51) v_1s 0.120 person (1.14,0.61)
+j_cross  RLShimDemoHist2  4 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.8s robot (1.11,0.51) v_1s 0.120 person (1.14,0.60)
+j_cross  RLShimDemoHist   0 ABOR ok False person_started True meet True zone_min 0.000 slowed_before False first contact 7.7s robot (1.08,0.53) v_1s 0.118 person (1.14,0.61)
+j_cross  RLShimDemoHist   1 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.7s robot (1.09,0.51) v_1s 0.116 person (1.14,0.60)
+j_cross  RLShimDemoHist   2 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.7s robot (1.10,0.51) v_1s 0.120 person (1.14,0.60)
+j_cross  RLShimDemoHist   3 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.7s robot (1.11,0.51) v_1s 0.120 person (1.14,0.61)
+j_cross  RLShimDemoHist   4 ABOR ok False person_started True meet True zone_min 0.000 slowed_before False first contact 7.7s robot (1.08,0.52) v_1s 0.118 person (1.14,0.60)
+j_cross  RLShimStd        0 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.6s robot (1.08,0.53) v_1s 0.120 person (1.14,0.61)
+j_cross  RLShimStd        1 ABOR ok False person_started True meet True zone_min 0.000 slowed_before False first contact 7.7s robot (1.10,0.51) v_1s 0.113 person (1.14,0.61)
+j_cross  RLShimStd        2 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.8s robot (1.08,0.50) v_1s 0.103 person (1.14,0.59)
+j_cross  RLShimStd        3 SUCC ok False person_started True meet True zone_min 0.000 slowed_before False first contact 7.8s robot (1.08,0.51) v_1s 0.086 person (1.14,0.59)
+j_cross  RLShimStd        4 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.8s robot (1.08,0.52) v_1s 0.104 person (1.14,0.60)
+k_cross  RLShimACD3       0 SUCC ok False person_started True meet True zone_min 0.000 slowed_before False first contact 7.6s robot (1.06,0.57) v_1s 0.120 person (1.14,0.53)
+k_cross  RLShimACD3       1 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.4s robot (1.06,0.56) v_1s 0.118 person (1.14,0.53)
+k_cross  RLShimACD3       2 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.4s robot (1.06,0.56) v_1s 0.120 person (1.14,0.52)
+k_cross  RLShimACD3       3 ABOR ok False person_started True meet True zone_min 0.000 slowed_before False first contact 7.3s robot (1.06,0.57) v_1s 0.120 person (1.14,0.52)
+k_cross  RLShimACD3       4 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.3s robot (1.06,0.56) v_1s 0.119 person (1.14,0.52)
+k_cross  RLShimDemoHist2  0 ABOR ok False person_started True meet True zone_min 0.000 slowed_before False first contact 7.4s robot (1.06,0.55) v_1s 0.115 person (1.14,0.53)
+k_cross  RLShimDemoHist2  1 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.1s robot (1.05,0.56) v_1s 0.120 person (1.14,0.52)
+k_cross  RLShimDemoHist2  2 ABOR ok False person_started True meet True zone_min 0.000 slowed_before False first contact 7.3s robot (1.06,0.56) v_1s 0.113 person (1.14,0.53)
+k_cross  RLShimDemoHist2  3 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.2s robot (1.06,0.57) v_1s 0.119 person (1.14,0.52)
+k_cross  RLShimDemoHist2  4 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.3s robot (1.06,0.57) v_1s 0.117 person (1.14,0.52)
+k_cross  RLShimDemoHist   0 ABOR ok False person_started True meet True zone_min 0.000 slowed_before False first contact 7.6s robot (1.06,0.58) v_1s 0.120 person (1.14,0.52)
+k_cross  RLShimDemoHist   1 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.5s robot (1.06,0.57) v_1s 0.119 person (1.14,0.53)
+k_cross  RLShimDemoHist   2 ABOR ok False person_started True meet True zone_min 0.000 slowed_before False first contact 7.5s robot (1.06,0.57) v_1s 0.118 person (1.14,0.53)
+k_cross  RLShimDemoHist   3 ABOR ok False person_started True meet True zone_min 0.000 slowed_before False first contact 7.7s robot (1.06,0.59) v_1s 0.119 person (1.14,0.52)
+k_cross  RLShimDemoHist   4 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.5s robot (1.06,0.56) v_1s 0.117 person (1.14,0.52)
+k_cross  RLShimStd        0 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.4s robot (1.06,0.57) v_1s 0.114 person (1.14,0.53)
+k_cross  RLShimStd        1 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.3s robot (1.07,0.58) v_1s 0.118 person (1.14,0.53)
+k_cross  RLShimStd        2 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.3s robot (1.07,0.58) v_1s 0.117 person (1.14,0.53)
+k_cross  RLShimStd        3 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.5s robot (1.06,0.57) v_1s 0.089 person (1.14,0.55)
+k_cross  RLShimStd        4 SUCC ok True person_started True meet True zone_min 0.000 slowed_before False first contact 7.5s robot (1.07,0.60) v_1s 0.119 person (1.14,0.54)
+== g_demo RLShimACD3: n 5 person_started 5 meet 2 meet_and_contact 2 meet_clean_arrived 0 meet_fail 2 slowed_before_contact 0 ok 2
+== g_demo RLShimDemoHist: n 5 person_started 5 meet 3 meet_and_contact 2 meet_clean_arrived 1 meet_fail 2 slowed_before_contact 4 ok 1
+== g_demo RLShimDemoHist2: n 5 person_started 5 meet 5 meet_and_contact 3 meet_clean_arrived 2 meet_fail 3 slowed_before_contact 0 ok 5
+== g_demo RLShimStd: n 5 person_started 5 meet 4 meet_and_contact 3 meet_clean_arrived 1 meet_fail 3 slowed_before_contact 2 ok 2
+== j_cross RLShimACD3: n 5 person_started 5 meet 5 meet_and_contact 5 meet_clean_arrived 0 meet_fail 5 slowed_before_contact 0 ok 5
+== j_cross RLShimDemoHist: n 5 person_started 5 meet 5 meet_and_contact 5 meet_clean_arrived 0 meet_fail 5 slowed_before_contact 0 ok 3
+== j_cross RLShimDemoHist2: n 5 person_started 5 meet 5 meet_and_contact 5 meet_clean_arrived 0 meet_fail 5 slowed_before_contact 0 ok 5
+== j_cross RLShimStd: n 5 person_started 5 meet 5 meet_and_contact 5 meet_clean_arrived 0 meet_fail 5 slowed_before_contact 0 ok 3
+== k_cross RLShimACD3: n 5 person_started 5 meet 5 meet_and_contact 5 meet_clean_arrived 0 meet_fail 5 slowed_before_contact 0 ok 3
+== k_cross RLShimDemoHist: n 5 person_started 5 meet 5 meet_and_contact 5 meet_clean_arrived 0 meet_fail 5 slowed_before_contact 0 ok 2
+== k_cross RLShimDemoHist2: n 5 person_started 5 meet 5 meet_and_contact 5 meet_clean_arrived 0 meet_fail 5 slowed_before_contact 0 ok 3
+== k_cross RLShimStd: n 5 person_started 5 meet 5 meet_and_contact 5 meet_clean_arrived 0 meet_fail 5 slowed_before_contact 0 ok 5

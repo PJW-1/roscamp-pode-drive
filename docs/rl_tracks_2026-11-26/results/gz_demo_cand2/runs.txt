@@ -1,0 +1,12 @@
+f_cart start 2026-11-26T17:44:40+09:00 avail 15345MB domain 72 args aisle_first:=true
+f_cart: exit 0, bench f_cart: 5/5 repeats, 18 resets
+f_cart end 2026-11-26T17:56:39+09:00
+g_demo start 2026-11-26T17:59:39+09:00 avail 15336MB domain 72 args aisle_first:=true
+g_demo: exit 0, bench g_demo: 5/5 repeats, 19 resets
+g_demo end 2026-11-26T18:27:53+09:00
+k_cross start 2026-11-26T18:30:53+09:00 avail 15332MB domain 72 args aisle_first:=true
+k_cross: exit 0, bench k_cross: 5/5 repeats, 19 resets
+k_cross end 2026-11-26T18:53:20+09:00
+j_cross start 2026-11-26T18:56:20+09:00 avail 15331MB domain 72 args aisle_first:=true
+j_cross: exit 0, bench j_cross: 5/5 repeats, 19 resets
+j_cross end 2026-11-26T19:14:03+09:00
