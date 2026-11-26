@@ -131,13 +131,15 @@ Pi 4에서 RL 추론과 MPPI의 계산 시간을 주행 없이 재려면 `tools/
    더했다. `--source-commit`에 넣을 학습 코드 커밋은 실행 폴더 `run_config.json`의 `git.commit`에 있다(실행 폴더의 `git/`은
    Isaac Lab 쪽 차이만 담는다). 같은 곳의 `git.branch`는 학습을 돌린 작업 사본의 브랜치라서, `--source-branch`에는 그 커밋이
    들어 있는 통합 브랜치 이름을 적었다. 내보내기가 끝에 적는 onnxruntime 대 torch 최대 차이를 확인한다.
-2. `pode/pode_rl_controller/CMakeLists.txt`의 추론 일치 시험 목록과 그 README의 정책 표에 `<NAME>`을 더한다.
+2. `pode/pode_rl_controller/CMakeLists.txt`의 추론 일치 시험 목록과 그 README의 정책 표에 `<NAME>`을 더한다. 표의 칸은 관측 수
+   (`policy_spec.json`의 `obs_dim`), 체크포인트, `policy.onnx`의 sha256 앞 12자(`sha256sum`), 한 줄 설명이다.
 3. 시뮬에서 고르려면 `sim/fleet_gz_sim/nav_overrides/follow_path_rl_<이름>.yaml`(관측이 같은 정책의 파일에서 첫 줄 주석과
    `policy` 두 곳만 바꾼 것)을 만들고, `gz.launch.py`의 `RL_FILES`와 `nav_rl` 인자 설명 글, `sim/fleet_gz_sim/README.md`의
    `nav_rl` 줄에 더한다. 시험도 맞춘다: `sim/fleet_gz_sim/test/test_launch_wiring.py`의 선택 이름 목록과 그 아래 정책 이름
    표(고른 이름 → 정책 이름) 둘 다, `tools/test/test_policy_files.py`의 덮어쓰기 파일 목록.
 4. `learning/store_arena/checkpoints/<NAME>/`에 체크포인트, 실행 폴더의 `run.json`과 `run_config.json`을 두고 `index.json`과
-   그 폴더 `README.md`의 표에 줄을 더한다. 이 문서의 1절 표와 3절에도 이름을 더한다. `POLICIES.md` 계보표를 채우고
+   그 폴더 `README.md`의 표에 줄을 더한다. `index.json`의 항목은 체크포인트 파일의 sha256과 크기(bytes), 누적 반복 수(파일
+   이름의 숫자), `obs_dim`, 베껴 온 원래 경로다. `README.md`는 표 말고 앞쪽의 정책을 늘어놓은 두 문장도 같이 고친다. 이 문서의 1절 표와 3절에도 이름을 더한다. `POLICIES.md` 계보표를 채우고
    Drive `RL_정책_백업`에 같은 파일을 올린다.
 5. 새 파일을 모두 `git add`한 뒤에 시험한다(`test_policy_files.py`는 git이 추적하는 파일만 본다. 커밋까지 해야 다른 PC에서 받을
    수 있다): `python -m pytest tools/test/test_policy_files.py learning/store_arena/test_checkpoints.py sim/fleet_gz_sim/test/test_launch_wiring.py`,
