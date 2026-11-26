@@ -120,6 +120,16 @@ def fill_sectors(values, usable, touched, obs_max, reach=FILL_REACH):
     return out, empty
 
 
+def no_neighbour(empty, reach=FILL_REACH):
+    """채울 섹터 가운데 양쪽 reach 섹터 안에 채우지 않는 섹터가 없는 것의 표시(상한으로 남는다)."""
+    count = len(empty)
+    out = np.zeros(count, dtype=bool)
+    for s in np.flatnonzero(empty):
+        out[s] = all(
+            empty[(s + step * d) % count] for step in (-1, 1) for d in range(1, reach + 1))
+    return out
+
+
 # ---- 지표와 판정 ----
 def share(flags):
     """참인 장의 비율을 낸다. 장이 하나도 없으면 None이다."""
@@ -153,7 +163,7 @@ def check(npz_path, spec_path, out_dir, mask_text, fill=False):
     masked, left = np.empty_like(raw), np.empty(raw.shape, dtype=np.int64)
     all_bad, rays_masked = np.empty(raw.shape, dtype=bool), np.empty(count, dtype=np.int64)
     usable = np.empty(raw.shape, dtype=bool)
-    filled = np.zeros(raw.shape, dtype=bool)
+    filled, lone = np.zeros(raw.shape, dtype=bool), np.zeros(raw.shape, dtype=bool)
     touched = np.zeros(lid["sectors"], dtype=bool)
     near_in, near_out, short = {}, {}, 0
     grids, first = {}, None
@@ -169,6 +179,7 @@ def check(npz_path, spec_path, out_dir, mask_text, fill=False):
         if fill:
             masked[i], filled[i] = fill_sectors(
                 out["masked"], out["usable"], out["touched"], obs_max)
+            lone[i] = no_neighbour(filled[i])
         left[i], all_bad[i] = out["left"], out["all_bad"]
         rays_masked[i], usable[i] = out["rays_masked"], out["usable"]
         ray_val[i], ray_bad[i] = out["ray"], out["ray_bad"]
@@ -205,8 +216,9 @@ def check(npz_path, spec_path, out_dir, mask_text, fill=False):
             "median_left": {str(s): float(np.median(left[:, s])) for s in posts},
             "scans_with_empty_sector": int((left[:, posts] == 0).any(axis=1).sum()),
             "min_left_any_sector": int(left.min()),
-            "verdict": ("채우기를 켰다: 레이가 남지 않는 섹터는 이웃 섹터 값으로 채우고, "
-                        "양쪽 넷 안에 이웃이 없으면 상한으로 둔다(그 경우는 M3에 잡힌다)" if fill
+            "verdict": ("채우기를 켰다: 레이가 남지 않는 섹터는 이웃 섹터 값으로 채운다. "
+                        "양쪽 넷 안에 이웃이 없어 상한으로 남은 섹터가 있는 장 "
+                        + pct(float(lone.any(axis=1).mean())) if fill
                         else "실물 scan 격자에서 섹터마다 레이가 남는다"
                         if min(min_left.values()) >= 1
                         else "남지 않는 섹터가 있다: 이 값을 실물에 쓰면 안 된다"),
@@ -246,6 +258,8 @@ def check(npz_path, spec_path, out_dir, mask_text, fill=False):
         res["fill"] = {
             "filled_any": float(filled[:, posts].any(axis=1).mean()),
             "per_sector_filled": {str(s): float(filled[:, s].mean()) for s in posts},
+            "no_neighbour_any": float(lone.any(axis=1).mean()),
+            "no_neighbour_sectors": [int(s) for s in np.flatnonzero(lone.any(axis=0))],
             "touched": [int(s) for s in np.flatnonzero(touched)],
             "touched_value_m": {
                 str(int(s)): [round(float(x), 3) for x in np.percentile(masked[:, s], [5, 50, 95])]
@@ -355,6 +369,10 @@ def markdown(res):
             "", "## 채우기", "",
             "아래 값은 모두 채운 뒤의 섹터 값으로 센 것이다(위의 M2, M3, 섹터 값도 그렇다).", "",
             row("채워진 장", [pct(f["per_sector_filled"][s]) for s in posts], pct(f["filled_any"])),
+            "", "양쪽 넷 안에 이웃이 없어 상한으로 남은 섹터가 있는 장(36개 섹터 전체에서): "
+            + pct(f["no_neighbour_any"]) + (
+                " (섹터 " + ", ".join(str(s) for s in f["no_neighbour_sectors"]) + ")"
+                if f["no_neighbour_sectors"] else ""),
             "", "가림에 걸린 섹터의 값 m (5 %, 중앙값, 95 %): " + "; ".join(
                 f"{s}번 " + ", ".join(f"{x:.2f}" for x in v)
                 for s, v in f["touched_value_m"].items()), ""]

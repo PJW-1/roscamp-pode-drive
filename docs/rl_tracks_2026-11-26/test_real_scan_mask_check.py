@@ -303,7 +303,25 @@ def test_check_with_fill_says_that_a_sector_with_no_neighbour_stays_at_the_limit
     res = m.check(path, spec, tmp_path / "all", "-180,180", fill=True)
     assert res["m3"]["masked"] == pytest.approx(1.0)
     assert res["m3"]["verdict"] == m.grade(1.0, m.EMPTY_WORDS)
-    assert "상한" in res["m1"]["verdict"] and "M3" in res["m1"]["verdict"]
+    assert res["fill"]["no_neighbour_any"] == pytest.approx(1.0)
+    assert "상한" in res["m1"]["verdict"] and "100.00 %" in res["m1"]["verdict"]
+    # 기둥 섹터가 아닌 곳에서 이웃이 없으면 M3에는 안 보이지만 따로 센 값에는 보인다
+    far = m.check(path, spec, tmp_path / "far", "-80.5,29.5", fill=True)
+    assert far["m3"]["masked"] == pytest.approx(0.0)
+    assert far["fill"]["no_neighbour_any"] == pytest.approx(1.0)
+    assert far["fill"]["no_neighbour_sectors"] == [14, 15, 16]
+    wide = m.check(path, spec, tmp_path / "wide", WIDE, fill=True)
+    assert wide["fill"]["no_neighbour_any"] == pytest.approx(0.0)
+    assert wide["fill"]["no_neighbour_sectors"] == []
+
+
+def test_no_neighbour_marks_only_filled_sectors_with_nothing_in_reach():
+    empty = np.zeros(36, dtype=bool)
+    empty[10:21] = True
+    assert list(np.flatnonzero(m.no_neighbour(empty))) == [14, 15, 16]
+    empty[:] = False
+    empty[[0, 1, 2, 3, 35, 34, 33, 32, 31]] = True  # 한 바퀴를 넘어 이어진다
+    assert list(np.flatnonzero(m.no_neighbour(empty))) == [35]
 
 
 def test_module_file_has_a_usage_docstring():
