@@ -1,6 +1,6 @@
 # n26 표
 
-실행 폴더 `D:/isaac/runs/store_arena/n26`, 끝난 실행(exit=0): c_clean, c_cross, c_demo_box, e_acd3_aisle, e_acd3_aislet, e_acd3_demo1, e_acd3_demo1c08, e_acd3_demo1t, e_acd3_demo2, e_acd3_head, e_acd3_rand, e_acd3_rand_chk2, e_ctrl_aisle, e_ctrl_demo1, e_ctrl_demo2, e_ctrl_rand, e_demo_aisle, e_demo_demo1, e_demo_demo2, e_demo_head, e_demo_rand, e_demohist2_aisle, e_demohist2_demo1, e_demohist2_demo2, e_demohist2_head, e_demohist2_rand, e_demohist2m_demo1, e_demohist_aisle, e_demohist_aislet, e_demohist_demo1, e_demohist_demo1c08, e_demohist_demo1t, e_demohist_demo2, e_demohist_head, e_demohist_rand, e_demostd_aisle, e_demostd_demo1, e_demostd_demo2, e_demostd_head, e_demostd_rand, e_histstd_aisle, e_histstd_demo1, e_histstd_demo2, e_histstd_head, e_histstd_rand, e_std_aisle, e_std_aislet, e_std_demo1, e_std_demo1c08, e_std_demo1t, e_std_demo2, e_std_head, e_std_rand, smoke_b4, smoke_demo, smoke_hist, smoke_hstd, smoke_resume, smoke_std, smoke_sysid, t_ctrl, t_demo, t_demo_hist, t_demo_hist2, t_demo_std, t_dyn, t_hist_std, t_std
+실행 폴더 `D:/isaac/runs/store_arena/n26`, 끝난 실행(exit=0): c_clean, c_cross, c_demo_box, e_acd3_aisle, e_acd3_aislet, e_acd3_demo1, e_acd3_demo1c08, e_acd3_demo1t, e_acd3_demo2, e_acd3_head, e_acd3_rand, e_acd3_rand_chk2, e_ctrl_aisle, e_ctrl_demo1, e_ctrl_demo2, e_ctrl_rand, e_demo_aisle, e_demo_demo1, e_demo_demo2, e_demo_head, e_demo_rand, e_demohist2_aisle, e_demohist2_demo1, e_demohist2_demo2, e_demohist2_head, e_demohist2_rand, e_demohist2m_demo1, e_demohist_aisle, e_demohist_aislet, e_demohist_demo1, e_demohist_demo1c08, e_demohist_demo1t, e_demohist_demo1tf15a60, e_demohist_demo1tf20a30, e_demohist_demo1tf20a60, e_demohist_demo2, e_demohist_head, e_demohist_rand, e_demostd_aisle, e_demostd_demo1, e_demostd_demo2, e_demostd_head, e_demostd_rand, e_histstd_aisle, e_histstd_demo1, e_histstd_demo2, e_histstd_head, e_histstd_rand, e_std_aisle, e_std_aislet, e_std_demo1, e_std_demo1c08, e_std_demo1t, e_std_demo2, e_std_head, e_std_rand, smoke_b4, smoke_demo, smoke_hist, smoke_hstd, smoke_resume, smoke_std, smoke_sysid, t_ctrl, t_demo, t_demo_hist, t_demo_hist2, t_demo_std, t_dyn, t_hist_std, t_std
 
 ## 1. 평가 칸
 
@@ -30,6 +30,9 @@
 | demohist | demo1 | 4096 | 52.81 | 46.02 | 1.17 | 232 | 774 | 324 | 555 | 1729 | 40.22 | 1.309 |
 | demohist | demo1c08 | 4096 | 52.05 | 46.9 | 1.05 | 222 | 728 | 457 | 514 | 1825 | 50.25 | 1.159 |
 | demohist | demo1t | 4096 | 52.54 | 46.39 | 1.07 | 232 | 777 | 337 | 554 | 1739 | 40.43 | 1.305 |
+| demohist | demo1tf15a60 | 4096 | 28.27 | 24.24 | 47.49 | 119 | 61 | 482 | 331 | 986 | 91.38 | 1.459 |
+| demohist | demo1tf20a30 | 4096 | 35.74 | 24.8 | 39.45 | 140 | 29 | 507 | 340 | 1002 | 81.78 | 1.7 |
+| demohist | demo1tf20a60 | 4096 | 17.8 | 18.73 | 63.48 | 89 | 21 | 263 | 394 | 756 | 82.3 | 1.964 |
 | demohist | demo2 | 4096 | 48.27 | 50.44 | 1.29 | 368 | 823 | 340 | 535 | 1854 | 39.82 | 1.306 |
 | demohist | head | 4096 | 51.12 | 48.88 | 0.0 | 230 | 24 | 432 | 1316 | 1749 | 46.69 | 1.282 |
 | demohist | rand | 4096 | 77.37 | 22.56 | 0.07 | 60 | 26 | 457 | 381 | 829 | 51.56 | 1.117 |
@@ -278,6 +281,9 @@
 | demohist | demo1 | 2792 | 36.57 | 0.9115 | 0 |  | 691 | 3.91 | 757 | 33.55 | 751 | 53.13 | 593 | 57.5 | 0 |  |
 | demohist | demo1c08 | 2792 | 35.89 | 0.9078 | 0 |  | 691 | 3.33 | 757 | 32.36 | 751 | 53.79 | 593 | 55.65 | 0 |  |
 | demohist | demo1t | 2792 | 36.25 | 0.9098 | 0 |  | 691 | 3.33 | 757 | 32.89 | 751 | 53.79 | 593 | 56.66 | 0 |  |
+| demohist | demo1tf15a60 | 2792 | 0.32 | 0.1069 | 0 |  | 691 | 0.29 | 757 | 0.4 | 751 | 0.27 | 593 | 0.34 | 0 |  |
+| demohist | demo1tf20a30 | 2792 | 13.79 | 0.6525 | 0 |  | 691 | 2.03 | 757 | 1.06 | 751 | 15.98 | 593 | 40.98 | 0 |  |
+| demohist | demo1tf20a60 | 2792 | 0.0 | 0.0 | 0 |  | 691 | 0.0 | 757 | 0.0 | 751 | 0.0 | 593 | 0.0 | 0 |  |
 | demohist | demo2 | 2792 | 30.16 | 0.8686 | 0 |  | 664 | 4.52 | 752 | 28.99 | 801 | 42.32 | 575 | 44.35 | 0 |  |
 | demohist | head | 49 | 30.61 | 6.5839 | 0 |  | 5 | 0.0 | 21 | 28.57 | 12 | 58.33 | 11 | 18.18 | 0 |  |
 | demohist | rand | 49 | 69.39 | 6.5839 | 0 |  | 5 | 20.0 | 21 | 76.19 | 12 | 75.0 | 11 | 72.73 | 0 |  |
@@ -686,6 +692,9 @@ eval.json의 by_crossing: 나온 사람의 건넘 구간이 전역 경로를 덮
 | demohist | demo1 | 2122 | 34.54 | 63.85 | 1.6 | 1140 | 88.95 | 11.05 | 0.0 | 834 | 49.88 | 48.44 | 1.68 | 52.8 | 1.3964 | outside |
 | demohist | demo1c08 | 2122 | 32.66 | 65.88 | 1.46 | 1140 | 87.63 | 12.28 | 0.09 | 834 | 52.76 | 45.92 | 1.32 | 53.6 | 1.4157 | outside |
 | demohist | demo1t | 2122 | 34.35 | 64.18 | 1.46 | 1140 | 88.77 | 11.23 | 0.0 | 834 | 49.28 | 49.16 | 1.56 | 52.95 | 1.3992 | outside |
+| demohist | demo1tf15a60 | 2122 | 0.94 | 36.8 | 62.25 | 1140 | 89.82 | 7.63 | 2.54 | 834 | 13.67 | 14.99 | 71.34 | 29.17 | 1.3093 | outside |
+| demohist | demo1tf20a30 | 2122 | 14.23 | 38.88 | 46.89 | 1140 | 83.95 | 7.72 | 8.33 | 834 | 24.58 | 12.35 | 63.07 | 31.16 | 1.3209 | outside |
+| demohist | demo1tf20a60 | 2122 | 0.05 | 24.27 | 75.68 | 1140 | 57.63 | 14.21 | 28.16 | 834 | 8.51 | 10.79 | 80.7 | 10.06 | 1.3912 | outside |
 | demohist | demo2 | 2017 | 26.23 | 72.14 | 1.64 | 1009 | 88.11 | 11.89 | 0.0 | 1070 | 52.24 | 45.89 | 1.87 | 60.25 | 1.4264 | outside |
 | demohist | head | 0 |  |  |  | 0 |  |  |  | 4096 | 51.12 | 48.88 | 0.0 |  |  |  |
 | demohist | rand | 0 |  |  |  | 0 |  |  |  | 4096 | 77.37 | 22.56 | 0.07 |  |  |  |
