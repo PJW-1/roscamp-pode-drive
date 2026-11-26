@@ -3683,6 +3683,50 @@ Isaac 평가(정책 `t_demo_hist`, 4096 에피소드, 모두 같은 에피소드
   보는 것(큰 쪽, 한쪽만).
 
 
+**옵션**(04:02. 위 "쓰임"에 따라 만든 것. 둘 다 기본은 꺼짐이고, 주지 않으면 출력과 동작이 예전과 같다)
+
+서브에이전트 둘(OpenCode, 각자의 worktree와 브랜치)이 만들었고, 아래의 확인은 내가 직접 한 것이다. 통합 브랜치에는
+c3e51647까지 합쳤고 그 뒤의 고침은 088669f8이다.
+
+- **플러그인 `scan_mask_fill`**(bool, 기본 false. 브랜치 `feat/rl-scan-mask-fill-plugin-2026-11-27`): `scan_mask_deg`가 비운
+  섹터를 이 절의 규칙으로 채운다. 채운 값은 정책 관측과 라이다 이력에만 들어가고, 후진 막기와 다가옴 막기가 읽는 360 레이는
+  가린 그대로다. `scan_mask_deg` 없이 켜면 configure에서 멈춘다. 켜지면 시작 로그에 `scan mask fill on` 줄이 찍힌다.
+  - 빌드와 시험: WSL에서 ctest 11개가 통과했다(`test_observation`은 32개이고 그 가운데 채우기가 13개다). Python과
+    견주는 시험은 20경우(360빔 격자 12, 720빔 어긋난 격자 8. 채워진 섹터 59개)에서 최대 차이 0이다. 시험 자료
+    (`test/fixtures/mask_fill/mask_fill_cases.json`)는 `learning/goal_reach/make_mask_fill_cases.py`로 다시 만들어 바이트까지
+    같았다.
+  - 변이 확인(WSL 사본의 구현을 바꿔 시험이 떨어지는지 보았다. 11개): 왼쪽만 보기, 오른쪽만 보기, 작은 쪽 대신 큰 쪽, 넷 대신
+    셋까지 보기, 빈 이웃을 건너뛰지 않기, 채워진 값을 다시 쓰기, 가림에 걸렸는지 보지 않기, 2 m보다 먼 유효 반환을 못 쓰는
+    레이로 치기, 한 바퀴를 넘지 않기, 고른 빔 대신 옆 빔으로 가림 보기는 서브에이전트가 쓴 시험이 잡았다. "가린 빔의 반환도
+    쓸 수 있는 레이로 치기" 하나는 살아남았다(플러그인은 늘 가린 뒤의 scan을 넘기므로 지금 동작은 같다). 시험
+    `FlagsAreTheSameBeforeAndAfterMasking`을 더해 잡히게 했다.
+  - 서브에이전트는 그때 WSL이 죽어 있어(아래) C++를 한 번도 컴파일하지 못한 채 커밋했다. 빌드, 시험, 변이 확인은 WSL을
+    되살린 뒤 내가 했고 컴파일 오류는 없었다.
+- **섹터를 통째로 가렸다는 경고**(내가 더했다. 54065b22): 채우기가 꺼져 있는데 가림이 한 섹터의 레이를 모두 덮으면 configure가
+  그 섹터 번호를 WARN으로 찍는다(`the scan mask covers every ray angle of sector(s) 3, 32 and scan_mask_fill is off ...`). 넓은 가림만
+  주고 채우기를 빠뜨리면 정책이 깨지기 때문이다(Isaac demo1 성공 52.81 → 16.72 %). 로그만 더하고 동작은 바꾸지 않는다.
+  판단은 정책의 레이 각으로 하므로 실제 빔 격자에 따라 경계의 레이 하나는 다를 수 있다.
+- **실물 시작 스크립트 `RL_SCAN_MASK_FILL=1`**(`make_params.py --rl-scan-mask-fill`. 브랜치
+  `feat/rl-scan-mask-fill-optin-2026-11-27`): RL 블록 둘의 `scan_mask_deg` 줄 다음에 `scan_mask_fill: true` 한 줄씩을 더한다.
+  `RL_SCAN_MASK` 없이 주거나 값이 1, 0, 빈 값이 아니면 아무것도 띄우지 않고 2로 끝난다. `NO_MOTION=1`과는 같이 받지 않는다.
+  - 시험: Linux(WSL의 git 사본, 기준 커밋이 있는 깊이로 받음)에서 `tools/test/test_real_pode_rl.py`와 `test_real_pode.py`가
+    245 passed, 3 skipped였다. 채우기 시험 20개(bash 시험 7개 포함)는 모두 돌아 통과했다. 옵션을 주지 않은 출력과 가림만 준 출력은
+    바꾸기 전 커밋(f881d97f)의 출력과 바이트까지 같다(시험이 견준다).
+  - Windows에서는 `test_real_pode.py`의 109건이 실패한다. 바꾸기 전 코드에서도 같은 109건이고 경로 구분자 때문이다
+    (서브에이전트가 두 실패 목록을 견주었다. 내가 다시 돌려 보지는 않았다). Linux에서는 실패가 없다.
+- Codex 검토(28e7d54b..c3e51647) 지적 둘을 확인해 고쳤다(088669f8). (1) 플러그인과 실물 scan 도구는 가림 경계를 엄격하게
+  견주어, 경계에 정확히 놓인 빔이 반올림에 따라 갈릴 수 있었고 평가 코드(`rays_within`, 허용 오차 1e-6도)와도 달랐다. 둘 다
+  같은 허용 오차를 쓰게 했다(시험 `ABeamOnARangeEdgeIsMasked`와 도구 시험 둘을 더했다. 허용 오차를 뺀 구현에서 이 시험이
+  떨어지는지는 돌려 보지 않았다: Gazebo 묶음이 쓰는 빌드 폴더를 건드리지 않으려 했다). 실물 lidar와 Gazebo의 빔 격자는 정수 도에서 어긋나 있어 지금까지의 결과에는 영향이 없다:
+  33절과 34절의 실물 scan 확인을 다시 돌려 숫자가 모두 같은 것을 보았다. (2) 위의 경고는 실제 빔이 아니라 정책의 레이 각으로
+  판단한다. 경고 문구와 README에 그 사실을 적었다(고치지 않고 알린 것).
+- 쓰는 명령: `RL_POLICY=store_arena_demohist RL_SCAN_MASK="138,157,-152.5,-137" RL_SCAN_MASK_FILL=1 ~/nav2fleet_real/start.sh pode1 0.12 0.10 1.5708`. 시작 로그의 플러그인 설정 줄에 `scan mask 2 ranges`가 있고 그 아래에 `scan mask fill on` 줄이 있는지
+  본다. **로봇에서 돌려 본 적은 없다.**
+- WSL: 03:30쯤부터 모든 WSL 명령이 `Wsl/Service/E_UNEXPECTED`로 실패했다. system 배포판의 dmesg에 배포판의 init이 시작할
+  때마다 죽은 기록이 있었다. 그 VM 안에서 도는 작업이 없는 것을 확인하고 03:41에 `wsl --shutdown`으로 되살렸다. Isaac 큐
+  (Windows)는 그대로 돌았다. WSL `/tmp`는 비워졌다.
+- 닫힌 고리 확인은 35절에 있다.
+
 ## 35. Gazebo 열다섯째 묶음: 플러그인의 가림 채우기를 닫힌 고리에서 확인 (계획 03:43)
 
 아래는 이 묶음의 결과가 하나도 나오기 전에 적는다. 플러그인의 옵션(`scan_mask_fill`)은 서브에이전트의 브랜치에 있고 아직

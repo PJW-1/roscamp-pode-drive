@@ -122,7 +122,7 @@ Nav2 goal을 모는 컨트롤러(FollowPathGoal)의 속도는 `nav2_params.yaml`
   좁게 가린 값도 실물 bag의 scan에서는 남긴 레이가 자주 비어 맞지 않았다).
 - `RL_POLICY=<정책> RL_SCAN_MASK="lo,hi,..." RL_SCAN_MASK_FILL=1 start.sh ...`:
   가림 때문에 쓸 수 있는 레이가 하나도 남지 않은 10도 관측 섹터를
-  양쪽으로 가장 가까운 섹터의 값 가운데 작은 쪽으로 채운다.
+  양쪽으로 넷 안에서 가장 가까운, 비지 않은 섹터의 값 가운데 작은 쪽으로 채운다.
   `make_params.py --rl-scan-mask-fill`이 RL 블록 둘의 `scan_mask_deg` 줄 다음에
   `scan_mask_fill: true`를 더한다.
   기본은 꺼짐이다(비었거나 0이면 params가 예전과 같다).
@@ -131,6 +131,10 @@ Nav2 goal을 모는 컨트롤러(FollowPathGoal)의 속도는 `nav2_params.yaml`
   `NO_MOTION=1`과는 같이 받지 않는다.
   값을 넣기 전에 `docs/worklog_rl_tracks_2026-11-26.md` 34절을 읽는다
   (Isaac 평가와 실물 bag의 scan에서만 확인했고 로봇에서 돌려 본 적은 없다).
+  확인한 조합은 `RL_SCAN_MASK="138,157,-152.5,-137" RL_SCAN_MASK_FILL=1`이다
+  (Isaac 평가에서 기둥이 없는 기준보다 성공 −1.22 %p, 가리지 않는 것보다 +2.83 %p).
+  이 넓은 가림을 `RL_SCAN_MASK_FILL` 없이 주면 섹터 둘이 통째로 비어 정책이 깨진다
+  (Isaac 평가의 성공 52.8 → 16.7 %. 시작 로그에 `covers every ray angle of sector(s)` 경고가 찍힌다).
 - 쓰는 controller는 그대로 FollowPathGoal(RPP)이다. `controller_selector`에 이름을 보낸 뒤의 Nav2 goal(navigate_to_pose)만 RL로 간다. 고정 경로(pode_fsm의 FollowPath 등)는 늘 RPP다.
 - RL controller는 start.sh의 SPEED를 따르지 않는다. 정책의 v_max(0.12 m/s, `nav_speed.yaml`보다 커질 수 없음)까지 낸다. SPEED를 0.12보다 낮게 주면 make_params.py가 WARNING을 찍는다.
 
