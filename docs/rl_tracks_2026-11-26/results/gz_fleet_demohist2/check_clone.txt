@@ -1,0 +1,16 @@
+start 2026-11-26T19:35:00+09:00 avail 15335MB domain 74 build /home/pjw/gg_build/clone-final run_s 300
+nav2 active on 3 robots: 1 2026-11-26T19:35:27+09:00
+pode1 param String value is: store_arena_demohist2
+pode1 selector rc=0 2026-11-26T19:35:35+09:00
+pode2 param String value is: store_arena_demohist2
+pode2 selector rc=0 2026-11-26T19:35:42+09:00
+pode3 param Wait for service timed out waiting for parameter services for node /pode3/controller_server
+pode3 selector rc=0 2026-11-26T19:35:52+09:00
+ran 185s, launch alive: no 2026-11-26T19:38:57+09:00
+died: 4  errors: 66
+events.csv fleet_check.json fleet_robots.csv recovery_probe.csv releases.csv robots.csv safety.json summary.json zones.csv end 2026-11-26T19:39:07+09:00
+pode1: policy configure lines 2, RL call lines 30, nav goals begun 4, RPP warning lines between 40 s and 215 s 0
+pode2: policy configure lines 2, RL call lines 47, nav goals begun 6, RPP warning lines between 40 s and 215 s 0
+pode3: policy configure lines 2, RL call lines 31, nav goals begun 3, RPP warning lines between 40 s and 215 s 15
+clone build: Summary: 18 packages finished [1min 37s]
+selector command: ros2 topic pub --times 3 --rate 2 --keep-alive 1 (transient_local, reliable)

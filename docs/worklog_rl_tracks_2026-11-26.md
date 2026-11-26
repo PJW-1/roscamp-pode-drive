@@ -299,7 +299,7 @@ worktree에서 만든 4067d262를 직접 확인하고 병합). acd3를 넣은 �
   12자는 `49747b8717d7`로 저장소 README와 같다. `pode_rl_controller` 시험 8개가 통과했고, demohist의 추론 일치 시험은
   onnxruntime C++ 대 torch 최대 차이 2.86e-06이다.
 - 플릿 시뮬(인자는 위와 같다. 선택은 세 번 보내는 새 명령): 세 로봇 모두 RL 추론 로그가 나왔다(pode1 32줄, pode2 46줄,
-  pode3 30줄). 시나리오는 PASS(주문 8건, 216.3 s), 로봇 사이 최소 거리 0.217 m다. 추론 시간은 1초 줄의 평균 76~78 µs다.
+  pode3 30줄). (19:43에 더함: pode1의 첫 goal은 선택 명령 전에 끝나 RPP였고, pode2의 첫 goal도 앞부분은 RPP였다. 17d절.) 시나리오는 PASS(주문 8건, 216.3 s), 로봇 사이 최소 거리 0.217 m다. 추론 시간은 1초 줄의 평균 76~78 µs다.
 - pode3의 첫 goal: 확인용 `param get`이 pode2에서 15 s 시간 초과가 나서 pode3의 선택이 늦어졌고, pode3의 첫 Nav2 goal 시작(45 s)과
   겹쳤다. pode3는 그 goal의 처음 1 s쯤 RPP 경고를 5줄 내고 46 s부터 RL 추론 로그를 냈다. 곧 달리는 goal 안에서 선택이
   바뀐 것을 한 번 봤다. 실물 안내의 "goal을 취소하고 다시 보낸다"는 그대로 둔다(한 번 본 것이고 실물에서 본 것이 아니다).
@@ -1600,6 +1600,8 @@ t_demo_hist와 성공이 같으면서 충돌이 더 적다는 것이 나왔다. 
 - 플릿 시뮬: `gz.launch.py layout:=v7 gui:=false rviz:=none sim_dock_stub:=true nav_rl:=rl_std`, 도메인 74. 세 로봇의
   `FollowPathRL.policy` 값이 `store_arena_std`였고 정책 읽기 줄이 로봇마다 2줄 있었다. 선택 명령(세 번 보내기)은 세 로봇 모두
   rc 0이었고, controller_server의 RL 추론 로그는 pode1 33줄, pode2 68줄, pode3 31줄, 같은 구간의 RPP 경고는 0줄이다.
+  (19:43에 더함: 선택 명령이 닿기 전에 시작된 첫 주행은 RPP였다. pode1의 첫 goal 전체, pode2와 pode3의 첫 goal 앞부분이다.
+  RPP는 앞이 막혔을 때만 경고를 내므로 경고 0줄이 "RPP로 가지 않았다"는 뜻은 아니다. 17d절.)
 - 시나리오: PASS(주문 8건 모두 출고, 219.2 s, 위반 없음). 로봇 사이 최소 거리 0.234 m(pode1과 pode2).
 - 오류 로그: launch가 내려가기 전(로그 1834행 앞)의 `[ERROR]`는 `Failed to get result for follow_path in node halt!` 4줄뿐이다.
   그 뒤의 61줄은 종료 단계의 것이다. 점검 노드 `fleet_check`는 이번에는 정상 종료했다.
@@ -1628,9 +1630,54 @@ t_demo_hist와 성공이 같으면서 충돌이 더 적다는 것이 나왔다. 
   크기와 sha256을 더했다. 그 문서가 `store_arena_std`를 "둘째 후보"라고 적고 있던 것도 "시뮬 비교용"으로 고쳤다.
 - 검토(Codex, 149f7bd9..d36d469a)의 지적 둘을 반영했다: t_std의 도착하지 못한 세 판을 "모두 닿은 뒤에 섰다"고 적은 것(셋째 판은
   서지 않았다. 17절, 보고서, POLICIES를 고쳤다), 새 사본 확인이 이 절에 없다는 것(아래 줄).
-- 새 사본 확인(17절의 기준에 적은 것): GitHub에서 새로 받은 사본으로 빌드와 시험, 플릿 시뮬 `nav_rl:=rl_demohist2`를 돌린다.
-  결과는 아래 17d절에 적는다.
+- 새 사본 확인(17절의 기준에 적은 것): GitHub에서 새로 받은 사본(d36d469a)으로 빌드와 시험, 플릿 시뮬
+  `nav_rl:=rl_demohist2`가 통과했다. 결과는 아래 17d절에 있다.
 - 한계: 실물에서는 돌려 보지 않았다. 건너는 사람 앞에서 서지 못하는 것은 부모와 같다(17절).
+
+### 17d. `store_arena_demohist2`의 새 사본 확인 (19:28~19:39)
+
+방법은 7c절, 17b절의 새 사본 확인과 같다. **통과.**
+
+- 받은 것: GitHub의 `feat/rl-tracks-2026-11-26`을 `git clone --depth 1`로 새로 받은 사본(d36d469a). WSL에서 그 사본만으로
+  빌드했다(18 패키지, 97 s). 설치된 정책 폴더는 여덟(4b, acd, acd2, acd3, c, demohist, demohist2, std)이고
+  `store_arena_demohist2`의 onnx sha256 앞 12자는 `2b58f8fbb442`다.
+- 시험: `pode_rl_controller` ctest 10개 통과, `test_parity_store_arena_demohist2` 통과(C++ onnxruntime과 torch의 최대 차이
+  3.81e-06), `sim/fleet_gz_sim/test/test_launch_wiring.py` 91개 통과.
+- 플릿 시뮬: `gz.launch.py layout:=v7 gui:=false rviz:=none sim_dock_stub:=true nav_rl:=rl_demohist2`, 도메인 74. 정책 읽기 줄은
+  로봇마다 2줄 있었고 경로는 `policies/store_arena_demohist2`다. `FollowPathRL.policy` 값은 pode1, pode2에서
+  `store_arena_demohist2`로 읽혔고, pode3는 확인용 `param get`이 15 s 시간 초과가 났다(정책은 위의 읽기 줄로 확인했다). 선택
+  명령(세 번 보내기)은 세 로봇 모두 rc 0이었고, controller_server의 RL 추론 로그는 pode1 30줄, pode2 47줄, pode3 31줄이다.
+- 시나리오: PASS(주문 8건 모두 출고, 215.0 s, 위반 없음). 로봇 사이 최소 거리 0.213 m(pode1과 pode2).
+- 오류 로그: launch가 내려가기 전(로그 1798행 앞)의 `[ERROR]`는 `Failed to get result for follow_path in node halt!` 3줄뿐이다.
+  그 뒤의 63줄과 "process has died" 4줄(컨테이너 셋, gz_server)은 종료 단계의 것이다. 점검 노드 `fleet_check`는 정상 종료했다.
+- 결과 파일: `docs/rl_tracks_2026-11-26/results/gz_fleet_demohist2/`(`first_goal.txt`는 아래 표의 원본이다).
+- 이 확인 뒤의 커밋이 `pode/`, `sim/`, `tools/`의 실행 코드를 바꾸면 다시 한다. 받은 커밋 뒤로 지금까지 바뀐 것은 `docs/` 아래와
+  `learning/store_arena/POLICIES.md`의 표뿐이다.
+- 한계: 한 번 돌린 것이다. 실물에서는 돌려 보지 않았다.
+
+**선택 명령 전에 시작된 첫 주행은 RPP였다(이번에 알게 된 것이고, 앞선 확인들에도 해당한다).** 이번 로그를 로봇마다 시간
+순서로 보니, 시나리오의 첫 주문 주행이 선택 명령보다 먼저 시작됐다. 확인 스크립트는 Nav2가 뜬 것을 본 뒤에 로봇마다 차례로
+`param get`과 선택 명령을 보내는데, 그동안 시나리오는 이미 돌고 있다.
+
+| 로봇 | 선택 명령이 끝난 때(로그 시간) | 첫 Nav2 goal | 첫 RL 추론 로그 | 그 앞의 주행 |
+|---|---|---|---|---|
+| pode1 | 33 s | 11.7~21.8 s | 69.4 s(둘째 goal의 시작) | 첫 goal 전체가 기본 controller(RPP)였다 |
+| pode2 | 40 s | 26.7 s에 시작 | 37.3 s | 첫 goal의 앞 10 s쯤이 RPP였고, 달리는 중에 RL로 바뀌었다 |
+| pode3 | 50 s | 45.7 s에 시작 | 47.4 s | 첫 goal의 앞 1.7 s가 RPP였다(RPP의 "collision ahead" 경고 15줄, 46.2~47.3 s) |
+
+- 그 뒤에 시작된 Nav2 goal(pode1 셋, pode2 다섯, pode3 둘)은 모두 RL 추론 로그가 났다. 고정 경로 구간(`pode_fsm`이
+  controller_server에 직접 보내는 FollowPath)은 설계대로 늘 RPP다.
+- 같은 방법으로 앞선 플릿 확인들의 로그를 다시 봤다. 모두 같은 꼴이다: pode1의 첫 goal은 선택 전에 끝났고(첫 RL 로그가
+  68.5~70.0 s), pode2와 pode3의 첫 goal은 달리는 중에 RL로 바뀌었다(7c절의 둘째 실행과 그 새 사본 확인, 17b절, 새벽의 acd3
+  확인). 7c절은 pode3의 이 현상만 적었고 pode1의 첫 goal이 RPP였다는 것은 적지 않았다.
+- 그래서 7c절, 17b절, `docs/rl_quickstart.md` 6절, 보고서의 "세 로봇 모두 RL로 주행했다"는 **선택 명령이 닿은 뒤에 시작된 Nav2
+  goal이 모두 RL이었다**는 뜻으로 고쳐 읽는다. 시나리오 PASS는 RL만으로 낸 결과가 아니라, 첫 주행 일부(RPP)와 고정 경로
+  구간(RPP)이 섞인 결과다. 그 문서들에 이 절을 가리키는 줄을 더했다.
+- 달리는 goal 안에서 선택이 바뀌는 것은 다시 본 확인 다섯 번에서 모두 났다. 시뮬에서만 본 것이고 실물 안내의 "goal을
+  취소하고 다시 보낸다"는 그대로 둔다.
+- 고치지 않은 것: 확인 스크립트가 시나리오보다 먼저 선택을 보내도록 바꾸지 않았다(시나리오는 launch와 함께 시작한다). 첫
+  주행까지 RL로 보려면 launch에 "처음부터 RL을 고른다"는 길이 있어야 하는데, 기본 controller를 바꾸는 일이라 만들지 않았다.
+  사용자 결정 거리로 적는다.
 
 ## 18. 묶음 12: 시연 조건 없이 이력만 (`jobs_b12.txt`, 계획 14:41)
 

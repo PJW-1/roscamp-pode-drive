@@ -52,6 +52,9 @@ ros2 topic pub --times 3 --rate 2 --keep-alive 1 --qos-durability transient_loca
   goal 하나가 끝나도록 **지금 실행의 로그에** 그 줄이 한 번도 없으면 RL로 가지 않은 것으로 보고 선택을 다시 보낸다. 그래도
   없으면 같은 로그에서 `Failed to load`와 controller_server의 오류를 찾는다. 한 번만 보내는 형태(`--once`)는 11-26 플릿 시뮬
   세 번의 선택 아홉 번 가운데 한 번이 오류 없이 끝나고도 먹지 않았다(작업 기록 7c절. 까닭은 가리지 못했다).
+- 플릿 시뮬은 launch 10 s쯤 뒤에 첫 주문 주행이 시작된다. 선택 명령이 닿기 전에 시작된 Nav2 goal은 기본 controller(RPP)로
+  가고, 시뮬에서는 달리는 중에 선택이 닿으면 그 goal 안에서 RL로 바뀌었다(작업 기록 17d절). RPP는 앞이 막혔을 때만 경고를
+  내므로, RPP 경고가 없다는 것만으로 RL이었다고 보지 않는다. RL 추론 로그가 난 구간만 RL이다.
 
 - `nav_rl:=rl`은 정책 `store_arena_4b`, `nav_rl:=rl_acd3`은 `store_arena_acd3`다.
 - `nav_rl:=rl_demohist`는 `store_arena_demohist`다(`follow_path_rl_demohist.yaml`).
@@ -170,4 +173,10 @@ Pi 4에서 RL 추론과 MPPI의 계산 시간을 주행 없이 재려면 `tools/
 - `store_arena_std`도 GitHub에서 `feat/rl-tracks-2026-11-26`(e5aa8258)을 새로 받은 사본만으로 확인했다: WSL 빌드,
   `pode_rl_controller` 시험 9개와 launch 연결 시험 90개 통과, 플릿 시뮬 `nav_rl:=rl_std`에서 세 번 보내는 선택 명령으로 세 로봇
   모두 RL로 주행했고 시나리오가 PASS(주문 8건, 219 s)였다(작업 기록 17b절). 한 번 돌린 것이다.
+- `store_arena_demohist2`도 GitHub에서 `feat/rl-tracks-2026-11-26`(d36d469a)을 새로 받은 사본만으로 확인했다: WSL 빌드,
+  `pode_rl_controller` 시험 10개와 launch 연결 시험 91개 통과, 플릿 시뮬 `nav_rl:=rl_demohist2`에서 시나리오가 PASS(주문 8건,
+  215 s)였다(작업 기록 17d절). 한 번 돌린 것이다.
+- 위 플릿 확인들의 "세 로봇 모두 RL로 주행했다"는 **선택 명령이 닿은 뒤에 시작된 Nav2 goal이 모두 RL이었다**는 뜻이다. 시나리오의
+  첫 주문은 launch 10 s쯤 뒤에 시작되는데 선택 명령은 그 뒤(30~50 s)에 닿아서, 다시 본 확인 다섯 번 모두 pode1의 첫 goal은
+  RPP로 끝났고 pode2와 pode3의 첫 goal은 달리는 중에 RL로 바뀌었다. 고정 경로 구간은 늘 RPP다(작업 기록 17d절).
 - 실물: 돌려 보지 않았다.
