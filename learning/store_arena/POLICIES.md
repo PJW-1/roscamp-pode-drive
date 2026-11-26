@@ -152,6 +152,7 @@ corner·tee·entry(`robot_scenario=<이름> mover_prob=0`). 같은 칸의 판끼
 | e_{acd3, ctrl, std, demo, demostd, demohist}_{aisle, demo1, demo2} | acd3 또는 위 학습의 마지막 모델 | aisle(통로 상자 하나, 사람·로봇 없음), demo1·demo2(상자 1·2 + 틈을 건너는 사람 + 운반 1·청소 1). 설정은 작업 기록 8절 | 성공 %는 아래 표. 짝 차이와 충돌 종류는 작업 기록 8c절 끝, 12절 | 끝 |
 | e_{demo, demostd, demohist}_{rand, head} | 위 학습의 마지막 모델 | rand, head | 성공 %는 아래 표. 짝 차이는 작업 기록 12절, 13절 | 끝 |
 | e_demohist2_{demo1, rand, demo2, aisle}, e_demohist2m_demo1 | t_demo_hist2의 마지막 모델(m은 중간 점 `model_2350.pt`) | 이름대로 | 성공 54.27, 78.54, 50.05, 73.95 %. 중간 점 demo1 54.76 %(부모 +1.95, SE 0.52). 작업 기록 15절 | 끝 |
+| e_demohist2_head | t_demo_hist2의 마지막 모델 | head(다섯 칸 표를 채우는 값, 작업 기록 15절) | (진행) | 큐에서 대기 |
 | e_caps_*, e_capsstd_*, e_sym_*, e_demostd2_*, e_demohistdyn_*, e_histstd_* | 위 학습의 마지막 모델 | 작업 기록 10, 11, 15, 16, 18절 | (진행) | 진행 |
 | e_{acd3, std, demohist}_demo1c08 | acd3 또는 위 학습의 마지막 모델 | demo1에서 속도 상한만 0.08로 낮춘 것(작업 기록 19절) | (진행) | 큐에서 대기 |
 | e_{acd3, std, demohist}_aislet | acd3 또는 위 학습의 마지막 모델 | aisle 평가를 궤적 1024개로 다시 돌린 것(시간 초과의 끝 동작, 작업 기록 20절) | (진행) | 큐에서 대기 |

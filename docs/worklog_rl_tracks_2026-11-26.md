@@ -1345,6 +1345,9 @@ std가 v 0.156, w 0.059(t_demo_std)와 v 0.156, w 0.081(t_demo_hist)로 아직 �
   `2b58f8fbb442`, onnxruntime 대 torch 최대 차이 3.81e-06, `policy_spec.json`은 `source` 말고는 `store_arena_demohist`와 같다).
   아직 저장소에 넣지 않은 파일이다. 올리는 묶음과 넣는 기준은 17절의 16:31 고침에 적었다.
 - 약한 점: seed 하나, 한 번의 학습이다. 차이는 1~2 %p로 작다.
+- (16:41에 더함: 이 묶음의 평가에는 head 칸이 없었다. 17a절에서 head 칸이 정책을 가르는 칸으로 나왔으므로 `e_demohist2_head`
+  하나를 묶음 15 뒤에 더 돌린다(`jobs_b16.txt`, `e_demohist_head`와 같은 명령, 6분쯤). 판정에는 쓰지 않고 다섯 칸 표를 채운다.
+  평가는 아직 시작하지 않았다.)
 
 결과, 뒤 절반(t_demo_std2와 이력 지표): (채움)
 
