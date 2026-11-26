@@ -76,7 +76,8 @@ ARGS = {
     "nav_rl": ("", "로봇마다 RL controller 둘을 더한다(비교용): FollowPathRL은 RotationShim으로"
                    " 감싼 정책, FollowPathRLAlone은 감싸지 않은 정책. rl과 rl_shim은 같은 설정"
                    " nav_overrides/follow_path_rl.yaml(정책 store_arena_4b), rl_acd3은 정책만"
-                   " store_arena_acd3, rl_demohist는 정책만 store_arena_demohist."
+                   " store_arena_acd3, rl_demohist는 정책만 store_arena_demohist,"
+                   " rl_std는 정책만 store_arena_std."
                    " Nav2 goal에 쓰려면 controller 선택 토픽으로 고른다. 비면 없음"),
     "nav_bt_xml": ("", "로봇마다 navigate_to_pose 행동 트리(pode_nav_config/bt의 파일 이름이나 절대"
                        " 경로, 비교용). 비면 plan_keep에 따라 기본 트리나 길 유지 트리"),
@@ -102,7 +103,8 @@ def flag(text: str, name: str) -> bool:
 # RL 기본은 shim으로 감싼 정책이라 설정 파일은 하나다. rl_shim은 예전 명령이 돌게 남긴 같은 뜻
 RL_FILES = {"rl": "follow_path_rl.yaml", "rl_shim": "follow_path_rl.yaml",
             "rl_acd3": "follow_path_rl_acd3.yaml",  # rl_acd3: 정책만 store_arena_acd3
-            "rl_demohist": "follow_path_rl_demohist.yaml"}  # 정책만 store_arena_demohist
+            "rl_demohist": "follow_path_rl_demohist.yaml",  # 정책만 store_arena_demohist
+            "rl_std": "follow_path_rl_std.yaml"}  # 정책만 store_arena_std
 
 
 def rl_overrides_of(choice: str) -> dict | None:

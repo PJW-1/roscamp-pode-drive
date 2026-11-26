@@ -11,7 +11,7 @@
 |---|---|---|
 | `feat/rl-policy-onnx-2026-11-26` | main + 정책 다섯(`store_arena_4b`, `c`, `acd`, `acd2`, `acd3`) + 시뮬 인자 `nav_rl:=rl_acd3` | 시뮬만. main과 가장 가깝다 |
 | `feat/rl-real-optin-2026-11-26` | 위 + 실물 배포·시작 스크립트의 RL 켜기(`WITH_RL`, `RL_POLICY`). 플러그인 코드는 위와 같다 | 시뮬과 실물 |
-| `feat/rl-tracks-2026-11-26` | 위 전부 + 11-26 작업(플러그인 출력 평활 옵션, 학습 코드, 측정 도구, 문서) + 시연 조건 후보 정책 `store_arena_demohist`(`nav_rl:=rl_demohist`) + 시뮬 시제품 `aisle_first` | 전부. 새 옵션은 기본값에서 꺼져 있다 |
+| `feat/rl-tracks-2026-11-26` | 위 전부 + 11-26 작업(플러그인 출력 평활 옵션, 학습 코드, 측정 도구, 문서) + 시연 조건 후보 정책 `store_arena_demohist`(`nav_rl:=rl_demohist`) + 둘째 후보 정책 `store_arena_std`(`nav_rl:=rl_std`) + 시뮬 시제품 `aisle_first` | 전부. 새 옵션은 기본값에서 꺼져 있다 |
 
 ```bash
 git fetch origin

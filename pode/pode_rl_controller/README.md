@@ -51,6 +51,7 @@ Policies in this repository (the lineage, training settings and results of each 
 | `store_arena_acd3` | 44 | 3 | `t_wall/model_1745.pt` | `c11b9d29b223` | acd2 continued on the corrected map with the near-wall penalty; the user's real-robot candidate |
 | `store_arena_c` | 41 | 2 | `t_c/model_1197.pt` | `ccaf99c15f72` | comparison: asymmetric critic only |
 | `store_arena_demohist` | 116 | 3 | `t_demo_hist/model_2044.pt` | `49747b8717d7` | acd3 with two earlier lidar frames added, action std reset to 0.3, continued 300 iterations with the demo conditions mixed in (training code `51b51d39`) |
+| `store_arena_std` | 44 | 3 | `t_std/model_2044.pt` | `60c4ac704736` | acd3 with action std reset to 0.3, continued 300 iterations (training code `52719475`) |
 
 To drive another policy in the sim, pass its overrides file: `nav_overrides:=<share>/nav_overrides/follow_path_rl_acd3.yaml`
 runs `store_arena_acd3` under both RL controller names. A new policy needs its folder here (spec + onnx), its
