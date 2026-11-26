@@ -80,6 +80,8 @@ class TaskSpec:
     # 가릴 각도: (lo deg, hi deg) 묶음. 그 범위의 관측 레이는 반환 없음 (lidar_obs_max).
     # 플러그인의 scan_mask_deg 와 같은 뜻이고 lidar_posts 뒤에 적용한다
     lidar_mask_deg: tuple[float, ...] = ()
+    # 1 이면 가림에 걸렸고 가리지 않은 레이의 반환이 없는 섹터를 이웃 섹터 값으로 채운다
+    lidar_mask_fill: int = 0
     # ---- 명령 응답 모델: 목표 -> 이득 -> 지연 -> 1차 지연 -> 변화율 제한 -> 바퀴 ----
     # 에피소드마다 env 별로 균등하게 뽑음 (한 값이면 뽑지 않음). 기본값은 응답 모델 없음
     cmd_delay_steps_range: tuple[int, int] = (0, 0)  # 제어 스텝 수, 양끝 포함 정수
@@ -136,6 +138,7 @@ OVERRIDABLE = (
     "lidar_scale_range",
     "lidar_posts",
     "lidar_mask_deg",
+    "lidar_mask_fill",
     "cmd_delay_steps_range",
     "cmd_lag_tau_range",
     "cmd_gain_v_range",
@@ -166,6 +169,8 @@ OVERRIDABLE = (
 
 # 길이가 정해지지 않은 튜플 필드와 한 묶음의 크기 (값은 묶음 수만큼 이어 적음)
 GROUPED = {"lidar_posts": 3, "lidar_mask_deg": 2}
+# 채울 값을 찾아 한쪽으로 보는 섹터 수 (lidar_mask_fill)
+FILL_REACH = 4
 
 
 def parse_overrides(items, spec=SPEC) -> dict:
@@ -576,31 +581,72 @@ def own_body_groups(spec: TaskSpec = SPEC) -> tuple[list, list]:
     return out[0], out[1]
 
 
+def rays_within(n_rays: int, lo: float, hi: float, device=None) -> torch.Tensor:
+    """-180 deg 부터 같은 간격인 레이 가운데 [lo, hi] deg 안의 것 (n_rays,) bool.
+    바로 뒤 레이 (-180) 는 180 으로도 본다."""
+    deg = -180.0 + torch.arange(n_rays, device=device) * (360.0 / n_rays)
+    back = deg + 360.0
+    tol = 1e-6
+    front = (deg >= lo - tol) & (deg <= hi + tol)
+    return front | ((back >= lo - tol) & (back <= hi + tol))
+
+
 def own_body_rays(ranges: torch.Tensor, spec: TaskSpec = SPEC) -> torch.Tensor:
     """관측용 (N, rays) 거리에 몸에 붙은 것의 반환 (lidar_posts) 을 넣고, 가릴 각도
     (lidar_mask_deg) 를 반환 없음으로 바꾼다. 레이는 -180 deg 부터 같은 간격이다. 둘 다 비면 받은
-    텐서를 그대로 돌려준다 (배율을 곱한 뒤, 섹터 최솟값·자르기 전에 부름. 관측 전용)."""
+    텐서를 그대로 돌려준다 (배율을 곱한 뒤, 섹터 최솟값·자르기 전에 부름. 관측 전용).
+    lidar_mask_fill 이면 가린 레이를 NaN 으로 표시한다 (lidar_sectors 가 채울 섹터를 가린다)."""
     posts, masks = own_body_groups(spec)
     if not posts and not masks:
         return ranges
     n_rays = ranges.shape[1]
-    deg = -180.0 + torch.arange(n_rays, device=ranges.device) * (360.0 / n_rays)
-
-    def within(lo: float, hi: float) -> torch.Tensor:
-        # 바로 뒤 레이 (-180) 는 180 으로도 본다
-        back = deg + 360.0
-        tol = 1e-6
-        front = (deg >= lo - tol) & (deg <= hi + tol)
-        return front | ((back >= lo - tol) & (back <= hi + tol))
-
     out = ranges.clone()
     for lo, hi, dist in posts:
-        hit = within(lo, hi)
+        hit = rays_within(n_rays, lo, hi, ranges.device)
         inf = float("inf")
         seen = torch.nan_to_num(out[:, hit], nan=inf, posinf=inf, neginf=-inf)
         out[:, hit] = seen.clamp(max=dist)
+    gone = float("nan") if spec.lidar_mask_fill else spec.lidar_obs_max
     for lo, hi in masks:
-        out[:, within(lo, hi)] = spec.lidar_obs_max
+        out[:, rays_within(n_rays, lo, hi, ranges.device)] = gone
+    return out
+
+
+def masked_sectors(spec: TaskSpec, n_rays: int, device=None) -> torch.Tensor:
+    """가림 (lidar_mask_deg) 에 걸린 레이가 하나라도 있는 섹터 (sectors,) bool."""
+    _, masks = own_body_groups(spec)
+    hit = torch.zeros(n_rays, dtype=torch.bool, device=device)
+    for lo, hi in masks:
+        hit |= rays_within(n_rays, lo, hi, device)
+    return hit.view(spec.lidar_sectors, -1).any(dim=-1)
+
+
+def fill_masked_sectors(
+    sec: torch.Tensor,
+    usable: torch.Tensor,
+    touched: torch.Tensor,
+    obs_max: float,
+    reach: int = FILL_REACH,
+) -> torch.Tensor:
+    """가림에 걸렸고 쓸 수 있는 레이가 없는 섹터를, 양쪽으로 가장 가까운 '그렇지 않은 섹터' 값의
+    작은 쪽으로 채운다. sec (N, S) 섹터 값, usable (N, S) 가리지 않았고 반환이 있는 레이가 있는지,
+    touched (S,) 가림에 걸린 섹터. 한쪽에서 reach 섹터 안에 없으면 그쪽은 빼고, 양쪽 다 없으면
+    obs_max 다. 나머지 섹터는 그대로다. 채울 섹터가 없으면 받은 텐서를 그대로 돌려준다."""
+    empty = touched[None, :] & ~usable
+    if not bool(empty.any()):
+        return sec
+    out = sec.clone()
+    n_sec = sec.shape[1]
+    for s in torch.nonzero(touched).flatten().tolist():
+        best = sec.new_full((sec.shape[0],), obs_max)
+        for step in (-1, 1):
+            found = torch.zeros_like(empty[:, 0])
+            for d in range(1, reach + 1):
+                j = (s + step * d) % n_sec
+                take = ~found & ~empty[:, j]
+                best = torch.where(take, torch.minimum(best, sec[:, j]), best)
+                found = found | take
+        out[:, s] = torch.where(empty[:, s], best, sec[:, s])
     return out
 
 
@@ -748,10 +794,17 @@ def goal_in_robot_frame(
 
 
 def lidar_sectors(ranges: torch.Tensor, spec: TaskSpec = SPEC) -> torch.Tensor:
-    """(N, 360) 거리를 섹터별 최솟값으로 줄이고 lidar_obs_max 로 자른다 (비유한값은 lidar_obs_max)."""
+    """(N, 360) 거리를 섹터별 최솟값으로 줄이고 lidar_obs_max 로 자른다 (비유한값은 lidar_obs_max).
+    lidar_mask_fill 이고 가림이 있으면, 가림에 걸린 섹터 가운데 유한한 레이가 없는 것을 이웃 섹터
+    값으로 채운다 (가린 레이는 own_body_rays 가 NaN 으로 표시한 것)."""
     r = torch.nan_to_num(ranges, nan=spec.lidar_obs_max, posinf=spec.lidar_obs_max)
     r = r.clamp(max=spec.lidar_obs_max)
-    return r.view(r.shape[0], spec.lidar_sectors, -1).min(dim=-1).values
+    sec = r.view(r.shape[0], spec.lidar_sectors, -1).min(dim=-1).values
+    if spec.lidar_mask_fill and spec.lidar_mask_deg:
+        usable = torch.isfinite(ranges).view(ranges.shape[0], spec.lidar_sectors, -1).any(dim=-1)
+        touched = masked_sectors(spec, ranges.shape[1], ranges.device)
+        sec = fill_masked_sectors(sec, usable, touched, spec.lidar_obs_max)
+    return sec
 
 
 def build_observation(

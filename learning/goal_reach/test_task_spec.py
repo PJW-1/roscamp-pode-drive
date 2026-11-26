@@ -886,6 +886,99 @@ def test_lidar_mask_turns_rays_into_no_return_after_the_posts():
     assert torch.equal(only, out)
 
 
+FILL = "lidar_mask_fill=1"
+TOUCHED = (2, 3, 4, 31, 32, 33)  # MASK 에 걸린 섹터
+
+
+def test_lidar_mask_fill_is_off_by_default_and_changes_nothing_without_a_mask():
+    assert ts.SPEC.lidar_mask_fill == 0
+    spec = ts.make_spec(ts.parse_overrides([FILL]))
+    assert spec.lidar_mask_fill == 1
+    r = torch.rand(3, 360) + 0.1
+    r[0, 5] = float("inf")
+    assert ts.own_body_rays(r, spec) is r
+    assert torch.equal(ts.lidar_sectors(r, spec), ts.lidar_sectors(r))
+
+
+def test_lidar_mask_fill_takes_the_nearer_neighbour_for_a_fully_masked_sector():
+    spec = ts.make_spec(ts.parse_overrides([POSTS, MASK, FILL]))
+    deg = torch.arange(360) - 180
+    r = torch.full((2, 360), 0.5)
+    r[0, (deg >= 130) & (deg <= 137)] = 0.3  # 섹터 31 에 남는 레이
+    r[0, (deg >= 158) & (deg <= 159)] = 0.8  # 섹터 33 에 남는 레이
+    r[1, (deg >= -160) & (deg <= -153)] = 1.2  # 섹터 2 에 남는 레이
+    r[1, (deg >= -136) & (deg <= -131)] = 0.9  # 섹터 4 에 남는 레이
+    sec = ts.lidar_sectors(ts.own_body_rays(r, spec), spec)
+    assert sec[0, 31] == 0.3 and sec[0, 33] == 0.8 and sec[0, 32] == 0.3 and sec[0, 3] == 0.5
+    assert sec[1, 2] == 1.2 and sec[1, 4] == 0.9 and sec[1, 3] == 0.9 and sec[1, 32] == 0.5
+    # 가림에 걸리지 않은 섹터는 그대로다
+    rest = [s for s in range(36) if s not in TOUCHED]
+    assert torch.equal(sec[:, rest], torch.full((2, 30), 0.5))
+    # 채우지 않으면 통째로 가린 섹터는 상한이고, 나머지 섹터는 채운 것과 같다
+    plain = ts.make_spec(ts.parse_overrides([POSTS, MASK]))
+    off = ts.lidar_sectors(ts.own_body_rays(r, plain), plain)
+    assert off[0, 32] == ts.SPEC.lidar_obs_max and off[1, 3] == ts.SPEC.lidar_obs_max
+    keep = [s for s in range(36) if s not in (3, 32)]
+    assert torch.equal(off[:, keep], sec[:, keep])
+
+
+def test_lidar_mask_fill_skips_a_neighbour_that_is_empty_too():
+    spec = ts.make_spec(ts.parse_overrides([MASK, FILL]))
+    deg = torch.arange(360) - 180
+    r = torch.full((1, 360), 0.5)
+    r[0, (deg >= 158) & (deg <= 159)] = float("inf")  # 섹터 33 에 남는 레이도 반환이 없다
+    r[0, (deg >= 160) & (deg <= 169)] = 0.7  # 섹터 34
+    r[0, (deg >= 130) & (deg <= 137)] = 0.4  # 섹터 31 에 남는 레이
+    sec = ts.lidar_sectors(ts.own_body_rays(r, spec), spec)
+    # 33 은 왼쪽으로 32 를 건너 31, 오른쪽으로 34 를 본다. 32 는 오른쪽으로 33 을 건너 34 를 본다
+    assert sec[0, 33] == 0.4 and sec[0, 32] == 0.4 and sec[0, 34] == 0.7 and sec[0, 31] == 0.4
+
+
+def test_lidar_mask_fill_leaves_an_unmasked_sector_with_no_return_at_the_limit():
+    spec = ts.make_spec(ts.parse_overrides([MASK, FILL]))
+    deg = torch.arange(360) - 180
+    r = torch.full((1, 360), 0.5)
+    r[0, (deg >= 0) & (deg <= 9)] = float("inf")  # 섹터 18: 가림 밖
+    r[0, (deg >= -160) & (deg <= -153)] = float("nan")  # 섹터 2: 가림에 걸렸고 남은 레이가 NaN
+    sec = ts.lidar_sectors(ts.own_body_rays(r, spec), spec)
+    assert sec[0, 18] == ts.SPEC.lidar_obs_max
+    assert sec[0, 2] == 0.5  # 왼쪽 섹터 1 의 값 (오른쪽은 3 을 건너 4)
+
+
+def test_lidar_mask_fill_gives_the_limit_when_every_sector_is_masked():
+    spec = ts.make_spec(ts.parse_overrides(["lidar_mask_deg=-180,180", FILL]))
+    sec = ts.lidar_sectors(ts.own_body_rays(torch.full((1, 360), 0.5), spec), spec)
+    assert torch.equal(sec, torch.full((1, 36), ts.SPEC.lidar_obs_max))
+
+
+def test_fill_masked_sectors_looks_four_sectors_each_way_and_reads_the_values_before_the_fill():
+    sec = torch.full((2, 36), 0.5)
+    sec[:, 35] = 0.2
+    sec[:, 10] = 0.9
+    sec[:, :10] = 1.7  # 채워지기 전의 값은 이웃에게 쓰이지 않아야 한다
+    touched = torch.zeros(36, dtype=torch.bool)
+    touched[:10] = True
+    usable = (~touched)[None].repeat(2, 1)
+    usable[1, 4] = True  # 둘째 env 의 섹터 4 는 쓸 수 있는 레이가 있다
+    before = sec.clone()
+    out = ts.fill_masked_sectors(sec, usable, touched, 2.0)
+    assert torch.equal(sec, before) and out is not sec
+    # 0..3 은 왼쪽으로 넷 안에 35, 6..9 는 오른쪽으로 넷 안에 10, 4 와 5 는 양쪽 다 없다
+    assert torch.equal(out[0, :10], torch.tensor([0.2] * 4 + [2.0] * 2 + [0.9] * 4))
+    # 둘째 env: 4 는 그대로 1.7 이고, 이웃들은 4 의 값 1.7 과 견줘 작은 쪽을 고른다
+    assert torch.equal(out[1, :10], torch.tensor([0.2] * 4 + [1.7] * 2 + [0.9] * 4))
+    assert torch.equal(out[:, 10:], before[:, 10:])
+    assert ts.fill_masked_sectors(sec, usable | True, touched, 2.0) is sec
+
+
+def test_lidar_mask_fill_reaches_the_observation():
+    spec = ts.make_spec(ts.parse_overrides([MASK, FILL]))
+    r = ts.own_body_rays(torch.full((1, 360), 0.5), spec)
+    z = torch.zeros(1)
+    obs = ts.build_observation(r, z, z, torch.zeros(1, 2), spec)
+    assert torch.equal(obs[0, :36], torch.full((36,), 0.5 / ts.SPEC.lidar_obs_max))
+
+
 def test_own_body_ranges_meet_at_the_back_seam():
     # 바로 뒤 레이는 -180 이고 180 으로도 가리킬 수 있다
     r = torch.full((1, 360), 0.5)
