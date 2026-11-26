@@ -2,7 +2,8 @@
 
 - 작업 기록은 `docs/worklog_rl_tracks_2026-11-26.md`(아래 "N절"과 괄호 안 번호는 이 기록의 절 번호다)이고, 정책 계보는
   `learning/store_arena/POLICIES.md`, 다른 PC에서 쓰는 법은 `docs/rl_quickstart.md`다. 이 보고서는 그 셋과 갈래별 보고서를
-  묶은 요약이며, 이 브랜치의 시작 커밋 d7f24167에 있던 작업 기록(17절까지)을 기준으로 썼다.
+  묶은 요약이다. 작업 기록의 14:30 상태를 기준으로 쓰고, 14:44까지 바뀐 것(둘째 후보 등록, 묶음 12)을 덧붙였다. 큐에 남은
+  실험의 결과는 아직 들어 있지 않다.
 - 지도는 줄자로 잰 진열대 v7(main 3ccf2a3f)이다. Isaac 학습은 모두 acd3(`acd3/t_wall/model_1745.pt`)에서 출발한다.
 - 로봇 접속, deploy, 실물 주행은 하지 않았다. main에 합치지 않았다.
 
@@ -40,12 +41,13 @@
    Gazebo 아홉째 묶음에서 f_cart는 "통로 카트 통과를 잃지 않았다"(5/5, 충돌 0)이고, i_cross의 한 판 차이는 근거로 쓰지 않는다(13).
 8. **t_std의 시연 칸 평가가 나온 뒤 견주면, t_demo_hist와 t_std는 시연 칸 성공이 같고 t_demo_hist의 충돌이 더 많다.** 짝 차이는
    demo1 +0.32 (0.60), demo2 −0.22 (0.56)이고 aisle만 +4.30 (0.57)이다. 충돌은 demo1 +2.22, demo2 +3.52, aisle +2.37 %p로
-   모두 2 SE 밖이다(8c 끝). 그래서 t_std를 둘째 후보로 저장소에 넣고 Gazebo에서 견주는 계획을 세웠다. 결과는 없다(17).
+   모두 2 SE 밖이다(8c 끝). 그래서 t_std를 둘째 후보 `store_arena_std`(`nav_rl:=rl_std`)로 저장소에 넣었다(17). Gazebo에서 견주는 것은 아직이다.
 9. **건너는 사람은 세 정책 모두의 약점으로 남았다.** 만남을 일부러 만든 두 보충 묶음(13b `j_cross`, 13c `k_cross`) 30판에서
    acd3, t_demo_std, t_demo_hist 모두 닿지 않고 지난 판이 없다(13c). Isaac에서 건넘이 경로 위인 에피소드의 사람 충돌도 acd3
    20.5 %에서 t_demo_hist 15.3 %로 줄었지만 없어지지 않았다(12).
 10. **그래서 큐에 올린 것은 묶음 10(15절, 같은 설정으로 600번 더)과 묶음 11(16절, 이력 정책에 움직이는 물체 근접 벌점)이다.**
-    가설과 판정 기준은 3절 표에 있고 결과는 아직 없다.
+    가설과 판정 기준은 3절 표에 있고 결과는 아직 없다. 시연 조건 없이 이력만 쓰는 묶음 12(18절)도 올렸다: std를 되돌린
+    실행들의 "시연 조건 × 이력" 2×2에서 빈 칸을 채워 두 요인의 몫을 따로 읽으려는 것이다.
 11. **acd3는 좌우 거울 대칭이 크게 깨져 있다(주변이 빈 상태에서 좌우를 뒤집은 회전 명령의 오차 평균 0.165, 기준 0.10)(6).**
     거울 증강 학습(묶음 8)과 그 밖의 학습 갈래(묶음 1~5, 7)의 남은 작업은 큐에서 대기 중이다(9a, 15).
 
@@ -55,7 +57,7 @@
 |---|---|
 | `feat/rl-policy-onnx-2026-11-26` | main + 정책 다섯(`store_arena_4b`, `c`, `acd`, `acd2`, `acd3`) + 시뮬 인자 `nav_rl:=rl_acd3`. 시뮬만 쓴다 |
 | `feat/rl-real-optin-2026-11-26` | 위 + 실물 배포·시작 스크립트의 RL 켜기(`WITH_RL`, `RL_POLICY`). 시뮬과 실물에 쓴다 |
-| `feat/rl-tracks-2026-11-26` | 위 전부 + 11-26 작업(평활 옵션, 학습 코드, 측정 도구, `aisle_first` 시제품, 문서) + 후보 정책 `store_arena_demohist`와 시뮬 인자 `nav_rl:=rl_demohist`. 새 옵션은 기본값에서 꺼져 있다 |
+| `feat/rl-tracks-2026-11-26` | 위 전부 + 11-26 작업(평활 옵션, 학습 코드, 측정 도구, `aisle_first` 시제품, 문서) + 후보 정책 `store_arena_demohist`(시뮬 인자 `nav_rl:=rl_demohist`)와 둘째 후보 `store_arena_std`(`nav_rl:=rl_std`). 새 옵션은 기본값에서 꺼져 있다 |
 | `feat/rl-base-2026-11-26` | 이 실험의 기준 브랜치(acd4 브랜치 + main 3ccf2a3f + `feat/rl-policy-onnx-2026-11-26`) |
 | `docs/rl-report2-2026-11-26` | 이 보고서 |
 
@@ -63,9 +65,10 @@
 - **정책 파일**: acd3는 위 세 브랜치의 `pode/pode_rl_controller/policies/store_arena_acd3/`에 있다. 후보 `store_arena_demohist`
   (7c)는 추론용 onnx 파일과 spec이 `pode/pode_rl_controller/policies/store_arena_demohist/`, 체크포인트와 학습 설정이
   `learning/store_arena/checkpoints/store_arena_demohist/`(`model_2044.pt`, `run.json`, `run_config.json`. sha256은 `index.json`)에
-  있다. 저장소 밖 예비 사본은 Drive `RL_정책_백업`이다. t_demo와 t_demo_std는 내보내기만 했고 저장소에 넣지 않았다(7c).
+  있다. 둘째 후보 `store_arena_std`(17)도 같은 자리에 같은 이름 규칙으로 있다(관측 44칸, onnx sha256 앞 12자 `60c4ac704736`).
+  저장소 밖 예비 사본은 Drive `RL_정책_백업`이다. t_demo와 t_demo_std는 내보내기만 했고 저장소에 넣지 않았다(7c).
 - **학원 PC에서 쓰는 명령**은 `docs/rl_quickstart.md`를 따른다: 1절 브랜치, 2절 빌드, 3절 시뮬(`gz.launch.py nav_rl:=rl_acd3` 또는
-  `rl_demohist`와 `controller_selector`), 4절 실물, 5절 새 정책을 저장소에 넣는 순서(demohist를 넣은 순서 그대로다).
+  `rl_demohist`와 `controller_selector`), 4절 실물, 5절 새 정책을 저장소에 넣는 순서(demohist를 넣은 순서이고, std를 그 절만 보고 넣으면서 빠진 단계를 채웠다).
 - **controller 선택 명령의 주의**(7c, quickstart 3·4절): 한 번만 보내는 형태(`--once`)가 오류 없이 끝나고도 먹지 않은 적이 있다
   (플릿 시뮬 세 번의 선택 아홉 번 가운데 한 번, 까닭은 가리지 못했다). 그래서 안내를 세 번 보내는 형태(`--times 3 --rate 2
   --keep-alive 1`)로 바꿨다. RL인지는 controller_server 로그의 `FollowPathRL: N calls, infer ...` 줄로 확인해야 한다.
@@ -159,15 +162,16 @@ Gazebo 묶음을 시간 순서로 적는다. 열째 묶음의 acd3 g_demo(10판)
 | 10 (15절) | t_demo_hist2, t_demo_std2(부모에서 600번 더) | demo1 성공의 짝 차이(이어 학습 − 부모)가 +2 SE보다 높으면 "더 길게 학습하면 오른다", 2 SE 안이면 "이 평가로는 차이가 보이지 않는다". 13절 후보 조건을 채우고 demo1이 t_demo_hist보다 2 SE 넘게 높으면 Gazebo 열한째 묶음에 올린다 | 아직 결과 없음(Isaac 큐에서 대기 또는 진행 중). 나머지 일곱 큐보다 먼저 돈다 |
 | 11 (16절) | t_demo_hist_dyn(t_demo_hist 설정 + 근접 벌점 0.10 m, −1.0) | demo1 건넘 경로 위 사람 충돌률 짝 차이(− t_demo_hist) < −2 SE면 "근접 벌점이 건너는 사람에 도움 된다". 후보는 demo1·aisle 성공이 2 SE 넘게 낮지 않고 rand가 acd3보다 2 SE 넘게 낮지 않을 때 | 아직 결과 없음(Isaac 큐에서 대기 또는 진행 중) |
 
-칸별 성공 %(4096 에피소드. acd3, t_ctrl, t_demo, t_std, t_demo_std의 demo 칸과 aisle은 8c 끝, rand와 head는 12·13절):
+칸별 성공 %(4096 에피소드. demo 칸과 aisle은 8c 끝, rand와 head는 12·13절, t_ctrl의 rand와 t_demo의 head는
+`docs/rl_tracks_2026-11-26/results/tables.md`):
 
 | 칸 | acd3 | t_ctrl | t_demo | t_std | t_demo_std | t_demo_hist |
 |---|---|---|---|---|---|---|
 | demo1 | 43.65 | 43.33 | 41.65 | 52.49 | 51.25 | 52.81 |
 | demo2 | 40.31 | 39.70 | 39.36 | 48.49 | 47.80 | 48.27 |
 | aisle | 56.62 | 55.35 | 55.98 | 67.90 | 70.41 | 72.19 |
-| rand | 76.32 | 평가 전 | 75.02 | 평가 전 | 77.51 | 77.37 |
-| head | 47.41 | 평가 전 | 평가 전 | 평가 전 | 48.10 | 51.12 |
+| rand | 76.32 | 75.95 | 75.02 | 평가 전 | 77.51 | 77.37 |
+| head | 47.41 | 평가 전 | 45.07 | 평가 전 | 48.10 | 51.12 |
 
 짝 차이 %p (SE)(8c 끝, 12):
 
@@ -176,7 +180,7 @@ Gazebo 묶음을 시간 순서로 적는다. 열째 묶음의 acd3 g_demo(10판)
 | demo1 | +9.16 (0.66) | −1.68 (0.47) | −1.25 (0.59) | +1.56 (0.56) | +0.32 (0.60) |
 | demo2 | +8.79 (0.60) | −0.34 (0.41) | −0.68 (0.56) | +0.46 (0.51) | −0.22 (0.56) |
 | aisle | +12.55 (0.66) | +0.63 (0.46) | +2.51 (0.54) | +1.78 (0.48) | +4.30 (0.57) |
-| rand | 평가 전 | 평가 전 | 평가 전 | −0.15 (0.42) | 평가 전 |
+| rand | 평가 전 | −0.93 (0.35) | 평가 전 | −0.15 (0.42) | 평가 전 |
 | head | 평가 전 | 평가 전 | 평가 전 | +3.03 (0.62) | 평가 전 |
 
 - acd3 기준에서 aisle 칸의 남는 폭별 통과율은 0.13~0.16 m 3.0 %, 0.16~0.19 m 20.5 %, 0.19~0.22 m 46.1 %, 0.22~0.25 m 83.1 %다.
@@ -267,8 +271,10 @@ Gazebo 묶음을 시간 순서로 적는다. 열째 묶음의 acd3 g_demo(10판)
    - t_demo_hist가 나은 것: aisle 칸의 성공, 좁은 틈(0.16~0.19 m)의 통과, demo1의 건너는 사람, 시간 초과와 w 부호 바뀜(8c 끝).
      Gazebo 아홉째 묶음과 플릿 시뮬은 t_demo_hist로 돌렸다(13, 7c).
    - t_std가 나은 것: 충돌률이 낮다(t_demo_hist − t_std가 demo1 +2.22, demo2 +3.52, aisle +2.37 %p, 모두 2 SE 밖). 관측이 acd3와
-     같아 더 단순하다. 작업 기록은 "실물에서는 멈춰 서는 것이 부딪히는 것보다 안전하고 `aisle_first`가 켜져 있으면 멈춘 뒤 우회로
-     넘어가므로, 충돌이 적은 t_std가 시연에 더 맞을 수 있다"고 적었다(8c 끝). Gazebo 결과는 없다(17).
+     같아 더 단순하다. t_std의 aisle 칸 시간 초과 387건은 모두 경로 위에 통로 상자가 있는 에피소드이고 그 가운데 234건이 남는 폭
+     0.13~0.16 m다. 곧 지나가기 어려운 틈에서 부딪히지 않은 채 시간을 넘기는 일이 많다. 그때 멈춰 있었는지는 평가가 궤적을 남기지
+     않아 확인하지 못했다. 선 것이라면 실물에서는 그쪽이 더 안전하고 `aisle_first`가 우회로 넘기지만, 그런지는 Gazebo에서
+     본다(8c 끝). Gazebo 결과는 없다(17).
 4. **건너는 사람 대책**(13b, 13c). 지금 정책(이력 포함)만으로는 건너는 사람 앞에서 서지 못한다. 틈 근처의 속도 상한을 낮출지
    (정책은 속도 상한 관측 0.08~0.16을 받는다), 앞쪽 가까운 물체에 서는 안전층을 같이 쓸지다. 둘 다 만들지 않았고, 묶음 11의
    결과와 함께 본다(13c).
@@ -282,13 +288,14 @@ Gazebo 묶음을 시간 순서로 적는다. 열째 묶음의 acd3 g_demo(10판)
 ## 7. 남은 일
 
 - **묶음 10(15절)과 묶음 11(16절)**: 학습, demo1·rand·demo2·aisle 평가, 3절 표의 판정. 후보가 나오면 Gazebo 열한째 묶음에 더한다.
-- **t_std(17절)**: rand, head 평가(묶음 10의 첫 학습 바로 뒤로 앞당김)와 rand 조건 확인, `store_arena_std`(`nav_rl:=rl_std`)로
-  저장소 등록(quickstart 5절의 순서가 맞는지도 확인한다).
+- **t_std(17절)**: rand, head 평가(묶음 10의 첫 학습 바로 뒤로 앞당김)와 rand 조건 확인. 저장소 등록은 끝났다(C++ 추론 일치
+  시험 3.81e-06, 플러그인 시험 9개와 launch 연결 시험 90개 통과). 플릿 시뮬에서 `nav_rl:=rl_std`로 달려 보는 것은 남았다.
+- **묶음 12(18절)**: t_hist_std(t_demo_hist 설정에서 시연 조건만 뺀 것) 학습과 다섯 칸 평가. 묶음 10의 첫 학습과 그 평가 뒤에 돈다.
 - **Gazebo 열한째 묶음(17절)**: acd3, `store_arena_demohist`, `store_arena_std`를 f_cart, g_demo, k_cross, j_cross에서 5판씩,
-  `aisle_first:=true`. 묶음 11의 평가가 끝난 뒤에 돌린다. 판정 기준(충돌 판의 합 20판에서 3판 넘는 차이 등)은 17절에 있다.
+  `aisle_first:=true`. 묶음 12의 평가가 끝난 뒤에 돌린다. 판정 기준(충돌 판의 합 20판에서 3판 넘는 차이 등)은 17절에 있다.
 - **대기 중인 묶음 1~5, 7, 8**(9a, 15)의 결과와 판정(2~6, 10, 11절), 0절 기준 판정과 9절 결과 표.
 - 갈래별 보고서의 결과 칸: `rl_caps.md` 6절, `rl_sysid.md` "학습 결과", `rl_intent2.md` 6절, `rl_symmetry.md` "증강 학습",
-  `rl_demo_static.md`, `rl_demo_person.md`, `rl_demo_cleaner.md`의 "결과". POLICIES.md의 11-26 줄은 모두 "진행"이다(기록 규칙 1, 7).
+  `rl_demo_static.md`, `rl_demo_person.md`, `rl_demo_cleaner.md`의 "결과". POLICIES.md의 11-26 줄은 끝난 실행만 채웠다(기록 규칙 1, 7).
 - 로봇에서 할 일: Pi 4 계산량 측정(`docs/report_2026-11-26_pi4_compute.md` 5절), 실물 RL 첫 시험(quickstart 4절). 둘 다 아직
   하지 않았다. 이력 정책을 실물에 올리면 스캔 잡음 무작위화가 충분한지 따로 본다(12).
 - 가중치 쪽 처방(shrink-and-perturb, PFO)은 t_std와 CAPS가 둘 다 효과가 없을 때의 다음 후보로 적혀 있다(1b).
