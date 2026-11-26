@@ -179,6 +179,12 @@ ros2 run fleet_gz_sim drive_check                  # 인자 없으면 v7 corrido
 
 RViz의 2D Goal Pose로도 보낼 수 있다. 이것은 `bt_navigator`로 가고 `pode_fsm`을 거치지 않는다.
 
+### keepout 마스크 바꿔 끼우기 (`keepout_mask_file`, 시뮬 시험)
+
+`one_pode.launch.py keepout_mask_file:=<마스크.yaml>`이면 경기장의 keepout 마스크 대신 그 마스크를 전역 costmap에 건다
+(map_server 형식, 막힌 칸이 keepout). 전역 계획을 한 통로 안에 가두는 실험에 쓴다. 비면 경기장의 마스크 그대로다.
+`keepout:=false`면 이 값과 상관없이 필터를 띄우지 않는다.
+
 ### 통로 먼저 (`aisle_first`, 시뮬 시험)
 
 `aisle_first:=true`면 통로에 선 장애물(카트)을 다른 통로로 돌아가지 않고 그 통로 안에서 지나가 보고, 못 지나갈 때만 돌아간다. 시뮬 전용 시험이고 `one_pode.launch.py`에만 있다. 기본 `false`면 launch와 파라미터가 main과 같다.

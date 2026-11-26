@@ -25,6 +25,8 @@ ARGS = {
     "nav_max_speed": ("", "controller들의 최고 속도(m/s), 0.05~단일 출처."
                           " 비면 pode_nav_config/params/nav_speed.yaml(0.12)"),
     "keepout": ("true", "false면 global costmap keepout 필터를 띄우지 않는다(비교용)"),
+    "keepout_mask_file": ("", "시뮬 시험. 경기장의 keepout 마스크 대신 쓸 마스크 yaml(map_server 형식)."
+                              " 비면 경기장의 마스크"),
     "still_pode": ("", "x,y,yaw: 서 있기만 하는 둘째 Pode(pode_still)를 놓는다. 비면 없음"),
     "nav_overrides": ("", "Nav2 설정 위에 덮을 yaml 파일(시뮬 전용, 비교용). 비면 없음"),
     "obstacles": ("", "상자를 놓았다 치우는 일정(fleet_gz_sim/obstacles의 이름이나 파일)"),
@@ -86,6 +88,9 @@ def _start(context):
     aisle = value("aisle_first").strip().lower()
     if aisle not in ("true", "false", "1", "0"):
         raise ValueError(f"aisle_first must be true or false, got {aisle!r}")
+    mask_file = value("keepout_mask_file").strip()
+    if mask_file and not Path(mask_file).is_file():  # 없는 파일이면 Gazebo를 띄우기 전에 멈춘다
+        raise ValueError(f"keepout_mask_file {mask_file!r} is not a file")
     layout = layout_of(value("layout"))
     site = load_fleet_map(layout)
     arena = arena_for(layout, launch_parts.share("fleet_gz_sim"),
@@ -108,7 +113,8 @@ def _start(context):
                launch_parts.bridge([ns]),
                *launch_parts.pode(ns, x, y, yaw, nav_map=arena.nav_map,
                                    nav_map_fine=arena.nav_map_fine,
-                                   keepout_mask=arena.keepout_mask if on["keepout"] else "",
+                                   keepout_mask=((mask_file or arena.keepout_mask)
+                                                 if on["keepout"] else ""),
                                    heartbeat_timeout_s=value("heartbeat_timeout_s"),
                                    nav_log_level=value("nav_log_level"),
                                    nav_max_speed=launch_parts.speed_of(value("nav_max_speed")),
