@@ -185,8 +185,24 @@ def test_sentences_are_the_words_of_section_22():
     text = text.read_text(encoding="utf-8")
     sec = text[text.index("## 22. 묶음 17"):text.index("## 9a.")]
     flat = " ".join(ln.strip() for ln in sec.splitlines())
-    for s in sentences():
-        assert f'"{s}"' in flat, s
+    # 상수마다 22절의 그 조건 뒤에 오는 문장이어야 한다 (다른 갈래의 문장과 바뀌면 떨어진다)
+    words = {"S1_IN": '2 SE 안이면 "이 칸에서는 seed를 바꿔도 평가 오차 안이다"',
+             "S1_OUT": '2 SE 밖이면 "seed만 바꿔도 평가 오차 밖으로 달라진다"',
+             "S3_KEEP": '넷 모두 2 SE 밖이고 부호가 같으면 "seed를 바꿔도 유지된다"',
+             "S3_FLIP": '부호가 서로 다른 것이 있으면 "seed에 따라 뒤집힌다"',
+             "S3_SHRINK": '2 SE 밖인 조합끼리는 부호가 같다) "평가 오차 안으로 줄어드는 조합이 있다"',
+             "S3F_NONE": '넷 모두 2 SE 안이면 "seed를 바꿔도 차이가 보이지 않는다"',
+             "S4_KEEP": '+2 SE를 넘는 칸은 "seed를 바꿔도 유지된다"',
+             "S4_GONE": '넘지 못하는 칸은 "seed 4에서는 보이지 않는다"',
+             "S5_UP": '+2 SE를 넘으면 "seed 4에서도 t_ctrl보다 는다"',
+             "S5_FLAT": '2 SE 안이면 "seed 4에서는 t_ctrl과의 차이가 보이지 않는다"',
+             "S5_DOWN": '-2 SE보다 낮으면 "seed 4에서는 t_ctrl보다 준다"',
+             "S5_SEED_DIFF": '2 SE 밖이면 "seed에 따라 부호 바뀜이 달라진다"',
+             "S5_SEED_SAME": '안이면 "두 seed의 차이는 보이지 않는다"'}
+    assert sorted(words) == sorted(k for k in vars(ss) if k.startswith("S") and k[1:2].isdigit())
+    for name, w in words.items():
+        assert w in flat, name
+        assert w.endswith(f'"{getattr(ss, name)}"'), name
     # seed 조합은 t_demo_hist의 seed - t_std의 seed
     assert [c[1:] for c in ss.COMBOS] == [("demohist", "std"), ("demohist", "stds4"),
                                           ("demohists4", "std"), ("demohists4", "stds4")]
