@@ -52,7 +52,10 @@ Deployment options, all off by default (off leaves the command bit-identical, `t
   TF (`scan->header.frame_id` in the local costmap's global frame, usually `odom`, timeout
   `transform_tolerance`); a failed lookup skips that scan only and is counted. The reference is the newest
   stored scan at least `closing_lookback_s` older than the new one; with none, or one older than
-  `lookback + max(0.5 * lookback, 0.15)` s (scans stopped for a while), that scan is not judged. A stamp
+  `lookback + max(0.5 * lookback, 0.15)` s (scans stopped for a while), that scan is not judged. Scans
+  are stored only in cycles where the policy runs, so after the policy has not run for longer than that
+  (the turn in place at the goal, a rotation shim turning first, a wait between goals) nothing is judged
+  until `closing_lookback_s` of new scans are stored. A stamp
   equal to the last one is ignored; a stamp before it (the clock went back) clears the history and the
   hold. The history and the hold are cleared on `cleanup()` only (not on `reset()` or a new plan: the
   robot does not jump, so the time condition is enough). The 1 s log line ends with
@@ -64,11 +67,19 @@ Deployment options, all off by default (off leaves the command bit-identical, `t
   |---|---|---|
   | `closing_stop_range` | 0.0 (off) | m from the lidar centre; 0 or less = off |
   | `closing_half_width_deg` | 60.0 | half width of the front cone, deg, [0, 180] |
-  | `closing_lookback_s` | 0.2 | s between the new scan and its reference, > 0 |
-  | `closing_spread_deg` | 8.0 | half width of the neighbour minimum in the old scan, deg, [0, 180] |
-  | `closing_mps` | 0.04 | m/s of closing beyond the robot's own motion, > 0 |
+  | `closing_lookback_s` | 1.0 | s between the new scan and its reference, > 0 |
+  | `closing_spread_deg` | 4.0 | half width of the neighbour minimum in the old scan, deg, [0, 180] |
+  | `closing_mps` | 0.08 | m/s of closing beyond the robot's own motion, > 0 |
   | `closing_hold_s` | 0.3 | s the stop holds after the last trigger, >= 0 |
-  | `closing_min_rays` | 1 | caught rays needed side by side, >= 1 |
+  | `closing_min_rays` | 2 | caught rays needed side by side, >= 1 |
+
+  The defaults are the long-window values of the Isaac evaluation (worklog section 25 of
+  `docs/worklog_rl_tracks_2026-11-26.md`): the margin `closing_mps * closing_lookback_s` is 8 cm, four
+  times the 0.02 m range noise of the Gazebo lidar, and a person who crosses in front is caught because
+  the place they stand in was empty a second ago. The price: something that comes straight at the robot
+  slower than `closing_mps` is not caught. The Python `ClosingGuard` keeps the short-window defaults of
+  the first evaluation (0.2 s, 8 deg, 0.04 m/s, 1 ray); do not copy those here: in a 2D check with
+  0.02 m scan noise they stopped the robot in 28 % of the steps of scenes where nothing moved.
 
   Two intended differences from the Python `ClosingGuard`: (a) Python never uses the first scan after a
   reset as a reference (the sim teleports the robot on reset); the plugin checks the time condition only.

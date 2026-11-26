@@ -512,9 +512,10 @@ TEST(ClosingParity, MatchesThePythonGuardOnRecordedScenes)
 {
   const YAML::Node f = YAML::LoadFile(std::string(CLOSING_FIXTURE));
   ASSERT_GE(f["scenes"].size(), 3u);
-  // 파일의 기본값(장면 approach)이 C++ 기본값과 같다
+  // 플러그인의 기본값은 긴 창 장면(crossing_long)의 값과 같다
   const ClosingParams def;
-  const YAML::Node p0 = f["scenes"][0]["params"];
+  ASSERT_EQ(f["scenes"][2]["name"].as<std::string>(), "crossing_long");
+  const YAML::Node p0 = f["scenes"][2]["params"];
   EXPECT_DOUBLE_EQ(p0["half_width_deg"].as<double>(), def.half_width_deg);
   EXPECT_DOUBLE_EQ(p0["lookback_s"].as<double>(), def.lookback_s);
   EXPECT_DOUBLE_EQ(p0["spread_deg"].as<double>(), def.spread_deg);

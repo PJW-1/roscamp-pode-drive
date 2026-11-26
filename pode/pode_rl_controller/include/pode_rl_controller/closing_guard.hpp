@@ -10,15 +10,16 @@ namespace pode_rl_controller
 {
 
 // ---- 다가옴 막기(task_spec.ClosingGuard와 같은 판정, 기준 스캔과 유지는 시각으로) ----
+// 기본값은 긴 창이다: 걸리는 여유(closing_mps * lookback_s)가 8 cm라 스캔 잡음 0.02 m에 걸리지 않는다
 struct ClosingParams
 {
   double stop_range{0.0};
   double half_width_deg{60.0};
-  double lookback_s{0.2};
-  double spread_deg{8.0};
-  double closing_mps{0.04};
+  double lookback_s{1.0};
+  double spread_deg{4.0};
+  double closing_mps{0.08};
   double hold_s{0.3};
-  int min_rays{1};
+  int min_rays{2};
 };
 
 void check_closing_params(const ClosingParams & p);

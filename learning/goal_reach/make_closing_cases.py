@@ -1,6 +1,6 @@
-"""pode_rl_controller 의 ClosingGuard (C++) 가 task_spec.ClosingGuard 와 같은 판정을 내는지 견줄 파일을
-쓴다: 장면마다 스텝별 레이 (라이다 중심에서의 거리, -180 deg 부터 1 deg 간격), 라이다 원점, base yaw,
-시각, 목표 v 와 Python 이 낸 "걸렸는지" (hit), "막았는지" (blocked).
+"""pode_rl_controller 의 ClosingGuard (C++) 가 task_spec.ClosingGuard 와 같은 판정을 내는지 견줄
+파일을 쓴다: 장면마다 스텝별 레이 (라이다 중심에서의 거리, -180 deg 부터 1 deg 간격), 라이다 원점,
+base yaw, 시각, 목표 v 와 Python 이 낸 "걸렸는지" (hit), "막았는지" (blocked).
 
     python make_closing_cases.py <out.json>
 
@@ -28,8 +28,8 @@ LIDAR_X = -0.017  # base 에서 앞쪽 m
 ROOM = (-1.0, -1.0, 1.5, 1.2)
 BOX = (0.30, -0.06, 0.42, 0.10)
 CORRIDOR = (-1.0, -0.4, 2.0, 0.4)
-RANGE_MARGIN = 5e-5  # m; 문턱 거리와 레이의 최소 차이 (레이는 0.1 mm 단위라 문턱과 같은 값만 막는다)
-CLOSING_MARGIN = 2e-4  # m/s; 문턱 속도와 다가오는 속도의 최소 차이 (0.1 mm 단위 레이로는 0.0005 m/s 간격)
+RANGE_MARGIN = 5e-5  # m; 문턱 거리와 레이의 최소 차이 (레이가 0.1 mm 단위라 같은 값만 막는다)
+CLOSING_MARGIN = 2e-4  # m/s; 문턱 속도와의 최소 차이 (0.1 mm 단위 레이로는 0.0005 m/s 간격)
 STATIC_ATOL = 1e-4  # m; float32 와 float64 로 낸 static 의 최대 차이
 
 
@@ -91,17 +91,18 @@ def drive_static():
 
 
 def crossing_long():
-    """긴 창 (1.0 s, +-4 deg, 0.08 m/s): 앞 0.22 m 를 사람이 0.08 m/s 로 가로지른다."""
+    """긴 창 (1.0 s, +-4 deg, 0.08 m/s, 나란한 레이 2 개: 플러그인의 기본값): 앞 0.22 m 를 사람이
+    0.08 m/s 로 가로지른다."""
     origin, out = lidar_at(0.0, 0.0, 0.0), []
     for i in range(50):
         person = (0.22, 0.16 - 0.08 * STEP_DT * i, 0.04)
         out.append((origin, 0.0, scan(origin, 0.0, (CORRIDOR,), (person,)), 0.12))
-    params = {"lookback_s": 1.0, "spread_deg": 4.0, "closing_mps": 0.08}
+    params = {"lookback_s": 1.0, "spread_deg": 4.0, "closing_mps": 0.08, "min_rays": 2}
     return params, out
 
 
 def ramp_holes():
-    """정면 7 레이가 0.2 m/s 로 다가오다 선다. 외톨이 레이 하나도 다가오지만 min_rays 3 에는 모자란다.
+    """정면 7 레이가 0.2 m/s 로 다가오다 선다. 외톨이 레이 하나는 min_rays 3 에 모자란다.
     돌아오지 않은 레이가 섞이고, 목표 v 는 가끔 후진이나 0 이다."""
     out = []
     for i in range(36):
@@ -222,7 +223,7 @@ def main():
     scenes = [run_scene(name, make) for name, make in SCENES.items()]
     data = {"step_dt": STEP_DT, "scenes": scenes}
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
-    with open(args.out, "w", encoding="utf-8") as f:
+    with open(args.out, "w", encoding="utf-8", newline="\n") as f:
         f.write(json.dumps(data, separators=(",", ":")) + "\n")
     print(f"[closing] wrote {args.out} ({os.path.getsize(args.out)} bytes)")
 
