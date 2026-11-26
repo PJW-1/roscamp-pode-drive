@@ -165,6 +165,10 @@ def test_new_comparisons_are_listed():
             assert (a, cell, b, cell) in c
         for a, b in (("histstd", "std"), ("histstd", "demohist"), ("histstd", "acd3")):
             assert (a, cell, b, cell) in c
+    for cell in ("demo1", "aisle", "rand", "head"):
+        for a, b in (("stds4", "std"), ("demohists4", "demohist"), ("demohist", "stds4"),
+                     ("demohists4", "std"), ("demohists4", "stds4"), ("stds4", "ctrl")):
+            assert (a, cell, b, cell) in c
     for pol in ("acd3", "std", "demohist"):
         assert (pol, "demo1c08", pol, "demo1") in c
     for a, b in (("std", "acd3"), ("demohist", "acd3"), ("demohist", "std")):

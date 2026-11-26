@@ -1,0 +1,2 @@
+# tag|kind|args (queue.sh). 묶음 17의 앞: t_std를 seed만 4로 바꿔 다시 학습한다(작업 기록 22절). 코드는 t_std와 같은 pd-rl-base
+t_std_s4|train|--num_envs 4096 --max_iterations 300 --seed 4 --init D:/isaac/runs/store_arena/acd3/t_wall/model_1745.pt --init_std 0.3 --set prev_action_obs=1 --set critic_privileged=1 --set speed_cap_obs=1 --set speed_cap_range=0.08,0.16 --set w_action_rate=-0.05 --set w_w_flip=-0.5 --set robot_max=2 --set robot_priority_prob=0.5 --set handover_start_prob=0.15 --set near_wall_m=0.08 --set w_near_wall=-0.2
