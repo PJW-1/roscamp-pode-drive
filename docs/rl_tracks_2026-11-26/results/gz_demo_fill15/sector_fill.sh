@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 열다섯째 Gazebo 묶음의 g_demo: 기록된 로봇 자세에서 벽·진열대·카트·사람에 광선을 다시 쏘아, 넓은 가림 + 채우기가
 # 정책의 섹터 값을 얼마나 바꿨는지 어림한다(가장 가까워지기 전 3 s). 정책이 실제로 본 값이 아니다. 읽기만 한다.
-D=$HOME/rl_gz_check/demo_fill15_n26; CFG=$D/gz_demo.yaml
+D=$HOME/rl_gz_check/${1:-demo_fill15_n26}; CFG=$D/gz_demo.yaml
 source /opt/ros/jazzy/setup.bash > /dev/null 2>&1
 cd "$HOME/nf_src/pd-rl-int/tools/nav_bench" && nice -n 19 python3 - "$D/main/legs" "$CFG" <<'PY'
 import sys, json, math, glob

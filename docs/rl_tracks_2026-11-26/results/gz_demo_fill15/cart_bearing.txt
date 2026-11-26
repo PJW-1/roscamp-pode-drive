@@ -10,6 +10,7 @@ body footprint: [(0.04, 0.021), (0.036, 0.031), (0.029, 0.056), (-0.029, 0.056),
    t   7.2 d 0.011 bearing    62.3 deg        range 0.074 robot (0.72,0.61) yaw  -31.6
    t   7.7 d 0.000 bearing    63.3 deg        range 0.061 robot (0.75,0.59) yaw   -5.4
    t   8.2 d 0.000 bearing    56.6 deg        range 0.049 robot (0.77,0.60) yaw   22.9
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
    within 3 s before: 24 samples under 0.06 m, of which nearest point in the masked angles: 0
 ## DemoHistFill 1 ABOR min 0.000 at 9.0s first contact 9.0
    t   5.0 d 0.235 bearing    -9.1 deg        range 0.278 robot (0.50,0.63) yaw   12.4
@@ -22,6 +23,7 @@ body footprint: [(0.04, 0.021), (0.036, 0.031), (0.029, 0.056), (-0.029, 0.056),
    t   8.6 d 0.025 bearing    53.5 deg        range 0.086 robot (0.70,0.62) yaw  -30.1
    t   9.1 d 0.000 bearing    63.5 deg        range 0.061 robot (0.74,0.60) yaw  -16.3
    t   9.6 d 0.000 bearing    56.4 deg        range 0.048 robot (0.76,0.60) yaw   14.0
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
    within 3 s before: 21 samples under 0.06 m, of which nearest point in the masked angles: 0
 ## DemoHistFill 2 SUCC min 0.015 at 8.1s first contact None
    t   4.1 d 0.210 bearing   -35.4 deg        range 0.264 robot (0.52,0.65) yaw   34.9
@@ -34,6 +36,7 @@ body footprint: [(0.04, 0.021), (0.036, 0.031), (0.029, 0.056), (-0.029, 0.056),
    t   7.7 d 0.065 bearing    41.9 deg        range 0.121 robot (0.67,0.64) yaw  -22.6
    t   8.2 d 0.015 bearing    72.5 deg        range 0.075 robot (0.72,0.60) yaw  -39.7
    t   8.7 d 0.021 bearing    96.2 deg        range 0.077 robot (0.76,0.57) yaw  -21.3
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
    within 3 s before: 12 samples under 0.06 m, of which nearest point in the masked angles: 0
 ## DemoHistFill 3 SUCC min 0.040 at 8.3s first contact None
    t   4.3 d 0.207 bearing   -17.0 deg        range 0.251 robot (0.53,0.65) yaw   15.7
@@ -46,6 +49,7 @@ body footprint: [(0.04, 0.021), (0.036, 0.031), (0.029, 0.056), (-0.029, 0.056),
    t   7.9 d 0.045 bearing    69.1 deg        range 0.107 robot (0.70,0.57) yaw  -26.2
    t   8.4 d 0.040 bearing    91.0 deg        range 0.096 robot (0.76,0.55) yaw  -14.0
    t   8.9 d 0.045 bearing   108.9 deg        range 0.106 robot (0.82,0.54) yaw   -5.9
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
    within 3 s before: 21 samples under 0.06 m, of which nearest point in the masked angles: 0
 ## DemoHistFill 4 ABOR min 0.000 at 8.3s first contact 8.3
    t   4.3 d 0.213 bearing   -18.5 deg        range 0.258 robot (0.52,0.65) yaw   17.5
@@ -58,6 +62,7 @@ body footprint: [(0.04, 0.021), (0.036, 0.031), (0.029, 0.056), (-0.029, 0.056),
    t   7.8 d 0.061 bearing    21.0 deg        range 0.106 robot (0.67,0.64) yaw  -16.6
    t   8.3 d 0.000 bearing    62.6 deg        range 0.062 robot (0.73,0.62) yaw  -34.4
    t   8.8 d 0.000 bearing    53.0 deg        range 0.047 robot (0.75,0.61) yaw   -0.9
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
    within 3 s before: 13 samples under 0.06 m, of which nearest point in the masked angles: 0
 ## DemoHistMask 0 SUCC min 0.061 at 5.7s first contact None
    t   1.7 d 0.241 bearing   -54.1 deg        range 0.304 robot (0.48,0.71) yaw   52.1
@@ -70,6 +75,7 @@ body footprint: [(0.04, 0.021), (0.036, 0.031), (0.029, 0.056), (-0.029, 0.056),
    t   5.2 d 0.075 bearing    62.0 deg        range 0.138 robot (0.67,0.57) yaw  -27.4
    t   5.7 d 0.061 bearing    89.1 deg        range 0.117 robot (0.72,0.55) yaw  -32.7
    t   6.2 d 0.066 bearing   112.7 deg        range 0.129 robot (0.77,0.52) yaw  -29.3
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
 ## DemoHistMask 1 SUCC min 0.052 at 4.8s first contact None
    t   0.8 d 0.232 bearing   -81.1 deg        range 0.291 robot (0.49,0.63) yaw   86.1
    t   1.3 d 0.229 bearing   -53.8 deg        range 0.291 robot (0.49,0.63) yaw   57.6
@@ -81,6 +87,7 @@ body footprint: [(0.04, 0.021), (0.036, 0.031), (0.029, 0.056), (-0.029, 0.056),
    t   4.3 d 0.057 bearing    67.6 deg        range 0.119 robot (0.70,0.56) yaw  -19.7
    t   4.8 d 0.052 bearing    92.9 deg        range 0.108 robot (0.76,0.54) yaw  -14.7
    t   5.3 d 0.059 bearing   110.7 deg        range 0.121 robot (0.82,0.52) yaw  -13.3
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
    within 3 s before: 15 samples under 0.06 m, of which nearest point in the masked angles: 0
 ## DemoHistMask 2 SUCC min 0.034 at 4.6s first contact None
    t   0.6 d 0.234 bearing   -92.8 deg        range 0.291 robot (0.49,0.62) yaw   96.6
@@ -93,6 +100,7 @@ body footprint: [(0.04, 0.021), (0.036, 0.031), (0.029, 0.056), (-0.029, 0.056),
    t   4.2 d 0.040 bearing    62.0 deg        range 0.103 robot (0.70,0.58) yaw  -22.7
    t   4.7 d 0.034 bearing    91.6 deg        range 0.090 robot (0.76,0.56) yaw  -16.6
    t   5.2 d 0.042 bearing   113.1 deg        range 0.104 robot (0.81,0.54) yaw  -15.4
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
    within 3 s before: 20 samples under 0.06 m, of which nearest point in the masked angles: 0
 ## DemoHistMask 3 SUCC min 0.052 at 5.2s first contact None
    t   1.2 d 0.227 bearing   -70.8 deg        range 0.289 robot (0.49,0.67) yaw   72.8
@@ -105,6 +113,7 @@ body footprint: [(0.04, 0.021), (0.036, 0.031), (0.029, 0.056), (-0.029, 0.056),
    t   4.7 d 0.056 bearing    66.9 deg        range 0.119 robot (0.69,0.57) yaw  -27.2
    t   5.2 d 0.052 bearing    90.7 deg        range 0.108 robot (0.74,0.54) yaw  -20.5
    t   5.7 d 0.058 bearing   113.0 deg        range 0.121 robot (0.80,0.52) yaw  -18.2
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
    within 3 s before: 16 samples under 0.06 m, of which nearest point in the masked angles: 0
 ## DemoHistMask 4 SUCC min 0.052 at 6.1s first contact None
    t   2.1 d 0.248 bearing   -36.8 deg        range 0.303 robot (0.48,0.70) yaw   30.5
@@ -117,6 +126,7 @@ body footprint: [(0.04, 0.021), (0.036, 0.031), (0.029, 0.056), (-0.029, 0.056),
    t   5.6 d 0.053 bearing    78.8 deg        range 0.111 robot (0.72,0.55) yaw  -21.3
    t   6.1 d 0.053 bearing   109.0 deg        range 0.114 robot (0.78,0.53) yaw  -20.4
    t   6.6 d 0.072 bearing   111.3 deg        range 0.134 robot (0.83,0.51) yaw  -16.0
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
    within 3 s before: 22 samples under 0.06 m, of which nearest point in the masked angles: 0
 ## DemoHist 0 SUCC min 0.045 at 8.3s first contact None
    t   4.3 d 0.198 bearing   -30.6 deg        range 0.249 robot (0.53,0.63) yaw   32.7
@@ -129,6 +139,7 @@ body footprint: [(0.04, 0.021), (0.036, 0.031), (0.029, 0.056), (-0.029, 0.056),
    t   7.8 d 0.049 bearing    70.9 deg        range 0.111 robot (0.70,0.56) yaw  -25.5
    t   8.3 d 0.045 bearing    92.8 deg        range 0.102 robot (0.76,0.54) yaw  -14.7
    t   8.8 d 0.052 bearing   108.5 deg        range 0.113 robot (0.82,0.53) yaw   -6.0
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
    within 3 s before: 20 samples under 0.06 m, of which nearest point in the masked angles: 0
 ## DemoHist 1 SUCC min 0.016 at 8.0s first contact None
    t   4.0 d 0.222 bearing   -30.3 deg        range 0.273 robot (0.51,0.62) yaw   35.0
@@ -141,6 +152,7 @@ body footprint: [(0.04, 0.021), (0.036, 0.031), (0.029, 0.056), (-0.029, 0.056),
    t   7.6 d 0.069 bearing    40.4 deg        range 0.123 robot (0.66,0.63) yaw  -19.9
    t   8.1 d 0.016 bearing    71.9 deg        range 0.076 robot (0.72,0.60) yaw  -37.4
    t   8.6 d 0.021 bearing   101.2 deg        range 0.079 robot (0.76,0.57) yaw  -24.1
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
    within 3 s before: 12 samples under 0.06 m, of which nearest point in the masked angles: 0
 ## DemoHist 2 SUCC min 0.037 at 8.5s first contact None
    t   4.5 d 0.172 bearing   -13.0 deg        range 0.215 robot (0.56,0.66) yaw   10.0
@@ -153,6 +165,7 @@ body footprint: [(0.04, 0.021), (0.036, 0.031), (0.029, 0.056), (-0.029, 0.056),
    t   8.0 d 0.041 bearing    62.7 deg        range 0.104 robot (0.72,0.56) yaw   -5.2
    t   8.5 d 0.038 bearing   111.9 deg        range 0.100 robot (0.78,0.54) yaw  -20.1
    t   9.0 d 0.060 bearing   112.6 deg        range 0.122 robot (0.84,0.52) yaw  -17.7
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
    within 3 s before: 20 samples under 0.06 m, of which nearest point in the masked angles: 0
 ## DemoHist 3 SUCC min 0.041 at 8.3s first contact None
    t   4.3 d 0.211 bearing   -16.4 deg        range 0.255 robot (0.52,0.65) yaw   15.6
@@ -165,6 +178,7 @@ body footprint: [(0.04, 0.021), (0.036, 0.031), (0.029, 0.056), (-0.029, 0.056),
    t   7.8 d 0.050 bearing    56.8 deg        range 0.112 robot (0.68,0.59) yaw  -25.2
    t   8.3 d 0.041 bearing    91.1 deg        range 0.097 robot (0.74,0.56) yaw  -26.9
    t   8.8 d 0.047 bearing   111.2 deg        range 0.109 robot (0.79,0.54) yaw  -13.5
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
    within 3 s before: 16 samples under 0.06 m, of which nearest point in the masked angles: 0
 ## DemoHist 4 SUCC min 0.018 at 7.9s first contact None
    t   3.9 d 0.225 bearing   -20.2 deg        range 0.269 robot (0.51,0.64) yaw   20.0
@@ -177,4 +191,5 @@ body footprint: [(0.04, 0.021), (0.036, 0.031), (0.029, 0.056), (-0.029, 0.056),
    t   7.4 d 0.071 bearing    38.7 deg        range 0.124 robot (0.66,0.62) yaw  -16.8
    t   7.9 d 0.018 bearing    72.9 deg        range 0.078 robot (0.72,0.59) yaw  -33.8
    t   8.4 d 0.023 bearing   117.1 deg        range 0.087 robot (0.77,0.56) yaw  -36.1
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
    within 3 s before: 11 samples under 0.06 m, of which nearest point in the masked angles: 0

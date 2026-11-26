@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 열다섯째 Gazebo 묶음의 g_demo 판마다, 가장 가까워지기 전에 통로 카트의 가장 가까운 점이 로봇 기준 어느 방위에 있었는지 본다. 읽기만 한다.
-D=$HOME/rl_gz_check/demo_fill15_n26; CFG=$D/gz_demo.yaml
+D=$HOME/rl_gz_check/${1:-demo_fill15_n26}; CFG=$D/gz_demo.yaml
 source /opt/ros/jazzy/setup.bash > /dev/null 2>&1
 cd "$HOME/nf_src/pd-rl-int/tools/nav_bench" && nice -n 19 python3 - "$D/main/legs" "$CFG" <<'PY'
 import sys, json, math, glob
@@ -23,6 +23,20 @@ def seg_pts(poly, n=40):
 
 def masked(deg):
     return any(lo <= deg <= hi for lo, hi in MASK)
+
+LIDAR_X = -0.017
+
+
+def any_masked(cart, x, y, yaw):
+    # 카트 둘레의 점 가운데 lidar에서 본 방위가 가린 각도 안에 드는 것이 하나라도 있는가
+    ox, oy = x + LIDAR_X * math.cos(yaw), y + LIDAR_X * math.sin(yaw)
+    for px, py in seg_pts(cart):
+        deg = math.degrees(math.atan2(py - oy, px - ox) - yaw)
+        deg = (deg + 180.0) % 360.0 - 180.0
+        if masked(deg):
+            return True
+    return False
+
 
 print("body footprint:", [(round(x, 3), round(y, 3)) for x, y in body])
 for f in sorted(glob.glob(legs + "/*.json")):
@@ -52,7 +66,8 @@ for f in sorted(glob.glob(legs + "/*.json")):
         dx, dy = px - x, py - y
         bx = math.cos(-yaw) * dx - math.sin(-yaw) * dy
         by = math.sin(-yaw) * dx + math.cos(-yaw) * dy
-        rows.append((t - rec["t_start"], d, math.degrees(math.atan2(by, bx)), math.hypot(bx, by), x, y, math.degrees(yaw)))
+        rows.append((t - rec["t_start"], d, math.degrees(math.atan2(by, bx)), math.hypot(bx, by), x, y, math.degrees(yaw),
+                     any_masked(cart, x, y, yaw)))
     imin = min(range(len(rows)), key=lambda i: rows[i][1])
     tmin = rows[imin][0]
     first0 = next((r[0] for r in rows if r[1] <= 0.001), None)
@@ -66,6 +81,8 @@ for f in sorted(glob.glob(legs + "/*.json")):
             print(f'   t {r[0]:5.1f} d {r[1]:.3f} bearing {r[2]:7.1f} deg{" MASKED" if masked(r[2]) else "       "} range {r[3]:.3f} robot ({r[4]:.2f},{r[5]:.2f}) yaw {r[6]:6.1f}')
     win = [r for r in rows if tref - 3.0 <= r[0] <= tref]
     near = [r for r in win if r[1] < 0.06]
+    print(f'   within 3 s before: {len(win)} samples, any part of the cart inside the masked angles in '
+          f'{sum(r[7] for r in win)} of them')
     if near:
         print(f'   within 3 s before: {len(near)} samples under 0.06 m, of which nearest point in the masked angles: {sum(masked(r[2]) for r in near)}')
 PY
