@@ -54,6 +54,15 @@ parser.add_argument(
     "own motion explains (lidar and own pose only; task_spec.ClosingGuard; evaluation only)",
 )
 parser.add_argument(
+    "--closing_tune",
+    type=str,
+    default="",
+    metavar="NAME=VALUE,...",
+    help="fixed values of --closing_stop to change: lookback_s, spread_deg, closing_mps, hold_s, "
+    "noise_m (std of range noise added to the scans the stop sees), min_rays (neighbouring rays "
+    "that must trigger together)",
+)
+parser.add_argument(
     "--person_stop",
     type=str,
     default="",
@@ -139,6 +148,8 @@ def main():
         if len(stop_on) > 1:
             raise SystemExit("one of --front_stop, --closing_stop, --person_stop at a time")
         stop_kind = stop_on[0] if stop_on else None
+        if args_cli.closing_tune and stop_kind != "closing_stop":
+            raise SystemExit("--closing_tune changes --closing_stop: give that too")
         stop_cfg = None
         if stop_kind:
             if args_cli.still:
@@ -150,7 +161,11 @@ def main():
             if stop_kind == "front_stop":
                 raw.front_stop = stop_cfg
             elif stop_kind == "closing_stop":
-                raw.closing_guard = raw.make_closing_guard(*stop_cfg)
+                try:
+                    tune = arena.ts.parse_closing_tune(args_cli.closing_tune)
+                except ValueError as e:
+                    raise SystemExit(f"--closing_tune: {e}") from e
+                raw.closing_guard = raw.make_closing_guard(*stop_cfg, **tune)
             else:
                 raw.person_stop = stop_cfg
         # 막기가 걸린 스텝 수와 센 스텝 수 (env 마다 첫 E 개 에피소드의 스텝만)
@@ -173,6 +188,8 @@ def main():
                     closing_mps=g.closing_mps,
                     hold_steps=g.hold_steps,
                     lidar_x_m=g.lidar_x,
+                    noise_m=g.noise_m,
+                    min_rays=g.min_rays,
                 )
             if kind == "person_stop":
                 out["min_speed_mps"] = arena.ts.MOVING_MIN_MPS

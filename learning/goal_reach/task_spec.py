@@ -324,6 +324,7 @@ CLOSING_SPREAD_DEG = 8.0  # deg; 옛 스캔에서 최솟값을 찾는 이웃의 
 CLOSING_MIN_MPS = 0.04  # m/s; 로봇 자신의 이동을 뺀 다가옴이 이보다 빠르면 건다
 CLOSING_HOLD_S = 0.3  # s; 마지막으로 걸린 뒤 유지하는 시간
 RAY_CAP_M = 100.0  # m; 닿지 않은 레이를 유한한 거리로
+CLOSING_TUNE = ("lookback_s", "spread_deg", "closing_mps", "hold_s", "noise_m", "min_rays")
 
 
 def ray_angles(n_rays: int, device=None) -> torch.Tensor:
@@ -357,6 +358,27 @@ def block_for_movers(
     out = target.clone()
     out[:, 0] = torch.where(blocked, torch.zeros_like(out[:, 0]), out[:, 0])
     return out, blocked
+
+
+def parse_closing_tune(text: str) -> dict:
+    """play.py --closing_tune 의 "이름=값,..." 을 ClosingGuard 의 인자로 (빈 글이면 {}).
+    이름은 CLOSING_TUNE 의 것만, 값은 유한한 수: lookback_s 와 closing_mps 는 양수, spread_deg,
+    hold_s, noise_m 은 0 이상, min_rays 는 1 이상의 정수. 아니면 ValueError."""
+    out = {}
+    for part in text.split(",") if text else ():
+        name, sep, value = part.partition("=")
+        if not sep or name not in CLOSING_TUNE or name in out:
+            raise ValueError(f"closing tune wants NAME=VALUE with NAME in {CLOSING_TUNE}: {part!r}")
+        num = float(value)
+        positive = name in ("lookback_s", "closing_mps")
+        if not math.isfinite(num) or num < 0.0 or (positive and num == 0.0):
+            raise ValueError(f"closing tune: {name} out of range: {part!r}")
+        if name == "min_rays":
+            if num < 1.0 or num != int(num):
+                raise ValueError(f"closing tune: min_rays wants an integer >= 1: {part!r}")
+            num = int(num)
+        out[name] = num
+    return out
 
 
 def static_ranges(
@@ -393,6 +415,9 @@ class ClosingGuard:
     것보다 얼마나 빨리 가까워졌는가" 를 내고, 정면 +-half_width_deg 안에서 stop_range 보다 가깝고
     그 값이 closing_mps 를 넘는 레이가 있으면 건다. 마지막으로 걸린 뒤 hold_s 동안 유지한다. 걸린
     동안 전진 목표 v 를 0 으로 (w 는 그대로). 서 있는 것은 로봇이 다가가도 걸리지 않는다.
+    걸리는 여유는 closing_mps * lookback_s (m) 다: 창이 길면 옛 스캔에서 비어 있던 자리에 들어온
+    것 (시선을 가로지르는 것) 도 잡는다. min_rays 는 걸리려면 나란히 있어야 하는 레이 수,
+    noise_m 은 이 막기가 보는 스캔에만 더하는 거리 잡음의 표준편차 (실물 라이다 흉내) 다.
     env 별 상태 (옛 스캔 고리, 유지 스텝) 를 갖고, 리셋한 env 는 reset() 으로 비운다."""
 
     def __init__(
@@ -406,9 +431,12 @@ class ClosingGuard:
         spread_deg: float = CLOSING_SPREAD_DEG,
         closing_mps: float = CLOSING_MIN_MPS,
         hold_s: float = CLOSING_HOLD_S,
+        noise_m: float = 0.0,
+        min_rays: int = 1,
     ):
         self.step_dt, self.stop_range, self.half_width_deg = step_dt, stop_range, half_width_deg
         self.lidar_x, self.spread_deg, self.closing_mps = lidar_x, spread_deg, closing_mps
+        self.noise_m, self.min_rays = noise_m, min_rays
         self.back = max(1, round(lookback_s / step_dt))  # 옛 스캔까지의 스텝 수
         self.hold_steps = max(0, round(hold_s / step_dt))
         self.scans = None  # 첫 스텝에 스캔의 크기로 잡는다
@@ -427,6 +455,9 @@ class ClosingGuard:
         deg = torch.rad2deg(ray_angles(n_rays, dev))
         self.front = deg.abs() <= self.half_width_deg + 1e-4
         self.spread_bins = round(self.spread_deg * n_rays / 360.0)
+        # 잡음은 자기 난수로 뽑는다: 전역 난수 (env 의 리셋과 mover) 의 순서를 바꾸지 않게
+        self.noise_rng = torch.Generator(device=dev)
+        self.noise_rng.manual_seed(0)
 
     def reset(self, env_ids) -> None:
         if self.scans is not None:
@@ -443,6 +474,9 @@ class ClosingGuard:
         # 돌아오지 않은 레이 (nan, +-inf) 는 먼 것으로: 옛 스캔의 이웃 칸을 흐리지 않게
         rays = torch.nan_to_num(rays, nan=RAY_CAP_M, posinf=RAY_CAP_M, neginf=RAY_CAP_M)
         rays = rays.clamp(max=RAY_CAP_M)
+        if self.noise_m > 0.0:
+            noise = torch.randn(rays.shape, generator=self.noise_rng, device=rays.device)
+            rays = rays + self.noise_m * noise
         origin = xy + self.lidar_x * torch.stack((torch.cos(yaw), torch.sin(yaw)), dim=-1)
         slot = self.head
         self.scans[slot], self.origins[slot], self.yaws[slot] = rays, origin, yaw
@@ -455,6 +489,9 @@ class ClosingGuard:
         closing = (static - rays) / (self.back * self.step_dt)
         closing = torch.where(torch.isfinite(closing), closing, torch.zeros_like(closing))
         near = self.front[None, :] & (rays < self.stop_range) & (closing > self.closing_mps)
+        if self.min_rays > 1:  # 나란한 min_rays 개가 모두 걸린 곳만 남긴다
+            lone = torch.nn.functional.max_pool1d(1.0 - near[:, None, :].float(), self.min_rays, 1)
+            near = lone[:, 0, :] < 0.5
         self.hit = near.any(dim=-1) & (self.filled > self.back)
         fresh_hold = torch.full_like(self.hold, self.hold_steps + 1)
         self.hold = torch.where(self.hit, fresh_hold, self.hold)

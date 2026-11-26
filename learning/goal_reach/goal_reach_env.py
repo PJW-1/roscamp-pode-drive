@@ -196,9 +196,14 @@ class GoalReachEnv(DirectRLEnv):
         """사람 위치를 아는 막기가 보는 mover 별 (위치, 속도, 활성). 이 과제에는 없다."""
         return []
 
-    def make_closing_guard(self, stop_range: float, half_width_deg: float) -> ts.ClosingGuard:
-        """다가옴 막기 (play.py --closing_stop) 를 이 env 의 제어 주기와 라이다 자리로 만든다."""
-        return ts.ClosingGuard(self.step_dt, stop_range, half_width_deg, lidar_x=LIDAR_POS[0])
+    def make_closing_guard(
+        self, stop_range: float, half_width_deg: float, **tune
+    ) -> ts.ClosingGuard:
+        """다가옴 막기 (play.py --closing_stop) 를 이 env 의 제어 주기와 라이다 자리로 만든다.
+        tune 은 ClosingGuard 의 조정 인자 (play.py --closing_tune)."""
+        return ts.ClosingGuard(
+            self.step_dt, stop_range, half_width_deg, lidar_x=LIDAR_POS[0], **tune
+        )
 
     def reward_v_cap(self) -> torch.Tensor | None:
         """진행 보상의 env 별 최고속도 (None: ActionLimits.v_max)."""

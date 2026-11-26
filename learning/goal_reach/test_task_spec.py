@@ -690,6 +690,110 @@ def test_closing_guard_needs_fresh_scans_after_a_reset():
     assert first == [False] * 5 + [True]
 
 
+def test_closing_guard_with_a_long_lookback_keeps_blocking_for_a_person_crossing_dead_ahead():
+    speed, steps = 0.08, 110
+
+    def scene(i):  # 통로에 선 로봇 앞 0.22 m 를 사람 (반지름 0.04 m) 이 +y 에서 -y 로 가로지른다
+        return [(-1.0, -0.4, 2.0, 0.4)], [(0.22, 0.30 - speed * 0.05 * i, 0.04)]
+
+    poses = [(0.0, 0.0, 0.0)] * steps
+    short = ts.ClosingGuard(0.05, 0.26, 60.0, lidar_x=LIDAR_X)
+    wide = ts.ClosingGuard(
+        0.05, 0.26, 60.0, lidar_x=LIDAR_X, lookback_s=1.0, spread_deg=4.0, closing_mps=0.08
+    )
+    a, b = _drive(short, poses, scene), _drive(wide, poses, scene)
+    ahead = [i for i in range(steps) if abs(0.30 - speed * 0.05 * i) < 0.03]  # 정면 +-8 deg 안
+    assert len(ahead) > 10
+    # 시선을 가로지르는 동안에는 다가오는 속도가 0 에 가까워 짧은 창은 놓친다
+    assert not any(a[i][0] for i in ahead)
+    # 긴 창은 1 s 전에 비어 있던 자리에 들어온 것을 잡는다
+    assert all(b[i][0] for i in ahead)
+
+
+def test_closing_guard_min_rays_wants_that_many_neighbouring_rays():
+    at0, yaw0, fwd = torch.zeros(1, 2), torch.zeros(1), torch.tensor([[0.12, 0.3]])
+
+    def stops(width, min_rays):
+        guard = ts.ClosingGuard(0.05, 0.26, 60.0, min_rays=min_rays)
+        at = slice(180, 180 + width)
+        return any(
+            bool(guard.step(fwd, _ramp_scan(0.40 - 0.01 * i, at=at), at0, yaw0)[1][0])
+            for i in range(18)
+        )
+
+    assert stops(1, 1) and stops(2, 2) and stops(3, 3)
+    assert not stops(1, 2) and not stops(2, 3)
+    # 떨어진 레이 둘은 이웃이 아니다
+    guard = ts.ClosingGuard(0.05, 0.26, 60.0, min_rays=2)
+    for i in range(18):
+        rays = _ramp_scan(0.40 - 0.01 * i, at=slice(170, 171))
+        rays[0, 190] = 0.40 - 0.01 * i
+        assert not guard.step(fwd, rays, at0, yaw0)[1].item()
+
+
+def test_closing_guard_noise_is_seeded_and_leaves_the_global_rng_alone():
+    at0, yaw0, fwd = torch.zeros(1, 2), torch.zeros(1), torch.tensor([[0.12, 0.3]])
+
+    def scans():
+        guard = ts.ClosingGuard(0.05, 0.26, 60.0, noise_m=0.02)
+        out = []
+        for _ in range(8):
+            guard.step(fwd, _ramp_scan(0.30), at0, yaw0)
+            out.append(guard.scans[(guard.head - 1) % (guard.back + 1)].clone())
+        return torch.stack(out)
+
+    torch.manual_seed(5)
+    before = torch.get_rng_state()
+    a = scans()
+    assert torch.equal(torch.get_rng_state(), before)
+    assert torch.equal(a, scans())  # 같은 씨앗의 같은 잡음
+    front = a[:, 0, 172:189]
+    assert 0.01 < float(front.std()) < 0.03 and abs(float(front.mean()) - 0.30) < 0.01
+    quiet = ts.ClosingGuard(0.05, 0.26, 60.0)
+    quiet.step(fwd, _ramp_scan(0.30), at0, yaw0)
+    assert torch.equal(quiet.scans[(quiet.head - 1) % (quiet.back + 1)], _ramp_scan(0.30))
+
+
+def test_closing_guard_with_a_wide_margin_stays_quiet_on_noisy_scans_of_a_static_scene():
+    def guard(**kw):
+        return ts.ClosingGuard(0.05, 0.50, 90.0, lidar_x=LIDAR_X, noise_m=0.02, **kw)
+
+    x, y, yaw, poses = 0.0, 0.0, -0.5, []
+    for _ in range(60):  # 상자 옆으로 가다가 선다
+        poses.append((x, y, yaw))
+        if len(poses) < 30:
+            x, y, yaw = x + 0.006 * math.cos(yaw), y + 0.006 * math.sin(yaw), yaw + 0.04
+    wide = _drive(guard(lookback_s=1.0, spread_deg=4.0, closing_mps=0.08), poses,
+                  lambda i: ((ROOM, BOX), ()))
+    assert not any(s[0] for s in wide)
+    # 같은 잡음에서 여유 8 mm 의 기본값은 서 있는 것에도 걸린다 (긴 창과 넓은 여유가 필요한 까닭)
+    assert any(s[0] for s in _drive(guard(), poses, lambda i: ((ROOM, BOX), ())))
+
+
+def test_parse_closing_tune_reads_named_values_and_rejects_the_rest():
+    assert ts.parse_closing_tune("") == {}
+    text = "lookback_s=1.0,spread_deg=4,closing_mps=0.08,hold_s=0.5,noise_m=0.02,min_rays=2"
+    assert ts.parse_closing_tune(text) == {
+        "lookback_s": 1.0, "spread_deg": 4.0, "closing_mps": 0.08, "hold_s": 0.5,
+        "noise_m": 0.02, "min_rays": 2,
+    }
+    assert isinstance(ts.parse_closing_tune("min_rays=3")["min_rays"], int)
+    assert ts.parse_closing_tune("spread_deg=0,hold_s=0,noise_m=0") == {
+        "spread_deg": 0.0, "hold_s": 0.0, "noise_m": 0.0,
+    }
+    bad = (
+        "lookback=1", "lookback_s", "lookback_s=", "lookback_s=0", "spread_deg=-1",
+        "closing_mps=0", "min_rays=0", "min_rays=1.5", "noise_m=-0.1", "hold_s=nan",
+        "closing_mps=inf", "lookback_s=1,lookback_s=2", "lookback_s=1,,spread_deg=2",
+    )
+    for text in bad:
+        with pytest.raises(ValueError):
+            ts.parse_closing_tune(text)
+    # 읽은 값은 그대로 ClosingGuard 의 인자가 된다
+    guard = ts.ClosingGuard(0.05, 0.26, 60.0, **ts.parse_closing_tune("lookback_s=1.0,min_rays=2"))
+    assert (guard.back, guard.min_rays, guard.noise_m) == (20, 2, 0.0)
+
+
 def test_block_for_movers_stops_only_for_a_moving_active_mover_in_the_front_cone():
     n = 9
     xy, yaw = torch.zeros(n, 2), torch.full((n,), math.pi / 2)  # 로봇은 +y 를 본다
