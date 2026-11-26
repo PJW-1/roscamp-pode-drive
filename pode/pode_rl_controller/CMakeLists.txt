@@ -52,7 +52,7 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   # 정책마다 parity 시험. 정책 폴더의 policy.onnx는 모두 저장소에 있으므로 없으면 추론 비교가 실패한다
   foreach(policy store_arena_4b store_arena_c store_arena_acd store_arena_acd2 store_arena_acd3
-    store_arena_demohist store_arena_std)
+    store_arena_demohist store_arena_std store_arena_demohist2)
     set(onnx_required 1)
     ament_add_gtest(test_parity_${policy} test/test_parity.cpp)
     target_link_libraries(test_parity_${policy} pode_rl_core)

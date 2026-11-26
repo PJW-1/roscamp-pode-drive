@@ -48,5 +48,15 @@
   "obs_dim": 44,
   "copied_from": "D:/isaac/runs/store_arena/n26/t_std/model_2044.pt",
   "run_json": "store_arena_std/run.json"
+ },
+ {
+  "policy": "store_arena_demohist2",
+  "file": "store_arena_demohist2/model_2643.pt",
+  "sha256": "b48af250c8bb3280d118619801762ec966433b681109b3a5eea0be36f3c92ae8",
+  "bytes": 812661,
+  "iter": 2643,
+  "obs_dim": 116,
+  "copied_from": "D:/isaac/runs/store_arena/n26/t_demo_hist2/model_2643.pt",
+  "run_json": "store_arena_demohist2/run.json"
  }
 ]

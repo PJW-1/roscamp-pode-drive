@@ -1,0 +1,360 @@
+{
+ "format": 1,
+ "started": "2026-11-26T14:24:26+09:00",
+ "argv": [
+  "C:/Users/pjw/ros2camp/pd-run-b16/learning/store_arena/train.py",
+  "--out",
+  "D:/isaac/runs/store_arena/n26/t_demo_hist2",
+  "--viz",
+  "none",
+  "--resume",
+  "D:/isaac/runs/store_arena/n26/t_demo_hist/model_2044.pt",
+  "--num_envs",
+  "4096",
+  "--max_iterations",
+  "600",
+  "--seed",
+  "3",
+  "--set",
+  "prev_action_obs=1",
+  "--set",
+  "critic_privileged=1",
+  "--set",
+  "speed_cap_obs=1",
+  "--set",
+  "speed_cap_range=0.08,0.16",
+  "--set",
+  "w_action_rate=-0.05",
+  "--set",
+  "w_w_flip=-0.5",
+  "--set",
+  "robot_max=2",
+  "--set",
+  "robot_priority_prob=0.5",
+  "--set",
+  "handover_start_prob=0.15",
+  "--set",
+  "near_wall_m=0.08",
+  "--set",
+  "w_near_wall=-0.2",
+  "--set",
+  "obstacle_demo_share=0.5",
+  "--set",
+  "mover_cross_prob=0.5",
+  "--set",
+  "robot_cleaner_prob=0.5",
+  "--set",
+  "lidar_frames=3",
+  "--set",
+  "lidar_stride_steps=4"
+ ],
+ "set": [
+  "prev_action_obs=1",
+  "critic_privileged=1",
+  "speed_cap_obs=1",
+  "speed_cap_range=0.08,0.16",
+  "w_action_rate=-0.05",
+  "w_w_flip=-0.5",
+  "robot_max=2",
+  "robot_priority_prob=0.5",
+  "handover_start_prob=0.15",
+  "near_wall_m=0.08",
+  "w_near_wall=-0.2",
+  "obstacle_demo_share=0.5",
+  "mover_cross_prob=0.5",
+  "robot_cleaner_prob=0.5",
+  "lidar_frames=3",
+  "lidar_stride_steps=4"
+ ],
+ "num_envs": 4096,
+ "max_iterations": 600,
+ "seed": 3,
+ "init": "",
+ "resume": "D:/isaac/runs/store_arena/n26/t_demo_hist/model_2044.pt",
+ "init_std": [
+  0.0,
+  0.0
+ ],
+ "symmetry": {
+  "mode": "off"
+ },
+ "caps": {
+  "enabled": false,
+  "temporal": 0.0,
+  "spatial": 0.0,
+  "sigma": 0.0
+ },
+ "task_spec": {
+  "control_dt": 0.05,
+  "episode_s": 41.66666666666667,
+  "goal_dist_range": [
+   1.0,
+   2.0
+  ],
+  "success_radius": 0.05,
+  "out_of_bounds": 3.0,
+  "lidar_rays": 360,
+  "lidar_sectors": 36,
+  "lidar_min_range": 0.05,
+  "lidar_obs_max": 2.0,
+  "lidar_scale_range": [
+   1.0,
+   1.0
+  ],
+  "cmd_delay_steps_range": [
+   0,
+   0
+  ],
+  "cmd_lag_tau_range": [
+   0.0,
+   0.0
+  ],
+  "cmd_gain_v_range": [
+   1.0,
+   1.0
+  ],
+  "cmd_gain_w_range": [
+   1.0,
+   1.0
+  ],
+  "goal_obs_max": 3.0,
+  "intent_robots": 0,
+  "intent_points": 3,
+  "intent_spacing_m": 0.2,
+  "intent_obs_max": 2.0,
+  "intent_priority": 0,
+  "prev_action_obs": 1,
+  "lidar_frames": 3,
+  "lidar_stride_steps": 4,
+  "speed_cap_obs": 1,
+  "speed_cap_range": [
+   0.08,
+   0.16
+  ],
+  "critic_privileged": 1,
+  "collision_force": 1.0,
+  "w_progress": 1.0,
+  "w_time": -0.05,
+  "w_arrival": 10.0,
+  "w_collision": -10.0,
+  "w_action_rate": -0.05,
+  "w_w_flip": -0.5,
+  "flip_deadband": 0.02
+ },
+ "arena_spec": {
+  "layout": "v7",
+  "wall_height_m": 0.3,
+  "shelf_height_m": 0.3,
+  "env_spacing": 3.0,
+  "start_x": 0.3,
+  "start_y": 0.55,
+  "episode_s": 62.5,
+  "excluded_node_kinds": "parking",
+  "min_start_goal_m": 0.4,
+  "grid_m": 0.025,
+  "inscribed_m": 0.07,
+  "inflation_m": 0.15,
+  "cost_scaling": 15.0,
+  "lookahead_m": 0.4,
+  "follow_window": 20,
+  "obstacle_sizes": [
+   0.1,
+   0.15,
+   0.2
+  ],
+  "obstacle_height_m": 0.3,
+  "obstacle_max": 3,
+  "obstacle_layouts": 96,
+  "obstacle_on_path_prob": 0.7,
+  "obstacle_lateral_m": 0.08,
+  "obstacle_node_clear_m": 0.25,
+  "route_seed": 0,
+  "obstacle_demo_share": 0.5,
+  "obstacle_demo_counts": [
+   1,
+   2
+  ],
+  "obstacle_demo_aisle_prob": 0.7,
+  "obstacle_demo_aisle_min_m": 0.3,
+  "obstacle_demo_gap_m": [
+   0.13,
+   0.25
+  ],
+  "obstacle_demo_keep_path": 1,
+  "mover_prob": 0.75,
+  "mover_on_path_prob": 0.6,
+  "mover_leg_m": [
+   0.3,
+   0.8
+  ],
+  "mover_speed_scale": [
+   0.5,
+   1.5
+  ],
+  "mover_pause_s": [
+   0.0,
+   1.0
+  ],
+  "mover_node_clear_m": 0.25,
+  "mover_end_path_clear_m": 0.07,
+  "mover_yield_m": 0.15,
+  "mover_wait_s": 4.166666666666667,
+  "mover_noyield_prob": 0.0,
+  "mover_yield_mix": 1,
+  "mover_cross_prob": 0.5,
+  "mover_kinds": "",
+  "footprint_x": [
+   -0.0745,
+   0.0387
+  ],
+  "footprint_y": [
+   -0.047,
+   0.047
+  ],
+  "graze_m": 0.005,
+  "near_wall_m": 0.08,
+  "w_near_wall": -0.2,
+  "near_dyn_m": 0.0,
+  "w_near_dyn": 0.0,
+  "yield_m": 0.0,
+  "w_yield": 0.0,
+  "block_m": 0.0,
+  "w_block": 0.0,
+  "block_v_mps": 0.02,
+  "corner_start_prob": 0.25,
+  "corner_start_m": 0.17,
+  "corner_yaw_jitter": 0.6,
+  "handover_start_prob": 0.15,
+  "handover_nodes": "Q2,M_E,E-3",
+  "handover_normal_deg": 21.0,
+  "handover_normal_jitter_deg": 5.0,
+  "handover_normal_share": 0.5,
+  "handover_cut_deg": [
+   40.0,
+   160.0
+  ],
+  "handover_w": [
+   0.5,
+   1.0
+  ],
+  "robot_max": 2,
+  "robot_speed_scale": [
+   0.67,
+   1.0
+  ],
+  "robot_pause_s": [
+   0.0,
+   2.0
+  ],
+  "robot_routes": 12,
+  "robot_yield_m": 0.25,
+  "robot_wait_s": 6.25,
+  "robot_backoff_s": 4.166666666666667,
+  "robot_retreat": 1,
+  "robot_lock_m": 0.0,
+  "robot_reserve": 1,
+  "robot_reserve_m": 0.12,
+  "robot_release_m": 0.2,
+  "robot_priority_prob": 0.5,
+  "robot_headon": 0,
+  "robot_scenario": "",
+  "robot_cleaner_prob": 0.5,
+  "robot_min": 0,
+  "robot_cleaner_yield_m": 0.3,
+  "robot_cleaner_wait_s": 10.0,
+  "ghost_pairs": 0,
+  "ghost_headon_prob": 0.25,
+  "ghost_scenario_prob": 0.25,
+  "intent_ablate": 0
+ },
+ "agent": {
+  "seed": 3,
+  "device": "cuda:0",
+  "num_steps_per_env": 24,
+  "init_at_random_ep_len": true,
+  "max_iterations": 600,
+  "empirical_normalization": {},
+  "obs_groups": {
+   "actor": [
+    "policy"
+   ],
+   "critic": [
+    "policy",
+    "critic"
+   ]
+  },
+  "clip_actions": 1.0,
+  "check_for_nan": true,
+  "save_interval": 50,
+  "experiment_name": "pode_store_arena",
+  "run_name": "",
+  "logger": "tensorboard",
+  "neptune_project": "isaaclab",
+  "wandb_project": "isaaclab",
+  "resume": false,
+  "load_run": ".*",
+  "load_checkpoint": "model_.*.pt",
+  "class_name": "OnPolicyRunner",
+  "actor": {
+   "class_name": "MLPModel",
+   "hidden_dims": [
+    128,
+    128
+   ],
+   "activation": "elu",
+   "obs_normalization": true,
+   "distribution_cfg": {
+    "class_name": "GaussianDistribution",
+    "init_std": 0.5,
+    "std_type": "scalar",
+    "std_range": [
+     1e-06,
+     1000000.0
+    ]
+   }
+  },
+  "critic": {
+   "class_name": "MLPModel",
+   "hidden_dims": [
+    128,
+    128
+   ],
+   "activation": "elu",
+   "obs_normalization": true,
+   "distribution_cfg": null
+  },
+  "algorithm": {
+   "class_name": "PPO",
+   "num_learning_epochs": 5,
+   "num_mini_batches": 4,
+   "learning_rate": 0.001,
+   "schedule": "adaptive",
+   "gamma": 0.99,
+   "lam": 0.95,
+   "entropy_coef": 0.005,
+   "desired_kl": 0.01,
+   "max_grad_norm": 1.0,
+   "optimizer": "adam",
+   "value_loss_coef": 1.0,
+   "use_clipped_value_loss": true,
+   "clip_param": 0.2,
+   "normalize_advantage_per_mini_batch": false,
+   "share_cnn_encoders": false,
+   "use_mixed_precision": false,
+   "rnd_cfg": null,
+   "symmetry_cfg": null
+  },
+  "torch_compile_mode": null,
+  "policy": {}
+ },
+ "map": {
+  "layout": "v7",
+  "yaml": "pc/fleet_core/fleet_core/data/fleet_map_v7.yaml",
+  "yaml_sha256": "1e254a485c523af2f8a292edbb3a3c6cb84a9ed3f35086baee14e7b1b35fdcd1"
+ },
+ "git": {
+  "commit": "74e82c53245dd98f886736a9d29c763bef3d858d",
+  "branch": "HEAD",
+  "dirty": false
+ }
+}
