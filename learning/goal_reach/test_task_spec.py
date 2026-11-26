@@ -770,6 +770,18 @@ def test_closing_guard_with_a_wide_margin_stays_quiet_on_noisy_scans_of_a_static
     assert any(s[0] for s in _drive(guard(), poses, lambda i: ((ROOM, BOX), ())))
 
 
+def test_closing_guard_rejects_a_neighbour_count_or_spread_wider_than_the_scan():
+    at0, yaw0, fwd = torch.zeros(1, 2), torch.zeros(1), torch.tensor([[0.12, 0.3]])
+    for kw in ({"min_rays": 361}, {"spread_deg": 180.0}):
+        guard = ts.ClosingGuard(0.05, 0.26, 60.0, **kw)
+        for _ in range(2):  # 다시 불러도 같은 말로 거절한다
+            with pytest.raises(ValueError, match="wider than a scan"):
+                guard.step(fwd, _ramp_scan(0.30), at0, yaw0)
+    # 스캔 크기 안의 가장 큰 값은 돈다
+    wide = ts.ClosingGuard(0.05, 0.26, 60.0, min_rays=360, spread_deg=179.0)
+    assert not wide.step(fwd, _ramp_scan(0.30), at0, yaw0)[1].item()
+
+
 def test_parse_closing_tune_reads_named_values_and_rejects_the_rest():
     assert ts.parse_closing_tune("") == {}
     text = "lookback_s=1.0,spread_deg=4,closing_mps=0.08,hold_s=0.5,noise_m=0.02,min_rays=2"

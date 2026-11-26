@@ -443,6 +443,12 @@ class ClosingGuard:
 
     def _allocate(self, rays: torch.Tensor) -> None:
         n, n_rays = rays.shape
+        # 이웃 창이나 나란한 레이 수가 스캔보다 넓으면 판정할 수 없다
+        if 2 * round(self.spread_deg * n_rays / 360.0) + 1 > n_rays or self.min_rays > n_rays:
+            raise ValueError(
+                f"closing stop: spread_deg {self.spread_deg} or min_rays {self.min_rays} is wider "
+                f"than a scan of {n_rays} rays"
+            )
         dev, slots = rays.device, self.back + 1
         self.scans = torch.zeros(slots, n, n_rays, device=dev)
         self.origins = torch.zeros(slots, n, 2, device=dev)
