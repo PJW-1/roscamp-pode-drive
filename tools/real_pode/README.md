@@ -107,6 +107,18 @@ Nav2 goal을 모는 컨트롤러(FollowPathGoal)의 속도는 `nav2_params.yaml`
 - `RL_POLICY=<정책> start.sh ...`: `make_params.py --rl-policy <정책>`이 `params/nav2_params.yaml`에 `FollowPathRL`(RotationShim으로 감싼 정책)과
   `FollowPathRLAlone`(감싸지 않은 정책)을 더한다. 값은 모두 시뮬 파일 `follow_path_rl.yaml`에서 가져오고 `policy`만 바꾼다.
   정책 이름이 틀리거나 폴더에 `policy.onnx`, `policy_spec.json`이 없으면 아무것도 띄우지 않는다. Nav2 `log_level`은 info로 올라간다(시간 로그가 INFO라서. Nav2 노드 전체가 올라가 기록이 늘어난다).
+- `RL_POLICY=<정책> RL_SCAN_MASK="lo,hi,lo,hi,..." start.sh ...`: RL 정책이 보는
+  scan에서 이 각도의 빔을 "반환 없음"으로 바꾼다
+  (트레이 기둥처럼 로봇이 자기 몸을 보는 각).
+  `make_params.py --rl-scan-mask`가 RL 블록 둘의 `policy` 줄 다음에
+  `scan_mask_deg: [140.0, 147.0, ...]`를 더한다.
+  기본은 꺼짐이다(비면 params가 예전과 같다).
+  값은 쉼표로 나눈 도 단위 쌍이다
+  (base 기준, 쌍마다 `-180 <= lo < hi <= 180`, 180을 넘는 구간은 둘로 나눈다).
+  틀린 값이거나 `RL_POLICY` 없이 주면 아무것도 띄우지 않는다.
+  `NO_MOTION=1`과는 같이 받지 않는다.
+  값을 넣기 전에 `docs/worklog_rl_tracks_2026-11-26.md` 29절과 31절을 읽는다
+  (넓게 가리면 정책이 크게 나빠진 Isaac 평가 결과가 있다).
 - 쓰는 controller는 그대로 FollowPathGoal(RPP)이다. `controller_selector`에 이름을 보낸 뒤의 Nav2 goal(navigate_to_pose)만 RL로 간다. 고정 경로(pode_fsm의 FollowPath 등)는 늘 RPP다.
 - RL controller는 start.sh의 SPEED를 따르지 않는다. 정책의 v_max(0.12 m/s, `nav_speed.yaml`보다 커질 수 없음)까지 낸다. SPEED를 0.12보다 낮게 주면 make_params.py가 WARNING을 찍는다.
 

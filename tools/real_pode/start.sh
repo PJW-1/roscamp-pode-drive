@@ -6,6 +6,7 @@
 # 고정 경로 충돌 검사는 기본 꺼짐(시뮬과 같다). 켜 두려면 FIXED_LINE_CHECK=1 start.sh ...
 # Nav2 goal 길 유지 노드(해결안 A)는 기본 켬. 끄려면 PLAN_KEEP=0 start.sh ...
 # RL 정책 controller를 더하려면 RL_POLICY=store_arena_acd3 start.sh ...  (쓰는 controller는 그대로 RPP, log_level info)
+# RL scan 가림 각(도, base 기준 lo,hi 쌍): RL_POLICY=... RL_SCAN_MASK="140,147" start.sh ...
 # 동작 없음(설계 4.5)은 NO_MOTION=1 start.sh pode2 [X Y YAW]: pode_fsm만 띄우고 주행하지 않는다.
 #   자세를 안 주면 로봇별 주차 자리(v7 P-1~P-3)를 쓴다. stop.sh로 내린다.
 cd "$(dirname "$(readlink -f "$0")")" || exit 1
@@ -22,6 +23,8 @@ if [ -n "$nomo" ]; then
   # 실주행 선택은 함께 받지 않는다(PEER_ROBOTS는 비어야, 나머지는 비었거나 0이어야 한다)
   [ -z "${PEER_ROBOTS:-}" ] || { echo "NO_MOTION=1 does not take PEER_ROBOTS (no Nav2, no wheels)"; exit 2; }
   [ -z "${RL_POLICY:-}" ] || { echo "NO_MOTION=1 does not take RL_POLICY (no Nav2, no wheels)"; exit 2; }
+  [ -z "${RL_SCAN_MASK:-}" ] ||
+    { echo "NO_MOTION=1 does not take RL_SCAN_MASK (no Nav2, no wheels)"; exit 2; }
   for v in DOCK_STUB FIXED_LINE_CHECK PLAN_KEEP; do
     case ${!v:-} in ''|0) ;; *) echo "NO_MOTION=1 does not take $v (no Nav2, no wheels)"; exit 2 ;; esac
   done
@@ -73,6 +76,11 @@ esac
 rlp=${RL_POLICY:-}
 rl=()
 [ -z "$rlp" ] || rl=(--rl-policy "$rlp")
+# RL_SCAN_MASK는 RL 블록 둘의 scan 가림 각이다(값 검사는 make_params.py).
+# 비면 끔. RL_POLICY가 있어야 한다
+rlm=${RL_SCAN_MASK:-}
+[ -z "$rlm" ] || [ -n "$rlp" ] || { echo "RL_SCAN_MASK needs RL_POLICY"; exit 2; }
+[ -z "$rlm" ] || rl+=(--rl-scan-mask "$rlm")
 mkdir -p logs || exit 1
 # 동시에 두 번 시작하지 않게 잠근다(pid 파일이 써질 때까지 쥔다)
 exec 9> logs/start.lock || exit 1

@@ -7,6 +7,8 @@
 고정 경로 컨트롤러 셋의 충돌 검사는 기본으로 끈다(--fixed-line-check로 켬).
 --rl-policy NAME을 주면 RL controller 둘(FollowPathRL, FollowPathRLAlone)을 더한다.
 값은 시뮬 sim/fleet_gz_sim/nav_overrides/follow_path_rl.yaml에서 그대로 가져오고 policy만 NAME으로 바꾼다.
+--rl-scan-mask "lo,hi,..."를 함께 주면 두 블록의 policy 줄 다음에
+scan_mask_deg 한 줄씩을 더한다.
 """
 import argparse
 import copy
@@ -14,6 +16,7 @@ import json
 import math
 import re
 import sys
+from decimal import Decimal
 from pathlib import Path
 
 import yaml
@@ -39,6 +42,8 @@ POLICIES_REL = Path("pode") / "pode_rl_controller" / "policies"
 RL_NAMES = ("FollowPathRL", "FollowPathRLAlone")
 CTL = ("controller_server", "ros__parameters")
 POLICY_NAME = re.compile(r"^[A-Za-z0-9_]+$")
+# scan 가림 각의 한 항목: 부호, 소수, 지수만 받는다(nan, inf, 1_0은 거절)
+MASK_NUMBER = re.compile(r"^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$")
 
 
 def find_source(rel: Path, given=None) -> Path:
@@ -154,8 +159,44 @@ def checked_policy(name, policies_dir=None) -> str:
     return name
 
 
-def _rl_blocks(rl_src: Path, policy: str) -> tuple:
-    """시뮬 파일에서 RL controller 두 블록의 줄을 꺼내 policy만 바꾼다. (줄 문자열, 기대 dict)."""
+def checked_scan_mask(text) -> list:
+    """scan 가림 각 "lo,hi,lo,hi,..."(도)를 확인해 float 목록으로 돌려준다.
+
+    규칙은 플러그인 parse_scan_mask와 같다: 짝수 개, 모두 유한,
+    쌍마다 -180 <= lo < hi <= 180.
+    여기서는 빈 목록도 거절한다(가리지 않으려면 옵션을 주지 않는다).
+    """
+    items = str(text).split(",")
+    if not all(MASK_NUMBER.match(item.strip()) for item in items):
+        raise ValueError(f"rl scan mask must be comma-separated numbers in degrees, got {text!r}")
+    values = [float(item) for item in items]
+    if len(values) % 2:
+        raise ValueError(f"rl scan mask must list pairs lo,hi,lo,hi,... in degrees, "
+                         f"got {len(values)} numbers")
+    for i in range(0, len(values), 2):
+        lo, hi = values[i], values[i + 1]
+        if not (math.isfinite(lo) and math.isfinite(hi) and -180.0 <= lo < hi <= 180.0):
+            raise ValueError(f"rl scan mask range {i // 2} [{items[i].strip()}, "
+                             f"{items[i + 1].strip()}] must satisfy -180 <= lo < hi <= 180 "
+                             f"(split a range across 180 into two)")
+    return values
+
+
+def _mask_text(values) -> str:
+    """YAML이 double 배열로 읽게 늘 소수점을 붙여 적는다(지수 표기 없이)."""
+    shown = []
+    for value in values:
+        out = format(Decimal(repr(value)), "f")
+        shown.append(out if "." in out else out + ".0")
+    return "[" + ", ".join(shown) + "]"
+
+
+def _rl_blocks(rl_src: Path, policy: str, scan_mask=None) -> tuple:
+    """시뮬 파일에서 RL controller 두 블록의 줄을 꺼내 policy만 바꾼다. (줄 문자열, 기대 dict).
+
+    scan_mask가 있으면 policy 줄마다 바로 다음에 같은 들여쓰기로
+    scan_mask_deg 줄을 넣는다.
+    """
     text = rl_src.read_text(encoding="utf-8")
     data = yaml.safe_load(text)
     ctl = data[CTL[0]][CTL[1]]
@@ -176,19 +217,27 @@ def _rl_blocks(rl_src: Path, policy: str) -> tuple:
     for i, line in enumerate(block):
         new, n = re.subn(r'^(\s+policy:\s*)"[^"]*"', rf'\g<1>"{policy}"', line)
         block[i], hits = new, hits + n
+        if n and scan_mask is not None:
+            indent = line[:len(line) - len(line.lstrip())]
+            block[i] += (f"{indent}scan_mask_deg: {_mask_text(scan_mask)}"
+                         f"  # make_params.py --rl-scan-mask\n")
     if hits != len(RL_NAMES):
         raise RuntimeError(f"{rl_src}: expected {len(RL_NAMES)} quoted policy lines, found {hits}")
     want = {name: copy.deepcopy(ctl[name]) for name in RL_NAMES}
     for name in RL_NAMES:
         want[name]["policy"] = policy
+        if scan_mask is not None:
+            if "scan_mask_deg" in want[name]:
+                raise RuntimeError(f"{rl_src}: {name} already has scan_mask_deg")
+            want[name]["scan_mask_deg"] = list(scan_mask)
     if not block[-1].endswith("\n"):
         block[-1] += "\n"
     return "".join(block), want
 
 
-def with_rl(text: str, policy: str, rl_src: Path) -> str:
+def with_rl(text: str, policy: str, rl_src: Path, scan_mask=None) -> str:
     """실물 사본에 RL controller 둘을 더한다. 다른 줄은 그대로 둔다."""
-    blocks, want_blocks = _rl_blocks(rl_src, policy)
+    blocks, want_blocks = _rl_blocks(rl_src, policy, scan_mask)
     base = yaml.safe_load(text)
     plugins = base[CTL[0]][CTL[1]]["controller_plugins"]
     if "FollowPathMPPI" in plugins or any(name in base[CTL[0]][CTL[1]] for name in RL_NAMES):
@@ -210,13 +259,20 @@ def with_rl(text: str, policy: str, rl_src: Path) -> str:
 
 
 def write_params(speed, out_dir, nav2_src=None, avoid_src=None, fixed_line_check=False,
-                 rl_policy=None, rl_src=None, policies_dir=None) -> tuple:
+                 rl_policy=None, rl_src=None, policies_dir=None, rl_scan_mask=None) -> tuple:
     """두 사본을 out_dir에 쓴다. 확인을 모두 통과해야 쓴다."""
     value = checked_speed(speed)
+    # scan 가림은 RL 블록에만 들어가므로 정책 없이는 받지 않는다
+    mask = None
+    if rl_scan_mask is not None:
+        if rl_policy is None:
+            raise ValueError("--rl-scan-mask needs --rl-policy (it only goes into the RL blocks)")
+        mask = checked_scan_mask(rl_scan_mask)
     nav2 = _converted(find_source(NAV2_REL, nav2_src), NAV2_TARGETS, value, COLLISION_TARGETS,
                       bool(fixed_line_check))
     if rl_policy is not None:
-        nav2 = with_rl(nav2, checked_policy(rl_policy, policies_dir), find_source(RL_REL, rl_src))
+        nav2 = with_rl(nav2, checked_policy(rl_policy, policies_dir), find_source(RL_REL, rl_src),
+                       mask)
     avoid = _converted(find_source(AVOID_REL, avoid_src), AVOID_TARGETS, value)
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -265,10 +321,21 @@ def main(argv=None) -> int:
     parser.add_argument("--rl-policy", metavar="NAME",
                         help="RL controller 둘(FollowPathRL, FollowPathRLAlone)을 이 정책으로 더한다"
                              "(기본: 더하지 않음). 쓰는 controller는 그대로 FollowPathGoal")
+    parser.add_argument("--rl-scan-mask", metavar="LO,HI,...",
+                        help="RL 블록 둘의 scan_mask_deg 가림 각(도, base 기준, "
+                             "-180 <= lo < hi <= 180 쌍). --rl-policy가 있어야 한다"
+                             "(기본: 없음)")
+    # 가림 각 값은 -로 시작할 수 있어 argparse가 옵션으로 읽지 않게 "옵션=값" 한 낱말로 붙인다
+    argv = list(sys.argv[1:] if argv is None else argv)
+    for i in range(len(argv) - 1):
+        if argv[i] == "--rl-scan-mask":
+            argv[i:i + 2] = [f"--rl-scan-mask={argv[i + 1]}"]
+            break
     args = parser.parse_args(argv)
     try:
         nav2, avoid = write_params(args.speed, args.out, args.nav2_src, args.avoidance_src,
-                                  args.fixed_line_check, args.rl_policy)
+                                  args.fixed_line_check, args.rl_policy,
+                                  rl_scan_mask=args.rl_scan_mask)
     except (ValueError, FileNotFoundError, RuntimeError) as problem:
         print(f"make_params: {problem}", file=sys.stderr)
         return 2
@@ -280,6 +347,9 @@ def main(argv=None) -> int:
         if checked_speed(args.speed) < MAX_SPEED:
             print(f"make_params: WARNING rl controllers ignore --speed and drive up to the "
                   f"policy v_max (at most {MAX_SPEED} m/s)")
+    if args.rl_scan_mask is not None:
+        mask = checked_scan_mask(args.rl_scan_mask)
+        print(f"make_params: rl scan mask {len(mask) // 2} ranges: {_mask_text(mask)}")
     return 0
 
 
