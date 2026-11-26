@@ -828,6 +828,25 @@ Gazebo 아홉째 묶음 (후보가 있을 때): acd3와 후보를 `i_cross`(틈�
   5판으로는 판정하지 않는다.
 - 5판씩이라 약한 판정이다. 실물에 올릴 후보로 볼지는 사용자가 정한다.
 
+후보 고르기 (12:02, demo1만으로 먼저 골랐다. 세 정책의 demo1은 나왔고 rand는 t_demo만 나왔다. Gazebo 아홉째 묶음은
+아직 한 판도 끝나지 않았다):
+
+| 정책 | demo1 성공 % | acd3와의 짝 차이 %p (SE) | demo1 조건 | rand 성공 % (acd3와의 짝 차이, SE) |
+|---|---|---|---|---|
+| acd3 | 43.65 | | | 76.32 |
+| t_demo | 41.65 | -2.00 (0.45) | 채우지 못했다(2 SE 넘게 낮다) | 75.02 (-1.29, 0.37: 2 SE 넘게 낮다) |
+| t_demo_std | 51.25 | +7.59 (0.66) | 채웠다 | (아직) |
+| t_demo_hist | 52.81 | +9.16 (0.68) | 채웠다 | (아직) |
+
+- demo1 조건을 채운 것은 t_demo_std와 t_demo_hist다. demo1 성공이 가장 높은 것은 t_demo_hist다. 둘째(t_demo_std)와의 짝
+  차이는 +1.56 %p(SE 0.56)로 2 SE 밖이므로, 미리 적은 규칙대로 **t_demo_hist 하나만** Gazebo에 올린다
+  (`store_arena_demohist`, 관측 116칸, controller 이름 `FollowPathRLShimDemoHist`).
+- t_demo는 두 조건 모두 채우지 못했다. 내보낸 `store_arena_demo`는 저장소에 넣지 않는다.
+- rand 조건은 `e_demostd_rand`와 `e_demohist_rand`가 나오면 다시 확인해 아래에 적는다.
+- 묶음은 12:02에 우선 큐로 올렸다. 덧빌드는 ae2986ba다(102d929e에 시뮬 시험용 인자 `keepout_mask_file`만 더한 것이고,
+  이 묶음은 그 인자를 주지 않는다). 벤치 덮어쓰기는 `gz_overrides.yaml`의 `FollowPathRLShimACD3` 블록을 베껴 policy만
+  바꾼 것이다.
+
 결과: (채움)
 
 ## 14. Gazebo 열째 묶음: 통로 가두기 (계획, 09:57)

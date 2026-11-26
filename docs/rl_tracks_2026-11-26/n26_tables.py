@@ -41,7 +41,7 @@ BASE_PAIRS = [("std", "ctrl"), ("ctrl", "acd3"), ("sysid", "ctrl"), ("dyn", "ctr
 # 데모 조건 칸과 데모 섞어 학습한 정책 (demo의 대조는 ctrl, demostd의 대조는 std)
 DEMO_CELLS = ("aisle", "demo1", "demo2")
 DEMO_PAIRS = [("demo", "ctrl"), ("demo", "acd3"), ("demostd", "std"), ("demostd", "demo"),
-              ("ctrl", "acd3"), ("std", "acd3"), ("std", "ctrl")]
+              ("demostd", "acd3"), ("ctrl", "acd3"), ("std", "acd3"), ("std", "ctrl")]
 DEMO_RAND_PAIRS = [("demo", "ctrl"), ("demostd", "std"), ("demostd", "demo"), ("demo", "acd3"),
                    ("demostd", "acd3")]
 # 부드러움을 손실로 건 정책 (caps의 대조는 ctrl, capsstd의 대조는 std)
