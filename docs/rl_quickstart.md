@@ -73,11 +73,12 @@ ros2 topic pub --times 3 --rate 2 --keep-alive 1 --qos-durability transient_loca
 
 통로 안 회피 시연 시나리오(로봇 한 대, `feat/rl-tracks-2026-11-26`에만 있다)는 아래처럼 다시 돌린다. 시나리오는
 `docs/rl_tracks_2026-11-26/gz_demo.yaml`에 있다: `f_cart`(통로 카트 하나), `g_demo`(카트 둘과 틈을 오가는 사람), `h_block`(통로
-막힘), `j_cross`·`k_cross`(로봇 앞을 건너는 사람).
+막힘), `j_cross`·`k_cross`(로봇 앞을 쉬지 않고 오가며 건너는 사람), `l_once`·`m_once`(로봇 앞을 한 번만 건너는 사람).
 
 ```bash
 # acd3와 demohist를 시나리오마다 5판씩. aisle_first:=true는 "통로 먼저, 막히면 우회"(시뮬 전용 시제품)다
-BENCH_LOCK= BENCH_DOMAIN=72 BENCH_REPEATS=5 BENCH_LAUNCH_ARGS="aisle_first:=true" \
+# plan_keep:=false는 길 유지(keeper)를 끈다: 작업 기록의 열두째 묶음까지는 모두 keeper가 꺼진 채로 돌았다
+BENCH_LOCK= BENCH_DOMAIN=72 BENCH_REPEATS=5 BENCH_LAUNCH_ARGS="aisle_first:=true plan_keep:=false" \
 BENCH_CONFIG=$PWD/docs/rl_tracks_2026-11-26/gz_demo.yaml \
 BENCH_OVERRIDES=$PWD/docs/rl_tracks_2026-11-26/results/gz_demo_cand/overrides.yaml \
 BENCH_CONTROLLERS="FollowPathRLShimACD3 FollowPathRLShimDemoHist" \
@@ -88,6 +89,13 @@ python3 tools/nav_bench/report.py --config docs/rl_tracks_2026-11-26/gz_demo.yam
 - `BENCH_LOCK=`(빈 값)은 학습 PC의 무거운 작업 잠금을 쓰지 않게 한다. 도메인은 43~101만 받는다.
 - 판별 결과는 `~/rl_demo_out/report/legs.csv`(성공, 통로 안인지, 몸 여유 최솟값)다. 지금까지의 결과와 읽는 법은
   `docs/worklog_rl_tracks_2026-11-26.md` 8d, 13, 13b, 13c절에 있다. 건너는 사람(`j_cross`, `k_cross`)은 두 정책 모두 닿는다.
+- 길 유지(`plan_keep`)는 main 441aaf93부터 기본으로 켜진다. 이 브랜치도 그 main을 merge했으므로 `plan_keep:=false`를 주지
+  않으면 keeper가 켜진 채로 돈다. 후보 정책을 keeper와 같이 돌린 결과는 작업 기록 28절에 있다.
+- 플러그인의 다가옴 막기 옵션(`closing_stop_range`, 기본 꺼짐. `pode/pode_rl_controller/README.md`)은 여기에 켜는 법을 적지
+  않는다: `j_cross`, `k_cross`에서 켜고 돌린 10판 가운데 사람과 닿지 않고 도착한 판이 없었다(첫 건넘에서는 섰지만 그 뒤에
+  닿았고, 도착 시간은 1.8~3.7배였다. 작업 기록 26절). 한 번만 건너는 사람(`l_once`, `m_once`)의 결과는 30절에 있다.
+- 플러그인의 1초 로그 줄(추론 시간, 다가옴 막기가 막은 주기 수)은 INFO다. 시뮬 launch의 Nav2 로그 수준은 기본이 warn이라
+  보려면 `BENCH_LAUNCH_ARGS`에 `nav_log_level:=info`를 더한다.
 
 ## 4. 실물에서 달려 보기
 

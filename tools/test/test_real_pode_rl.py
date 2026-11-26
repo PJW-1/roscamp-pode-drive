@@ -327,7 +327,7 @@ def test_start_default_passes_no_rl(tmp_path, extra):
     assert run.returncode == 0, run.stdout + run.stderr
     assert mp_args == ["--speed", "0.12", "--out", "params"]
     assert ros_args == ["launch", "./real_pode.launch.py", "namespace:=pode1", "initial_x:=0.12",
-                        "initial_y:=0.10", "initial_yaw:=1.5708", ""]
+                        "initial_y:=0.10", "initial_yaw:=1.5708", "plan_keep:=true", ""]
     assert "rl policy" not in run.stdout
 
 
