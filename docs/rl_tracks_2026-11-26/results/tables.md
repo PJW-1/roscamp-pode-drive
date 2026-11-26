@@ -1,6 +1,6 @@
 # n26 표
 
-실행 폴더 `D:/isaac/runs/store_arena/n26`, 끝난 실행(exit=0): c_clean, c_cross, c_demo_box, e_acd3_aisle, e_acd3_aislet, e_acd3_demo1, e_acd3_demo1c08, e_acd3_demo1t, e_acd3_demo2, e_acd3_head, e_acd3_rand, e_acd3_rand_chk2, e_ctrl_aisle, e_ctrl_demo1, e_ctrl_demo2, e_ctrl_rand, e_demo_aisle, e_demo_demo1, e_demo_demo2, e_demo_head, e_demo_rand, e_demohist2_aisle, e_demohist2_demo1, e_demohist2_demo2, e_demohist2_rand, e_demohist2m_demo1, e_demohist_aisle, e_demohist_aislet, e_demohist_demo1, e_demohist_demo1c08, e_demohist_demo1t, e_demohist_demo2, e_demohist_head, e_demohist_rand, e_demostd_aisle, e_demostd_demo1, e_demostd_demo2, e_demostd_head, e_demostd_rand, e_histstd_aisle, e_histstd_demo1, e_histstd_demo2, e_histstd_head, e_histstd_rand, e_std_aisle, e_std_aislet, e_std_demo1, e_std_demo1c08, e_std_demo1t, e_std_demo2, e_std_head, e_std_rand, smoke_b4, smoke_demo, smoke_hist, smoke_hstd, smoke_resume, smoke_std, smoke_sysid, t_ctrl, t_demo, t_demo_hist, t_demo_hist2, t_demo_std, t_dyn, t_hist_std, t_std
+실행 폴더 `D:/isaac/runs/store_arena/n26`, 끝난 실행(exit=0): c_clean, c_cross, c_demo_box, e_acd3_aisle, e_acd3_aislet, e_acd3_demo1, e_acd3_demo1c08, e_acd3_demo1t, e_acd3_demo2, e_acd3_head, e_acd3_rand, e_acd3_rand_chk2, e_ctrl_aisle, e_ctrl_demo1, e_ctrl_demo2, e_ctrl_rand, e_demo_aisle, e_demo_demo1, e_demo_demo2, e_demo_head, e_demo_rand, e_demohist2_aisle, e_demohist2_demo1, e_demohist2_demo2, e_demohist2_head, e_demohist2_rand, e_demohist2m_demo1, e_demohist_aisle, e_demohist_aislet, e_demohist_demo1, e_demohist_demo1c08, e_demohist_demo1t, e_demohist_demo2, e_demohist_head, e_demohist_rand, e_demostd_aisle, e_demostd_demo1, e_demostd_demo2, e_demostd_head, e_demostd_rand, e_histstd_aisle, e_histstd_demo1, e_histstd_demo2, e_histstd_head, e_histstd_rand, e_std_aisle, e_std_aislet, e_std_demo1, e_std_demo1c08, e_std_demo1t, e_std_demo2, e_std_head, e_std_rand, smoke_b4, smoke_demo, smoke_hist, smoke_hstd, smoke_resume, smoke_std, smoke_sysid, t_ctrl, t_demo, t_demo_hist, t_demo_hist2, t_demo_std, t_dyn, t_hist_std, t_std
 
 ## 1. 평가 칸
 
@@ -36,6 +36,7 @@
 | demohist2 | aisle | 4096 | 73.95 | 23.56 | 2.49 | 135 | 830 | 0 | 0 | 876 | 45.22 | 1.2 |
 | demohist2 | demo1 | 4096 | 54.27 | 44.34 | 1.39 | 227 | 737 | 361 | 491 | 1711 | 39.66 | 1.275 |
 | demohist2 | demo2 | 4096 | 50.05 | 48.44 | 1.51 | 351 | 821 | 326 | 486 | 1857 | 38.24 | 1.287 |
+| demohist2 | head | 4096 | 49.27 | 50.71 | 0.02 | 156 | 29 | 403 | 1489 | 1891 | 44.0 | 1.242 |
 | demohist2 | rand | 4096 | 78.54 | 21.44 | 0.02 | 68 | 25 | 410 | 375 | 826 | 48.22 | 1.124 |
 | demohist2m | demo1 | 4096 | 54.76 | 44.29 | 0.95 | 221 | 746 | 348 | 499 | 1673 | 40.39 | 1.278 |
 | demostd | aisle | 4096 | 70.41 | 28.17 | 1.42 | 100 | 1054 | 0 | 0 | 977 | 43.59 | 1.223 |
@@ -283,6 +284,7 @@
 | demohist2 | aisle | 2792 | 61.93 | 0.9189 | 0 |  | 691 | 6.08 | 757 | 57.07 | 751 | 90.55 | 593 | 96.96 | 0 |  |
 | demohist2 | demo1 | 2792 | 39.04 | 0.9233 | 0 |  | 691 | 4.49 | 757 | 38.18 | 751 | 56.86 | 593 | 57.84 | 0 |  |
 | demohist2 | demo2 | 2792 | 32.7 | 0.8878 | 0 |  | 664 | 5.27 | 752 | 34.57 | 801 | 44.44 | 575 | 45.57 | 0 |  |
+| demohist2 | head | 49 | 34.69 | 6.7998 | 0 |  | 5 | 0.0 | 21 | 38.1 | 12 | 58.33 | 11 | 18.18 | 0 |  |
 | demohist2 | rand | 49 | 69.39 | 6.5839 | 0 |  | 5 | 20.0 | 21 | 80.95 | 12 | 75.0 | 11 | 63.64 | 0 |  |
 | demohist2m | demo1 | 2792 | 39.4 | 0.9248 | 0 |  | 691 | 3.62 | 757 | 38.97 | 751 | 57.39 | 593 | 58.85 | 0 |  |
 | demostd | aisle | 2792 | 56.59 | 0.938 | 0 |  | 691 | 4.2 | 757 | 41.74 | 751 | 86.15 | 593 | 99.16 | 0 |  |
@@ -690,6 +692,7 @@ eval.json의 by_crossing: 나온 사람의 건넘 구간이 전역 경로를 덮
 | demohist2 | aisle | 0 |  |  |  | 0 |  |  |  | 4096 | 73.95 | 23.56 | 2.49 |  |  |  |
 | demohist2 | demo1 | 2122 | 35.77 | 62.49 | 1.74 | 1140 | 88.42 | 11.58 | 0.0 | 834 | 54.68 | 42.93 | 2.4 | 50.91 | 1.4152 | outside |
 | demohist2 | demo2 | 2017 | 29.25 | 68.96 | 1.78 | 1009 | 88.31 | 11.69 | 0.0 | 1070 | 53.18 | 44.39 | 2.43 | 57.27 | 1.4437 | outside |
+| demohist2 | head | 0 |  |  |  | 0 |  |  |  | 4096 | 49.27 | 50.71 | 0.02 |  |  |  |
 | demohist2 | rand | 0 |  |  |  | 0 |  |  |  | 4096 | 78.54 | 21.44 | 0.02 |  |  |  |
 | demohist2m | demo1 | 2122 | 36.43 | 62.25 | 1.32 | 1140 | 89.3 | 10.7 | 0.0 | 834 | 54.2 | 44.48 | 1.32 | 51.55 | 1.3948 | outside |
 | demostd | aisle | 0 |  |  |  | 0 |  |  |  | 4096 | 70.41 | 28.17 | 1.42 |  |  |  |
