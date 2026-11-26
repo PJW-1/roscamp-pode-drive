@@ -59,6 +59,9 @@ DYN_PAIRS = [("demohistdyn", "demohist"), ("demohistdyn", "acd3")]
 LONG_PAIRS = [("demohist2", "demohist"), ("demostd2", "demostd"), ("demohist2", "demostd2"),
               ("demohist2", "acd3"), ("demostd2", "acd3"), ("demohist2m", "demohist"),
               ("demostd2m", "demostd"), ("demohist2m", "acd3"), ("demostd2m", "acd3")]
+# demo1에서 속도 상한만 0.08로 낮춘 평가 (대조는 같은 정책의 상한 0.12. 상한이 한 값이면 난수를 쓰지 않아 같은 에피소드다)
+CAP_POLICIES = ("acd3", "std", "demohist")
+CAP_PAIRS = [("std", "acd3"), ("demohist", "acd3"), ("demohist", "std")]
 COMPARISONS = (
     [(a, c, b, c) for c in ("rand", "head") for a, b in BASE_PAIRS]
     + [("sysid", "realrand", "ctrl", "realrand"), ("ctrl", "realrand", "acd3", "realrand")]
@@ -72,6 +75,8 @@ COMPARISONS = (
     + [(a, c, b, c) for c in ("demo1", "demo2", "aisle", "rand", "head") for a, b in FACT_PAIRS]
     + [(a, c, b, c) for c in ("demo1", "demo2", "aisle", "rand") for a, b in LONG_PAIRS]
     + [(a, c, b, c) for c in ("demo1", "demo2", "aisle", "rand") for a, b in DYN_PAIRS]
+    + [(p, "demo1c08", p, "demo1") for p in CAP_POLICIES]
+    + [(a, "demo1c08", b, "demo1c08") for a, b in CAP_PAIRS]
 )
 # (기준, 다시 돌린 것): 같은 체크포인트·같은 seed를 병합 코드로 다시 돌린 칸
 REGRESSION = (("e_acd3_rand", "e_acd3_rand_chk"), ("e_acd3_rand", "e_acd3_rand_chk2"))
