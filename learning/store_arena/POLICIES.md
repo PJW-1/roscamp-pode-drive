@@ -133,6 +133,9 @@ d = 에피소드마다 최고 속도 U(0.08, 0.16)와 그 관측(RW:12-15). 최�
 | t_caps_std (`n26/t_caps_std`) | 11-26 | 같음 c6a6bd02 | 같음 | 300 / (진행) | 3 | 같음 | t_caps + `--init_std 0.3` | a+c+d(부드러움 벌점 없음) | 위 + 탐색 std를 0.3으로 되돌려 시작 | 44 | (진행) | 없음 | 진행 | 작업 기록 10절 |
 | t_sym (`n26/t_sym`) | 11-26 | 같음 3e770458 | 같음 | 300 / (진행) | 3 | 같음 | `--symmetry aug` | a+c+d | 좌우 거울 증강(표본마다 거울 사본을 붙여 학습) | 44 | (진행) | 없음 | 진행 | 작업 기록 11절, `docs/report_2026-11-26_rl_symmetry.md` |
 | t_demo_hist (`n26/t_demo_hist`) | 11-26 | 같음 51b51d39 | `n26/init_acd3_hist3.pt` (acd3에 `widen_checkpoint.py --add_lidar_history`) | 300 / (진행) | 3 | 같음 | t_demo_std 설정 + `lidar_frames=3 lidar_stride_steps=4` | a+b+c+d | 라이다 이력 + std 0.3 + 시연 조건 절반 | 116 | (진행) | 없음 | 진행 | 작업 기록 12절 |
+| t_demo_hist2 (`n26/t_demo_hist2`) | 11-26 | 같음 74e82c53 | `n26/t_demo_hist/model_2044.pt` (`--resume`) | 600 / (진행) | 3 | 같음 | t_demo_hist와 같다(이어 학습이라 `--init`, `--init_std` 없음) | a+b+c+d | 없음(같은 설정으로 600번 더) | 116 | (진행) | 없음 | 진행 | 작업 기록 15절 |
+| t_demo_std2 (`n26/t_demo_std2`) | 11-26 | 같음 74e82c53 | `n26/t_demo_std` 마지막 모델 (`--resume`) | 600 / (진행) | 3 | 같음 | t_demo_std와 같다(이어 학습) | a+c+d | 없음(같은 설정으로 600번 더) | 44 | (진행) | 없음 | 진행 | 작업 기록 15절 |
+| t_demo_hist_dyn (`n26/t_demo_hist_dyn`) | 11-26 | 같음 e9e19c69 | `n26/init_acd3_hist3.pt` (t_demo_hist와 같다) | 300 / (진행) | 3 | 같음 | t_demo_hist 설정 + `near_dyn_m=0.10 w_near_dyn=-1.0` | a+b+c+d | 위 + 움직이는 것(사람, 움직이는 카트, 로봇) 0.10 m 안 벌점 | 116 | (진행) | 없음 | 진행 | 작업 기록 16절 |
 
 평가(모두 `--num_envs 4096 --episodes 1 --seed 7`, a+c+d 관측, `robot_max=2 robot_priority_prob=0.5 speed_cap_range=0.12,0.12`).
 칸 이름: rand(무작위), head(`robot_headon=1`), realrand(실측 명령 응답 고정: `cmd_delay_steps_range=1,1 cmd_lag_tau_range=0.065,0.065`),
