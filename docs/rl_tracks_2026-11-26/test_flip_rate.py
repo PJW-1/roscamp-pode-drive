@@ -87,3 +87,16 @@ def test_runs_of_different_sizes_are_compared_unpaired(tmp_path, monkeypatch):
     monkeypatch.setattr(fr.nt, "check_same", lambda x, y: ("", 16))
     r, why = fr.compare_runs(a, b, n_boot=100)
     assert r["kind"] == "unpaired" and "not the same episodes" in why
+
+
+def test_main_prints_unpaired_and_the_reason_when_the_start_check_fails(tmp_path, monkeypatch, capsys):
+    a = save(tmp_path, "a", np.arange(30), np.arange(30) % 4, np.full(30, 60.0))
+    b = save(tmp_path, "b", np.arange(30), np.arange(30) % 3, np.full(30, 60.0))
+    monkeypatch.setattr(fr.sys, "argv", ["flip_rate.py", str(a), str(b)])
+    monkeypatch.setattr(fr.nt, "check_same", lambda x, y: ("different start episodes", 0))
+    fr.main()
+    out = capsys.readouterr().out
+    assert "unpaired: different start episodes" in out and "n 30 and 30" in out
+    monkeypatch.setattr(fr.nt, "check_same", lambda x, y: ("", 16))
+    fr.main()
+    assert "paired: same start checked on 16 tracked envs" in capsys.readouterr().out
