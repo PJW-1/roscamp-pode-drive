@@ -105,8 +105,10 @@ Deployment options, all off by default (off leaves the command bit-identical, `t
   crossing in every run, but no run both avoided contact and arrived: 9 of the 10 runs made contact later
   (6 of them while the robot stood in the person's lane) and the other one timed out. Arrival took 1.8 to
   3.7 times as long and the robot stood long enough to trip the 1 s stall watch of `pode_fsm`. A parked cart
-  was passed as before (the rule blocked 3.5 % of the control cycles there). It has not been run on the real
-  robot.
+  was passed as before (the rule blocked 3.5 % of the control cycles there). With a person who crosses only
+  once (section 30, 5 runs per arm, a weak verdict from one scenario) the robot with the rule on waited and
+  then passed without contact in 5 of 5 runs where the one without it made contact in 5 of 5; the rule
+  blocked 23 % of the control cycles there. It has not been run on the real robot.
 
 Not loaded by default: `sim/fleet_gz_sim/nav_overrides/follow_path_rl.yaml` adds two controllers to
 one_pode (`nav_overrides:=<that file>`): `FollowPathRL`, the default RL option, is the policy wrapped in

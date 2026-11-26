@@ -1,0 +1,29 @@
+# plans per run: in the aisle band / outside, and how often two plans in a row changed side
+l_once   RLShimDemoHistStop 0 SUCC plans  17 in  17 out   0 first in switches 0
+l_once   RLShimDemoHistStop 1 SUCC plans  17 in  17 out   0 first in switches 0
+l_once   RLShimDemoHistStop 2 SUCC plans  17 in  17 out   0 first in switches 0
+l_once   RLShimDemoHistStop 3 SUCC plans  16 in  16 out   0 first in switches 0
+l_once   RLShimDemoHistStop 4 SUCC plans  17 in  17 out   0 first in switches 0
+l_once   RLShimDemoHist   0 SUCC plans  15 in  15 out   0 first in switches 0
+l_once   RLShimDemoHist   1 SUCC plans  15 in  15 out   0 first in switches 0
+l_once   RLShimDemoHist   2 SUCC plans  15 in  15 out   0 first in switches 0
+l_once   RLShimDemoHist   3 SUCC plans  14 in  14 out   0 first in switches 0
+l_once   RLShimDemoHist   4 SUCC plans  15 in  15 out   0 first in switches 0
+m_once   RLShimDemoHistStop 0 SUCC plans  17 in  17 out   0 first in switches 0
+m_once   RLShimDemoHistStop 1 SUCC plans  17 in  17 out   0 first in switches 0
+m_once   RLShimDemoHistStop 2 SUCC plans  18 in  18 out   0 first in switches 0
+m_once   RLShimDemoHistStop 3 SUCC plans  18 in  18 out   0 first in switches 0
+m_once   RLShimDemoHistStop 4 SUCC plans  19 in  19 out   0 first in switches 0
+m_once   RLShimDemoHist   0 SUCC plans  14 in  14 out   0 first in switches 0
+m_once   RLShimDemoHist   1 SUCC plans  14 in  14 out   0 first in switches 0
+m_once   RLShimDemoHist   2 SUCC plans  14 in  14 out   0 first in switches 0
+m_once   RLShimDemoHist   3 ABOR plans  16 in  16 out   0 first in switches 0
+m_once   RLShimDemoHist   4 SUCC plans  15 in  15 out   0 first in switches 0
+PLAN l_once   RLShimDemoHist   runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 74
+PLAN l_once   RLShimDemoHistStop runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 84
+PLAN m_once   RLShimDemoHist   runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 73
+PLAN m_once   RLShimDemoHistStop runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 89
+# plugin timing from the 1 s log lines (us): calls, call-weighted infer mean, infer max, call mean, call max
+l_once   launch_1.out lines 228 calls 4275 infer mean 55 max 245 call mean 140 max 638
+m_once   launch_1.out lines 224 calls 4263 infer mean 54 max 247 call mean 141 max 779
+# launch output lines that mention the plan keeper, per scenario: {}

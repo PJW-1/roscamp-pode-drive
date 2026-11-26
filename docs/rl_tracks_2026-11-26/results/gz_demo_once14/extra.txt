@@ -1,0 +1,55 @@
+# contact with the person: speed over the 0.2 s before the first contact
+l_once   RLShimDemoHistStop 0 SUCC ok True  16.6s person_min 0.104 no contact
+l_once   RLShimDemoHistStop 1 SUCC ok True  16.4s person_min 0.123 no contact
+l_once   RLShimDemoHistStop 2 SUCC ok True  16.5s person_min 0.114 no contact
+l_once   RLShimDemoHistStop 3 SUCC ok True  15.9s person_min 0.114 no contact
+l_once   RLShimDemoHistStop 4 SUCC ok True  16.6s person_min 0.125 no contact
+l_once   RLShimDemoHist     0 SUCC ok True  14.5s person_min 0.026 no contact
+l_once   RLShimDemoHist     1 SUCC ok True  14.5s person_min 0.018 no contact
+l_once   RLShimDemoHist     2 SUCC ok True  15.3s person_min 0.020 no contact
+l_once   RLShimDemoHist     3 SUCC ok True  13.4s person_min 0.023 no contact
+l_once   RLShimDemoHist     4 SUCC ok True  14.6s person_min 0.024 no contact
+m_once   RLShimDemoHistStop 0 SUCC ok True  17.3s person_min 0.065 no contact
+m_once   RLShimDemoHistStop 1 SUCC ok True  16.9s person_min 0.057 no contact
+m_once   RLShimDemoHistStop 2 SUCC ok True  18.1s person_min 0.063 no contact
+m_once   RLShimDemoHistStop 3 SUCC ok True  18.0s person_min 0.064 no contact
+m_once   RLShimDemoHistStop 4 SUCC ok True  19.0s person_min 0.057 no contact
+m_once   RLShimDemoHist     0 SUCC ok True  13.7s person_min 0.000 first contact 7.5s at (1.06,0.57) v_0.2s 0.104 standing False
+m_once   RLShimDemoHist     1 SUCC ok True  13.9s person_min 0.000 first contact 7.5s at (1.06,0.57) v_0.2s 0.113 standing False
+m_once   RLShimDemoHist     2 SUCC ok True  13.9s person_min 0.000 first contact 7.3s at (1.06,0.57) v_0.2s 0.118 standing False
+m_once   RLShimDemoHist     3 ABOR ok False  41.4s person_min 0.000 first contact 7.4s at (1.06,0.58) v_0.2s 0.120 standing False
+m_once   RLShimDemoHist     4 SUCC ok True  15.2s person_min 0.000 first contact 7.5s at (1.06,0.57) v_0.2s 0.102 standing False
+# fleet stall rule (1 s without 5 cm -> wait, 2 s more -> stuck) replayed on the true trajectory, per run: waits/stuck and where
+l_once   RLShimDemoHistStop 0 SUCC waits 0 stuck 0 []
+l_once   RLShimDemoHistStop 1 SUCC waits 1 stuck 1 [[7.0, 0.93, 0.56, 'stuck']]
+l_once   RLShimDemoHistStop 2 SUCC waits 0 stuck 0 []
+l_once   RLShimDemoHistStop 3 SUCC waits 0 stuck 0 []
+l_once   RLShimDemoHistStop 4 SUCC waits 1 stuck 0 [[9.2, 0.93, 0.56, 'wait']]
+l_once   RLShimDemoHist     0 SUCC waits 0 stuck 0 []
+l_once   RLShimDemoHist     1 SUCC waits 0 stuck 0 []
+l_once   RLShimDemoHist     2 SUCC waits 0 stuck 0 []
+l_once   RLShimDemoHist     3 SUCC waits 0 stuck 0 []
+l_once   RLShimDemoHist     4 SUCC waits 0 stuck 0 []
+m_once   RLShimDemoHistStop 0 SUCC waits 0 stuck 0 []
+m_once   RLShimDemoHistStop 1 SUCC waits 0 stuck 0 []
+m_once   RLShimDemoHistStop 2 SUCC waits 0 stuck 0 []
+m_once   RLShimDemoHistStop 3 SUCC waits 0 stuck 0 []
+m_once   RLShimDemoHistStop 4 SUCC waits 0 stuck 0 []
+m_once   RLShimDemoHist     0 SUCC waits 0 stuck 0 []
+m_once   RLShimDemoHist     1 SUCC waits 0 stuck 0 []
+m_once   RLShimDemoHist     2 SUCC waits 0 stuck 0 []
+m_once   RLShimDemoHist     3 ABOR waits 2 stuck 1 [[16.2, 1.21, 0.39, 'wait'], [18.6, 1.19, 0.35, 'stuck']]
+m_once   RLShimDemoHist     4 SUCC waits 0 stuck 0 []
+STALL l_once   RLShimDemoHist     runs 5 with a wait 0 with a stuck 0 waits in all 0
+STALL l_once   RLShimDemoHistStop runs 5 with a wait 2 with a stuck 1 waits in all 2
+STALL m_once   RLShimDemoHist     runs 5 with a wait 1 with a stuck 1 waits in all 2
+STALL m_once   RLShimDemoHistStop runs 5 with a wait 0 with a stuck 0 waits in all 0
+# leg time: all runs, and the median over the runs that arrived (ok)
+l_once   RLShimDemoHist     n 5 ok 5 median_ok_s 14.5 times [14.5, 14.5, 15.3, 13.4, 14.6]
+l_once   RLShimDemoHistStop n 5 ok 5 median_ok_s 16.5 times [16.6, 16.4, 16.5, 15.9, 16.6]
+m_once   RLShimDemoHist     n 5 ok 4 median_ok_s 13.9 times [13.7, 13.9, 13.9, 41.4, 15.2]
+m_once   RLShimDemoHistStop n 5 ok 5 median_ok_s 18.0 times [17.3, 16.9, 18.1, 18.0, 19.0]
+# plugin log: control cycles and closing blocks of the controller with the closing stop on, summed per scenario
+l_once   launch_1.out log lines 70 calls 1329 closing blocks 312 (23.48 %) tf misses 0
+m_once   launch_1.out log lines 72 calls 1397 closing blocks 326 (23.34 %) tf misses 0
+# configure line: ['c format 3, obs blocks [prev_action, lidar_history, speed_cap], speed_cap 0.120 m/s, ema alpha v 1.000 w 1.000, scan mask 0 ranges, closing stop 0.260 m within 60.0 deg (lookback 1.000 s, spread 4.0 deg, closing 0.080 m/s, hold 0.300 s, min rays 2, tf in odom)']

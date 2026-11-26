@@ -95,9 +95,20 @@ python3 tools/nav_bench/report.py --config docs/rl_tracks_2026-11-26/gz_demo.yam
   keeper를 켜도 끈 것과 달라 보이지 않았다. 기본 전역 costmap(실물에서 `RL_POLICY`만 줬을 때와 같은 조합)에서는 keeper를 켠
   쪽이 통로 카트만 있는 `f_cart`에서 통로 안으로 지나간 판이 많았고(4/5 대 1/5) 그 시나리오의 충돌은 없었다. 카트 둘과 사람이
   있는 `g_demo`에서는 그 조합의 다섯 판 가운데 한 판이 HALL 카트에 닿았다. `aisle_first`는 시뮬 launch에만 있다.
-- 플러그인의 다가옴 막기 옵션(`closing_stop_range`, 기본 꺼짐. `pode/pode_rl_controller/README.md`)은 여기에 켜는 법을 적지
-  않는다: `j_cross`, `k_cross`에서 켜고 돌린 10판 가운데 사람과 닿지 않고 도착한 판이 없었다(첫 건넘에서는 섰지만 그 뒤에
-  닿았고, 도착 시간은 1.8~3.7배였다. 작업 기록 26절). 한 번만 건너는 사람(`l_once`, `m_once`)의 결과는 30절에 있다.
+- 플러그인의 다가옴 막기 옵션(`closing_stop_range`, 기본 꺼짐. `pode/pode_rl_controller/README.md`)은 움직이며 다가오는 것
+  앞에서 전진만 멈춘다. Gazebo 결과는 둘로 갈린다(5판씩의 약한 판정이다).
+  - 한 번만 건너는 사람(`m_once`): 끈 쪽은 다섯 판 모두 닿았고 켠 쪽은 다섯 판 모두 닿지 않고 도착했다. `l_once`는 끈 쪽도
+    닿지 않아 가르지 못했다(작업 기록 30절).
+  - 쉬지 않고 오가며 로봇을 피하지 않는 사람(`j_cross`, `k_cross`): 켠 10판 가운데 닿지 않고 도착한 판이 없었다. 첫
+    건넘에서는 섰지만 그 뒤에 닿았고 도착 시간은 1.8~3.7배였다(26절).
+  - 치르는 값: pode_fsm의 정체 규칙(1 s 동안 5 cm)을 궤적에 다시 적용하면 쉬지 않고 오가는 사람 앞의 10판이 모두 양보 대기에
+    들고, 한 번 건너는 `l_once`도 5판 가운데 2판이 든다. 한 번 건너는 사람 앞에서도 제어 주기의 23 %에서 전진이 막혔다.
+  - 켜는 값(RL controller 블록의 파라미터): `closing_stop_range: 0.26`, `closing_half_width_deg: 60.0`,
+    `closing_lookback_s: 1.0`, `closing_spread_deg: 4.0`, `closing_mps: 0.08`, `closing_hold_s: 0.3`, `closing_min_rays: 2`.
+  - 시뮬에서 견주려면 위 벤치 명령에서 `BENCH_OVERRIDES`를 `$PWD/docs/rl_tracks_2026-11-26/results/gz_demo_once14/overrides.yaml`로,
+    `BENCH_CONTROLLERS`를 `"FollowPathRLShimDemoHist FollowPathRLShimDemoHistStop"`으로, 시나리오를 `l_once m_once`로 바꾼다.
+  - 실물에서는 켜 본 적이 없고, `RL_POLICY`로 시작하는 실물 경로에는 이 값을 넘기는 옵션이 없다. 실물에서 켤지는 pode_fsm의
+    정체 감시와 어떻게 맞출지와 함께 정할 일이다.
 - 트레이가 달린 로봇(pode1)은 lidar가 자기 트레이 기둥을 본다. Isaac 평가에서 그 반환을 그대로 두면 `store_arena_demohist`의
   성공이 4 %p쯤 내려갔고, 기둥 무더기만 좁게 가리면(`scan_mask_deg: [140.0, 147.0, 149.0, 155.0, -150.5, -147.5, -144.0,
   -139.0]`) 기준과 차이가 없었다. **가림이 정책의 10도 섹터 하나의 레이 열 개(정수 각도, 예: 140~149°)를 모두 덮으면 성공이 52.8 →

@@ -1,0 +1,24 @@
+l_once   RLShimDemoHistStop 0 SUCC  16.6s passed       cart_min inf                                    person_min 0.104 x_max 1.61 end (1.61,0.57)
+l_once   RLShimDemoHistStop 1 SUCC  16.4s passed       cart_min inf                                    person_min 0.123 x_max 1.60 end (1.60,0.56)
+l_once   RLShimDemoHistStop 2 SUCC  16.5s passed       cart_min inf                                    person_min 0.114 x_max 1.62 end (1.62,0.58)
+l_once   RLShimDemoHistStop 3 SUCC  15.9s passed       cart_min inf                                    person_min 0.114 x_max 1.60 end (1.60,0.57)
+l_once   RLShimDemoHistStop 4 SUCC  16.6s passed       cart_min inf                                    person_min 0.125 x_max 1.61 end (1.61,0.57)
+l_once   RLShimDemoHist 0 SUCC  14.5s passed       cart_min inf                                    person_min 0.026 x_max 1.61 end (1.61,0.56)
+l_once   RLShimDemoHist 1 SUCC  14.5s passed       cart_min inf                                    person_min 0.018 x_max 1.61 end (1.61,0.56)
+l_once   RLShimDemoHist 2 SUCC  15.3s passed       cart_min inf                                    person_min 0.020 x_max 1.61 end (1.61,0.58)
+l_once   RLShimDemoHist 3 SUCC  13.4s passed       cart_min inf                                    person_min 0.023 x_max 1.60 end (1.60,0.57)
+l_once   RLShimDemoHist 4 SUCC  14.6s passed       cart_min inf                                    person_min 0.024 x_max 1.61 end (1.61,0.56)
+m_once   RLShimDemoHistStop 0 SUCC  17.3s passed       cart_min inf                                    person_min 0.065 x_max 1.62 end (1.62,0.58)
+m_once   RLShimDemoHistStop 1 SUCC  16.9s passed       cart_min inf                                    person_min 0.057 x_max 1.62 end (1.62,0.58)
+m_once   RLShimDemoHistStop 2 SUCC  18.1s passed       cart_min inf                                    person_min 0.063 x_max 1.62 end (1.62,0.59)
+m_once   RLShimDemoHistStop 3 SUCC  18.0s passed       cart_min inf                                    person_min 0.064 x_max 1.63 end (1.63,0.58)
+m_once   RLShimDemoHistStop 4 SUCC  19.0s passed       cart_min inf                                    person_min 0.057 x_max 1.64 end (1.64,0.59)
+m_once   RLShimDemoHist 0 SUCC  13.7s passed       cart_min inf                                    person_min 0.000 x_max 1.60 end (1.60,0.57)
+m_once   RLShimDemoHist 1 SUCC  13.9s passed       cart_min inf                                    person_min 0.000 x_max 1.60 end (1.60,0.57)
+m_once   RLShimDemoHist 2 SUCC  13.9s passed       cart_min inf                                    person_min 0.000 x_max 1.61 end (1.61,0.57)
+m_once   RLShimDemoHist 3 ABOR  41.4s passed       cart_min inf                                    person_min 0.000 x_max 1.22 end (1.19,0.35)
+m_once   RLShimDemoHist 4 SUCC  15.2s passed       cart_min inf                                    person_min 0.000 x_max 1.61 end (1.61,0.57)
+== l_once RLShimDemoHist: n 5 passed 5 cart_contact 0 short 0 person_contact 0
+== l_once RLShimDemoHistStop: n 5 passed 5 cart_contact 0 short 0 person_contact 0
+== m_once RLShimDemoHist: n 5 passed 5 cart_contact 0 short 0 person_contact 5
+== m_once RLShimDemoHistStop: n 5 passed 5 cart_contact 0 short 0 person_contact 0
