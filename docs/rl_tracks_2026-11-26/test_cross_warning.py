@@ -8,10 +8,11 @@ HIDDEN, SHOWN, RESET = (0.6, -0.5), (0.6, 0.0), (0.35, -2.0)
 
 
 def fake_run(path, shown_from, robot_v, hit=("mover",) * 5, on_path=True, end=100, code=1,
-             stop_from=None, untracked_hits=0):
+             stop_from=None, untracked_hits=0, person_still=False):
     """env마다 end 스텝에서 끝나는 에피소드 하나. 사람은 shown_from 스텝부터 보이는 자리에 있다.
     로봇은 stop_from 스텝부터 서 있고, 끝난 스텝부터는 리셋 자세(진열대 뒤)다. episodes.npz는 env 순서를 뒤집어
-    적고, 추적하지 않은 env의 사람 충돌 untracked_hits건을 더 적는다."""
+    적고, 추적하지 않은 env의 사람 충돌 untracked_hits건을 더 적는다. person_still이 아니면 사람은 보이는 동안
+    +y로 0.1 m/s로 걷는다."""
     steps, envs, dt = 120, len(shown_from), 0.05
     xy = np.zeros((steps, envs, 2), dtype=np.float32)
     moved = np.minimum(np.arange(steps), steps if stop_from is None else stop_from)
@@ -21,6 +22,8 @@ def fake_run(path, shown_from, robot_v, hit=("mover",) * 5, on_path=True, end=10
     mover[:, :, 1] = (9.0, 9.0)
     for e, k in enumerate(shown_from):
         mover[:k, e, 0], mover[k:, e, 0] = HIDDEN, SHOWN
+        if not person_still:
+            mover[k:, e, 0, 1] += (np.arange(steps - k) * dt * 0.1).astype(np.float32)
     on = np.zeros((steps, envs, 2), dtype=bool)
     on[:, :, 0] = True
     done = np.zeros((steps, envs), dtype=bool)
@@ -66,9 +69,29 @@ def test_warning_time_and_class_per_episode(tmp_path):
 
 
 def test_a_robot_that_stopped_before_the_contact_counts_as_stopped(tmp_path):
-    fake_run(tmp_path, shown_from=[90], robot_v=[0.04], stop_from=80)
+    fake_run(tmp_path, shown_from=[80], robot_v=[0.04], stop_from=70)
     row = cw.rows(tmp_path)[0]
-    assert row["kind"] == "robot_stopped" and row["robot_mps"] == 0.0
+    assert row["kind"] == "robot_stopped" and row["robot_mps"] == 0.0 and abs(row["person_mps"] - 0.1) < 1e-3
+
+
+def test_the_end_speed_is_taken_over_the_full_half_second(tmp_path):
+    # 끝 0.5 s(스텝 89~99의 열 구간) 가운데 첫 구간에서만 움직였다: 0.04 m/s x 0.05 s / 0.5 s
+    fake_run(tmp_path, shown_from=[90], robot_v=[0.04], stop_from=90)
+    assert abs(cw.rows(tmp_path)[0]["robot_mps"] - 0.004) < 1e-6
+
+
+def test_a_standing_robot_next_to_a_standing_person_is_not_counted_as_walked_into(tmp_path):
+    fake_run(tmp_path, shown_from=[85], robot_v=[0.04], stop_from=80, person_still=True)
+    row = cw.rows(tmp_path)[0]
+    assert row["person_mps"] == 0.0 and row["kind"] == "late_sight"
+
+
+def test_a_slit_between_the_sampled_lines_still_shows_the_person():
+    robot, person = np.array([0.0, 0.0]), np.array([0.6, 0.0])
+    slit = [(0.3, -0.5, 0.4, 0.008), (0.3, 0.0145, 0.4, 0.5)]  # 중심선과 양옆 끝은 막고 그 사이만 연다
+    for y in (0.0, 0.04, -0.04):
+        assert any(cw.blocked(robot, np.array([0.6, y]), rc) for rc in slit)
+    assert cw.visible(robot, person, slit)
 
 
 def test_only_person_collisions_with_the_crossing_on_the_path_are_listed(tmp_path):
