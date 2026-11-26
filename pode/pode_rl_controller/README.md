@@ -49,15 +49,18 @@ Deployment options, all off by default (off leaves the command bit-identical, `t
   reverse guard and before the speed limit and the rate limit, on the policy only (not the turn in place),
   and the prev_action memory keeps the unguarded target. Off, it does nothing, not even a TF lookup.
   On, each new scan (a `header.stamp` not seen before) is added with the lidar pose at the scan stamp from
-  TF (`scan->header.frame_id` in the local costmap's global frame, usually `odom`, timeout
-  `transform_tolerance`); a failed lookup skips that scan only and is counted. The reference is the newest
+  TF (`scan->header.frame_id` in the local costmap's global frame, usually `odom`). The lookup does not
+  wait, so it cannot hold up the control cycle: while the pose at that stamp is not in TF yet, the same
+  scan is tried again in the next cycles, and a scan that a newer one replaces before its pose arrived is
+  dropped and counted (`tf misses`). The reference is the newest
   stored scan at least `closing_lookback_s` older than the new one; with none, or one older than
   `lookback + max(0.5 * lookback, 0.15)` s (scans stopped for a while), that scan is not judged. Scans
   are stored only in cycles where the policy runs, so after the policy has not run for longer than that
   (the turn in place at the goal, a rotation shim turning first, a wait between goals) nothing is judged
   until `closing_lookback_s` of new scans are stored. A stamp
   equal to the last one is ignored; a stamp before it (the clock went back) clears the history and the
-  hold. The history and the hold are cleared on `cleanup()` only (not on `reset()` or a new plan: the
+  hold and is not stored itself, and the hold also ends as soon as the clock reads earlier than the last
+  trigger. Otherwise the history and the hold are cleared on `cleanup()` only (not on `reset()` or a new plan: the
   robot does not jump, so the time condition is enough). The 1 s log line ends with
   `| closing blocks N, tf misses M` (counts in that period) and the configure summary lists the values,
   both only when it is on. A bad value (nan or inf, a negative width, lookback, spread or hold, a
@@ -86,7 +89,8 @@ Deployment options, all off by default (off leaves the command bit-identical, `t
   (b) Python holds for a number of steps (`round(hold_s / step_dt)`), the plugin for a time. The Python
   `noise_m` (simulated range noise) is not ported. The guard reads the 360 training rays, so a beam with no
   return, outside `[range_min, range_max]` or masked is at `obs_max` (2 m in the current policies) where
-  the Isaac evaluation fed raw distances; this only changes points beyond `obs_max`. The rule was measured only in the Isaac evaluation;
+  the Isaac evaluation fed raw distances; the judgement can differ only when `closing_stop_range` is above
+  `obs_max - closing_mps * closing_lookback_s` (1.92 m with the defaults). The rule was measured only in the Isaac evaluation;
   it has not been checked in Gazebo or on the real robot yet.
 
 Not loaded by default: `sim/fleet_gz_sim/nav_overrides/follow_path_rl.yaml` adds two controllers to

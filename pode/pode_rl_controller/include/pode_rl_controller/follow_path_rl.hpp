@@ -41,7 +41,7 @@ public:
 private:
   double lidar_yaw(const std::string & frame);
   void goals(GoalPolar & goal, GoalPolar & end, double & yaw_end);
-  void add_closing_scan(
+  bool add_closing_scan(
     const sensor_msgs::msg::LaserScan & scan, const std::vector<float> & rays, double yaw_l,
     double now);
 
@@ -75,6 +75,7 @@ private:
   ClosingGuard closing_;
   builtin_interfaces::msg::Time closing_stamp_{};
   bool have_closing_stamp_{false};
+  bool closing_pending_{false};
   int closing_blocks_{0};
   int closing_tf_misses_{0};
   double speed_limit_{0.0};

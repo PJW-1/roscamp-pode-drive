@@ -100,6 +100,7 @@ void FollowPathRL::configure(
   cp.min_rays = static_cast<int>(node->get_parameter(name_ + ".closing_min_rays").as_int());
   closing_ = ClosingGuard(cp);
   have_closing_stamp_ = false;
+  closing_pending_ = false;
   const std::string dir = policy.rfind('/', 0) == 0 ? policy :
     ament_index_cpp::get_package_share_directory("pode_rl_controller") + "/policies/" + policy;
   spec_ = load_policy_spec(dir + "/policy_spec.json");
@@ -206,6 +207,7 @@ void FollowPathRL::cleanup()
   policy_.reset();
   closing_.reset();
   have_closing_stamp_ = false;
+  closing_pending_ = false;
 }
 
 void FollowPathRL::activate()
@@ -297,24 +299,23 @@ void FollowPathRL::goals(GoalPolar & goal, GoalPolar & end, double & yaw_end)
 }
 
 // ---- 다가옴 막기: 스캔 시각의 라이다 자세로 이력에 넣기 ----
-void FollowPathRL::add_closing_scan(
+// 넣었으면 true. 스캔 시각의 자세가 TF에 아직 없으면 기다리지 않고 false(제어 주기를 막지 않는다)
+bool FollowPathRL::add_closing_scan(
   const sensor_msgs::msg::LaserScan & scan, const std::vector<float> & rays, double yaw_l,
   double now)
 {
   geometry_msgs::msg::TransformStamped t;
   try {
     t = tf_->lookupTransform(
-      global_frame_, scan.header.frame_id, tf2_ros::fromMsg(scan.header.stamp),
-      tf2::durationFromSec(transform_tolerance_));
+      global_frame_, scan.header.frame_id, tf2_ros::fromMsg(scan.header.stamp));
   } catch (const tf2::TransformException &) {
-    // 자세를 모르면 그 스캔만 건너뛴다(주행은 멈추지 않는다)
-    ++closing_tf_misses_;
-    return;
+    return false;
   }
   const double yaw = tf2::getYaw(t.transform.rotation) - yaw_l;
   closing_.add_scan(
     rays, t.transform.translation.x, t.transform.translation.y, yaw,
     rclcpp::Time(scan.header.stamp).seconds(), now);
+  return true;
 }
 
 // ---- 한 주기: 관측 -> 정책 -> (v, w) ----
@@ -401,12 +402,17 @@ geometry_msgs::msg::TwistStamped FollowPathRL::computeVelocityCommands(
     const double policy_v = target.v;
     target = block_reverse(target, rays, rear_stop_range_, rear_half_width_deg_, spec_);
     rear_blocks_ += target.v != policy_v ? 1 : 0;
-    // 다가옴 막기: 새 스캔만 이력에 넣고, 걸려 있으면 전진 목표만 0으로
+    // 다가옴 막기: 새 스캔을 이력에 넣고, 걸려 있으면 전진 목표만 0으로
     if (closing_.enabled()) {
+      // 자세를 못 찾은 스캔은 다음 주기에 다시 넣어 보고, 그 전에 새 스캔이 오면 버리고 센다
       if (!have_closing_stamp_ || scan->header.stamp != closing_stamp_) {
+        closing_tf_misses_ += closing_pending_ ? 1 : 0;
         closing_stamp_ = scan->header.stamp;
         have_closing_stamp_ = true;
-        add_closing_scan(*scan, rays, yaw_l, now.seconds());
+        closing_pending_ = true;
+      }
+      if (closing_pending_ && add_closing_scan(*scan, rays, yaw_l, now.seconds())) {
+        closing_pending_ = false;
       }
       const double guarded_v = target.v;
       target = closing_.apply(target, now.seconds());

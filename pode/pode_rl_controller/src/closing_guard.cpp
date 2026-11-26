@@ -168,9 +168,11 @@ bool ClosingGuard::judge(const Frame & ref, const Frame & cur) const
   return false;
 }
 
+// 시각이 마지막으로 걸린 때보다 앞이면(시계가 되돌아갔다) 유지하지 않는다
 bool ClosingGuard::holding(double now) const
 {
-  return have_hit_ && now - last_hit_ <= p_.hold_s + 1e-6;
+  const double age = now - last_hit_;
+  return have_hit_ && age >= 0.0 && age <= p_.hold_s + 1e-6;
 }
 
 // 걸려 있는 동안 전진 목표 v만 0으로 하고 w와 후진 목표는 그대로 둔다

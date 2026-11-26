@@ -453,6 +453,10 @@ TEST(ClosingTiming, ClockGoingBackClearsTheHistoryAndTheHold)
   }
   ASSERT_TRUE(any);
   ASSERT_TRUE(g.holding(1.45));
+  // 시각이 걸린 때보다 앞으로 돌아가면 새 스캔이 오기 전에도 유지하지 않는다
+  EXPECT_FALSE(g.holding(0.2));
+  EXPECT_DOUBLE_EQ(g.apply(fwd, 0.2).v, 0.12);
+  ASSERT_TRUE(g.holding(1.45));
   // 시뮬 재시작처럼 시각이 0.2 s로 돌아간다: 그 스캔은 넣지 않고 이력과 유지를 비운다
   EXPECT_FALSE(g.add_scan(ramp_scan(0.10), 0.0, 0.0, 0.0, 0.2, 0.2));
   EXPECT_EQ(g.history_size(), 0u);
