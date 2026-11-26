@@ -90,6 +90,14 @@ demostd2,rand,demostd,rand,4096,yes (16 tracked envs),1.0986,0.3691,outside,-1.0
 demohist2,rand,demostd2,rand,4096,yes (16 tracked envs),-0.0732,0.4388,inside,0.0977,0.4409,inside,-0.0244,0.0423,inside,0.3174,0.2379,inside,-0.0732,0.1221,inside,-0.6592,0.3562,inside,0.5127,0.2815,inside
 demohist2,rand,acd3,rand,4096,yes (16 tracked envs),2.2217,0.4816,outside,-1.8311,0.4807,outside,-0.3906,0.0975,outside,,,,,,,,,,,,
 demostd2,rand,acd3,rand,4096,yes (16 tracked envs),2.2949,0.4796,outside,-1.9287,0.4769,outside,-0.3662,0.1063,outside,,,,,,,,,,,,
+demohistdyn,demo1,demohist,demo1,4096,yes (16 tracked envs),-3.7598,0.5738,outside,4.5166,0.5974,outside,-0.7568,0.1705,outside,-0.4883,0.4354,inside,3.833,0.5835,outside,1.5869,0.3621,outside,-0.415,0.4778,inside
+demohistdyn,demo1,acd3,demo1,4096,yes (16 tracked envs),5.3955,0.6638,outside,-2.1973,0.7085,outside,-3.1982,0.3018,outside,-1.7578,0.4701,outside,0.5859,0.6923,inside,-1.1475,0.4812,outside,0.1221,0.5377,inside
+demohistdyn,demo2,demohist,demo2,4096,yes (16 tracked envs),-2.6855,0.5355,outside,3.7354,0.5639,outside,-1.0498,0.1868,outside,-0.3418,0.4895,inside,3.8818,0.5844,outside,0.3662,0.3613,inside,-0.1709,0.5034,inside
+demohistdyn,demo2,acd3,demo2,4096,yes (16 tracked envs),5.2734,0.6024,outside,0.5615,0.6806,inside,-5.835,0.3775,outside,-0.3906,0.5237,inside,2.124,0.6971,outside,-1.1719,0.4551,outside,0.0,0.5557,inside
+demohistdyn,aisle,demohist,aisle,4096,yes (16 tracked envs),-4.0283,0.4994,outside,5.2979,0.5522,outside,-1.2695,0.2553,outside,-1.2695,0.3762,outside,6.5674,0.627,outside,0.0,0.0,inside,0.0,0.0,inside
+demohistdyn,aisle,acd3,aisle,4096,yes (16 tracked envs),11.5479,0.6856,outside,-5.2979,0.7225,outside,-6.25,0.4327,outside,-2.4902,0.4038,outside,-2.8076,0.7682,outside,0.0,0.0,inside,0.0,0.0,inside
+demohistdyn,rand,demohist,rand,4096,yes (16 tracked envs),-1.2207,0.4418,outside,1.2207,0.4431,outside,0.0,0.0488,inside,0.6836,0.2488,outside,0.4639,0.1523,outside,0.708,0.3709,inside,-0.6348,0.2673,outside
+demohistdyn,rand,acd3,rand,4096,yes (16 tracked envs),-0.1709,0.4926,inside,0.5127,0.4937,inside,-0.3418,0.1091,outside,,,,,,,,,,,,
 acd3,demo1c08,acd3,demo1,4096,different start episodes,,,,,,,,,,,,,,,,,,,,,
 std,demo1c08,std,demo1,4096,different start episodes,,,,,,,,,,,,,,,,,,,,,
 demohist,demo1c08,demohist,demo1,4096,different start episodes,,,,,,,,,,,,,,,,,,,,,
