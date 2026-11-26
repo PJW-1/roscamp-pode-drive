@@ -1397,8 +1397,30 @@ t_demo_hist와 성공이 같으면서 충돌이 더 적다는 것이 나왔다. 
 - `docs/rl_quickstart.md` 5절만 보고 넣게 했더니 빠진 곳이 넷 나와 그 절에 채웠다: 학습 코드 커밋을 읽는 곳, launch 인자 설명과
   시뮬 README의 줄, 체크포인트 README의 표와 quickstart 1절·3절, launch 연결 시험은 ROS를 source한 셸에서만 돈다는 것.
 - 플릿 시뮬에서 `nav_rl:=rl_std`로 달려 보는 것은 Gazebo 열한째 묶음 뒤의 새 사본 확인에서 같이 한다.
+  (15:45에 더함: 앞당겨 했다. 아래 17b절.)
 
 결과: (채움)
+
+### 17b. 둘째 후보의 새 사본 확인 (15:07~15:44)
+
+위에서 뒤로 미뤘던 "플릿 시뮬에서 `nav_rl:=rl_std`로 달려 보기"를, 학습 하나가 끝난 틈에 앞당겨 했다. 방법은 7c절의 새 사본
+확인과 같다.
+
+- 받은 것: GitHub의 `feat/rl-tracks-2026-11-26`을 `git clone --depth 1`로 새로 받은 사본(e5aa8258). WSL에서 그 사본만으로
+  빌드했다(18 패키지, 98 s). 설치된 정책 폴더는 일곱(4b, acd, acd2, acd3, c, demohist, std)이고 `store_arena_std`의 onnx
+  sha256 앞 12자는 `60c4ac704736`이다.
+- 시험: `pode_rl_controller` ctest 9개 통과, `test_parity_store_arena_std` 통과(C++ onnxruntime과 torch의 최대 차이 3.81e-06),
+  `sim/fleet_gz_sim/test/test_launch_wiring.py` 90개 통과.
+- 플릿 시뮬: `gz.launch.py layout:=v7 gui:=false rviz:=none sim_dock_stub:=true nav_rl:=rl_std`, 도메인 74. 세 로봇의
+  `FollowPathRL.policy` 값이 `store_arena_std`였고 정책 읽기 줄이 로봇마다 2줄 있었다. 선택 명령(세 번 보내기)은 세 로봇 모두
+  rc 0이었고, controller_server의 RL 추론 로그는 pode1 33줄, pode2 68줄, pode3 31줄, 같은 구간의 RPP 경고는 0줄이다.
+- 시나리오: PASS(주문 8건 모두 출고, 219.2 s, 위반 없음). 로봇 사이 최소 거리 0.234 m(pode1과 pode2).
+- 오류 로그: launch가 내려가기 전(로그 1834행 앞)의 `[ERROR]`는 `Failed to get result for follow_path in node halt!` 4줄뿐이다.
+  그 뒤의 61줄은 종료 단계의 것이다. 점검 노드 `fleet_check`는 이번에는 정상 종료했다.
+- 결과 파일: `docs/rl_tracks_2026-11-26/results/gz_fleet_std/`.
+- 이 확인 뒤의 커밋이 `pode/`, `sim/`, `tools/`의 실행 코드를 바꾸면 다시 한다(7c절과 같은 규칙). 받은 커밋 뒤로 지금까지
+  바뀐 것은 `docs/` 아래와 `learning/store_arena/POLICIES.md`의 표뿐이다.
+- 한계: 한 번 돌린 것이다. 실물에서는 돌려 보지 않았다.
 
 ## 18. 묶음 12: 시연 조건 없이 이력만 (`jobs_b12.txt`, 계획 14:41)
 

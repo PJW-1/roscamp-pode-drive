@@ -159,4 +159,7 @@ Pi 4에서 RL 추론과 MPPI의 계산 시간을 주행 없이 재려면 `tools/
 - GitHub에서 `feat/rl-tracks-2026-11-26`(d4d7c77e)을 새로 받은 사본만으로도 확인했다: WSL 빌드, `pode_rl_controller` 시험
   8개 통과, 플릿 시뮬 `nav_rl:=rl_demohist`에서 세 번 보내는 선택 명령으로 세 로봇 모두 RL로 주행했고 시나리오가
   PASS(주문 8건, 216 s)였다(작업 기록 7c절).
+- `store_arena_std`도 GitHub에서 `feat/rl-tracks-2026-11-26`(e5aa8258)을 새로 받은 사본만으로 확인했다: WSL 빌드,
+  `pode_rl_controller` 시험 9개와 launch 연결 시험 90개 통과, 플릿 시뮬 `nav_rl:=rl_std`에서 세 번 보내는 선택 명령으로 세 로봇
+  모두 RL로 주행했고 시나리오가 PASS(주문 8건, 219 s)였다(작업 기록 17b절). 한 번 돌린 것이다.
 - 실물: 돌려 보지 않았다.

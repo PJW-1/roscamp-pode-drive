@@ -1,0 +1,19 @@
+start 2026-11-26T15:39:43+09:00 avail 15337MB domain 74 build /home/pjw/gg_build/clone-final run_s 300
+nav2 active on 3 robots: 1 2026-11-26T15:40:06+09:00
+pode1 param String value is: store_arena_std
+pode1 selector rc=0 2026-11-26T15:40:13+09:00
+pode2 param String value is: store_arena_std
+pode2 selector rc=0 2026-11-26T15:40:20+09:00
+pode3 param String value is: store_arena_std
+pode3 selector rc=0 2026-11-26T15:40:29+09:00
+ran 195s, launch alive: no 2026-11-26T15:43:44+09:00
+died: 4  errors: 65
+events.csv fleet_check.json fleet_robots.csv recovery_probe.csv releases.csv robots.csv safety.json summary.json zones.csv end 2026-11-26T15:43:54+09:00
+pode1: policy configure lines 2, RL call lines 33, nav goals begun 4, RPP warning lines between 40 s and 215 s 0
+pode2: policy configure lines 2, RL call lines 68, nav goals begun 8, RPP warning lines between 40 s and 215 s 0
+pode3: policy configure lines 2, RL call lines 31, nav goals begun 4, RPP warning lines between 40 s and 215 s 0
+clone build: Summary: 18 packages finished [1min 38s]
+selector command: ros2 topic pub --times 3 --rate 2 --keep-alive 1 (transient_local, reliable)
+clone: git clone --depth 1 --branch feat/rl-tracks-2026-11-26 at e5aa8258; ctest 9 of 9 passed, test_parity_store_arena_std passed, test_launch_wiring.py 90 passed
+launch.out rows: scenario monitor finished 1833, launch shutdown 1834, first SIGINT 1835, fleet_check finished cleanly 1977
+[ERROR] lines before the shutdown row: 4 (all "Failed to get result for follow_path in node halt!"), after: 61
