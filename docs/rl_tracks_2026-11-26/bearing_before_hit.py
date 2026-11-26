@@ -36,6 +36,12 @@ def abs_bearing_deg(prev_xy, xy, person_xy, reverse: bool = False, min_move: flo
     return float(abs(np.degrees(np.arctan2(np.sin(a), np.cos(a)))))
 
 
+def reversing(v_cmds, t: int, w: int) -> bool:
+    """위치 [t - w]에서 [t]까지의 변위를 만든 명령 v(스텝 t - w + 1부터 t까지)의 평균이 음수인지.
+    평가는 스텝이 끝난 뒤의 위치와 그 스텝에 쓴 명령을 같은 칸에 적는다."""
+    return bool(np.mean(np.asarray(v_cmds, dtype=float)[t - w + 1:t + 1]) < 0.0)
+
+
 def bins(bearings) -> list[int]:
     """방위 크기를 EDGES로 나눈 수: [30 이하, 30~60, 60~90, 90 초과]."""
     b = np.asarray(bearings, dtype=float)
@@ -64,8 +70,7 @@ def table(run) -> list[dict]:
             if t - w < 0 or not on[t, e, who]:
                 continue
             dist.append(float(np.linalg.norm(mover[t, e, who] - xy[t, e])))
-            reverse = bool(cmd[t - w:t + 1, e, 0].mean() < 0.0)
-            b = abs_bearing_deg(xy[t - w, e], xy[t, e], mover[t, e, who], reverse)
+            b = abs_bearing_deg(xy[t - w, e], xy[t, e], mover[t, e, who], reversing(cmd[:, e, 0], t, w))
             if b is not None:
                 bear.append(b)
         out.append({"back_s": back_s, "hits": len(rows), "with_bearing": len(bear),

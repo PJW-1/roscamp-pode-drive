@@ -22,3 +22,10 @@ def test_bearing_is_unknown_when_the_robot_barely_moved():
 def test_bins_split_at_30_60_90_with_the_edge_in_the_lower_bin():
     assert bb.bins([0, 30, 30.1, 60, 61, 90, 91, 180]) == [2, 2, 2, 2]
     assert bb.bins([]) == [0, 0, 0, 0]
+
+
+def test_reversing_reads_only_the_commands_that_made_the_displacement():
+    v = [-1.0, 0.1, 0.1, 0.1]  # 위치 [t - w]는 명령 [t - w]가 끝난 뒤의 자리다: 그 명령은 변위에 들지 않는다
+    assert bb.reversing(v, t=3, w=3) is False
+    assert bb.reversing([0.1, -0.1, -0.1, -0.1], t=3, w=3) is True
+    assert bb.reversing([0.1, 0.1, -0.05, -0.05], t=3, w=2) is True
