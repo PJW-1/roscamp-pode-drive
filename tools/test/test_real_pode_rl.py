@@ -18,6 +18,8 @@ SIM_RL = ROOT / "sim" / "fleet_gz_sim" / "nav_overrides" / "follow_path_rl.yaml"
 POLICIES = ROOT / "pode" / "pode_rl_controller" / "policies"
 # RL 선택을 더하기 전 커밋(기본 출력 비교의 기준)
 BASE_COMMIT = "951d71bb"
+# 가림 채우기(--rl-scan-mask-fill)를 더하기 전 커밋(가림 출력 비교의 기준)
+FILL_BASE_COMMIT = "f881d97f"
 RL_NAMES = ("FollowPathRL", "FollowPathRLAlone")
 # RL 선택 전 deploy.sh가 보내던 패키지(기본 배포 비교의 기준)
 OLD_PACKAGES = ("interfaces/fleet_interfaces", "pode/pode_fsm", "pode/pode_nav_config",
@@ -44,12 +46,12 @@ def _ctl(data):
 
 
 # ---- 기본 출력은 RL 선택 전과 바이트까지 같다 ----
-def _base_module():
+def _base_module(commit=BASE_COMMIT):
     run = subprocess.run(["git", "-C", str(ROOT), "show",
-                          f"{BASE_COMMIT}:tools/real_pode/make_params.py"],
+                          f"{commit}:tools/real_pode/make_params.py"],
                          capture_output=True, text=True, encoding="utf-8")
     if run.returncode != 0:
-        pytest.skip(f"기준 커밋 {BASE_COMMIT}이 이 작업본에 없다")
+        pytest.skip(f"기준 커밋 {commit}이 이 작업본에 없다")
     mod = types.ModuleType("make_params_base")
     mod.__file__ = str(KIT / "make_params.py")
     exec(compile(run.stdout, "make_params_base", "exec"), mod.__dict__)
@@ -314,6 +316,16 @@ def test_rl_scan_mask_fill_adds_one_line_after_each_mask_line(tmp_path):
         assert new[i] == " " * indent + FILL_LINE
     assert ((tmp_path / "f" / "avoidance.yaml").read_bytes()
             == (tmp_path / "m" / "avoidance.yaml").read_bytes())
+
+
+@pytest.mark.parametrize("mask", [None, MASK, "-150.5,-147.5"])
+def test_rl_scan_mask_output_is_byte_identical_to_before_fill(tmp_path, mask):
+    # 채우기를 더하기 전 커밋과 견준다(채우기를 주지 않으면 가림 출력도 그대로다)
+    base = _base_module(FILL_BASE_COMMIT)
+    base.write_params(0.12, tmp_path / "old", rl_policy="store_arena_acd3", rl_scan_mask=mask)
+    _mp().write_params(0.12, tmp_path / "new", rl_policy="store_arena_acd3", rl_scan_mask=mask)
+    for name in ("nav2_params.yaml", "avoidance.yaml"):
+        assert (tmp_path / "new" / name).read_bytes() == (tmp_path / "old" / name).read_bytes()
 
 
 def test_rl_scan_mask_fill_off_is_the_mask_only_output(tmp_path):
