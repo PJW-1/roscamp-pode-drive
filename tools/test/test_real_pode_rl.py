@@ -178,6 +178,115 @@ def test_rl_unknown_name_lists_the_known_ones(tmp_path):
         _mp().write_params(0.12, tmp_path / "o", rl_policy="store_arena_acd9")
 
 
+# ---- --rl-scan-mask: 두 RL 블록에 scan_mask_deg 한 줄씩 ----
+MASK = "140,147,149,155,-150.5,-147.5,-144,-139"
+MASK_VALUES = [140.0, 147.0, 149.0, 155.0, -150.5, -147.5, -144.0, -139.0]
+
+
+def test_rl_scan_mask_adds_one_float_list_per_block(tmp_path):
+    mp = _mp()
+    mp.write_params(0.12, tmp_path / "r", rl_policy="store_arena_acd3")
+    mp.write_params(0.12, tmp_path / "m", rl_policy="store_arena_acd3", rl_scan_mask=MASK)
+    ctl = _ctl(_load(tmp_path / "m" / "nav2_params.yaml"))
+    for name in RL_NAMES:
+        got = ctl[name]["scan_mask_deg"]
+        assert got == MASK_VALUES and all(isinstance(v, float) for v in got)
+    # 옵션 없는 출력에 정확히 두 줄이 더해지고 다른 줄은 같다
+    old = (tmp_path / "r" / "nav2_params.yaml").read_text(encoding="utf-8").splitlines()
+    new = (tmp_path / "m" / "nav2_params.yaml").read_text(encoding="utf-8").splitlines()
+    added = [i for i, line in enumerate(new) if "scan_mask_deg" in line]
+    assert len(added) == 2 and len(new) == len(old) + 2
+    assert [line for i, line in enumerate(new) if i not in added] == old
+    for i in added:
+        policy = new[i - 1]
+        assert policy.lstrip().startswith("policy:")
+        indent = len(policy) - len(policy.lstrip())
+        assert new[i][:indent] == " " * indent and new[i][indent] != " "
+    assert ((tmp_path / "m" / "avoidance.yaml").read_bytes()
+            == (tmp_path / "r" / "avoidance.yaml").read_bytes())
+
+
+def test_rl_scan_mask_writes_integers_with_a_decimal_point(tmp_path):
+    _mp().write_params(0.12, tmp_path / "m", rl_policy="store_arena_acd3",
+                       rl_scan_mask="140,147")
+    text = (tmp_path / "m" / "nav2_params.yaml").read_text(encoding="utf-8")
+    lines = [line.strip() for line in text.splitlines() if "scan_mask_deg" in line]
+    assert len(lines) == 2
+    assert all(line.startswith("scan_mask_deg: [140.0, 147.0]") for line in lines)
+
+
+def test_rl_scan_mask_cli(tmp_path):
+    run = subprocess.run([sys.executable, str(KIT / "make_params.py"), "--speed", "0.12",
+                          "--out", str(tmp_path / "p"), "--rl-policy", "store_arena_acd3",
+                          "--rl-scan-mask", MASK], capture_output=True, text=True)
+    assert run.returncode == 0, run.stderr
+    assert "make_params: rl scan mask 4 ranges: " in run.stdout
+    ctl = _ctl(_load(tmp_path / "p" / "nav2_params.yaml"))
+    assert all(ctl[name]["scan_mask_deg"] == MASK_VALUES for name in RL_NAMES)
+
+
+def test_rl_scan_mask_cli_takes_a_separate_value_starting_with_minus(tmp_path):
+    # start.sh는 옵션과 값을 따로 넘긴다: 값이 -로 시작해도 옵션으로 읽히면 안 된다
+    run = subprocess.run([sys.executable, str(KIT / "make_params.py"), "--speed", "0.12",
+                          "--out", str(tmp_path / "p"), "--rl-policy", "store_arena_acd3",
+                          "--rl-scan-mask", "-150.5,-147.5"], capture_output=True, text=True)
+    assert run.returncode == 0, run.stderr
+    ctl = _ctl(_load(tmp_path / "p" / "nav2_params.yaml"))
+    assert ctl["FollowPathRL"]["scan_mask_deg"] == [-150.5, -147.5]
+
+
+def test_rl_scan_mask_cli_does_not_swallow_the_next_option(tmp_path):
+    # 값이 빠진 --rl-scan-mask가 다음 옵션을 값으로 삼아 그 옵션을 지우면 안 된다
+    run = subprocess.run([sys.executable, str(KIT / "make_params.py"), "--speed", "0.12",
+                          "--out", str(tmp_path / "p"), "--rl-policy", "store_arena_acd3",
+                          "--rl-scan-mask", "--fixed-line-check", "--rl-scan-mask=0,1"],
+                         capture_output=True, text=True)
+    assert run.returncode == 2 and not (tmp_path / "p").exists()
+
+
+def test_rl_scan_mask_cli_rewrites_every_separate_value(tmp_path):
+    # 옵션을 두 번 주면 argparse처럼 뒤의 값을 쓴다(-로 시작해도)
+    run = subprocess.run([sys.executable, str(KIT / "make_params.py"), "--speed", "0.12",
+                          "--out", str(tmp_path / "p"), "--rl-policy", "store_arena_acd3",
+                          "--rl-scan-mask", "0,1", "--rl-scan-mask", "-2,-1"],
+                         capture_output=True, text=True)
+    assert run.returncode == 0, run.stderr
+    ctl = _ctl(_load(tmp_path / "p" / "nav2_params.yaml"))
+    assert ctl["FollowPathRL"]["scan_mask_deg"] == [-2.0, -1.0]
+
+
+@pytest.mark.parametrize("mask", ["140,147,149", "140", "140,,147", "140,abc", "a,b", "",
+                                  "nan,10", "0,nan", "inf,10", "-inf,10", "0,1e999",
+                                  "10,10", "20,10", "-181,0", "0,181", "1_0,20"])
+def test_rl_bad_scan_mask_writes_nothing(tmp_path, mask):
+    with pytest.raises(ValueError):
+        _mp().write_params(0.12, tmp_path / "o", rl_policy="store_arena_acd3", rl_scan_mask=mask)
+    assert not (tmp_path / "o").exists()
+    run = subprocess.run([sys.executable, str(KIT / "make_params.py"), "--speed", "0.12",
+                          "--out", str(tmp_path / "c"), "--rl-policy", "store_arena_acd3",
+                          f"--rl-scan-mask={mask}"], capture_output=True, text=True)
+    assert run.returncode == 2 and run.stderr.startswith("make_params: "), run.stderr
+    assert not (tmp_path / "c").exists()
+
+
+def test_rl_scan_mask_accepts_the_edges(tmp_path):
+    _mp().write_params(0.12, tmp_path / "m", rl_policy="store_arena_acd3",
+                       rl_scan_mask="-180,-179.5,179.5,180")
+    ctl = _ctl(_load(tmp_path / "m" / "nav2_params.yaml"))
+    assert ctl["FollowPathRL"]["scan_mask_deg"] == [-180.0, -179.5, 179.5, 180.0]
+
+
+def test_rl_scan_mask_without_policy_writes_nothing(tmp_path):
+    with pytest.raises(ValueError, match="rl-policy"):
+        _mp().write_params(0.12, tmp_path / "o", rl_scan_mask="140,147")
+    assert not (tmp_path / "o").exists()
+    run = subprocess.run([sys.executable, str(KIT / "make_params.py"), "--speed", "0.12",
+                          "--out", str(tmp_path / "c"), "--rl-scan-mask", "140,147"],
+                         capture_output=True, text=True)
+    assert run.returncode == 2 and run.stderr.startswith("make_params: "), run.stderr
+    assert not (tmp_path / "c").exists()
+
+
 # ---- 스크립트: RL 줄은 선택했을 때만 닿는다(정적 검사) ----
 def _guarded(text, guard):
     """guard로 여는 if 블록 안의 줄 번호."""
@@ -215,6 +324,8 @@ def test_start_rl_lines_are_behind_rl_policy():
             continue
         if "--rl-policy" in line:
             assert line.startswith('[ -z "$rlp" ] || rl=('), f"start.sh:{i + 1}: {line}"
+        if "--rl-scan-mask" in line:
+            assert line.startswith('[ -z "$rlm" ] || rl+=('), f"start.sh:{i + 1}: {line}"
         if "log_level" in line:
             assert line.strip().startswith('[ -z "$9" ] || extra+=(log_level:=info)'), \
                 f"start.sh:{i + 1}: {line}"
@@ -341,8 +452,31 @@ def test_start_rl_policy_passes_the_name_and_info_log(tmp_path):
 
 
 @needs_bash
+def test_start_rl_scan_mask_passes_the_value(tmp_path):
+    run, mp_args, _ = _start(tmp_path, RL_POLICY="store_arena_acd3", RL_SCAN_MASK=MASK)
+    assert run.returncode == 0, run.stdout + run.stderr
+    assert mp_args == ["--speed", "0.12", "--out", "params", "--rl-policy", "store_arena_acd3",
+                       "--rl-scan-mask", MASK]
+
+
+@needs_bash
+def test_start_rl_scan_mask_needs_rl_policy(tmp_path):
+    run, mp_args, ros_args = _start(tmp_path, RL_SCAN_MASK=MASK)
+    assert run.returncode == 2 and mp_args is None and ros_args is None
+    assert "RL_SCAN_MASK needs RL_POLICY" in run.stdout
+
+
+@needs_bash
 def test_no_motion_refuses_rl_policy(tmp_path):
     from test_real_pode import _no_motion_start
     run, argv = _no_motion_start(tmp_path, ["pode1"], NO_MOTION="1", RL_POLICY="store_arena_acd3")
     assert run.returncode == 2 and argv == []
     assert "RL_POLICY" in run.stdout + run.stderr
+
+
+@needs_bash
+def test_no_motion_refuses_rl_scan_mask(tmp_path):
+    from test_real_pode import _no_motion_start
+    run, argv = _no_motion_start(tmp_path, ["pode1"], NO_MOTION="1", RL_SCAN_MASK=MASK)
+    assert run.returncode == 2 and argv == []
+    assert "RL_SCAN_MASK" in run.stdout + run.stderr
