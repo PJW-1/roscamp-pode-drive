@@ -767,7 +767,7 @@ b: `lidar_frames=3 lidar_stride_steps=4`)이 학습 환경, 내보내기, C++ �
 
 결과: (채움)
 
-## 13. 후보 정책 고르기와 Gazebo 아홉째 묶음 (계획, 09:10)
+## 13. 후보 정책 고르기와 Gazebo 아홉째 묶음 (계획, 09:06)
 
 아래는 `t_demo`, `t_demo_std`, `t_demo_hist`의 평가가 하나도 나오기 전에 적는다(`t_demo`와 `t_demo_std`는 학습이 끝났고
 `t_demo_hist`는 아직 시작하지 않았다).
