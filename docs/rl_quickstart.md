@@ -47,9 +47,11 @@ ros2 topic pub --times 3 --rate 2 --keep-alive 1 --qos-durability transient_loca
   /pode1/controller_selector std_msgs/msg/String "{data: FollowPathRL}"
 ```
 
-- **바뀌었는지 꼭 확인한다.** Nav2 goal로 달리는 동안 controller_server 로그에 `FollowPathRL: 20 calls, infer mean ...` 줄이 1초마다
-  나와야 한다(`nav_log_level:=info`). 그 줄이 없으면 그 로봇은 RPP로 가고 있는 것이므로 선택을 다시 보낸다. 한 번만 보내는
-  형태(`--once`)는 11-26 플릿 시뮬 세 번의 선택 아홉 번 가운데 한 번이 오류 없이 끝나고도 전달되지 않았다(작업 기록 7c절).
+- **바뀌었는지 꼭 확인한다.** RL이면 Nav2 goal로 앞으로 가는 동안 controller_server 로그에
+  `FollowPathRL: 20 calls, infer mean ...` 줄이 1초마다 나온다(`nav_log_level:=info`. 제자리에서 도는 동안에는 나오지 않는다).
+  goal 하나가 끝나도록 **지금 실행의 로그에** 그 줄이 한 번도 없으면 RL로 가지 않은 것으로 보고 선택을 다시 보낸다. 그래도
+  없으면 같은 로그에서 `Failed to load`와 controller_server의 오류를 찾는다. 한 번만 보내는 형태(`--once`)는 11-26 플릿 시뮬
+  세 번의 선택 아홉 번 가운데 한 번이 오류 없이 끝나고도 먹지 않았다(작업 기록 7c절. 까닭은 가리지 못했다).
 
 - `nav_rl:=rl`은 정책 `store_arena_4b`, `nav_rl:=rl_acd3`은 `store_arena_acd3`다.
 - `nav_rl:=rl_demohist`는 `store_arena_demohist`다(`follow_path_rl_demohist.yaml`).
@@ -94,8 +96,9 @@ ros2 topic pub --times 3 --rate 2 --keep-alive 1 --qos-durability transient_loca
 ```
 
 - 기본 controller는 그대로 RPP(FollowPathGoal)다. 고정 경로(pode_fsm의 FollowPath)는 늘 RPP다.
-- **RL로 바뀌었는지 로그로 확인한 뒤에 결과를 적는다.** 주행 중 `FollowPathRL: N calls, infer ...` 줄이 없으면 RPP로 간 것이다
-  (3절의 설명과 같다. 보는 명령은 `tools/real_pode/README.md`의 8번).
+- **RL로 바뀌었는지 로그로 확인한 뒤에 결과를 적는다.** goal 하나가 끝나도록 지금 실행의 로그에 `FollowPathRL: N calls, infer ...`
+  줄이 없으면 RL로 가지 않은 것으로 본다(3절의 설명과 같다. 보는 명령은 `tools/real_pode/README.md`의 8번이고, 예전 실행의
+  로그가 같은 폴더에 남아 있으므로 가장 새 로그만 본다).
 - 정책 이름은 저장소의 정책 폴더 이름이면 된다(`RL_POLICY=store_arena_demohist`도 같은 방식이다). `store_arena_demohist`는
   라이다 이력을 더 보는 정책이고 실물에서 돌려 본 적이 없다.
 - RL controller는 `start.sh`의 속도 인자를 따르지 않고 정책의 최고 속도 0.12 m/s까지 낸다.
@@ -122,7 +125,7 @@ Pi 4에서 RL 추론과 MPPI의 계산 시간을 주행 없이 재려면 `tools/
   시나리오(주문 8건)가 PASS로 끝났다(218 s).
 - `feat/rl-tracks-2026-11-26`의 `store_arena_demohist`: WSL에서 추론 일치 시험이 통과했고, 플릿 시뮬
   `nav_rl:=rl_demohist`를 두 번 돌려 두 번 모두 시나리오가 PASS(주문 8건, 215 s)였다. 첫 번째에서는 pode3의 선택이
-  전달되지 않아 pode3만 RPP로 갔고, 두 번째에서는 세 로봇 모두 RL로 갔다(작업 기록 7c절). 이 확인은 학습 PC의 작업 사본
+  먹지 않아 pode3만 RPP로 갔고, 두 번째에서는 세 로봇 모두 RL로 갔다(작업 기록 7c절). 이 확인은 학습 PC의 작업 사본
   빌드로 했다.
 - 세 번 보내는 선택 명령은 대역 구독자로 문법과 전달만 확인했다.
 - 실물: 돌려 보지 않았다.

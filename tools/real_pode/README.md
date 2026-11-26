@@ -133,11 +133,13 @@ Nav2 goal을 모는 컨트롤러(FollowPathGoal)의 속도는 `nav2_params.yaml`
      /pode1/controller_selector std_msgs/msg/String "{data: FollowPathRL}"
    ```
    그다음 보내는 Nav2 goal부터 RL이다. 감싸지 않은 정책은 `{data: FollowPathRLAlone}`. QoS 두 옵션을 빼면 구독자를 기다리며 아무것도 보내지 않는다.
-   한 번만 보내는 `--once`는 시뮬에서 오류 없이 끝나고도 전달되지 않은 적이 있다. 주행 중 8번의 로그 줄이 나오는지 보고, 없으면 RPP로 간 것이므로 다시 보낸다.
+   한 번만 보내는 `--once`는 시뮬에서 오류 없이 끝나고도 먹지 않은 적이 있다. goal 하나를 보낸 뒤 8번의 로그 줄이 나오는지 보고,
+   한 번도 없으면 RL로 가지 않은 것으로 보고 다시 보낸다. 그래도 없으면 5번의 `Failed to load`와 controller_server의 오류를 본다.
 7. RPP로 되돌리기: 같은 명령에 `{data: FollowPathGoal}`. 달리던 goal 안에서 바로 바뀌는지는 모르므로 goal을 취소하고 다시 보낸다.
    급하면 goal 취소, 그래도 움직이면 `~/nav2fleet_real/stop.sh`.
-8. 시간 로그: `grep "FollowPathRL: " ~/nav2fleet_real/logs/launch_*.log | tail`. 1초마다 `N calls, infer mean/max, call mean/max ... | scan age`,
-   처음 한 번 `lidar rplidar_link in base_footprint ... yaw 3.142`.
+8. 시간 로그: `grep "FollowPathRL: " "$(ls -t ~/nav2fleet_real/logs/launch_*.log | head -1)" | tail`. 가장 새 로그만 본다(예전 실행의
+   로그가 같은 폴더에 남는다). 줄 앞의 시각이 방금 보낸 goal의 것인지도 본다. 앞으로 가는 동안 1초마다
+   `N calls, infer mean/max, call mean/max ... | scan age`(제자리에서 도는 동안에는 없다), 처음 한 번 `lidar rplidar_link in base_footprint ... yaw 3.142`.
 9. 끝나면 `~/nav2fleet_real/stop.sh`, `~/nav2fleet_real/bag_record.sh stop`. 다음 판을 RPP만으로 하려면 `RL_POLICY` 없이 start.sh를 다시 띄운다.
 
 적어 둘 것: 정책 이름과 커밋(`git rev-parse --short HEAD`), `infer`/`call`의 mean·max(µs), scan age, "Control loop missed its desired rate" 횟수
