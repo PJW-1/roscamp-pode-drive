@@ -639,6 +639,28 @@ TEST(ScanMaskFill, RaysForTheRearGuardKeepTheMaskedValue)
   EXPECT_DOUBLE_EQ(pode_rl_controller::block_reverse(back, f.rays, 0.15, 9.5, s).v, -0.05);
 }
 
+TEST(ScanMaskFill, FullyMaskedSectorsAreNamed)
+{
+  using pode_rl_controller::fully_masked_sectors;
+  using pode_rl_controller::parse_scan_mask;
+  const PolicySpec s = spec();
+  EXPECT_TRUE(fully_masked_sectors({}, s).empty());
+  // 넓은 가림은 섹터 3과 32를 통째로 덮고, 이웃 섹터에는 레이가 남는다
+  EXPECT_EQ(
+    fully_masked_sectors(parse_scan_mask({138.0, 157.0, -152.5, -137.0}), s),
+    (std::vector<int>{3, 32}));
+  // 기둥 무더기만 가리는 좁은 가림은 어느 섹터도 통째로 덮지 않는다
+  EXPECT_TRUE(
+    fully_masked_sectors(
+      parse_scan_mask({140.0, 147.0, 149.0, 155.0, -150.5, -147.5, -144.0, -139.0}), s).empty());
+  // 바로 뒤에서 만나는 두 범위는 첫 섹터와 끝 섹터를 덮는다
+  EXPECT_EQ(
+    fully_masked_sectors(parse_scan_mask({170.0, 180.0, -180.0, -171.0}), s),
+    (std::vector<int>{0, 35}));
+  // 레이 하나만 남아도 통째가 아니다
+  EXPECT_TRUE(fully_masked_sectors(parse_scan_mask({-149.5, -140.5}), s).empty());
+}
+
 TEST(ScanMaskFill, NeedsAMask)
 {
   using pode_rl_controller::check_scan_mask_fill;

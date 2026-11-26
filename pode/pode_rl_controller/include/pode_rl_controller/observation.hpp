@@ -116,6 +116,9 @@ struct MaskedSectors
 };
 
 void check_scan_mask_fill(bool fill, const std::vector<AngleRange> & mask);
+// 가림이 레이를 모두 덮는 섹터(레이 각으로 본다. 빔 격자에 따라 경계의 레이 하나는 다를 수 있다)
+std::vector<int> fully_masked_sectors(
+  const std::vector<AngleRange> & mask, const PolicySpec & spec);
 MaskedSectors masked_sectors(
   const Scan & scan, double lidar_yaw, const std::vector<AngleRange> & mask,
   const PolicySpec & spec);

@@ -206,6 +206,18 @@ void FollowPathRL::configure(
     RCLCPP_INFO(
       logger_, "FollowPathRL %s: scan mask fill on (a masked sector with no usable ray reads the "
       "nearer neighbour sector, up to %d sectors away)", name_.c_str(), kFillReach);
+  } else {
+    // 채우기 없이 섹터를 통째로 가리면 정책이 그 섹터를 늘 반환 없음으로 읽는다
+    std::string full;
+    for (const int s : fully_masked_sectors(scan_mask_, spec_)) {
+      full += (full.empty() ? "" : ", ") + std::to_string(s);
+    }
+    if (!full.empty()) {
+      RCLCPP_WARN(
+        logger_, "FollowPathRL %s: the scan mask covers every ray of sector(s) %s and "
+        "scan_mask_fill is off, so the policy always reads no return there",
+        name_.c_str(), full.c_str());
+    }
   }
 }
 

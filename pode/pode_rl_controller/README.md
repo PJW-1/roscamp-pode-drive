@@ -50,6 +50,9 @@ Deployment options, all off by default (off leaves the command bit-identical, `t
   sectors were masked, so this value is not recommended for the real robot as it is. Each training ray takes the nearest scan beam and a ray with
   no beam near it is no return too, so check with the robot's own scan (its angle range and step) that every
   sector keeps at least one ray whose beam is not masked.
+- When `scan_mask_deg` covers every ray of a policy sector and `scan_mask_fill` is off, configure logs a
+  warning that names the sectors: the policy then always reads no return there, which broke the policy in
+  the Isaac evaluation (worklog sections 29 and 31).
 - `scan_mask_fill` (default false = off; on without `scan_mask_deg` stops configure): fills a policy sector
   that the mask emptied from its neighbours, the same rule as `lidar_mask_fill` in
   `learning/goal_reach/task_spec.py`. A training ray is masked when the beam it takes (the nearest one) is

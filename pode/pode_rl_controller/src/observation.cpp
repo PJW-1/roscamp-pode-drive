@@ -30,12 +30,10 @@ long ray_beam(const Scan & scan, double lidar_yaw, const LidarSpec & lid, int k)
   return i;
 }
 
-// 빔 i가 가림 범위 안인가
-bool beam_masked(
-  const Scan & scan, size_t i, double lidar_yaw, const std::vector<AngleRange> & mask)
+// base 기준 각(도)이 가림 범위 안인가
+bool angle_masked(double any_deg, const std::vector<AngleRange> & mask)
 {
-  const double rad = lidar_yaw + scan.angle_min + static_cast<double>(i) * scan.angle_increment;
-  const double deg = std::remainder(rad * (180.0 / kPi), 360.0);
+  const double deg = std::remainder(any_deg, 360.0);
   // 바로 뒤는 -180과 180 둘 다로 본다
   const double alt = deg <= -180.0 ? 180.0 : (deg >= 180.0 ? -180.0 : deg);
   for (const auto & m : mask) {
@@ -44,6 +42,14 @@ bool beam_masked(
     }
   }
   return false;
+}
+
+// 빔 i가 가림 범위 안인가
+bool beam_masked(
+  const Scan & scan, size_t i, double lidar_yaw, const std::vector<AngleRange> & mask)
+{
+  const double rad = lidar_yaw + scan.angle_min + static_cast<double>(i) * scan.angle_increment;
+  return angle_masked(rad * (180.0 / kPi), mask);
 }
 }  // namespace
 
@@ -313,6 +319,25 @@ void check_scan_mask_fill(bool fill, const std::vector<AngleRange> & mask)
       "FollowPathRL: scan_mask_fill needs scan_mask_deg (with no masked beams there is no sector "
       "to fill)");
   }
+}
+
+// 채우기 없이 쓰면 정책이 반환 없음으로 읽게 되는 섹터를 configure에서 알리는 데 쓴다
+std::vector<int> fully_masked_sectors(
+  const std::vector<AngleRange> & mask, const PolicySpec & spec)
+{
+  const auto & lid = spec.lidar;
+  const int per_sector = lid.rays / lid.sectors;
+  std::vector<int> out;
+  for (int s = 0; s < lid.sectors && !mask.empty(); ++s) {
+    bool all = true;
+    for (int k = s * per_sector; k < (s + 1) * per_sector && all; ++k) {
+      all = angle_masked(lid.first_ray_deg + k * lid.ray_step_deg, mask);
+    }
+    if (all) {
+      out.push_back(s);
+    }
+  }
+  return out;
 }
 
 // 가린 레이는 고른 빔이 가려진 레이, 쓸 수 있는 레이는 고른 빔이 가리지 않았고 유효한 반환인 레이다.
