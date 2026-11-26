@@ -138,8 +138,9 @@ Pi 4에서 RL 추론과 MPPI의 계산 시간을 주행 없이 재려면 `tools/
    `nav_rl` 줄에 더한다. 시험도 맞춘다: `sim/fleet_gz_sim/test/test_launch_wiring.py`의 선택 이름 목록과 그 아래 정책 이름
    표(고른 이름 → 정책 이름) 둘 다, `tools/test/test_policy_files.py`의 덮어쓰기 파일 목록.
 4. `learning/store_arena/checkpoints/<NAME>/`에 체크포인트, 실행 폴더의 `run.json`과 `run_config.json`을 두고 `index.json`과
-   그 폴더 `README.md`의 표에 줄을 더한다. `index.json`의 항목은 체크포인트 파일의 sha256과 크기(bytes), 누적 반복 수(파일
-   이름의 숫자), `obs_dim`, 베껴 온 원래 경로다. `README.md`는 표 말고 앞쪽의 정책을 늘어놓은 두 문장도 같이 고친다. 이 문서의 1절 표와 3절에도 이름을 더한다. `POLICIES.md` 계보표를 채우고
+   그 폴더 `README.md`의 표에 줄을 더한다. `index.json`의 항목은 앞 항목과 같은 키 여덟 개다: `policy`(정책 이름),
+   `file`(이 폴더 기준 체크포인트 경로), `sha256`과 `bytes`(체크포인트 파일의 해시와 크기), `iter`(누적 반복 수, 파일 이름의
+   숫자), `obs_dim`, `copied_from`(베껴 온 원래 경로), `run_json`(이 폴더 기준 `run.json` 경로). `README.md`는 표 말고 앞쪽의 정책을 늘어놓은 두 문장도 같이 고친다. 이 문서의 1절 표와 3절에도 이름을 더한다. `POLICIES.md` 계보표를 채우고
    Drive `RL_정책_백업`에 같은 파일을 올린다.
 5. 새 파일을 모두 `git add`한 뒤에 시험한다(`test_policy_files.py`는 git이 추적하는 파일만 본다. 커밋까지 해야 다른 PC에서 받을
    수 있다): `python -m pytest tools/test/test_policy_files.py learning/store_arena/test_checkpoints.py sim/fleet_gz_sim/test/test_launch_wiring.py`,
