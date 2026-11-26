@@ -11,7 +11,7 @@
 |---|---|---|
 | `feat/rl-policy-onnx-2026-11-26` | main + 정책 다섯(`store_arena_4b`, `c`, `acd`, `acd2`, `acd3`) + 시뮬 인자 `nav_rl:=rl_acd3` | 시뮬만. main과 가장 가깝다 |
 | `feat/rl-real-optin-2026-11-26` | 위 + 실물 배포·시작 스크립트의 RL 켜기(`WITH_RL`, `RL_POLICY`). 플러그인 코드는 위와 같다 | 시뮬과 실물 |
-| `feat/rl-tracks-2026-11-26` | 위 전부 + 11-26 작업(플러그인 출력 평활 옵션, 학습 코드, 측정 도구, 문서) + 시연 조건 후보 정책 `store_arena_demohist`(`nav_rl:=rl_demohist`) + 시뮬 비교용 정책 `store_arena_std`(`nav_rl:=rl_std`) + 시뮬 시제품 `aisle_first` | 전부. 새 옵션은 기본값에서 꺼져 있다 |
+| `feat/rl-tracks-2026-11-26` | 위 전부 + 11-26 작업(플러그인 출력 평활 옵션, 학습 코드, 측정 도구, 문서) + 시연 조건 후보 정책 `store_arena_demohist`(`nav_rl:=rl_demohist`) + 시뮬 비교용 정책 `store_arena_std`(`nav_rl:=rl_std`) + demohist를 600번 더 학습한 정책 `store_arena_demohist2`(`nav_rl:=rl_demohist2`) + 시뮬 시제품 `aisle_first` | 전부. 새 옵션은 기본값에서 꺼져 있다 |
 
 ```bash
 git fetch origin
@@ -55,10 +55,13 @@ ros2 topic pub --times 3 --rate 2 --keep-alive 1 --qos-durability transient_loca
 
 - `nav_rl:=rl`은 정책 `store_arena_4b`, `nav_rl:=rl_acd3`은 `store_arena_acd3`다.
 - `nav_rl:=rl_demohist`는 `store_arena_demohist`다(`follow_path_rl_demohist.yaml`).
+- `nav_rl:=rl_demohist2`는 `store_arena_demohist2`다(`follow_path_rl_demohist2.yaml`).
 - `nav_rl:=rl_std`는 `store_arena_std`다(`follow_path_rl_std.yaml`). 시뮬 비교용이다: 미리 정한 기준(w 부호 바뀜)에 걸려 실물
   후보로는 올리지 않았다(작업 기록 17a절).
 - `store_arena_demohist`는 시연 조건 후보다: 시뮬에서만 확인했고 실물에서는 돌려 본 적 없다
   (근거는 `docs/worklog_rl_tracks_2026-11-26.md` 12~13절).
+- `store_arena_demohist2`는 `store_arena_demohist`를 같은 설정으로 600번 더 학습한 것이다: 시뮬에서만 확인했고 실물에서는
+  돌려 본 적 없다.
 - 로봇 한 대로 컨트롤러를 견주는 묶음은 `tools/nav_bench/run_bench.sh`다. RL 컨트롤러 설정은
   `sim/fleet_gz_sim/nav_overrides/follow_path_rl_acd3.yaml`을 `BENCH_OVERRIDES`로 준다.
 - 인자 설명: `sim/fleet_gz_sim/README.md`.
