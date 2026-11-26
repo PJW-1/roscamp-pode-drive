@@ -335,6 +335,13 @@ demohist2m,demo1,demohist,demo1,yes (16 tracked envs),same,0.16-0.19,757,5.4161,
 demohist2m,demo1,demohist,demo1,yes (16 tracked envs),same,0.19-0.22,751,4.261,1.4141,outside,-4.261,1.4141,outside
 demohist2m,demo1,demohist,demo1,yes (16 tracked envs),same,0.22-0.25,593,1.3491,1.37,inside,-1.1804,1.4011,inside
 demohist2m,demo1,demohist,demo1,yes (16 tracked envs),same,>= 0.25,0,,,,,,
+demostd2m,demo1,demostd,demo1,yes (16 tracked envs),same,all,2792,0.7521,0.6633,inside,-1.2178,0.6998,inside
+demostd2m,demo1,demostd,demo1,yes (16 tracked envs),same,< 0.13,0,,,,,,
+demostd2m,demo1,demostd,demo1,yes (16 tracked envs),same,0.13-0.16,691,0.4342,0.8062,inside,-2.3155,1.1732,inside
+demostd2m,demo1,demostd,demo1,yes (16 tracked envs),same,0.16-0.19,757,3.5667,1.5531,outside,-3.5667,1.5531,outside
+demostd2m,demo1,demostd,demo1,yes (16 tracked envs),same,0.19-0.22,751,-0.2663,1.4226,inside,0.1332,1.4289,inside
+demostd2m,demo1,demostd,demo1,yes (16 tracked envs),same,0.22-0.25,593,-1.1804,1.2955,inside,1.3491,1.3278,inside
+demostd2m,demo1,demostd,demo1,yes (16 tracked envs),same,>= 0.25,0,,,,,,
 demohist2m,demo1,acd3,demo1,yes (16 tracked envs),same,all,2792,16.3682,0.9357,outside,-12.8582,1.0188,outside
 demohist2m,demo1,acd3,demo1,yes (16 tracked envs),same,< 0.13,0,,,,,,
 demohist2m,demo1,acd3,demo1,yes (16 tracked envs),same,0.13-0.16,691,1.7366,0.8419,outside,1.7366,1.5175,inside
@@ -342,6 +349,13 @@ demohist2m,demo1,acd3,demo1,yes (16 tracked envs),same,0.16-0.19,757,24.3065,2.0
 demohist2m,demo1,acd3,demo1,yes (16 tracked envs),same,0.19-0.22,751,25.4328,2.0917,outside,-22.7696,2.157,outside
 demohist2m,demo1,acd3,demo1,yes (16 tracked envs),same,0.22-0.25,593,11.8044,1.9372,outside,-9.1062,2.0329,outside
 demohist2m,demo1,acd3,demo1,yes (16 tracked envs),same,>= 0.25,0,,,,,,
+demostd2m,demo1,acd3,demo1,yes (16 tracked envs),same,all,2792,12.3567,0.933,outside,-8.596,1.009,outside
+demostd2m,demo1,acd3,demo1,yes (16 tracked envs),same,< 0.13,0,,,,,,
+demostd2m,demo1,acd3,demo1,yes (16 tracked envs),same,0.13-0.16,691,1.5919,0.8041,inside,3.3285,1.4643,outside
+demostd2m,demo1,acd3,demo1,yes (16 tracked envs),same,0.16-0.19,757,17.7015,1.9972,outside,-12.6816,2.081,outside
+demostd2m,demo1,acd3,demo1,yes (16 tracked envs),same,0.19-0.22,751,19.0413,2.164,outside,-16.7776,2.201,outside
+demostd2m,demo1,acd3,demo1,yes (16 tracked envs),same,0.22-0.25,593,9.6121,2.0078,outside,-6.914,2.0956,outside
+demostd2m,demo1,acd3,demo1,yes (16 tracked envs),same,>= 0.25,0,,,,,,
 demohist2,demo2,demohist,demo2,yes (16 tracked envs),same,all,2792,2.543,0.6957,outside,-2.8653,0.7681,outside
 demohist2,demo2,demohist,demo2,yes (16 tracked envs),same,< 0.13,0,,,,,,
 demohist2,demo2,demohist,demo2,yes (16 tracked envs),same,0.13-0.16,664,0.753,0.9646,inside,-1.8072,1.4904,inside

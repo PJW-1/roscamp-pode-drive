@@ -90,7 +90,8 @@ Deployment options, all off by default (off leaves the command bit-identical, `t
   `noise_m` (simulated range noise) is not ported. The guard reads the 360 training rays, so a beam with no
   return, outside `[range_min, range_max]` or masked is at `obs_max` (2 m in the current policies) where
   the Isaac evaluation fed raw distances; the judgement can differ only when `closing_stop_range` is above
-  `obs_max - closing_mps * closing_lookback_s` (1.92 m with the defaults). The rule was measured only in the Isaac evaluation;
+  `obs_max - closing_mps * 1.5 * closing_lookback_s` (1.88 m with the defaults; the two scans can be up to
+  1.5 lookbacks apart). The rule was measured only in the Isaac evaluation;
   it has not been checked in Gazebo or on the real robot yet.
 
 Not loaded by default: `sim/fleet_gz_sim/nav_overrides/follow_path_rl.yaml` adds two controllers to

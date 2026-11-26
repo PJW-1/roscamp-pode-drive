@@ -1,6 +1,6 @@
 # n26 표
 
-실행 폴더 `D:/isaac/runs/store_arena/n26`, 끝난 실행(exit=0): c_clean, c_cross, c_demo_box, e_acd3_aisle, e_acd3_aislet, e_acd3_demo1, e_acd3_demo1c08, e_acd3_demo1t, e_acd3_demo2, e_acd3_head, e_acd3_rand, e_acd3_rand_chk2, e_ctrl_aisle, e_ctrl_demo1, e_ctrl_demo2, e_ctrl_rand, e_demo_aisle, e_demo_demo1, e_demo_demo2, e_demo_head, e_demo_rand, e_demohist2_aisle, e_demohist2_demo1, e_demohist2_demo2, e_demohist2_head, e_demohist2_rand, e_demohist2m_demo1, e_demohist_aisle, e_demohist_aislet, e_demohist_demo1, e_demohist_demo1c08, e_demohist_demo1t, e_demohist_demo1tc26a60, e_demohist_demo1tc26a90, e_demohist_demo1tf15a60, e_demohist_demo1tf20a30, e_demohist_demo1tf20a60, e_demohist_demo1tp30a60, e_demohist_demo1tp30a90, e_demohist_demo1tw26a60, e_demohist_demo1tw26a60n, e_demohist_demo2, e_demohist_head, e_demohist_rand, e_demostd2_aisle, e_demostd2_demo1, e_demostd2_demo2, e_demostd2_rand, e_demostd_aisle, e_demostd_demo1, e_demostd_demo2, e_demostd_head, e_demostd_rand, e_histstd_aisle, e_histstd_demo1, e_histstd_demo2, e_histstd_head, e_histstd_rand, e_std_aisle, e_std_aislet, e_std_demo1, e_std_demo1c08, e_std_demo1t, e_std_demo2, e_std_head, e_std_rand, smoke_b4, smoke_demo, smoke_hist, smoke_hstd, smoke_resume, smoke_std, smoke_sysid, t_ctrl, t_demo, t_demo_hist, t_demo_hist2, t_demo_std, t_demo_std2, t_dyn, t_hist_std, t_std
+실행 폴더 `D:/isaac/runs/store_arena/n26`, 끝난 실행(exit=0): c_clean, c_cross, c_demo_box, e_acd3_aisle, e_acd3_aislet, e_acd3_demo1, e_acd3_demo1c08, e_acd3_demo1t, e_acd3_demo2, e_acd3_head, e_acd3_rand, e_acd3_rand_chk2, e_ctrl_aisle, e_ctrl_demo1, e_ctrl_demo2, e_ctrl_rand, e_demo_aisle, e_demo_demo1, e_demo_demo2, e_demo_head, e_demo_rand, e_demohist2_aisle, e_demohist2_demo1, e_demohist2_demo2, e_demohist2_head, e_demohist2_rand, e_demohist2m_demo1, e_demohist_aisle, e_demohist_aislet, e_demohist_demo1, e_demohist_demo1c08, e_demohist_demo1t, e_demohist_demo1tc26a60, e_demohist_demo1tc26a90, e_demohist_demo1tf15a60, e_demohist_demo1tf20a30, e_demohist_demo1tf20a60, e_demohist_demo1tp30a60, e_demohist_demo1tp30a90, e_demohist_demo1tw26a60, e_demohist_demo1tw26a60n, e_demohist_demo2, e_demohist_head, e_demohist_rand, e_demostd2_aisle, e_demostd2_demo1, e_demostd2_demo2, e_demostd2_rand, e_demostd2m_demo1, e_demostd_aisle, e_demostd_demo1, e_demostd_demo2, e_demostd_head, e_demostd_rand, e_histstd_aisle, e_histstd_demo1, e_histstd_demo2, e_histstd_head, e_histstd_rand, e_std_aisle, e_std_aislet, e_std_demo1, e_std_demo1c08, e_std_demo1t, e_std_demo2, e_std_head, e_std_rand, smoke_b11, smoke_b4, smoke_demo, smoke_hist, smoke_hstd, smoke_resume, smoke_std, smoke_sysid, t_ctrl, t_demo, t_demo_hist, t_demo_hist2, t_demo_std, t_demo_std2, t_dyn, t_hist_std, t_std
 
 ## 1. 평가 칸
 
@@ -57,6 +57,7 @@
 | demostd2 | demo1 | 4096 | 53.3 | 45.43 | 1.27 | 192 | 803 | 377 | 489 | 1703 | 38.43 | 1.29 |
 | demostd2 | demo2 | 4096 | 49.27 | 49.0 | 1.73 | 296 | 863 | 365 | 483 | 1870 | 38.29 | 1.296 |
 | demostd2 | rand | 4096 | 78.61 | 21.34 | 0.05 | 55 | 28 | 437 | 354 | 802 | 49.27 | 1.121 |
+| demostd2m | demo1 | 4096 | 51.73 | 47.49 | 0.78 | 202 | 885 | 356 | 502 | 1788 | 38.04 | 1.276 |
 | histstd | aisle | 4096 | 68.65 | 27.34 | 4.0 | 161 | 959 | 0 | 0 | 1004 | 48.32 | 1.353 |
 | histstd | demo1 | 4096 | 51.27 | 47.44 | 1.29 | 238 | 826 | 407 | 472 | 1788 | 40.64 | 1.428 |
 | histstd | demo2 | 4096 | 47.12 | 51.1 | 1.78 | 362 | 883 | 373 | 475 | 1930 | 41.61 | 1.421 |
@@ -150,7 +151,9 @@
 | demohist2 | demo1 | acd3 | demo1 | 4096 | yes (16 tracked envs) | 10.6201 | 0.6832 | outside | -8.3984 | 0.7475 | outside | -2.2217 | 0.3374 | outside | -1.3916 | 0.4647 | outside | -4.1504 | 0.7072 | outside | -1.8311 | 0.4694 | outside | -1.0254 | 0.5414 | inside |
 | demostd2 | demo1 | acd3 | demo1 | 4096 | yes (16 tracked envs) | 9.6436 | 0.6797 | outside | -7.2998 | 0.7289 | outside | -2.3438 | 0.3162 | outside | -2.2461 | 0.4632 | outside | -2.5391 | 0.7074 | outside | -1.4404 | 0.471 | outside | -1.0742 | 0.5325 | outside |
 | demohist2m | demo1 | demohist | demo1 | 4096 | yes (16 tracked envs) | 1.9531 | 0.5228 | outside | -1.7334 | 0.5502 | outside | -0.2197 | 0.1743 | inside | -0.2686 | 0.3899 | inside | -0.6836 | 0.527 | inside | 0.5859 | 0.322 | inside | -1.3672 | 0.4252 | outside |
+| demostd2m | demo1 | demostd | demo1 | 4096 | yes (16 tracked envs) | 0.4883 | 0.4797 | inside | -0.8057 | 0.5032 | inside | 0.3174 | 0.1524 | outside | 0.2686 | 0.3513 | inside | -0.4395 | 0.4944 | inside | -0.293 | 0.3294 | inside | -0.3418 | 0.3982 | inside |
 | demohist2m | demo1 | acd3 | demo1 | 4096 | yes (16 tracked envs) | 11.1084 | 0.6821 | outside | -8.4473 | 0.7328 | outside | -2.6611 | 0.3147 | outside | -1.5381 | 0.4671 | outside | -3.9307 | 0.69 | outside | -2.1484 | 0.4659 | outside | -0.8301 | 0.5314 | inside |
+| demostd2m | demo1 | acd3 | demo1 | 4096 | yes (16 tracked envs) | 8.0811 | 0.6812 | outside | -5.249 | 0.7283 | outside | -2.832 | 0.3115 | outside | -2.002 | 0.4775 | outside | -0.5371 | 0.7076 | inside | -1.9531 | 0.4674 | outside | -0.7568 | 0.5343 | inside |
 | demohist2 | demo2 | demohist | demo2 | 4096 | yes (16 tracked envs) | 1.7822 | 0.5061 | outside | -2.002 | 0.5527 | outside | 0.2197 | 0.2251 | inside | -0.415 | 0.474 | inside | -0.0488 | 0.608 | inside | -0.3418 | 0.34 | inside | -1.1963 | 0.4699 | outside |
 | demostd2 | demo2 | demostd | demo2 | 4096 | yes (16 tracked envs) | 1.4648 | 0.4704 | outside | -2.2461 | 0.5086 | outside | 0.7812 | 0.2125 | outside | -0.7812 | 0.4099 | inside | -1.2451 | 0.5205 | outside | 0.1465 | 0.3088 | inside | -0.3662 | 0.4179 | inside |
 | demohist2 | demo2 | demostd2 | demo2 | 4096 | yes (16 tracked envs) | 0.7812 | 0.5315 | inside | -0.5615 | 0.5741 | inside | -0.2197 | 0.2405 | inside | 1.3428 | 0.453 | outside | -1.0254 | 0.6223 | inside | -0.9521 | 0.3643 | outside | 0.0732 | 0.4741 | inside |
@@ -345,6 +348,7 @@
 | demostd2 | demo1 | 2792 | 37.39 | 0.9157 | 0 |  | 691 | 3.18 | 757 | 34.08 | 751 | 55.26 | 593 | 58.85 | 0 |  |
 | demostd2 | demo2 | 2792 | 31.12 | 0.8762 | 0 |  | 664 | 4.52 | 752 | 31.38 | 801 | 42.95 | 575 | 45.04 | 0 |  |
 | demostd2 | rand | 49 | 69.39 | 6.5839 | 0 |  | 5 | 0.0 | 21 | 76.19 | 12 | 75.0 | 11 | 81.82 | 0 |  |
+| demostd2m | demo1 | 2792 | 35.39 | 0.905 | 0 |  | 691 | 3.47 | 757 | 32.36 | 751 | 51.0 | 593 | 56.66 | 0 |  |
 | histstd | aisle | 2792 | 54.08 | 0.9431 | 0 |  | 691 | 3.76 | 757 | 36.99 | 751 | 83.22 | 593 | 97.64 | 0 |  |
 | histstd | demo1 | 2792 | 34.28 | 0.8983 | 0 |  | 691 | 2.89 | 757 | 27.48 | 751 | 52.46 | 593 | 56.49 | 0 |  |
 | histstd | demo2 | 2792 | 27.94 | 0.8492 | 0 |  | 664 | 3.16 | 752 | 23.14 | 801 | 40.45 | 575 | 45.39 | 0 |  |
@@ -699,6 +703,13 @@ aisle·demo1·demo2 비교에서 두 실행 모두 box_gap_m이 유한한 에피
 | demohist2m | demo1 | demohist | demo1 | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 4.261 | 1.4141 | outside | -4.261 | 1.4141 | outside |
 | demohist2m | demo1 | demohist | demo1 | yes (16 tracked envs) | same | 0.22-0.25 | 593 | 1.3491 | 1.37 | inside | -1.1804 | 1.4011 | inside |
 | demohist2m | demo1 | demohist | demo1 | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
+| demostd2m | demo1 | demostd | demo1 | yes (16 tracked envs) | same | all | 2792 | 0.7521 | 0.6633 | inside | -1.2178 | 0.6998 | inside |
+| demostd2m | demo1 | demostd | demo1 | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
+| demostd2m | demo1 | demostd | demo1 | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 0.4342 | 0.8062 | inside | -2.3155 | 1.1732 | inside |
+| demostd2m | demo1 | demostd | demo1 | yes (16 tracked envs) | same | 0.16-0.19 | 757 | 3.5667 | 1.5531 | outside | -3.5667 | 1.5531 | outside |
+| demostd2m | demo1 | demostd | demo1 | yes (16 tracked envs) | same | 0.19-0.22 | 751 | -0.2663 | 1.4226 | inside | 0.1332 | 1.4289 | inside |
+| demostd2m | demo1 | demostd | demo1 | yes (16 tracked envs) | same | 0.22-0.25 | 593 | -1.1804 | 1.2955 | inside | 1.3491 | 1.3278 | inside |
+| demostd2m | demo1 | demostd | demo1 | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
 | demohist2m | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | all | 2792 | 16.3682 | 0.9357 | outside | -12.8582 | 1.0188 | outside |
 | demohist2m | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
 | demohist2m | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 1.7366 | 0.8419 | outside | 1.7366 | 1.5175 | inside |
@@ -706,6 +717,13 @@ aisle·demo1·demo2 비교에서 두 실행 모두 box_gap_m이 유한한 에피
 | demohist2m | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 25.4328 | 2.0917 | outside | -22.7696 | 2.157 | outside |
 | demohist2m | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | 0.22-0.25 | 593 | 11.8044 | 1.9372 | outside | -9.1062 | 2.0329 | outside |
 | demohist2m | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
+| demostd2m | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | all | 2792 | 12.3567 | 0.933 | outside | -8.596 | 1.009 | outside |
+| demostd2m | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
+| demostd2m | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 1.5919 | 0.8041 | inside | 3.3285 | 1.4643 | outside |
+| demostd2m | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | 0.16-0.19 | 757 | 17.7015 | 1.9972 | outside | -12.6816 | 2.081 | outside |
+| demostd2m | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 19.0413 | 2.164 | outside | -16.7776 | 2.201 | outside |
+| demostd2m | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | 0.22-0.25 | 593 | 9.6121 | 2.0078 | outside | -6.914 | 2.0956 | outside |
+| demostd2m | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
 | demohist2 | demo2 | demohist | demo2 | yes (16 tracked envs) | same | all | 2792 | 2.543 | 0.6957 | outside | -2.8653 | 0.7681 | outside |
 | demohist2 | demo2 | demohist | demo2 | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
 | demohist2 | demo2 | demohist | demo2 | yes (16 tracked envs) | same | 0.13-0.16 | 664 | 0.753 | 0.9646 | inside | -1.8072 | 1.4904 | inside |
@@ -829,6 +847,7 @@ eval.json의 by_crossing: 나온 사람의 건넘 구간이 전역 경로를 덮
 | demostd2 | demo1 | 2122 | 35.34 | 62.77 | 1.89 | 1140 | 88.86 | 11.05 | 0.09 | 834 | 50.36 | 48.32 | 1.32 | 51.72 | 1.4012 | outside |
 | demostd2 | demo2 | 2017 | 27.62 | 70.05 | 2.33 | 1009 | 89.4 | 10.6 | 0.0 | 1070 | 52.24 | 45.51 | 2.24 | 59.45 | 1.4069 | outside |
 | demostd2 | rand | 0 |  |  |  | 0 |  |  |  | 4096 | 78.61 | 21.34 | 0.05 |  |  |  |
+| demostd2m | demo1 | 2122 | 33.41 | 65.46 | 1.13 | 1140 | 88.07 | 11.93 | 0.0 | 834 | 48.68 | 50.36 | 0.96 | 53.53 | 1.4097 | outside |
 | histstd | aisle | 0 |  |  |  | 0 |  |  |  | 4096 | 68.65 | 27.34 | 4.0 |  |  |  |
 | histstd | demo1 | 2122 | 32.0 | 66.35 | 1.65 | 1140 | 89.12 | 10.7 | 0.18 | 834 | 48.56 | 49.52 | 1.92 | 55.65 | 1.3749 | outside |
 | histstd | demo2 | 2017 | 25.24 | 72.34 | 2.43 | 1009 | 89.89 | 10.01 | 0.1 | 1070 | 48.04 | 49.81 | 2.15 | 62.33 | 1.3729 | outside |
