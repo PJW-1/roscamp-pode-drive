@@ -288,6 +288,18 @@ def capped_action(actions: torch.Tensor, v_cap: torch.Tensor, lim: ActionLimits 
     return out
 
 
+def parse_front_stop(text: str) -> tuple[float, float]:
+    """play.py --front_stop 의 "거리 m,반각 deg": 거리는 유한한 양수, 반각은 0 초과 180 이하.
+    아니면 ValueError (nan 은 앞 막기를 조용히 끄고 inf 는 늘 막으므로 받지 않는다)."""
+    parts = text.split(",")
+    if len(parts) != 2:
+        raise ValueError(f"front stop wants RANGE_M,HALF_DEG, got {text!r}")
+    stop_range, half_width_deg = float(parts[0]), float(parts[1])
+    if not (math.isfinite(stop_range) and stop_range > 0.0 and 0.0 < half_width_deg <= 180.0):
+        raise ValueError(f"front stop wants a finite range > 0 and 0 < half width <= 180: {text!r}")
+    return stop_range, half_width_deg
+
+
 def block_forward(
     target: torch.Tensor, rays: torch.Tensor, stop_range: float, half_width_deg: float
 ) -> tuple[torch.Tensor, torch.Tensor]:

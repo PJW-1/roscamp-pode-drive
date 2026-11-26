@@ -258,6 +258,15 @@ def test_block_forward_is_off_at_zero_range_and_follows_the_ray_count():
     assert ts.block_forward(target[:1], coarse, 0.2, 59.0)[1].tolist() == [False]
 
 
+def test_parse_front_stop_wants_a_finite_positive_range_and_a_half_width_up_to_180():
+    assert ts.parse_front_stop("0.20,30") == (0.2, 30.0)
+    assert ts.parse_front_stop(" 0.15 , 180 ") == (0.15, 180.0)
+    for bad in ("0.2", "0.2,30,1", "0,30", "-0.1,30", "nan,30", "inf,30", "0.2,0", "0.2,181",
+                "0.2,nan", "a,b", ""):
+        with pytest.raises(ValueError):
+            ts.parse_front_stop(bad)
+
+
 def test_speed_cap_draw_stays_in_range_and_a_single_value_draws_nothing():
     spec = dataclasses.replace(ts.SPEC, speed_cap_range=(0.08, 0.16))
     torch.manual_seed(0)
