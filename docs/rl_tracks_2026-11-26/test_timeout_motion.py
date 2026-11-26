@@ -6,7 +6,8 @@ import timeout_motion as tm
 
 def fake_run(path, cmd_w, front, code=3, moved=0.0, name="rollouts.npz", ends=None):
     """env마다 ends의 (스텝, 결과)에서 끝나는 에피소드들(기본은 40스텝에서 code로 끝나는 하나).
-    cmd_w, front, moved는 env별 값이다. 경로 번호는 에피소드 순서이고, 끝난 스텝에서 이미 다음 번호다(play.py와 같다)."""
+    cmd_w, front, moved는 env별 값이다. 경로 번호는 에피소드 순서이고, 끝난 스텝까지 그 에피소드의 번호다(play.py는
+    스텝 전의 경로를 기록한다)."""
     steps, envs = 50, len(cmd_w)
     ends = ends or ((40, code),)
     xy = np.zeros((steps, envs, 2), dtype=np.float32)
@@ -16,7 +17,7 @@ def fake_run(path, cmd_w, front, code=3, moved=0.0, name="rollouts.npz", ends=No
     route = np.zeros((steps, envs), dtype=np.int64)
     for step, result in ends:
         done[step], outcome[step] = True, result
-        route[step:] += 1
+        route[step + 1:] += 1
     cmd = np.zeros((steps, envs, 2), dtype=np.float32)
     cmd[..., 1] = np.array(cmd_w)[None, :]
     path.mkdir(parents=True, exist_ok=True)
@@ -46,7 +47,9 @@ def test_a_timeout_after_the_first_episode_is_not_listed(tmp_path):
     assert tm.rows(tmp_path) == []
 
 
-def test_the_box_is_the_one_of_the_episode_not_of_the_next_reset(tmp_path):
+def test_the_box_is_the_one_of_the_episode_not_of_its_neighbours(tmp_path):
+    fake_run(tmp_path, cmd_w=[0.0], front=[1.0], ends=((5, 0), (40, 3)))
+    assert tm.rows(tmp_path) == []
     fake_run(tmp_path, cmd_w=[0.0], front=[1.0])
     assert abs(tm.rows(tmp_path)[0]["box_m"] - 0.4) < 1e-6
 

@@ -45,10 +45,11 @@ def rows(run) -> list:
         for s, t in timeouts.episodes(z["done"][:, e])[:1]:
             if z["outcome"][t, e] != TIMEOUT:
                 continue
-            # 끝난 스텝 t는 이미 다음 에피소드의 리셋 자세와 경로이므로 뺀다
+            # 끝난 스텝 t의 위치는 이미 다음 에피소드의 리셋 자세라서 뺀다. 경로 번호는 스텝 전의 것이 기록되므로
+            # t에서도 이 에피소드의 번호다
             b = max(s, t - tail)
             us = z["xy"][b:t, e]
-            route = int(z["route"][t - 1, e])
+            route = int(z["route"][t, e])
             out.append({
                 "env": e,
                 "motion": timeouts.motion(us, None, z["cmd"][b:t, e]),
