@@ -440,7 +440,8 @@ class ClosingGuard:
         반환: (목표 (N, 2), 막았는지 (N,))."""
         if self.scans is None:
             self._allocate(rays)
-        rays = rays.clamp(max=RAY_CAP_M)
+        # 돌아오지 않은 레이 (nan, inf) 는 먼 것으로: 옛 스캔의 이웃 칸을 흐리지 않게
+        rays = torch.nan_to_num(rays, nan=RAY_CAP_M, posinf=RAY_CAP_M).clamp(max=RAY_CAP_M)
         origin = xy + self.lidar_x * torch.stack((torch.cos(yaw), torch.sin(yaw)), dim=-1)
         slot = self.head
         self.scans[slot], self.origins[slot], self.yaws[slot] = rays, origin, yaw

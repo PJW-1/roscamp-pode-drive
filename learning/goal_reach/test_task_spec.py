@@ -623,10 +623,10 @@ def test_closing_guard_ignores_a_standing_thing_the_robot_drives_up_to():
     assert not any(s[0] for s in steps)
 
 
-def _ramp_scan(front_m):
-    """정면 +-8 deg 만 front_m 이고 나머지는 1 m 인 스캔 (1, 360)."""
+def _ramp_scan(front_m, at=slice(172, 189)):
+    """정면 +-8 deg (또는 at 의 레이) 만 front_m 이고 나머지는 1 m 인 스캔 (1, 360)."""
     rays = torch.full((1, 360), 1.0)
-    rays[0, 172:189] = front_m
+    rays[0, at] = front_m
     return rays
 
 
@@ -646,6 +646,24 @@ def test_closing_guard_holds_after_the_last_trigger_and_never_blocks_a_backward_
         back = torch.tensor([[-0.05, 0.3]]) if i % 2 else torch.tensor([[0.0, 0.3]])
         out, b = guard.step(back, _ramp_scan(0.40 - 0.01 * i), at0, yaw0)
         assert out.tolist() == back.tolist() and not b.item()
+
+
+def test_closing_guard_treats_rays_without_a_return_as_far():
+    at0, yaw0, fwd = torch.zeros(1, 2), torch.zeros(1), torch.tensor([[0.12, 0.3]])
+    blocked = []
+    for where in (slice(172, 189), slice(344, 360)):  # 정면과 뒤 왼쪽 (부채꼴은 한 바퀴)
+        guard = ts.ClosingGuard(0.05, 0.26, 180.0)
+        for i in range(18):  # 0.40 m 에서 0.2 m/s 로 다가오고, 다른 쪽 레이 몇은 돌아오지 않는다
+            rays = _ramp_scan(0.40 - 0.01 * i, where)
+            rays[0, 100:110] = float("nan")
+            rays[0, 250:260] = float("inf")
+            blocked.append(bool(guard.step(fwd, rays, at0, yaw0)[1][0]))
+    assert blocked == ([False] * 15 + [True] * 3) * 2
+    # 돌아오지 않게 된 레이는 가까워진 것이 아니다
+    guard = ts.ClosingGuard(0.05, 0.26, 60.0)
+    for i in range(12):
+        rays = _ramp_scan(0.30 if i < 6 else float("nan"))
+        assert not guard.step(fwd, rays, at0, yaw0)[1].item()
 
 
 def test_closing_guard_needs_fresh_scans_after_a_reset():
