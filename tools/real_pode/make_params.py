@@ -325,12 +325,14 @@ def main(argv=None) -> int:
                         help="RL 블록 둘의 scan_mask_deg 가림 각(도, base 기준, "
                              "-180 <= lo < hi <= 180 쌍). --rl-policy가 있어야 한다"
                              "(기본: 없음)")
-    # 가림 각 값은 -로 시작할 수 있어 argparse가 옵션으로 읽지 않게 "옵션=값" 한 낱말로 붙인다
-    argv = list(sys.argv[1:] if argv is None else argv)
-    for i in range(len(argv) - 1):
-        if argv[i] == "--rl-scan-mask":
-            argv[i:i + 2] = [f"--rl-scan-mask={argv[i + 1]}"]
-            break
+    # 가림 각 값은 -로 시작할 수 있어 argparse가 옵션으로 읽지 않게 "옵션=값" 한 낱말로 붙인다.
+    # --로 시작하는 다음 낱말은 값이 아니라 옵션이므로 붙이지 않는다(argparse가 값 없음으로 거절)
+    given, argv = list(sys.argv[1:] if argv is None else argv), []
+    while given:
+        word = given.pop(0)
+        if word == "--rl-scan-mask" and given and not given[0].startswith("--"):
+            word = f"--rl-scan-mask={given.pop(0)}"
+        argv.append(word)
     args = parser.parse_args(argv)
     try:
         nav2, avoid = write_params(args.speed, args.out, args.nav2_src, args.avoidance_src,
