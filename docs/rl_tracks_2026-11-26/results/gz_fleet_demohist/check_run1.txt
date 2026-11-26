@@ -12,3 +12,4 @@ events.csv fleet_check.json fleet_robots.csv recovery_probe.csv releases.csv rob
 pode1: policy configure lines 2, RL call lines 32, nav goals begun 4, RPP warning lines between 40 s and 215 s 0
 pode2: policy configure lines 2, RL call lines 53, nav goals begun 6, RPP warning lines between 40 s and 215 s 0
 pode3: policy configure lines 2, RL call lines 0, nav goals begun 4, RPP warning lines between 40 s and 215 s 14
+order in launch.out (line numbers): scenario verdict 1781, first SIGINT from launch 1784, process deaths at 2265 2266 2267 2268 : component_container_isolated-15(exit -9) component_container_isolated-10(exit -9) component_container_isolated-5(exit -9) gz_server-1(exit -9) 

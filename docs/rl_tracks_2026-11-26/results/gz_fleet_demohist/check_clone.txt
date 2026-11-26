@@ -16,3 +16,4 @@ clone build: Summary: 18 packages finished [1min 34s]
 selector command: ros2 topic pub --times 3 --rate 2 --keep-alive 1 (transient_local, reliable)
 [fleet_check-24] RuntimeError: Unable to convert call argument '0' to Python object (#define PYBIND11_DETAILED_ERROR_MESSAGES or compile in debug mode for details)
 [ERROR] [fleet_check-24]: process has died [pid 5622, exit code 1, cmd '/home/pjw/gg_build/clone-tracks/install/fleet_gz_sim/lib/fleet_gz_sim/fleet_check --ros-args -r __node:=fleet_check --params-fil
+order in launch.out (line numbers): scenario verdict 1804, first SIGINT from launch 1807, process deaths at 2066 2334 2335 2336 2337 : fleet_check-24(exit 1) component_container_isolated-15(exit -9) component_container_isolated-10(exit -9) component_container_isolated-5(exit -9) gz_server-1(exit -9) 

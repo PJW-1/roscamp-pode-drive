@@ -129,10 +129,12 @@ Pi 4에서 RL 추론과 MPPI의 계산 시간을 주행 없이 재려면 `tools/
    더했다.
 2. `pode/pode_rl_controller/CMakeLists.txt`의 추론 일치 시험 목록과 그 README의 정책 표에 `<NAME>`을 더한다.
 3. 시뮬에서 고르려면 `sim/fleet_gz_sim/nav_overrides/follow_path_rl_<이름>.yaml`(acd3 파일에서 policy만 바꾼 것)을 만들고,
-   `gz.launch.py`의 `RL_FILES`, `sim/fleet_gz_sim/test/test_launch_wiring.py`, `tools/test/test_policy_files.py`의 파일 목록에 더한다.
+   `gz.launch.py`의 `RL_FILES`에 더한다. 시험도 맞춘다: `sim/fleet_gz_sim/test/test_launch_wiring.py`의 선택 이름 목록과
+   그 아래 정책 이름 표(고른 이름 → 정책 이름) 둘 다, `tools/test/test_policy_files.py`의 덮어쓰기 파일 목록.
 4. `learning/store_arena/checkpoints/<NAME>/`에 체크포인트, 실행 폴더의 `run.json`과 `run_config.json`을 두고 `index.json`에 줄을
    더한다. `POLICIES.md` 계보표를 채우고 Drive `RL_정책_백업`에 같은 파일을 올린다.
-5. 시험: `python -m pytest tools/test/test_policy_files.py learning/store_arena/test_checkpoints.py sim/fleet_gz_sim/test/test_launch_wiring.py`,
+5. 새 파일을 모두 `git add`한 뒤에 시험한다(`test_policy_files.py`는 git이 추적하는 파일만 본다. 커밋까지 해야 다른 PC에서 받을
+   수 있다): `python -m pytest tools/test/test_policy_files.py learning/store_arena/test_checkpoints.py sim/fleet_gz_sim/test/test_launch_wiring.py`,
    그리고 2절의 colcon build와 `colcon test --packages-select pode_rl_controller`.
 
 ## 6. 확인된 것과 아닌 것 (2026-11-26)
