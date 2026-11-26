@@ -77,7 +77,8 @@ ros2 topic pub --times 3 --rate 2 --keep-alive 1 --qos-durability transient_loca
 
 ```bash
 # acd3와 demohist를 시나리오마다 5판씩. aisle_first:=true는 "통로 먼저, 막히면 우회"(시뮬 전용 시제품)다
-# plan_keep:=false는 길 유지(keeper)를 끈다: 작업 기록의 열두째 묶음까지는 모두 keeper가 꺼진 채로 돌았다
+# plan_keep:=false는 길 유지(keeper)를 끈다: 작업 기록의 열두째 묶음까지는 keeper가 꺼진 채로 돌았다
+# (keeper를 직접 켜고 돌린 여섯째 묶음, 작업 기록 8c절만 빼고)
 BENCH_LOCK= BENCH_DOMAIN=72 BENCH_REPEATS=5 BENCH_LAUNCH_ARGS="aisle_first:=true plan_keep:=false" \
 BENCH_CONFIG=$PWD/docs/rl_tracks_2026-11-26/gz_demo.yaml \
 BENCH_OVERRIDES=$PWD/docs/rl_tracks_2026-11-26/results/gz_demo_cand/overrides.yaml \
