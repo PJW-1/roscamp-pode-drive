@@ -363,3 +363,348 @@ TEST(ScanMask, MalformedListsAreRefused)
     EXPECT_THROW(parse_scan_mask(bad), std::runtime_error) << bad.size();
   }
 }
+
+// ---- 가린 섹터 채우기(scan_mask_fill) ----
+namespace
+{
+using pode_rl_controller::Scan;
+
+// 빔 360개, -180도부터 1도 간격(lidar yaw 0): 빔 k가 레이 k이고 섹터 s는 빔 10s..10s+9다
+Scan grid360(float r)
+{
+  return {-M_PI, 2.0 * M_PI / 360, 0.05, 12.0, std::vector<float>(360, r)};
+}
+
+void set_sector(Scan & scan, int s, float r)
+{
+  std::fill(scan.ranges.begin() + 10 * s, scan.ranges.begin() + 10 * s + 10, r);
+}
+
+struct Filled
+{
+  std::vector<float> rays;
+  std::vector<float> before;
+  std::vector<float> after;
+  pode_rl_controller::MaskedSectors flags;
+};
+
+// 플러그인과 같은 차례: 가리기 -> 레이 -> 관측 -> 관측의 섹터 칸 채우기
+Filled run_fill(Scan scan, double yaw, const std::vector<double> & mask_deg, const PolicySpec & s)
+{
+  const auto mask = pode_rl_controller::parse_scan_mask(mask_deg);
+  pode_rl_controller::mask_scan(scan, yaw, mask);
+  Filled f;
+  f.rays = pode_rl_controller::scan_to_rays(scan, yaw, s);
+  auto obs = pode_rl_controller::build_observation(f.rays, 1.0, 0.5, 0.1, -0.2, s);
+  const auto plain = obs;
+  f.before.assign(obs.begin(), obs.begin() + s.lidar.sectors);
+  f.flags = pode_rl_controller::masked_sectors(scan, yaw, mask, s);
+  pode_rl_controller::fill_masked_sectors(obs, f.flags, 1.0f);
+  f.after.assign(obs.begin(), obs.begin() + s.lidar.sectors);
+  // 섹터 칸 밖(목표와 속도)은 그대로다
+  EXPECT_EQ(obs.size(), plain.size());
+  for (size_t k = s.lidar.sectors; k < obs.size(); ++k) {
+    EXPECT_EQ(obs[k], plain[k]) << k;
+  }
+  return f;
+}
+
+// 채워지는 섹터(empty)만 값이 바뀔 수 있다. 나머지는 한 값도 바뀌지 않는다
+void expect_kept_outside(const Filled & f, const std::vector<int> & empty)
+{
+  for (size_t s = 0; s < f.after.size(); ++s) {
+    const bool is_empty = std::find(empty.begin(), empty.end(), static_cast<int>(s)) != empty.end();
+    EXPECT_EQ(f.flags.touched[s] && !f.flags.usable[s], is_empty) << s;
+    if (!is_empty) {
+      EXPECT_EQ(f.after[s], f.before[s]) << s;
+    }
+  }
+}
+
+struct Sides
+{
+  float left;
+  float right;
+  float want;
+};
+}  // namespace
+
+TEST(ScanMaskFill, AFullyMaskedSectorReadsTheSmallerNeighbour)
+{
+  const PolicySpec s = spec();
+  ASSERT_EQ(s.lidar.rays, 360);
+  ASSERT_EQ(s.lidar.sectors, 36);
+  ASSERT_DOUBLE_EQ(s.lidar.obs_max, 2.0);
+  // 가림 -150.5..-140.5는 섹터 3(빔 -150..-141)을 통째로 가린다
+  for (const auto & c : std::vector<Sides>{{1.2f, 0.9f, 0.45f}, {0.7f, 1.1f, 0.35f}}) {
+    Scan scan = grid360(0.5f);
+    set_sector(scan, 2, c.left);
+    set_sector(scan, 4, c.right);
+    const auto f = run_fill(scan, 0.0, {-150.5, -140.5}, s);
+    EXPECT_FLOAT_EQ(f.before[3], 1.0f);
+    EXPECT_FLOAT_EQ(f.after[3], c.want) << c.left << " " << c.right;
+    expect_kept_outside(f, {3});
+  }
+}
+
+TEST(ScanMaskFill, AnEmptyNeighbourIsSkipped)
+{
+  const PolicySpec s = spec();
+  // 가림 -160.5..-140.5는 섹터 2와 3을 통째로 가린다
+  // 3의 왼쪽은 2를 건너 1, 2의 오른쪽은 3을 건너 4다
+  for (const auto & c : std::vector<Sides>{{0.8f, 1.5f, 0.4f}, {1.9f, 0.6f, 0.3f}}) {
+    Scan scan = grid360(1.7f);
+    set_sector(scan, 1, c.left);
+    set_sector(scan, 4, c.right);
+    const auto f = run_fill(scan, 0.0, {-160.5, -140.5}, s);
+    EXPECT_FLOAT_EQ(f.after[2], c.want);
+    EXPECT_FLOAT_EQ(f.after[3], c.want);
+    expect_kept_outside(f, {2, 3});
+  }
+}
+
+TEST(ScanMaskFill, NoneWithinFourGivesTheLimitAndFilledValuesAreNotReused)
+{
+  const PolicySpec s = spec();
+  // 가림 -170.5..-80.5는 섹터 1..9를 통째로 가린다. 0은 0.3, 10은 0.4, 나머지는 0.5
+  Scan scan = grid360(0.5f);
+  set_sector(scan, 0, 0.3f);
+  set_sector(scan, 10, 0.4f);
+  const auto f = run_fill(scan, 0.0, {-170.5, -80.5}, s);
+  // 1..4는 왼쪽 넷 안에 0이 있고, 6..9는 오른쪽 넷 안에 10이 있다
+  for (int k = 1; k <= 4; ++k) {
+    EXPECT_FLOAT_EQ(f.after[k], 0.15f) << k;
+  }
+  // 5는 양쪽 넷 안에 채우지 않은 섹터가 없다: 채워진 4나 6의 값을 쓰지 않고 상한이다
+  EXPECT_FLOAT_EQ(f.after[5], 1.0f);
+  for (int k = 6; k <= 9; ++k) {
+    EXPECT_FLOAT_EQ(f.after[k], 0.2f) << k;
+  }
+  expect_kept_outside(f, {1, 2, 3, 4, 5, 6, 7, 8, 9});
+}
+
+TEST(ScanMaskFill, TheSearchWrapsAcrossSectorZero)
+{
+  const PolicySpec s = spec();
+  // 가림 169.5..180, -180..-170.5는 섹터 35와 0을 통째로 가린다
+  for (const auto & c : std::vector<Sides>{{0.6f, 1.4f, 0.3f}, {1.6f, 0.7f, 0.35f}}) {
+    Scan scan = grid360(1.9f);
+    set_sector(scan, 34, c.left);
+    set_sector(scan, 1, c.right);
+    const auto f = run_fill(scan, 0.0, {169.5, 180.0, -180.0, -170.5}, s);
+    EXPECT_FLOAT_EQ(f.after[0], c.want);
+    EXPECT_FLOAT_EQ(f.after[35], c.want);
+    expect_kept_outside(f, {0, 35});
+  }
+}
+
+TEST(ScanMaskFill, AnUnmaskedSectorWithNoReturnStaysAtTheLimit)
+{
+  const PolicySpec s = spec();
+  Scan scan = grid360(0.5f);
+  set_sector(scan, 18, std::numeric_limits<float>::infinity());
+  set_sector(scan, 2, 0.8f);
+  const auto f = run_fill(scan, 0.0, {-150.5, -140.5}, s);
+  EXPECT_FLOAT_EQ(f.after[18], 1.0f);
+  EXPECT_FLOAT_EQ(f.after[3], 0.25f);
+  expect_kept_outside(f, {3});
+}
+
+TEST(ScanMaskFill, AMaskedSectorWithAUsableRayIsKept)
+{
+  const PolicySpec s = spec();
+  const float inf = std::numeric_limits<float>::infinity();
+  const float nan = std::nanf("");
+  // 가림 -158.5..-140.5: 섹터 3은 통째로, 섹터 2는 빔 -160, -159만 남는다
+  struct Case
+  {
+    float b160;
+    float b159;
+    bool usable2;
+    float want2;
+    float want3;
+  };
+  for (const auto & c : std::vector<Case>{
+      {3.5f, inf, true, 1.0f, 0.4f},  // 2 m보다 먼 유효 반환만 있다: 상한 그대로
+      {0.3f, nan, true, 0.15f, 0.15f},  // 가까운 반환
+      {0.01f, 15.0f, false, 0.25f, 0.25f},  // range 밖뿐이라 쓸 수 없다: 1의 값으로 채운다
+      {inf, nan, false, 0.25f, 0.25f}})
+  {
+    Scan scan = grid360(0.5f);
+    set_sector(scan, 2, 1.3f);
+    set_sector(scan, 4, 0.8f);
+    scan.ranges[20] = c.b160;
+    scan.ranges[21] = c.b159;
+    const auto f = run_fill(scan, 0.0, {-158.5, -140.5}, s);
+    EXPECT_TRUE(f.flags.touched[2]);
+    EXPECT_EQ(f.flags.usable[2], c.usable2) << c.b160;
+    EXPECT_FLOAT_EQ(f.after[2], c.want2) << c.b160;
+    EXPECT_FLOAT_EQ(f.after[3], c.want3) << c.b160;
+    expect_kept_outside(f, c.usable2 ? std::vector<int>{3} : std::vector<int>{2, 3});
+  }
+}
+
+TEST(ScanMaskFill, TouchedFollowsTheChosenBeam)
+{
+  const PolicySpec s = spec();
+  // 빔 720개, lidar yaw 180도, 정수 도에서 어긋난 격자. 빔마다 다른 값으로 레이가 고른 빔을 읽는다
+  const int n = 720;
+  Scan scan{-3.1241, 2.0 * M_PI / 719, 0.05, 12.0, std::vector<float>(n)};
+  for (int i = 0; i < n; ++i) {
+    scan.ranges[i] = 0.1f + 0.001f * static_cast<float>(i);
+  }
+  const double yaw = M_PI;
+  const auto rays = pode_rl_controller::scan_to_rays(scan, yaw, s);
+  std::vector<int> chosen_by(n, -1);
+  for (int k = 0; k < s.lidar.rays; ++k) {
+    const int i = static_cast<int>(std::lround((rays[k] - 0.1f) / 0.001f));
+    ASSERT_GE(i, 0);
+    ASSERT_LT(i, n);
+    chosen_by[i] = k;
+  }
+  auto beam_deg = [&](int i) {
+      return std::remainder(
+        (yaw + scan.angle_min + i * scan.angle_increment) * (180.0 / M_PI), 360.0);
+    };
+  // 섹터 4 안에서 고른 빔 하나와 고르지 않은 빔 하나를 찾는다
+  int picked = -1;
+  int skipped = -1;
+  for (int i = 0; i < n; ++i) {
+    const double d = beam_deg(i);
+    if (d > -134.0 && d < -132.0) {
+      (chosen_by[i] >= 0 ? picked : skipped) = i;
+    }
+  }
+  ASSERT_GE(picked, 0);
+  ASSERT_GE(skipped, 0);
+  const int sector = chosen_by[picked] / 10;
+  EXPECT_EQ(sector, 4);
+  // 고르지 않은 빔만 가리면 어느 섹터도 가림에 걸리지 않고 아무것도 바뀌지 않는다
+  {
+    const double d = beam_deg(skipped);
+    const std::vector<double> mask{d - 0.1, d + 0.1};
+    Scan masked = scan;
+    pode_rl_controller::mask_scan(masked, yaw, pode_rl_controller::parse_scan_mask(mask));
+    EXPECT_EQ(
+      std::count_if(
+        masked.ranges.begin(), masked.ranges.end(), [](float r) {return std::isinf(r);}), 1);
+    const auto f = run_fill(scan, yaw, mask, s);
+    for (int k = 0; k < s.lidar.sectors; ++k) {
+      EXPECT_FALSE(f.flags.touched[k]) << k;
+    }
+    EXPECT_EQ(f.after, f.before);
+  }
+  // 고른 빔을 가리면 그 레이의 섹터만 가림에 걸리고, 남은 레이가 있어 바뀌지 않는다
+  {
+    const double d = beam_deg(picked);
+    const auto f = run_fill(scan, yaw, {d - 0.1, d + 0.1}, s);
+    for (int k = 0; k < s.lidar.sectors; ++k) {
+      EXPECT_EQ(f.flags.touched[k], k == sector) << k;
+      EXPECT_TRUE(f.flags.usable[k]) << k;
+    }
+    EXPECT_EQ(f.after, f.before);
+  }
+}
+
+TEST(ScanMaskFill, NoMaskChangesNothing)
+{
+  const PolicySpec s = spec();
+  Scan scan = grid360(0.5f);
+  set_sector(scan, 3, std::numeric_limits<float>::infinity());
+  set_sector(scan, 7, std::nanf(""));
+  const auto f = run_fill(scan, 0.0, {}, s);
+  for (int k = 0; k < s.lidar.sectors; ++k) {
+    EXPECT_FALSE(f.flags.touched[k]) << k;
+  }
+  EXPECT_EQ(f.after, f.before);
+  EXPECT_FLOAT_EQ(f.after[3], 1.0f);
+}
+
+TEST(ScanMaskFill, RaysForTheRearGuardKeepTheMaskedValue)
+{
+  const PolicySpec s = spec();
+  // 바로 뒤 섹터 0과 35를 가리고 이웃은 가깝다: 관측은 채워지지만 레이는 가린 그대로(상한)다
+  Scan scan = grid360(0.1f);
+  const std::vector<double> mask{169.5, 180.0, -180.0, -170.5};
+  const auto f = run_fill(scan, 0.0, mask, s);
+  EXPECT_FLOAT_EQ(f.after[0], 0.05f);
+  Scan masked = scan;
+  pode_rl_controller::mask_scan(masked, 0.0, pode_rl_controller::parse_scan_mask(mask));
+  EXPECT_EQ(f.rays, pode_rl_controller::scan_to_rays(masked, 0.0, s));
+  for (int k = 0; k < 10; ++k) {
+    EXPECT_FLOAT_EQ(f.rays[k], 2.0f) << k;
+    EXPECT_FLOAT_EQ(f.rays[350 + k], 2.0f) << k;
+  }
+  const pode_rl_controller::Twist2 back{-0.05, 0.0};
+  EXPECT_DOUBLE_EQ(pode_rl_controller::block_reverse(back, f.rays, 0.15, 9.5, s).v, -0.05);
+}
+
+TEST(ScanMaskFill, NeedsAMask)
+{
+  using pode_rl_controller::check_scan_mask_fill;
+  using pode_rl_controller::parse_scan_mask;
+  EXPECT_THROW(check_scan_mask_fill(true, {}), std::runtime_error);
+  EXPECT_NO_THROW(check_scan_mask_fill(true, parse_scan_mask({138.0, 157.0})));
+  EXPECT_NO_THROW(check_scan_mask_fill(false, {}));
+  EXPECT_NO_THROW(check_scan_mask_fill(false, parse_scan_mask({138.0, 157.0})));
+}
+
+TEST(ScanMaskFill, FlagsAreTheSameBeforeAndAfterMasking)
+{
+  const PolicySpec s = spec();
+  // 가린 빔에 가까운 유효 반환이 남아 있어도(가리기 전의 scan) 그 빔은 쓸 수 있는 레이가 아니다
+  Scan scan = grid360(0.5f);
+  scan.ranges[20] = std::numeric_limits<float>::infinity();
+  scan.ranges[21] = std::nanf("");
+  const auto mask = pode_rl_controller::parse_scan_mask({-158.5, -140.5});
+  const auto plain = pode_rl_controller::masked_sectors(scan, 0.0, mask, s);
+  Scan masked = scan;
+  pode_rl_controller::mask_scan(masked, 0.0, mask);
+  const auto after = pode_rl_controller::masked_sectors(masked, 0.0, mask, s);
+  EXPECT_EQ(plain.touched, after.touched);
+  EXPECT_EQ(plain.usable, after.usable);
+  EXPECT_TRUE(plain.touched[2]);
+  EXPECT_FALSE(plain.usable[2]);
+  EXPECT_TRUE(plain.touched[3]);
+  EXPECT_FALSE(plain.usable[3]);
+  EXPECT_TRUE(plain.usable[4]);
+}
+
+// ---- Python과 같은 답(make_mask_fill_cases.py로 만든 기대값) ----
+TEST(ScanMaskFill, MatchesPythonOnGeneratedScans)
+{
+  const PolicySpec s = spec();
+  const YAML::Node f = YAML::LoadFile(std::string(MASK_FILL_FIXTURE));
+  ASSERT_EQ(f["fill_reach"].as<int>(), pode_rl_controller::kFillReach);
+  ASSERT_DOUBLE_EQ(f["obs_max"].as<double>(), s.lidar.obs_max);
+  const double obs_max = s.lidar.obs_max;
+  int cases = 0;
+  int filled = 0;
+  double worst = 0.0;
+  for (const auto & c : f["cases"]) {
+    const std::string name = c["name"].as<std::string>();
+    Scan scan{c["angle_min"].as<double>(), c["angle_increment"].as<double>(),
+      f["range_min"].as<double>(), f["range_max"].as<double>(),
+      c["ranges"].as<std::vector<float>>()};
+    const auto out = run_fill(scan, c["yaw"].as<double>(), c["mask"].as<std::vector<double>>(), s);
+    const auto before = c["before"].as<std::vector<double>>();
+    const auto after = c["after"].as<std::vector<double>>();
+    const auto touched = c["touched"].as<std::vector<bool>>();
+    const auto usable = c["usable"].as<std::vector<bool>>();
+    ASSERT_EQ(before.size(), static_cast<size_t>(s.lidar.sectors)) << name;
+    for (int k = 0; k < s.lidar.sectors; ++k) {
+      EXPECT_EQ(out.flags.touched[k], touched[k]) << name << " sector " << k;
+      EXPECT_EQ(out.flags.usable[k], usable[k]) << name << " sector " << k;
+      // 관측은 상한으로 나눈 값이다
+      worst = std::max(
+        {worst, gap(out.before[k], before[k] / obs_max), gap(out.after[k], after[k] / obs_max)});
+      EXPECT_NEAR(out.before[k], before[k] / obs_max, kObsTol) << name << " sector " << k;
+      EXPECT_NEAR(out.after[k], after[k] / obs_max, kObsTol) << name << " sector " << k;
+      filled += touched[k] && !usable[k] ? 1 : 0;
+    }
+    ++cases;
+  }
+  std::printf("[mask_fill] %d cases, %d filled sectors, max |diff| %.3g\n", cases, filled, worst);
+  EXPECT_EQ(cases, 20);
+  EXPECT_GT(filled, 50);
+}

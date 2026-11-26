@@ -69,6 +69,7 @@ if(BUILD_TESTING)
     FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test/fixtures/store_arena_4b"
     POLICY_DIR="${CMAKE_CURRENT_SOURCE_DIR}/policies/store_arena_4b"
     PATH_END_POLICY_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test/fixtures/goal_reach_base_4096"
+    MASK_FILL_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/test/fixtures/mask_fill/mask_fill_cases.json"
     NAV_SPEED_FILE="${CMAKE_CURRENT_SOURCE_DIR}/../pode_nav_config/params/nav_speed.yaml")
   ament_add_gtest(test_format3 test/test_format3.cpp)
   target_link_libraries(test_format3 pode_rl_core)

@@ -13,6 +13,38 @@ namespace
 {
 constexpr double kPi = 3.14159265358979323846;
 constexpr double kTwoPi = 2.0 * kPi;
+
+// 레이 k가 고르는 빔(가장 가까운 빔). scan이 그 각을 덮지 않으면 -1
+long ray_beam(const Scan & scan, double lidar_yaw, const LidarSpec & lid, int k)
+{
+  const long n = static_cast<long>(scan.ranges.size());
+  const double theta = (lid.first_ray_deg + k * lid.ray_step_deg) * (kPi / 180.0);
+  double rel = std::fmod(theta - lidar_yaw - scan.angle_min, kTwoPi);
+  if (rel < 0.0) {
+    rel += kTwoPi;
+  }
+  long i = static_cast<long>(std::floor(rel / scan.angle_increment + 0.5));
+  if (i >= n) {
+    i = (kTwoPi - rel <= 0.5 * scan.angle_increment) ? 0 : -1;
+  }
+  return i;
+}
+
+// 빔 i가 가림 범위 안인가
+bool beam_masked(
+  const Scan & scan, size_t i, double lidar_yaw, const std::vector<AngleRange> & mask)
+{
+  const double rad = lidar_yaw + scan.angle_min + static_cast<double>(i) * scan.angle_increment;
+  const double deg = std::remainder(rad * (180.0 / kPi), 360.0);
+  // 바로 뒤는 -180과 180 둘 다로 본다
+  const double alt = deg <= -180.0 ? 180.0 : (deg >= 180.0 ? -180.0 : deg);
+  for (const auto & m : mask) {
+    if ((deg >= m.lo_deg && deg <= m.hi_deg) || (alt >= m.lo_deg && alt <= m.hi_deg)) {
+      return true;
+    }
+  }
+  return false;
+}
 }  // namespace
 
 // ---- 경로 따라가기 ----
@@ -69,18 +101,9 @@ GoalPolar path_goal(
 std::vector<float> scan_to_rays(const Scan & scan, double lidar_yaw, const PolicySpec & spec)
 {
   const auto & lid = spec.lidar;
-  const long n = static_cast<long>(scan.ranges.size());
   std::vector<float> rays(lid.rays);
   for (int k = 0; k < lid.rays; ++k) {
-    const double theta = (lid.first_ray_deg + k * lid.ray_step_deg) * (kPi / 180.0);
-    double rel = std::fmod(theta - lidar_yaw - scan.angle_min, kTwoPi);
-    if (rel < 0.0) {
-      rel += kTwoPi;
-    }
-    long i = static_cast<long>(std::floor(rel / scan.angle_increment + 0.5));
-    if (i >= n) {
-      i = (kTwoPi - rel <= 0.5 * scan.angle_increment) ? 0 : -1;
-    }
+    const long i = ray_beam(scan, lidar_yaw, lid, k);
     double r = i >= 0 ? scan.ranges[i] : std::numeric_limits<double>::infinity();
     if (!std::isfinite(r) || r < scan.range_min || r > scan.range_max) {
       r = lid.obs_max;
@@ -276,16 +299,72 @@ void mask_scan(Scan & scan, double lidar_yaw, const std::vector<AngleRange> & ma
     return;
   }
   for (size_t i = 0; i < scan.ranges.size(); ++i) {
-    const double rad = lidar_yaw + scan.angle_min + static_cast<double>(i) * scan.angle_increment;
-    const double deg = std::remainder(rad * (180.0 / kPi), 360.0);
-    // 바로 뒤는 -180과 180 둘 다로 본다
-    const double alt = deg <= -180.0 ? 180.0 : (deg >= 180.0 ? -180.0 : deg);
-    for (const auto & m : mask) {
-      if ((deg >= m.lo_deg && deg <= m.hi_deg) || (alt >= m.lo_deg && alt <= m.hi_deg)) {
-        scan.ranges[i] = std::numeric_limits<float>::infinity();
-        break;
+    if (beam_masked(scan, i, lidar_yaw, mask)) {
+      scan.ranges[i] = std::numeric_limits<float>::infinity();
+    }
+  }
+}
+
+// ---- 가린 섹터 채우기 ----
+void check_scan_mask_fill(bool fill, const std::vector<AngleRange> & mask)
+{
+  if (fill && mask.empty()) {
+    throw std::runtime_error(
+      "FollowPathRL: scan_mask_fill needs scan_mask_deg (with no masked beams there is no sector "
+      "to fill)");
+  }
+}
+
+// 가린 레이는 고른 빔이 가려진 레이, 쓸 수 있는 레이는 고른 빔이 가리지 않았고 유효한 반환인 레이다.
+// scan은 mask_scan 전이든 뒤든 같은 답을 낸다
+MaskedSectors masked_sectors(
+  const Scan & scan, double lidar_yaw, const std::vector<AngleRange> & mask,
+  const PolicySpec & spec)
+{
+  const auto & lid = spec.lidar;
+  const int per_sector = lid.rays / lid.sectors;
+  MaskedSectors out{std::vector<bool>(lid.sectors, false), std::vector<bool>(lid.sectors, false)};
+  for (int k = 0; k < lid.sectors * per_sector; ++k) {
+    const long i = ray_beam(scan, lidar_yaw, lid, k);
+    if (i < 0) {
+      continue;
+    }
+    const int s = k / per_sector;
+    if (beam_masked(scan, static_cast<size_t>(i), lidar_yaw, mask)) {
+      out.touched[s] = true;
+      continue;
+    }
+    const double r = scan.ranges[i];
+    if (std::isfinite(r) && r >= scan.range_min && r <= scan.range_max) {
+      out.usable[s] = true;
+    }
+  }
+  return out;
+}
+
+// 가림에 걸렸고 쓸 수 있는 레이가 없는 섹터(empty)를 양쪽으로 kFillReach 섹터 안의 가장 가까운
+// empty 아닌 섹터 값 가운데 작은 쪽으로 바꾼다. 양쪽 다 없으면 limit이다. 섹터 번호는 한 바퀴를
+// 넘어 이어지고, 후보는 채우기 전의 값에서 읽는다. values의 앞 섹터 수만큼의 칸만 본다
+void fill_masked_sectors(std::vector<float> & values, const MaskedSectors & flags, float limit)
+{
+  const int n = static_cast<int>(flags.touched.size());
+  auto empty = [&](int s) {return flags.touched[s] && !flags.usable[s];};
+  const std::vector<float> before(values.begin(), values.begin() + n);
+  for (int s = 0; s < n; ++s) {
+    if (!empty(s)) {
+      continue;
+    }
+    float best = limit;
+    for (const int step : {-1, 1}) {
+      for (int d = 1; d <= kFillReach; ++d) {
+        const int j = ((s + step * d) % n + n) % n;
+        if (!empty(j)) {
+          best = std::min(best, before[j]);
+          break;
+        }
       }
     }
+    values[s] = best;
   }
 }
 
