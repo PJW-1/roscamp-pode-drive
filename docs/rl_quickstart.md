@@ -47,6 +47,9 @@ ros2 topic pub --once --qos-durability transient_local --qos-reliability reliabl
 ```
 
 - `nav_rl:=rl`은 정책 `store_arena_4b`, `nav_rl:=rl_acd3`은 `store_arena_acd3`다.
+- `nav_rl:=rl_demohist`는 `store_arena_demohist`다(`follow_path_rl_demohist.yaml`).
+- `store_arena_demohist`는 시연 조건 후보다: 시뮬에서만 확인했고 실물에서는 돌려 본 적 없다
+  (근거는 `docs/worklog_rl_tracks_2026-11-26.md` 12~13절).
 - 로봇 한 대로 컨트롤러를 견주는 묶음은 `tools/nav_bench/run_bench.sh`다. RL 컨트롤러 설정은
   `sim/fleet_gz_sim/nav_overrides/follow_path_rl_acd3.yaml`을 `BENCH_OVERRIDES`로 준다.
 - 인자 설명: `sim/fleet_gz_sim/README.md`.
