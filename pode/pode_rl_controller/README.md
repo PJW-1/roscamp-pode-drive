@@ -36,14 +36,16 @@ Deployment options, all off by default (off leaves the command bit-identical, `t
   decimal points so YAML reads it as doubles. Beams inside a range become no return (inf, i.e. `obs_max`)
   before the 360 training rays are built, so the reverse guard ignores them too. Meant for a real robot whose
   lidar sees its own body (about 150 to 153 deg, `docs/report_2026-11-24_rl_real_prep.md` S1). An odd count
-  or a bad pair stops configure. Never let the ranges cover a whole 10 degree policy sector (`[-180, -170)`,
-  `[-170, -160)`, ...): that sector then reads `obs_max` ("free for 2 m"). In the Isaac evaluation of
+  or a bad pair stops configure. Never mask all ten training rays of a 10 degree policy sector (the rays
+  sit at whole degrees: sector 0 is -180..-171, sector 1 is -170..-161, ...; `[140, 149.5]` already masks all
+  of 140..149): that sector then reads `obs_max` ("free for 2 m"). In the Isaac evaluation of
   `store_arena_demohist` (worklog sections 29 and 31) a mask over two whole rear sectors cut the success from
   52.8 to 15.8 %, while a mask of more beams that left at least one ray in every sector showed no difference
   from the base (52.2 %) and was better than leaving the tray posts of pode1 unmasked (48.8 %). The narrow
   mask for those posts is `[140.0, 147.0, 149.0, 155.0, -150.5, -147.5, -144.0, -139.0]` (read from 20 scans
-  of one robot, not run on the real robot yet). Each training ray takes the nearest scan beam, so check with
-  the robot's own scan that every sector keeps a beam.
+  of one robot, not run on the real robot yet). Each training ray takes the nearest scan beam and a ray with
+  no beam near it is no return too, so check with the robot's own scan (its angle range and step) that every
+  sector keeps at least one ray whose beam is not masked.
 - `closing_stop_range` (default 0.0 = off): closing stop, the forward-only stop for something that moves
   toward the robot. The scan from `closing_lookback_s` ago is moved into the pose of now (each old point
   binned by its bearing from the lidar now, the minimum over `+-closing_spread_deg` of neighbouring bins:
