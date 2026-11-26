@@ -214,8 +214,9 @@ void FollowPathRL::configure(
     }
     if (!full.empty()) {
       RCLCPP_WARN(
-        logger_, "FollowPathRL %s: the scan mask covers every ray of sector(s) %s and "
-        "scan_mask_fill is off, so the policy always reads no return there",
+        logger_, "FollowPathRL %s: the scan mask covers every ray angle of sector(s) %s and "
+        "scan_mask_fill is off, so the policy always reads no return there (judged by the "
+        "policy's ray angles; a scan grid offset from them can differ by one ray at an edge)",
         name_.c_str(), full.c_str());
     }
   }

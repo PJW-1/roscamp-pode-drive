@@ -24,6 +24,7 @@ POST_SECTORS = (3, 4, 32, 33)
 RAY_SPANS = ((-160.0, -129.0), (138.0, 161.0))
 MOVING_V, MOVING_W = 0.02, 0.10
 FILL_REACH = 4
+EDGE_TOL_DEG = 1e-6
 NEAR_M = 0.10
 TWO_PI = 2.0 * math.pi
 LEAK_WORDS = ("새지 않는다", "가끔 샌다", "자주 샌다")
@@ -49,10 +50,14 @@ def beam_deg(n, angle_min, inc, yaw):
 
 
 def masked_beams(deg, mask):
-    """가림 범위에 든 빔을 True로 낸다. 바로 뒤는 -180과 180 둘 다로 본다."""
+    """가림 범위에 든 빔을 True로 낸다. 바로 뒤는 -180과 180 둘 다로 본다.
+
+    경계에서 EDGE_TOL_DEG 안의 빔은 가린다(플러그인, task_spec.rays_within과 같다).
+    """
     alt = np.where(deg <= -180.0, 180.0, np.where(deg >= 180.0, -180.0, deg))
     hit = np.zeros(len(deg), dtype=bool)
     for lo, hi in mask:
+        lo, hi = lo - EDGE_TOL_DEG, hi + EDGE_TOL_DEG
         hit |= ((deg >= lo) & (deg <= hi)) | ((alt >= lo) & (alt <= hi))
     return hit
 

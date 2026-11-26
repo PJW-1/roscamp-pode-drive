@@ -250,6 +250,28 @@ def test_fill_sectors_gives_the_limit_when_no_neighbour_is_within_reach():
     assert list(out[:10]) == [0.2] * 4 + [2.0] * 2 + [0.9] * 4
 
 
+def test_masked_beams_takes_a_beam_on_the_edge():
+    deg = np.array([-150.0, -149.0, -141.0, -140.0])
+    assert list(m.masked_beams(deg, [(-150.0, -141.0)])) == [True, True, True, False]
+    assert list(m.masked_beams(deg, [(-149.9999995, -141.0000005)])) == [True, True, True, False]
+    assert list(m.masked_beams(deg, [(-149.99999, -141.00001)])) == [False, True, False, False]
+
+
+def test_masked_beams_matches_the_evaluation_code_on_whole_degree_edges():
+    pytest.importorskip("torch")
+    path = pathlib.Path(__file__).resolve().parents[2] / "learning/goal_reach/task_spec.py"
+    spec = importlib.util.spec_from_file_location("task_spec_for_edges", path)
+    ts = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = ts
+    spec.loader.exec_module(ts)
+    deg = m.beam_deg(360, -np.pi, 2.0 * np.pi / 360, 0.0)
+    for lo, hi in [(138.0, 157.0), (-152.5, -137.0), (170.0, 180.0), (-180.0, -171.0),
+                   (-150.0, -141.0), (0.0, 1.0)]:
+        ours = m.masked_beams(deg, [(lo, hi)])
+        theirs = ts.rays_within(360, lo, hi).numpy()
+        assert np.array_equal(ours, theirs), (lo, hi)
+
+
 def test_fill_sectors_matches_the_evaluation_code():
     torch = pytest.importorskip("torch")
     path = pathlib.Path(__file__).resolve().parents[2] / "learning/goal_reach/task_spec.py"

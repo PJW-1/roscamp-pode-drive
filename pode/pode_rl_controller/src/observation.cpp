@@ -13,6 +13,8 @@ namespace
 {
 constexpr double kPi = 3.14159265358979323846;
 constexpr double kTwoPi = 2.0 * kPi;
+// 가림 경계에 놓인 빔은 반올림과 상관없이 가린다(task_spec.rays_within과 같은 허용 오차, 도)
+constexpr double kMaskEdgeTolDeg = 1e-6;
 
 // 레이 k가 고르는 빔(가장 가까운 빔). scan이 그 각을 덮지 않으면 -1
 long ray_beam(const Scan & scan, double lidar_yaw, const LidarSpec & lid, int k)
@@ -37,7 +39,9 @@ bool angle_masked(double any_deg, const std::vector<AngleRange> & mask)
   // 바로 뒤는 -180과 180 둘 다로 본다
   const double alt = deg <= -180.0 ? 180.0 : (deg >= 180.0 ? -180.0 : deg);
   for (const auto & m : mask) {
-    if ((deg >= m.lo_deg && deg <= m.hi_deg) || (alt >= m.lo_deg && alt <= m.hi_deg)) {
+    const double lo = m.lo_deg - kMaskEdgeTolDeg;
+    const double hi = m.hi_deg + kMaskEdgeTolDeg;
+    if ((deg >= lo && deg <= hi) || (alt >= lo && alt <= hi)) {
       return true;
     }
   }

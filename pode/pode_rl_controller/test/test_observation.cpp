@@ -323,12 +323,36 @@ TEST(ScanMask, MaskedBeamsBecomeNoReturnInTheBaseFrame)
       EXPECT_EQ(scan.ranges[i], 0.5f) << i;
     }
   }
-  EXPECT_GE(inf, 7);
-  EXPECT_LE(inf, 9);
+  // 경계 149.5와 153.5에 놓인 빔까지 아홉 개다
+  EXPECT_EQ(inf, 9);
   const auto rays = pode_rl_controller::scan_to_rays(scan, M_PI, s);
   for (int k = 0; k < s.lidar.rays; ++k) {
     const float want = (k >= 330 && k <= 333) ? static_cast<float>(s.lidar.obs_max) : 0.5f;
     EXPECT_EQ(rays[k], want) << k;
+  }
+}
+
+TEST(ScanMask, ABeamOnARangeEdgeIsMasked)
+{
+  // 1도 격자에서 섹터 3의 빔은 -150..-141도(30..39번)다. 경계에서 1e-6도 안쪽으로 어긋난 범위도
+  // 경계 빔을 가리고(평가 코드와 같다), 그보다 크게 어긋나면 가리지 않는다
+  struct Case
+  {
+    double lo;
+    double hi;
+    int first;
+    int last;
+  };
+  for (const auto & c : std::vector<Case>{
+      {-150.0, -141.0, 30, 39}, {-149.9999995, -141.0000005, 30, 39},
+      {-149.99999, -141.00001, 31, 38}})
+  {
+    pode_rl_controller::Scan scan{
+      -M_PI, 2.0 * M_PI / 360, 0.05, 12.0, std::vector<float>(360, 0.5f)};
+    pode_rl_controller::mask_scan(scan, 0.0, pode_rl_controller::parse_scan_mask({c.lo, c.hi}));
+    for (int i = 0; i < 360; ++i) {
+      EXPECT_EQ(std::isinf(scan.ranges[i]), i >= c.first && i <= c.last) << c.lo << " " << i;
+    }
   }
 }
 
