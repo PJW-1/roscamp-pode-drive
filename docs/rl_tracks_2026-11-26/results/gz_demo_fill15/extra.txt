@@ -1,0 +1,41 @@
+# plans per run: in the aisle band / outside, and how often two plans in a row changed side
+f_cart   RLShimDemoHistFill 0 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHistFill 1 SUCC plans  14 in  14 out   0 first in switches 0
+f_cart   RLShimDemoHistFill 2 SUCC plans  14 in  14 out   0 first in switches 0
+f_cart   RLShimDemoHistFill 3 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHistFill 4 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHistMask 0 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHistMask 1 SUCC plans  15 in  15 out   0 first in switches 0
+f_cart   RLShimDemoHistMask 2 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHistMask 3 SUCC plans  14 in  14 out   0 first in switches 0
+f_cart   RLShimDemoHistMask 4 SUCC plans  12 in  12 out   0 first in switches 0
+f_cart   RLShimDemoHist   0 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHist   1 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHist   2 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHist   3 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHist   4 SUCC plans  14 in  14 out   0 first in switches 0
+g_demo   RLShimDemoHistFill 0 ABOR plans  10 in  10 out   0 first in switches 0
+g_demo   RLShimDemoHistFill 1 ABOR plans  32 in  32 out   0 first in switches 0
+g_demo   RLShimDemoHistFill 2 SUCC plans  18 in  18 out   0 first in switches 0
+g_demo   RLShimDemoHistFill 3 SUCC plans  22 in  22 out   0 first in switches 0
+g_demo   RLShimDemoHistFill 4 ABOR plans  12 in  12 out   0 first in switches 0
+g_demo   RLShimDemoHistMask 0 SUCC plans  15 in  15 out   0 first in switches 0
+g_demo   RLShimDemoHistMask 1 SUCC plans  12 in  12 out   0 first in switches 0
+g_demo   RLShimDemoHistMask 2 SUCC plans  13 in  13 out   0 first in switches 0
+g_demo   RLShimDemoHistMask 3 SUCC plans  17 in  17 out   0 first in switches 0
+g_demo   RLShimDemoHistMask 4 SUCC plans  15 in  15 out   0 first in switches 0
+g_demo   RLShimDemoHist   0 SUCC plans  20 in  20 out   0 first in switches 0
+g_demo   RLShimDemoHist   1 SUCC plans  19 in  19 out   0 first in switches 0
+g_demo   RLShimDemoHist   2 SUCC plans  18 in  18 out   0 first in switches 0
+g_demo   RLShimDemoHist   3 SUCC plans  20 in  20 out   0 first in switches 0
+g_demo   RLShimDemoHist   4 SUCC plans  18 in  18 out   0 first in switches 0
+PLAN f_cart   RLShimDemoHist   runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 66
+PLAN f_cart   RLShimDemoHistFill runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 67
+PLAN f_cart   RLShimDemoHistMask runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 67
+PLAN g_demo   RLShimDemoHist   runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 95
+PLAN g_demo   RLShimDemoHistFill runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 94
+PLAN g_demo   RLShimDemoHistMask runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 72
+# plugin timing from the 1 s log lines (us): calls, call-weighted infer mean, infer max, call mean, call max
+f_cart   launch_1.out lines 305 calls 5809 infer mean 53 max 4510 call mean 138 max 5000
+g_demo   launch_1.out lines 332 calls 6136 infer mean 52 max 296 call mean 141 max 864
+# launch output lines that mention the plan keeper, per scenario: {}

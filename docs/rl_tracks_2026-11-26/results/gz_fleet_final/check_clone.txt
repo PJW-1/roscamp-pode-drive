@@ -1,0 +1,25 @@
+start 2026-11-27T04:31:50+09:00 avail 15308MB domain 74 build /home/pjw/gg_build/clone-final run_s 300
+nav2 active on 3 robots: 1 2026-11-27T04:32:13+09:00
+pode1 param Wait for service timed out waiting for parameter services for node /pode1/controller_server
+pode1 selector rc=0 2026-11-27T04:32:24+09:00
+pode2 param String value is: store_arena_demohist
+pode2 selector rc=0 2026-11-27T04:32:31+09:00
+pode3 param String value is: store_arena_demohist
+pode3 selector rc=0 2026-11-27T04:32:38+09:00
+ran 190s, launch alive: no 2026-11-27T04:35:48+09:00
+pode1: policy lines 2, RL call lines 32, goal succeeded 1, goal failed 0
+pode2: policy lines 2, RL call lines 50, goal succeeded 3, goal failed 0
+pode3: policy lines 2, RL call lines 31, goal succeeded 1, goal failed 0
+died: 4  errors: 65
+[component_container_isolated-10] [INFO] [1795721724.945052673] [pode2.controller_server]: FollowPathRL: 20 calls, infer mean 60 max 73 us, call mean 138 max 208 us | policy goal 0.296 m at 0.56 rad, end 0.296 m | act (1.22, 1.02) cmd v 0.120 w 0.100 | rear bl
+[component_container_isolated-10] [INFO] [1795721725.945098671] [pode2.controller_server]: FollowPathRL: 20 calls, infer mean 62 max 77 us, call mean 136 max 172 us | policy goal 0.187 m at 0.09 rad, end 0.187 m | act (1.44, -0.06) cmd v 0.120 w 0.356 | rear b
+[component_container_isolated-10] [INFO] [1795721726.945062567] [pode2.controller_server]: FollowPathRL: 20 calls, infer mean 62 max 75 us, call mean 137 max 182 us | policy goal 0.066 m at 0.75 rad, end 0.066 m | act (1.18, 0.08) cmd v 0.120 w -0.260 | rear b
+[component_container_isolated-15] [ERROR] [1795721571.574012383] [pode3.bt_navigator_navigate_to_pose_rclcpp_node]: Failed to get result for follow_path in node halt!
+[component_container_isolated-5] [ERROR] [1795721581.511048463] [pode1.bt_navigator_navigate_to_pose_rclcpp_node]: Failed to get result for follow_path in node halt!
+[component_container_isolated-5] [ERROR] [1795721594.763788639] [pode1.bt_navigator_navigate_to_pose_rclcpp_node]: Failed to get result for follow_path in node halt!
+[component_container_isolated-15] [ERROR] [1795721635.319564289] [pode3.bt_navigator_navigate_to_pose_rclcpp_node]: Failed to get result for follow_path in node halt!
+[component_container_isolated-5] [ERROR] [1795721654.868931074] [pode1.bt_navigator_navigate_to_pose_rclcpp_node]: Failed to get result for follow_path in node halt!
+[component_container_isolated-10] [ERROR] [1795721676.032538446] [pode2.bt_navigator_navigate_to_pose_rclcpp_node]: Failed to get result for follow_path in node halt!
+[component_container_isolated-15] [ERROR] [1795721732.927578544] [pode3.lifecycle_manager_localization]: CRITICAL FAILURE: SERVER map_server IS DOWN after not receiving a heartbeat for 4000 ms. Shutting down related nodes.
+[component_container_isolated-5] [ERROR] [1795721732.975330244] [pode1.lifecycle_manager_localization]: CRITICAL FAILURE: SERVER map_server IS DOWN after not receiving a heartbeat for 4000 ms. Shutting down related nodes.
+events.csv fleet_check.json fleet_robots.csv recovery_probe.csv releases.csv robots.csv safety.json summary.json zones.csv end 2026-11-27T04:35:58+09:00

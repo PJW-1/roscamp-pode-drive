@@ -70,7 +70,11 @@ Deployment options, all off by default (off leaves the command bit-identical, `t
   lidar history only; the 360 rays that the reverse guard and the closing stop read keep the masked value
   (no return). Checked in the Isaac evaluation and on recorded real scans only (worklog section 34); not run
   on a robot. With `scan_mask_deg: [138.0, 157.0, -152.5, -137.0]` the Isaac success was 1.22 pp below the
-  baseline without tray posts and 2.83 pp above leaving the posts unmasked.
+  baseline without tray posts and 2.83 pp above leaving the posts unmasked. In a closed-loop Gazebo check
+  (worklog section 35: a simulated robot without posts, 5 runs per arm) the wide mask + fill arrived in 5/5
+  `f_cart` runs like the unmasked control, but in only 2/5 `g_demo` runs (control 5/5; the mask without the
+  fill also 2/5): three runs touched the aisle cart's corner and stalled. The combination is not recommended
+  for now.
 - `closing_stop_range` (default 0.0 = off): closing stop, the forward-only stop for something that moves
   toward the robot. The scan from `closing_lookback_s` ago is moved into the pose of now (each old point
   binned by its bearing from the lidar now, the minimum over `+-closing_spread_deg` of neighbouring bins:
