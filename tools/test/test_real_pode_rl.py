@@ -18,6 +18,8 @@ SIM_RL = ROOT / "sim" / "fleet_gz_sim" / "nav_overrides" / "follow_path_rl.yaml"
 POLICIES = ROOT / "pode" / "pode_rl_controller" / "policies"
 # RL 선택을 더하기 전 커밋(기본 출력 비교의 기준)
 BASE_COMMIT = "951d71bb"
+# 가림 채우기(--rl-scan-mask-fill)를 더하기 전 커밋(가림 출력 비교의 기준)
+FILL_BASE_COMMIT = "f881d97f"
 RL_NAMES = ("FollowPathRL", "FollowPathRLAlone")
 # RL 선택 전 deploy.sh가 보내던 패키지(기본 배포 비교의 기준)
 OLD_PACKAGES = ("interfaces/fleet_interfaces", "pode/pode_fsm", "pode/pode_nav_config",
@@ -44,12 +46,12 @@ def _ctl(data):
 
 
 # ---- 기본 출력은 RL 선택 전과 바이트까지 같다 ----
-def _base_module():
+def _base_module(commit=BASE_COMMIT):
     run = subprocess.run(["git", "-C", str(ROOT), "show",
-                          f"{BASE_COMMIT}:tools/real_pode/make_params.py"],
+                          f"{commit}:tools/real_pode/make_params.py"],
                          capture_output=True, text=True, encoding="utf-8")
     if run.returncode != 0:
-        pytest.skip(f"기준 커밋 {BASE_COMMIT}이 이 작업본에 없다")
+        pytest.skip(f"기준 커밋 {commit}이 이 작업본에 없다")
     mod = types.ModuleType("make_params_base")
     mod.__file__ = str(KIT / "make_params.py")
     exec(compile(run.stdout, "make_params_base", "exec"), mod.__dict__)
@@ -287,6 +289,113 @@ def test_rl_scan_mask_without_policy_writes_nothing(tmp_path):
     assert not (tmp_path / "c").exists()
 
 
+# ---- --rl-scan-mask-fill: 두 RL 블록에 scan_mask_fill 한 줄씩 ----
+FILL_LINE = "scan_mask_fill: true  # make_params.py --rl-scan-mask-fill"
+FILL_ERROR = "--rl-scan-mask-fill needs --rl-scan-mask (it fills the sectors the mask empties)"
+
+
+def test_rl_scan_mask_fill_adds_one_line_after_each_mask_line(tmp_path):
+    mp = _mp()
+    mp.write_params(0.12, tmp_path / "m", rl_policy="store_arena_acd3", rl_scan_mask=MASK)
+    mp.write_params(0.12, tmp_path / "f", rl_policy="store_arena_acd3", rl_scan_mask=MASK,
+                    rl_scan_mask_fill=True)
+    ctl = _ctl(_load(tmp_path / "f" / "nav2_params.yaml"))
+    for name in RL_NAMES:
+        assert ctl[name]["scan_mask_fill"] is True
+        assert ctl[name]["scan_mask_deg"] == MASK_VALUES
+    # 가림만 준 출력에 정확히 두 줄이 더해지고 다른 줄은 같다
+    old = (tmp_path / "m" / "nav2_params.yaml").read_text(encoding="utf-8").splitlines()
+    new = (tmp_path / "f" / "nav2_params.yaml").read_text(encoding="utf-8").splitlines()
+    added = [i for i, line in enumerate(new) if "scan_mask_fill" in line]
+    assert len(added) == 2 and len(new) == len(old) + 2
+    assert [line for i, line in enumerate(new) if i not in added] == old
+    for i in added:
+        mask = new[i - 1]
+        assert mask.lstrip().startswith("scan_mask_deg:")
+        indent = len(mask) - len(mask.lstrip())
+        assert new[i] == " " * indent + FILL_LINE
+    assert ((tmp_path / "f" / "avoidance.yaml").read_bytes()
+            == (tmp_path / "m" / "avoidance.yaml").read_bytes())
+
+
+@pytest.mark.parametrize("mask", [None, MASK, "-150.5,-147.5"])
+def test_rl_scan_mask_output_is_byte_identical_to_before_fill(tmp_path, mask):
+    # 채우기를 더하기 전 커밋과 견준다(채우기를 주지 않으면 가림 출력도 그대로다)
+    base = _base_module(FILL_BASE_COMMIT)
+    base.write_params(0.12, tmp_path / "old", rl_policy="store_arena_acd3", rl_scan_mask=mask)
+    _mp().write_params(0.12, tmp_path / "new", rl_policy="store_arena_acd3", rl_scan_mask=mask)
+    for name in ("nav2_params.yaml", "avoidance.yaml"):
+        assert (tmp_path / "new" / name).read_bytes() == (tmp_path / "old" / name).read_bytes()
+
+
+def test_rl_scan_mask_fill_off_is_the_mask_only_output(tmp_path):
+    mp = _mp()
+    mp.write_params(0.12, tmp_path / "m", rl_policy="store_arena_acd3", rl_scan_mask=MASK)
+    mp.write_params(0.12, tmp_path / "f", rl_policy="store_arena_acd3", rl_scan_mask=MASK,
+                    rl_scan_mask_fill=False)
+    for name in ("nav2_params.yaml", "avoidance.yaml"):
+        assert (tmp_path / "f" / name).read_bytes() == (tmp_path / "m" / name).read_bytes()
+
+
+@pytest.mark.parametrize("order", [
+    ["--rl-scan-mask", MASK, "--rl-scan-mask-fill"],
+    ["--rl-scan-mask-fill", "--rl-scan-mask", MASK],
+    ["--rl-scan-mask", "-150.5,-147.5", "--rl-scan-mask-fill"],
+    ["--rl-scan-mask-fill", "--rl-scan-mask", "-150.5,-147.5"],
+])
+def test_rl_scan_mask_fill_cli_in_either_order(tmp_path, order):
+    run = subprocess.run([sys.executable, str(KIT / "make_params.py"), "--speed", "0.12",
+                          "--out", str(tmp_path / "p"), "--rl-policy", "store_arena_acd3",
+                          *order], capture_output=True, text=True)
+    assert run.returncode == 0, run.stderr
+    lines = run.stdout.splitlines()
+    mask_at = next(i for i, line in enumerate(lines)
+                   if line.startswith("make_params: rl scan mask "))
+    assert lines[mask_at + 1] == "make_params: rl scan mask fill on"
+    ctl = _ctl(_load(tmp_path / "p" / "nav2_params.yaml"))
+    want = MASK_VALUES if MASK in order else [-150.5, -147.5]
+    for name in RL_NAMES:
+        assert ctl[name]["scan_mask_deg"] == want and ctl[name]["scan_mask_fill"] is True
+
+
+def test_rl_scan_mask_cli_without_fill_says_nothing_about_fill(tmp_path):
+    run = subprocess.run([sys.executable, str(KIT / "make_params.py"), "--speed", "0.12",
+                          "--out", str(tmp_path / "p"), "--rl-policy", "store_arena_acd3",
+                          "--rl-scan-mask", MASK], capture_output=True, text=True)
+    assert run.returncode == 0, run.stderr
+    assert "fill" not in run.stdout
+    ctl = _ctl(_load(tmp_path / "p" / "nav2_params.yaml"))
+    assert not any("scan_mask_fill" in ctl[name] for name in RL_NAMES)
+
+
+@pytest.mark.parametrize("policy", [None, "store_arena_acd3"])
+def test_rl_scan_mask_fill_without_mask_writes_nothing(tmp_path, policy):
+    with pytest.raises(ValueError, match="needs --rl-scan-mask"):
+        _mp().write_params(0.12, tmp_path / "o", rl_policy=policy, rl_scan_mask_fill=True)
+    assert not (tmp_path / "o").exists()
+    extra = [] if policy is None else ["--rl-policy", policy]
+    run = subprocess.run([sys.executable, str(KIT / "make_params.py"), "--speed", "0.12",
+                          "--out", str(tmp_path / "c"), *extra, "--rl-scan-mask-fill"],
+                         capture_output=True, text=True)
+    assert run.returncode == 2, run.stderr
+    assert run.stderr.strip() == f"make_params: {FILL_ERROR}"
+    assert not (tmp_path / "c").exists()
+
+
+def test_rl_scan_mask_fill_refuses_a_block_that_already_has_it(tmp_path):
+    src = tmp_path / "follow_path_rl.yaml"
+    text = SIM_RL.read_text(encoding="utf-8")
+    lines = text.splitlines(keepends=True)
+    at = next(i for i, line in enumerate(lines) if line.lstrip().startswith("policy:"))
+    indent = lines[at][:len(lines[at]) - len(lines[at].lstrip())]
+    lines.insert(at + 1, f"{indent}scan_mask_fill: false\n")
+    src.write_text("".join(lines), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="already has scan_mask_fill"):
+        _mp().write_params(0.12, tmp_path / "o", rl_policy="store_arena_acd3", rl_src=src,
+                           rl_scan_mask=MASK, rl_scan_mask_fill=True)
+    assert not (tmp_path / "o").exists()
+
+
 # ---- 스크립트: RL 줄은 선택했을 때만 닿는다(정적 검사) ----
 def _guarded(text, guard):
     """guard로 여는 if 블록 안의 줄 번호."""
@@ -324,7 +433,9 @@ def test_start_rl_lines_are_behind_rl_policy():
             continue
         if "--rl-policy" in line:
             assert line.startswith('[ -z "$rlp" ] || rl=('), f"start.sh:{i + 1}: {line}"
-        if "--rl-scan-mask" in line:
+        if "--rl-scan-mask-fill" in line:
+            assert line.startswith('[ -z "$rlf" ] || rl+=('), f"start.sh:{i + 1}: {line}"
+        elif "--rl-scan-mask" in line:
             assert line.startswith('[ -z "$rlm" ] || rl+=('), f"start.sh:{i + 1}: {line}"
         if "log_level" in line:
             assert line.strip().startswith('[ -z "$9" ] || extra+=(log_level:=info)'), \
@@ -464,6 +575,49 @@ def test_start_rl_scan_mask_needs_rl_policy(tmp_path):
     run, mp_args, ros_args = _start(tmp_path, RL_SCAN_MASK=MASK)
     assert run.returncode == 2 and mp_args is None and ros_args is None
     assert "RL_SCAN_MASK needs RL_POLICY" in run.stdout
+
+
+@needs_bash
+def test_start_rl_scan_mask_fill_passes_the_switch(tmp_path):
+    run, mp_args, _ = _start(tmp_path, RL_POLICY="store_arena_acd3", RL_SCAN_MASK=MASK,
+                             RL_SCAN_MASK_FILL="1")
+    assert run.returncode == 0, run.stdout + run.stderr
+    assert mp_args == ["--speed", "0.12", "--out", "params", "--rl-policy", "store_arena_acd3",
+                       "--rl-scan-mask", MASK, "--rl-scan-mask-fill"]
+
+
+@needs_bash
+@pytest.mark.parametrize("fill", ["0", ""])
+def test_start_rl_scan_mask_fill_off_passes_no_switch(tmp_path, fill):
+    run, mp_args, _ = _start(tmp_path, RL_POLICY="store_arena_acd3", RL_SCAN_MASK=MASK,
+                             RL_SCAN_MASK_FILL=fill)
+    assert run.returncode == 0, run.stdout + run.stderr
+    assert mp_args == ["--speed", "0.12", "--out", "params", "--rl-policy", "store_arena_acd3",
+                       "--rl-scan-mask", MASK]
+
+
+@needs_bash
+@pytest.mark.parametrize("extra", [{}, {"RL_POLICY": "store_arena_acd3"}])
+def test_start_rl_scan_mask_fill_needs_rl_scan_mask(tmp_path, extra):
+    run, mp_args, ros_args = _start(tmp_path, RL_SCAN_MASK_FILL="1", **extra)
+    assert run.returncode == 2 and mp_args is None and ros_args is None
+    assert "RL_SCAN_MASK_FILL needs RL_SCAN_MASK" in run.stdout
+
+
+@needs_bash
+def test_start_refuses_bad_rl_scan_mask_fill(tmp_path):
+    run, mp_args, ros_args = _start(tmp_path, RL_POLICY="store_arena_acd3", RL_SCAN_MASK=MASK,
+                                    RL_SCAN_MASK_FILL="yes")
+    assert run.returncode == 2 and mp_args is None and ros_args is None
+    assert "bad RL_SCAN_MASK_FILL: use 1 (or unset/0)" in run.stdout
+
+
+@needs_bash
+def test_no_motion_refuses_rl_scan_mask_fill(tmp_path):
+    from test_real_pode import _no_motion_start
+    run, argv = _no_motion_start(tmp_path, ["pode1"], NO_MOTION="1", RL_SCAN_MASK_FILL="1")
+    assert run.returncode == 2 and argv == []
+    assert "RL_SCAN_MASK_FILL" in run.stdout + run.stderr
 
 
 @needs_bash

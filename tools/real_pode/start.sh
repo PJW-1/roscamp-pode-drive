@@ -7,6 +7,7 @@
 # Nav2 goal 길 유지 노드(해결안 A)는 기본 켬. 끄려면 PLAN_KEEP=0 start.sh ...
 # RL 정책 controller를 더하려면 RL_POLICY=store_arena_acd3 start.sh ...  (쓰는 controller는 그대로 RPP, log_level info)
 # RL scan 가림 각(도, base 기준 lo,hi 쌍): RL_POLICY=... RL_SCAN_MASK="140,147" start.sh ...
+# 가림이 비운 섹터 채우기: RL_POLICY=... RL_SCAN_MASK=... RL_SCAN_MASK_FILL=1 start.sh ...
 # 동작 없음(설계 4.5)은 NO_MOTION=1 start.sh pode2 [X Y YAW]: pode_fsm만 띄우고 주행하지 않는다.
 #   자세를 안 주면 로봇별 주차 자리(v7 P-1~P-3)를 쓴다. stop.sh로 내린다.
 cd "$(dirname "$(readlink -f "$0")")" || exit 1
@@ -25,7 +26,7 @@ if [ -n "$nomo" ]; then
   [ -z "${RL_POLICY:-}" ] || { echo "NO_MOTION=1 does not take RL_POLICY (no Nav2, no wheels)"; exit 2; }
   [ -z "${RL_SCAN_MASK:-}" ] ||
     { echo "NO_MOTION=1 does not take RL_SCAN_MASK (no Nav2, no wheels)"; exit 2; }
-  for v in DOCK_STUB FIXED_LINE_CHECK PLAN_KEEP; do
+  for v in DOCK_STUB FIXED_LINE_CHECK PLAN_KEEP RL_SCAN_MASK_FILL; do
     case ${!v:-} in ''|0) ;; *) echo "NO_MOTION=1 does not take $v (no Nav2, no wheels)"; exit 2 ;; esac
   done
   if [ $# -eq 1 ]; then
@@ -81,6 +82,16 @@ rl=()
 rlm=${RL_SCAN_MASK:-}
 [ -z "$rlm" ] || [ -n "$rlp" ] || { echo "RL_SCAN_MASK needs RL_POLICY"; exit 2; }
 [ -z "$rlm" ] || rl+=(--rl-scan-mask "$rlm")
+# RL_SCAN_MASK_FILL은 1이면 가림이 비운 섹터를 채우고, 비었거나 0이면 끈다.
+# 그 밖의 값은 거절한다. RL_SCAN_MASK가 있어야 한다
+rlf=${RL_SCAN_MASK_FILL:-0}
+case $rlf in
+  0) rlf= ;;
+  1) ;;
+  *) echo "bad RL_SCAN_MASK_FILL: use 1 (or unset/0)"; exit 2 ;;
+esac
+[ -z "$rlf" ] || [ -n "$rlm" ] || { echo "RL_SCAN_MASK_FILL needs RL_SCAN_MASK"; exit 2; }
+[ -z "$rlf" ] || rl+=(--rl-scan-mask-fill)
 mkdir -p logs || exit 1
 # 동시에 두 번 시작하지 않게 잠근다(pid 파일이 써질 때까지 쥔다)
 exec 9> logs/start.lock || exit 1
