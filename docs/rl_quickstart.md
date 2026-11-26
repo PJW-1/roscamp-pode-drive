@@ -114,6 +114,7 @@ python3 tools/nav_bench/report.py --config docs/rl_tracks_2026-11-26/gz_demo.yam
   성공이 4 %p쯤 내려갔고, 기둥 무더기만 좁게 가리면(`scan_mask_deg: [140.0, 147.0, 149.0, 155.0, -150.5, -147.5, -144.0,
   -139.0]`) 기준과 차이가 없었다. **가림이 정책의 10도 섹터 하나의 레이 열 개(정수 각도, 예: 140~149°)를 모두 덮으면 성공이 52.8 →
   15.8 %로 떨어지므로 범위를 넓히지 않는다**(작업 기록 29절, 31절). 값은 pode1 한 대의 scan 20장에서 읽은 것이고 실물에서 켜 본 적은 없다.
+  실물 시작 스크립트로 이 값을 주는 법은 4절에 있다.
 - 플러그인의 1초 로그 줄(추론 시간, 다가옴 막기가 막은 주기 수)은 INFO다. 시뮬 launch의 Nav2 로그 수준은 기본이 warn이라
   보려면 `BENCH_LAUNCH_ARGS`에 `nav_log_level:=info`를 더한다.
 
@@ -139,6 +140,11 @@ ros2 topic pub --times 3 --rate 2 --keep-alive 1 --qos-durability transient_loca
   로그가 같은 폴더에 남아 있으므로 가장 새 로그만 본다).
 - 정책 이름은 저장소의 정책 폴더 이름이면 된다(`RL_POLICY=store_arena_demohist`도 같은 방식이다). `store_arena_demohist`는
   라이다 이력을 더 보는 정책이고 실물에서 돌려 본 적이 없다.
+- 트레이가 달린 로봇(pode1)에서 자기 트레이 기둥을 가리려면 `RL_SCAN_MASK`를 같이 준다(기본 꺼짐. RL controller 둘에
+  `scan_mask_deg`가 들어가고, `RL_POLICY` 없이 주거나 값이 틀리면 아무것도 띄우지 않는다):
+  `RL_POLICY=store_arena_demohist RL_SCAN_MASK="140,147,149,155,-150.5,-147.5,-144,-139" ~/nav2fleet_real/start.sh pode1 0.12 0.10 1.5708`.
+  값의 근거와 범위를 넓히면 안 되는 까닭은 3절의 트레이 항목에 있다. 시작 로그의 플러그인 설정 줄에 `scan mask 4 ranges`가
+  찍히는지 본다. 이 옵션도 스크립트 시험만 통과했고 로봇에서 돌려 본 적이 없다.
 - RL controller는 `start.sh`의 속도 인자를 따르지 않고 정책의 최고 속도 0.12 m/s까지 낸다.
 - 전체 순서, 되돌리기, 시간 로그 보는 법, 적어 둘 것, 알려진 위험: `tools/real_pode/README.md`의 "RL 정책으로 달려 보기".
 - 근거와 남은 결정: `docs/report_2026-11-26_rl_real_optin.md`, `docs/report_2026-11-24_rl_real_prep.md`.

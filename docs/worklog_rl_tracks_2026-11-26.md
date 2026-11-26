@@ -3387,6 +3387,28 @@ demo1 칸 (기준 `e_demohist_demo1`: 성공 52.81 %, 충돌 46.02 %, 시간 초
 - 미리 적은 것과 달라진 점: 판정 기준을 첫 평가가 도는 동안(결과 전) 검토 지적으로 고쳤고 평가 하나(`_maskw`)를 더했다
   (위의 고침 줄).
 
+## 32. 실물 시작 스크립트의 scan 가림 옵션 `RL_SCAN_MASK` (02:40)
+
+왜: 31절의 좁은 가림을 실물에서 쓰려면 RL controller 블록에 `scan_mask_deg`가 들어가야 한다. 그런데 `RL_POLICY=<정책> start.sh`는
+시작할 때마다 `make_params.py --rl-policy`로 params를 다시 만들고, 이 도구는 시뮬 파일의 두 블록을 policy만 바꿔 베끼므로 값을
+넣을 길이 없었다(손으로 고친 params는 다음 시작에서 덮인다).
+
+한 것:
+- `tools/real_pode/make_params.py --rl-scan-mask "lo,hi,..."`와 `start.sh`의 환경 변수 `RL_SCAN_MASK`를 더했다. 기본은 꺼짐이고,
+  주지 않으면 params가 예전과 한 글자도 다르지 않다(이미 있던 바이트 비교 시험이 그대로 통과한다). 값 검사는 플러그인의
+  `parse_scan_mask`와 같은 규칙이다(쌍, 유한한 수, −180 ≤ lo < hi ≤ 180). `RL_POLICY` 없이 주거나 값이 틀리면 아무 파일도
+  쓰지 않고 아무것도 띄우지 않는다. `NO_MOTION=1`과는 같이 받지 않는다.
+- 서브에이전트(OpenCode, 별도 worktree `pd-rl-mask`, 브랜치 `feat/rl-scan-mask-optin-2026-11-27`)가 시험을 먼저 쓰고 만들었다.
+  Codex 검토에서 결함 하나가 나왔고(값이 빠진 `--rl-scan-mask`가 다음 옵션을 값으로 삼켜 `--fixed-line-check`가 사라질 수
+  있었다) 시험을 더해 고친 뒤 재검토에서 결함이 없었다(`~/codex-review.md`의 02:25, 02:32 항목을 직접 확인했다).
+- 직접 확인한 것: 바뀐 코드와 시험을 읽었다. Windows에서 `tools/test/test_real_pode_rl.py` 56 passed, 14 skipped, 린트 8건
+  (기준과 같다). 좁은 가림 값으로 params를 만들어 두 블록에 float 목록으로 들어가는 것을 봤다. Windows에서 건너뛰어지는
+  bash 시험은 WSL의 git 사본에서 돌렸다: `test_real_pode_rl.py`와 `test_real_pode.py` 합쳐 219 passed, 9 skipped, 실패 없음.
+- 통합 브랜치에 merge했다(2bd1cba9). 쓰는 법은 `docs/rl_quickstart.md` 4절과 `tools/real_pode/README.md`에 있다.
+
+하지 않은 것: 로봇에서 돌려 보지 않았다(deploy, 접속 없음). 다가옴 막기의 값(30절)을 실물 경로로 넘기는 옵션은 만들지
+않았다: 그 옵션을 실물에서 켤지가 먼저 정해져야 한다(사용자 결정 거리).
+
 ## 9a. 큐 순서 조정 (08:36)
 
 Isaac 큐 열 개가 잠금을 차례 없이 나눠 받고 있어서, 시연 조건 결과(묶음 6의 `t_demo`·`t_demo_std` 평가와 묶음 9의
