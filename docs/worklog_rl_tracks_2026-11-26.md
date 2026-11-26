@@ -879,14 +879,15 @@ Gazebo 아홉째 묶음 (후보가 있을 때): acd3와 후보를 `i_cross`(틈�
 |---|---|---|---|---|
 | acd3 | 43.65 | | | 76.32 |
 | t_demo | 41.65 | -2.00 (0.45) | 채우지 못했다(2 SE 넘게 낮다) | 75.02 (-1.29, 0.37: 2 SE 넘게 낮다) |
-| t_demo_std | 51.25 | +7.59 (0.66) | 채웠다 | (아직) |
-| t_demo_hist | 52.81 | +9.16 (0.68) | 채웠다 | (아직) |
+| t_demo_std | 51.25 | +7.59 (0.66) | 채웠다 | 77.51 (+1.20, 0.48: 낮지 않다) |
+| t_demo_hist | 52.81 | +9.16 (0.68) | 채웠다 | 77.37 (+1.05, 0.47: 낮지 않다) |
 
 - demo1 조건을 채운 것은 t_demo_std와 t_demo_hist다. demo1 성공이 가장 높은 것은 t_demo_hist다. 둘째(t_demo_std)와의 짝
   차이는 +1.56 %p(SE 0.56)로 2 SE 밖이므로, 미리 적은 규칙대로 **t_demo_hist 하나만** Gazebo에 올린다
   (`store_arena_demohist`, 관측 116칸, controller 이름 `FollowPathRLShimDemoHist`).
 - t_demo는 두 조건 모두 채우지 못했다. 내보낸 `store_arena_demo`는 저장소에 넣지 않는다.
-- rand 조건은 `e_demostd_rand`와 `e_demohist_rand`가 나오면 다시 확인해 아래에 적는다.
+- rand 조건을 다시 확인했다(`e_demohist_rand` 13:04, `e_demostd_rand` 13:47). 두 정책 모두 rand 성공이 acd3보다 낮지 않아
+  조건을 채운다(위 표). 후보 선택은 그대로다. 두 정책 사이의 rand 차이는 -0.15 %p(SE 0.42)로 2 SE 안이다.
 - 묶음은 12:01에 우선 큐로 올렸다. 덧빌드는 ae2986ba다(102d929e에 시뮬 시험용 인자 `keepout_mask_file`만 더한 것이고,
   이 묶음은 그 인자를 주지 않는다). 벤치 덮어쓰기는 `gz_overrides.yaml`의 `FollowPathRLShimACD3` 블록을 베껴 policy만
   바꾼 것이다.

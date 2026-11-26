@@ -41,3 +41,15 @@ def test_the_file_matches_its_index_line_and_the_policy_spec(entry):
     assert spec["source"]["iterations_total"] == entry["iter"]
     assert spec["source"]["checkpoint_path"] == entry["copied_from"]
     assert os.path.isfile(os.path.join(ROOT, entry["run_json"]))
+
+
+@pytest.mark.parametrize("entry", INDEX, ids=[e["policy"] for e in INDEX])
+def test_a_run_config_hash_in_run_json_points_at_a_file_kept_beside_it(entry):
+    """run.json 이 run_config_sha256 을 적으면 같은 폴더의 run_config.json 해시가 그 값이다."""
+    run_json = os.path.join(ROOT, entry["run_json"])
+    with open(run_json, encoding="utf-8") as f:
+        want = json.load(f).get("run_config_sha256")
+    if want is None:
+        pytest.skip("run_config.json 이 생기기 전의 실행")
+    with open(os.path.join(os.path.dirname(run_json), "run_config.json"), "rb") as f:
+        assert hashlib.sha256(f.read()).hexdigest() == want

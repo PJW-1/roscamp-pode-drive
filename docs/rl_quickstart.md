@@ -114,6 +114,23 @@ Pi 4에서 RL 추론과 MPPI의 계산 시간을 주행 없이 재려면 `tools/
 넣는 순서는 `pode/pode_rl_controller/README.md`(정책 폴더, 시험 fixture, 추론 일치 시험 목록, 시뮬 덮어쓰기 파일)와
 `learning/store_arena/POLICIES.md`의 기록 규칙에 있다.
 
+`feat/rl-tracks-2026-11-26`에서 `store_arena_demohist`를 넣은 순서다. 정책 이름 `store_arena_<이름>`을 `<NAME>`, 체크포인트를
+`<CK>`로 적는다.
+
+1. 내보내기(Isaac Lab을 깐 python으로, CPU에서 돌렸다):
+   ```bash
+   CUDA_VISIBLE_DEVICES= <Isaac Lab python> learning/goal_reach/export_policy.py --checkpoint <CK>      --out pode/pode_rl_controller/policies/<NAME> --fixtures pode/pode_rl_controller/test/fixtures/<NAME>      --goal-rule lookahead --lookahead-m 0.40 --follow-window 20 --route-spec learning/store_arena/route_spec.py      --source-branch <브랜치> --source-commit <학습 코드 커밋>      --set prev_action_obs=1 --set speed_cap_obs=1 --set speed_cap_range=0.08,0.16
+   ```
+   `--set`은 학습 때 관측을 정한 설정과 같아야 한다. 라이다 이력 정책(demohist)은 `--set lidar_frames=3 --set lidar_stride_steps=4`를
+   더했다.
+2. `pode/pode_rl_controller/CMakeLists.txt`의 추론 일치 시험 목록과 그 README의 정책 표에 `<NAME>`을 더한다.
+3. 시뮬에서 고르려면 `sim/fleet_gz_sim/nav_overrides/follow_path_rl_<이름>.yaml`(acd3 파일에서 policy만 바꾼 것)을 만들고,
+   `gz.launch.py`의 `RL_FILES`, `sim/fleet_gz_sim/test/test_launch_wiring.py`, `tools/test/test_policy_files.py`의 파일 목록에 더한다.
+4. `learning/store_arena/checkpoints/<NAME>/`에 체크포인트, 실행 폴더의 `run.json`과 `run_config.json`을 두고 `index.json`에 줄을
+   더한다. `POLICIES.md` 계보표를 채우고 Drive `RL_정책_백업`에 같은 파일을 올린다.
+5. 시험: `python -m pytest tools/test/test_policy_files.py learning/store_arena/test_checkpoints.py sim/fleet_gz_sim/test/test_launch_wiring.py`,
+   그리고 2절의 colcon build와 `colcon test --packages-select pode_rl_controller`.
+
 ## 6. 확인된 것과 아닌 것 (2026-11-26)
 
 - GitHub에서 `feat/rl-policy-onnx-2026-11-26`을 새로 받은 사본만으로 WSL에서 빌드했고, 정책 다섯의 추론 일치 시험이
