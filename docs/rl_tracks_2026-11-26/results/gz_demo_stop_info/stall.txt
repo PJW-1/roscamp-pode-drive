@@ -1,0 +1,12 @@
+f_cart   RLShimDemoHistStop 0 SUCC  12.2s cart_min 0.050 person_min inf plan_in_band True truth_in_band True end (1.60,0.56) stalls -
+f_cart   RLShimDemoHistStop 1 SUCC  13.1s cart_min 0.050 person_min inf plan_in_band True truth_in_band True end (1.61,0.58) stalls -
+f_cart   RLShimDemoHistStop 2 SUCC  13.2s cart_min 0.043 person_min inf plan_in_band True truth_in_band True end (1.61,0.58) stalls -
+f_cart   RLShimDemoHistStop 3 SUCC  12.9s cart_min 0.051 person_min inf plan_in_band True truth_in_band True end (1.61,0.57) stalls -
+f_cart   RLShimDemoHistStop 4 SUCC  12.1s cart_min 0.052 person_min inf plan_in_band True truth_in_band True end (1.61,0.56) stalls -
+k_cross  RLShimDemoHistStop 0 SUCC  50.2s cart_min inf person_min 0.009 plan_in_band False truth_in_band True end (1.60,0.57) stalls 6~13s(0.91,0.58) 13~25s(0.97,0.58)
+k_cross  RLShimDemoHistStop 1 SUCC  44.1s cart_min inf person_min 0.024 plan_in_band False truth_in_band True end (1.61,0.57) stalls 6~12s(0.91,0.57) 13~21s(0.95,0.57)
+k_cross  RLShimDemoHistStop 2 ABOR  78.5s cart_min inf person_min 0.000 plan_in_band False truth_in_band True end (1.25,0.59) stalls 27~33s(1.03,0.60) 51~59s(1.10,0.52) 60~79s(1.23,0.57)
+k_cross  RLShimDemoHistStop 3 SUCC  44.3s cart_min inf person_min 0.000 plan_in_band False truth_in_band True end (1.60,0.56) stalls 13~22s(0.97,0.58) 22~29s(0.98,0.58)
+k_cross  RLShimDemoHistStop 4 TIME  91.0s cart_min inf person_min 0.000 plan_in_band False truth_in_band True end (1.43,0.60) stalls 6~13s(0.92,0.57) 39~45s(1.01,0.55) 50~56s(1.00,0.57) 57~64s(0.99,0.56) 64~70s(0.97,0.57) 74~85s(0.98,0.58)
+== f_cart RLShimDemoHistStop: n 5 ok 5 stalled 0 cart_contact 0 person_contact 0 detour_planned 0 detour_driven 0 failed_and_stalled 0 failed_and_cart_contact 0
+== k_cross RLShimDemoHistStop: n 5 ok 3 stalled 5 cart_contact 0 person_contact 3 detour_planned 5 detour_driven 0 failed_and_stalled 2 failed_and_cart_contact 0

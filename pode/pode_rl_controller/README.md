@@ -91,8 +91,12 @@ Deployment options, all off by default (off leaves the command bit-identical, `t
   return, outside `[range_min, range_max]` or masked is at `obs_max` (2 m in the current policies) where
   the Isaac evaluation fed raw distances; the judgement can differ only when `closing_stop_range` is above
   `obs_max - closing_mps * 1.5 * closing_lookback_s` (1.88 m with the defaults; the two scans can be up to
-  1.5 lookbacks apart). The rule was measured only in the Isaac evaluation;
-  it has not been checked in Gazebo or on the real robot yet.
+  1.5 lookbacks apart). The rule was measured in the Isaac evaluation (worklog section 25) and in Gazebo (section 26, 5 runs per
+  scenario): with a person who paces across the aisle without yielding, the robot stopped for the first
+  crossing in every run but still made contact later (mostly while standing in the person's lane), took 1.8
+  to 3.7 times as long to arrive and stood long enough to trip the 1 s stall watch of `pode_fsm`; a parked
+  cart was passed as before (the rule blocked 3.5 % of the control cycles there). It has not been run on the
+  real robot.
 
 Not loaded by default: `sim/fleet_gz_sim/nav_overrides/follow_path_rl.yaml` adds two controllers to
 one_pode (`nav_overrides:=<that file>`): `FollowPathRL`, the default RL option, is the policy wrapped in

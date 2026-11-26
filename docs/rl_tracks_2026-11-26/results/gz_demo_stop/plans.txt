@@ -1,0 +1,55 @@
+# plans per run: in the aisle band / outside, and how often two plans in a row changed side
+f_cart   RLShimDemoHistStop 0 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHistStop 1 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHistStop 2 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHistStop 3 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHistStop 4 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHist   0 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHist   1 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHist   2 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHist   3 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHist   4 SUCC plans  13 in  13 out   0 first in switches 0
+g_demo   RLShimDemoHistStop 0 SUCC plans  36 in  34 out   2 first in switches 4
+g_demo   RLShimDemoHistStop 1 SUCC plans  42 in  42 out   0 first in switches 0
+g_demo   RLShimDemoHistStop 2 SUCC plans  29 in  29 out   0 first in switches 0
+g_demo   RLShimDemoHistStop 3 ABOR plans  55 in  47 out   8 first in switches 15
+g_demo   RLShimDemoHistStop 4 ABOR plans  20 in  20 out   0 first in switches 0
+g_demo   RLShimDemoHist   0 ABOR plans  15 in  15 out   0 first in switches 0
+g_demo   RLShimDemoHist   1 SUCC plans  22 in  22 out   0 first in switches 0
+g_demo   RLShimDemoHist   2 SUCC plans  21 in  21 out   0 first in switches 0
+g_demo   RLShimDemoHist   3 SUCC plans  18 in  18 out   0 first in switches 0
+g_demo   RLShimDemoHist   4 SUCC plans  21 in  21 out   0 first in switches 0
+j_cross  RLShimDemoHistStop 0 SUCC plans  53 in  49 out   4 first in switches 8
+j_cross  RLShimDemoHistStop 1 SUCC plans  30 in  29 out   1 first in switches 2
+j_cross  RLShimDemoHistStop 2 SUCC plans  34 in  34 out   0 first in switches 0
+j_cross  RLShimDemoHistStop 3 SUCC plans  37 in  35 out   2 first in switches 4
+j_cross  RLShimDemoHistStop 4 SUCC plans  45 in  43 out   2 first in switches 4
+j_cross  RLShimDemoHist   0 SUCC plans  15 in  15 out   0 first in switches 0
+j_cross  RLShimDemoHist   1 SUCC plans  19 in  19 out   0 first in switches 0
+j_cross  RLShimDemoHist   2 SUCC plans  16 in  16 out   0 first in switches 0
+j_cross  RLShimDemoHist   3 SUCC plans  14 in  14 out   0 first in switches 0
+j_cross  RLShimDemoHist   4 SUCC plans  17 in  17 out   0 first in switches 0
+k_cross  RLShimDemoHistStop 0 SUCC plans  57 in  54 out   3 first in switches 6
+k_cross  RLShimDemoHistStop 1 SUCC plans  77 in  69 out   8 first in switches 16
+k_cross  RLShimDemoHistStop 2 SUCC plans  35 in  34 out   1 first in switches 2
+k_cross  RLShimDemoHistStop 3 TIME plans  84 in  74 out  10 first in switches 20
+k_cross  RLShimDemoHistStop 4 TIME plans  82 in  73 out   9 first in switches 18
+k_cross  RLShimDemoHist   0 SUCC plans  17 in  17 out   0 first in switches 0
+k_cross  RLShimDemoHist   1 ABOR plans  15 in  15 out   0 first in switches 0
+k_cross  RLShimDemoHist   2 SUCC plans  14 in  14 out   0 first in switches 0
+k_cross  RLShimDemoHist   3 ABOR plans  24 in  24 out   0 first in switches 0
+k_cross  RLShimDemoHist   4 SUCC plans  20 in  20 out   0 first in switches 0
+PLAN f_cart   RLShimDemoHist   runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 65
+PLAN f_cart   RLShimDemoHistStop runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 65
+PLAN g_demo   RLShimDemoHist   runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 97
+PLAN g_demo   RLShimDemoHistStop runs 5 all plans in band 3 any plan outside 2 runs with a switch 2 switches 19 plans 182
+PLAN j_cross  RLShimDemoHist   runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 81
+PLAN j_cross  RLShimDemoHistStop runs 5 all plans in band 1 any plan outside 4 runs with a switch 4 switches 18 plans 199
+PLAN k_cross  RLShimDemoHist   runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 90
+PLAN k_cross  RLShimDemoHistStop runs 5 all plans in band 0 any plan outside 5 runs with a switch 5 switches 62 plans 335
+# plugin timing from the 1 s log lines (us): calls, call-weighted infer mean, infer max, call mean, call max
+f_cart   launch_1.out no timing lines
+g_demo   launch_1.out no timing lines
+j_cross  launch_1.out no timing lines
+k_cross  launch_1.out no timing lines
+# launch output lines that mention the plan keeper, per scenario: {}

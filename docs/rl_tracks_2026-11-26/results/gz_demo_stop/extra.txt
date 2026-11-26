@@ -1,0 +1,95 @@
+# contact with the person: speed over the 0.2 s before the first contact
+g_demo   RLShimDemoHistStop 0 SUCC ok True  36.7s person_min 0.024 no contact
+g_demo   RLShimDemoHistStop 1 SUCC ok True  42.2s person_min 0.000 first contact 20.6s at (1.08,0.50) v_0.2s 0.024 standing False
+g_demo   RLShimDemoHistStop 2 SUCC ok True  29.2s person_min 0.000 first contact 20.6s at (1.12,0.49) v_0.2s 0.109 standing False
+g_demo   RLShimDemoHistStop 3 ABOR ok False  79.7s person_min 0.000 first contact 42.2s at (1.05,0.54) v_0.2s 0.000 standing True
+g_demo   RLShimDemoHistStop 4 ABOR ok False  46.0s person_min 0.318 no contact
+g_demo   RLShimDemoHist     0 ABOR ok False  39.7s person_min 0.267 no contact
+g_demo   RLShimDemoHist     1 SUCC ok True  22.0s person_min 0.000 first contact 12.5s at (1.16,0.49) v_0.2s 0.005 standing True
+g_demo   RLShimDemoHist     2 SUCC ok True  20.7s person_min 0.011 no contact
+g_demo   RLShimDemoHist     3 SUCC ok True  17.8s person_min 0.000 first contact 12.7s at (1.20,0.48) v_0.2s 0.120 standing False
+g_demo   RLShimDemoHist     4 SUCC ok True  20.5s person_min 0.002 first contact 17.3s at (1.24,0.52) v_0.2s 0.120 standing False
+j_cross  RLShimDemoHistStop 0 SUCC ok True  53.2s person_min 0.000 first contact 12.4s at (1.07,0.57) v_0.2s 0.001 standing True
+j_cross  RLShimDemoHistStop 1 SUCC ok True  30.0s person_min 0.000 first contact 12.5s at (1.07,0.57) v_0.2s 0.000 standing True
+j_cross  RLShimDemoHistStop 2 SUCC ok True  34.2s person_min 0.000 first contact 12.8s at (1.04,0.57) v_0.2s 0.000 standing True
+j_cross  RLShimDemoHistStop 3 SUCC ok True  37.9s person_min 0.000 first contact 27.3s at (1.09,0.57) v_0.2s 0.071 standing False
+j_cross  RLShimDemoHistStop 4 SUCC ok True  46.2s person_min 0.000 first contact 12.6s at (1.05,0.56) v_0.2s 0.000 standing True
+j_cross  RLShimDemoHist     0 SUCC ok True  14.9s person_min 0.000 first contact 7.7s at (1.08,0.52) v_0.2s 0.113 standing False
+j_cross  RLShimDemoHist     1 SUCC ok True  19.2s person_min 0.000 first contact 7.6s at (1.08,0.53) v_0.2s 0.113 standing False
+j_cross  RLShimDemoHist     2 SUCC ok True  15.8s person_min 0.000 first contact 7.8s at (1.08,0.52) v_0.2s 0.109 standing False
+j_cross  RLShimDemoHist     3 SUCC ok True  13.9s person_min 0.000 first contact 7.6s at (1.09,0.52) v_0.2s 0.105 standing False
+j_cross  RLShimDemoHist     4 SUCC ok True  16.4s person_min 0.000 first contact 7.7s at (1.09,0.52) v_0.2s 0.107 standing False
+k_cross  RLShimDemoHistStop 0 SUCC ok True  56.9s person_min 0.000 first contact 21.3s at (1.05,0.58) v_0.2s 0.000 standing True
+k_cross  RLShimDemoHistStop 1 SUCC ok True  83.0s person_min 0.000 first contact 77.6s at (1.13,0.51) v_0.2s 0.120 standing False
+k_cross  RLShimDemoHistStop 2 SUCC ok True  37.4s person_min 0.000 first contact 34.1s at (1.21,0.57) v_0.2s 0.120 standing False
+k_cross  RLShimDemoHistStop 3 TIME ok False  91.0s person_min 0.057 no contact
+k_cross  RLShimDemoHistStop 4 TIME ok False  91.0s person_min 0.000 first contact 54.9s at (1.04,0.58) v_0.2s 0.004 standing True
+k_cross  RLShimDemoHist     0 SUCC ok True  15.3s person_min 0.000 first contact 7.5s at (1.07,0.58) v_0.2s 0.100 standing False
+k_cross  RLShimDemoHist     1 ABOR ok False  38.4s person_min 0.000 first contact 7.5s at (1.06,0.58) v_0.2s 0.120 standing False
+k_cross  RLShimDemoHist     2 SUCC ok True  13.6s person_min 0.000 first contact 7.3s at (1.06,0.56) v_0.2s 0.120 standing False
+k_cross  RLShimDemoHist     3 ABOR ok False  48.7s person_min 0.000 first contact 7.4s at (1.06,0.57) v_0.2s 0.120 standing False
+k_cross  RLShimDemoHist     4 SUCC ok True  20.3s person_min 0.000 first contact 7.6s at (1.06,0.59) v_0.2s 0.120 standing False
+# fleet stall rule (1 s without 5 cm -> wait, 2 s more -> stuck) replayed on the true trajectory, per run: waits/stuck and where
+f_cart   RLShimDemoHistStop 0 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHistStop 1 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHistStop 2 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHistStop 3 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHistStop 4 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHist     0 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHist     1 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHist     2 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHist     3 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHist     4 SUCC waits 0 stuck 0 []
+g_demo   RLShimDemoHistStop 0 SUCC waits 2 stuck 1 [[13.8, 0.9, 0.54, 'wait'], [23.9, 0.94, 0.5, 'stuck']]
+g_demo   RLShimDemoHistStop 1 SUCC waits 4 stuck 2 [[4.9, 0.52, 0.65, 'stuck'], [24.8, 1.04, 0.54, 'stuck'], [35.3, 1.01, 0.52, 'wait'], [38.3, 1.18, 0.48, 'wait']]
+g_demo   RLShimDemoHistStop 2 SUCC waits 0 stuck 0 []
+g_demo   RLShimDemoHistStop 3 ABOR waits 5 stuck 3 [[14.2, 0.92, 0.53, 'wait'], [20.9, 0.99, 0.53, 'stuck'], [41.9, 1.05, 0.54, 'stuck'], [53.7, 1.05, 0.46, 'wait']]
+g_demo   RLShimDemoHistStop 4 ABOR waits 3 stuck 2 [[5.0, 0.51, 0.65, 'wait'], [9.7, 0.72, 0.61, 'stuck'], [23.4, 0.5, 0.74, 'stuck']]
+g_demo   RLShimDemoHist     0 ABOR waits 1 stuck 1 [[16.4, 0.78, 0.59, 'stuck']]
+g_demo   RLShimDemoHist     1 SUCC waits 0 stuck 0 []
+g_demo   RLShimDemoHist     2 SUCC waits 1 stuck 0 [[4.8, 0.52, 0.65, 'wait']]
+g_demo   RLShimDemoHist     3 SUCC waits 1 stuck 1 [[4.8, 0.51, 0.64, 'stuck']]
+g_demo   RLShimDemoHist     4 SUCC waits 0 stuck 0 []
+j_cross  RLShimDemoHistStop 0 SUCC waits 5 stuck 0 [[8.7, 0.88, 0.57, 'wait'], [18.5, 1.0, 0.5, 'wait'], [27.4, 1.02, 0.51, 'wait'], [32.3, 0.96, 0.5, 'wait']]
+j_cross  RLShimDemoHistStop 1 SUCC waits 2 stuck 0 [[8.0, 0.86, 0.58, 'wait'], [16.2, 1.01, 0.58, 'wait']]
+j_cross  RLShimDemoHistStop 2 SUCC waits 2 stuck 2 [[6.5, 0.87, 0.58, 'stuck'], [24.3, 1.1, 0.48, 'stuck']]
+j_cross  RLShimDemoHistStop 3 SUCC waits 2 stuck 2 [[16.2, 0.99, 0.55, 'stuck'], [28.3, 1.08, 0.57, 'stuck']]
+j_cross  RLShimDemoHistStop 4 SUCC waits 3 stuck 1 [[7.5, 0.87, 0.57, 'wait'], [19.0, 1.05, 0.5, 'stuck'], [32.8, 0.94, 0.53, 'wait']]
+j_cross  RLShimDemoHist     0 SUCC waits 0 stuck 0 []
+j_cross  RLShimDemoHist     1 SUCC waits 0 stuck 0 []
+j_cross  RLShimDemoHist     2 SUCC waits 0 stuck 0 []
+j_cross  RLShimDemoHist     3 SUCC waits 0 stuck 0 []
+j_cross  RLShimDemoHist     4 SUCC waits 0 stuck 0 []
+k_cross  RLShimDemoHistStop 0 SUCC waits 4 stuck 4 [[11.2, 0.93, 0.56, 'stuck'], [15.7, 0.95, 0.56, 'stuck'], [25.2, 1.01, 0.58, 'stuck'], [40.6, 1.02, 0.52, 'stuck']]
+k_cross  RLShimDemoHistStop 1 SUCC waits 4 stuck 3 [[10.9, 0.91, 0.58, 'wait'], [17.5, 0.97, 0.57, 'stuck'], [41.0, 0.92, 0.52, 'stuck'], [51.3, 0.94, 0.55, 'stuck']]
+k_cross  RLShimDemoHistStop 2 SUCC waits 4 stuck 3 [[10.4, 0.92, 0.58, 'stuck'], [17.7, 0.99, 0.58, 'stuck'], [23.5, 0.94, 0.59, 'stuck'], [31.5, 1.02, 0.57, 'wait']]
+k_cross  RLShimDemoHistStop 3 TIME waits 7 stuck 5 [[10.9, 0.93, 0.58, 'stuck'], [14.1, 0.97, 0.58, 'stuck'], [28.9, 0.96, 0.52, 'wait'], [34.6, 0.91, 0.49, 'stuck']]
+k_cross  RLShimDemoHistStop 4 TIME waits 7 stuck 6 [[9.6, 0.92, 0.57, 'stuck'], [17.8, 0.95, 0.57, 'stuck'], [37.9, 1.02, 0.54, 'stuck'], [61.3, 1.06, 0.53, 'stuck']]
+k_cross  RLShimDemoHist     0 SUCC waits 0 stuck 0 []
+k_cross  RLShimDemoHist     1 ABOR waits 2 stuck 1 [[11.0, 1.15, 0.5, 'wait'], [14.3, 1.22, 0.44, 'stuck']]
+k_cross  RLShimDemoHist     2 SUCC waits 0 stuck 0 []
+k_cross  RLShimDemoHist     3 ABOR waits 3 stuck 2 [[11.1, 1.15, 0.49, 'wait'], [13.8, 1.22, 0.45, 'stuck'], [25.8, 1.61, 0.56, 'stuck']]
+k_cross  RLShimDemoHist     4 SUCC waits 0 stuck 0 []
+STALL f_cart   RLShimDemoHist     runs 5 with a wait 0 with a stuck 0 waits in all 0
+STALL f_cart   RLShimDemoHistStop runs 5 with a wait 0 with a stuck 0 waits in all 0
+STALL g_demo   RLShimDemoHist     runs 5 with a wait 3 with a stuck 2 waits in all 3
+STALL g_demo   RLShimDemoHistStop runs 5 with a wait 4 with a stuck 4 waits in all 14
+STALL j_cross  RLShimDemoHist     runs 5 with a wait 0 with a stuck 0 waits in all 0
+STALL j_cross  RLShimDemoHistStop runs 5 with a wait 5 with a stuck 3 waits in all 14
+STALL k_cross  RLShimDemoHist     runs 5 with a wait 2 with a stuck 2 waits in all 5
+STALL k_cross  RLShimDemoHistStop runs 5 with a wait 5 with a stuck 5 waits in all 26
+# leg time: all runs, and the median over the runs that arrived (ok)
+f_cart   RLShimDemoHist     n 5 ok 5 median_ok_s 12.9 times [12.6, 13.0, 12.9, 13.0, 12.8]
+f_cart   RLShimDemoHistStop n 5 ok 5 median_ok_s 12.9 times [12.7, 13.0, 13.1, 12.5, 12.9]
+g_demo   RLShimDemoHist     n 5 ok 4 median_ok_s 20.6 times [39.7, 22.0, 20.7, 17.8, 20.5]
+g_demo   RLShimDemoHistStop n 5 ok 3 median_ok_s 36.7 times [36.7, 42.2, 29.2, 79.7, 46.0]
+j_cross  RLShimDemoHist     n 5 ok 5 median_ok_s 15.8 times [14.9, 19.2, 15.8, 13.9, 16.4]
+j_cross  RLShimDemoHistStop n 5 ok 5 median_ok_s 37.9 times [53.2, 30.0, 34.2, 37.9, 46.2]
+k_cross  RLShimDemoHist     n 5 ok 3 median_ok_s 15.3 times [15.3, 38.4, 13.6, 48.7, 20.3]
+k_cross  RLShimDemoHistStop n 5 ok 3 median_ok_s 56.9 times [56.9, 83.0, 37.4, 91.0, 91.0]
+# plugin log: control cycles and closing blocks of the controller with the closing stop on, summed per scenario
+f_cart   launch_1.out log lines 0 calls 0 closing blocks 0 (-) tf misses 0
+g_demo   launch_1.out log lines 0 calls 0 closing blocks 0 (-) tf misses 0
+j_cross  launch_1.out log lines 0 calls 0 closing blocks 0 (-) tf misses 0
+k_cross  launch_1.out log lines 0 calls 0 closing blocks 0 (-) tf misses 0
+# configure line: []

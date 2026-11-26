@@ -1,0 +1,26 @@
+# contact with the person: speed over the 0.2 s before the first contact
+k_cross  RLShimDemoHistStop 0 SUCC ok True  50.2s person_min 0.009 no contact
+k_cross  RLShimDemoHistStop 1 SUCC ok True  44.1s person_min 0.024 no contact
+k_cross  RLShimDemoHistStop 2 ABOR ok False  78.5s person_min 0.000 first contact 30.2s at (1.04,0.59) v_0.2s 0.000 standing True
+k_cross  RLShimDemoHistStop 3 SUCC ok True  44.3s person_min 0.000 first contact 34.9s at (1.05,0.61) v_0.2s 0.000 standing True
+k_cross  RLShimDemoHistStop 4 TIME ok False  91.0s person_min 0.000 first contact 27.3s at (1.06,0.53) v_0.2s 0.000 standing True
+# fleet stall rule (1 s without 5 cm -> wait, 2 s more -> stuck) replayed on the true trajectory, per run: waits/stuck and where
+f_cart   RLShimDemoHistStop 0 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHistStop 1 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHistStop 2 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHistStop 3 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHistStop 4 SUCC waits 0 stuck 0 []
+k_cross  RLShimDemoHistStop 0 SUCC waits 4 stuck 2 [[10.7, 0.91, 0.58, 'wait'], [14.4, 0.98, 0.57, 'stuck'], [31.3, 1.01, 0.59, 'stuck'], [44.3, 0.98, 0.57, 'wait']]
+k_cross  RLShimDemoHistStop 1 SUCC waits 3 stuck 2 [[10.5, 0.91, 0.58, 'wait'], [17.1, 0.95, 0.57, 'stuck'], [25.2, 0.99, 0.61, 'stuck']]
+k_cross  RLShimDemoHistStop 2 ABOR waits 6 stuck 6 [[10.5, 0.89, 0.57, 'stuck'], [17.7, 0.92, 0.57, 'stuck'], [24.6, 0.97, 0.6, 'stuck'], [37.4, 1.01, 0.6, 'stuck']]
+k_cross  RLShimDemoHistStop 3 SUCC waits 3 stuck 2 [[10.6, 0.91, 0.58, 'stuck'], [17.6, 0.97, 0.58, 'stuck'], [38.4, 1.02, 0.59, 'wait']]
+k_cross  RLShimDemoHistStop 4 TIME waits 8 stuck 4 [[11.1, 0.92, 0.58, 'wait'], [17.4, 0.97, 0.56, 'stuck'], [33.2, 1.02, 0.52, 'wait'], [38.3, 1.02, 0.54, 'wait']]
+STALL f_cart   RLShimDemoHistStop runs 5 with a wait 0 with a stuck 0 waits in all 0
+STALL k_cross  RLShimDemoHistStop runs 5 with a wait 5 with a stuck 5 waits in all 24
+# leg time: all runs, and the median over the runs that arrived (ok)
+f_cart   RLShimDemoHistStop n 5 ok 5 median_ok_s 12.9 times [12.2, 13.1, 13.2, 12.9, 12.1]
+k_cross  RLShimDemoHistStop n 5 ok 3 median_ok_s 44.3 times [50.2, 44.1, 78.5, 44.3, 91.0]
+# plugin log: control cycles and closing blocks of the controller with the closing stop on, summed per scenario
+f_cart   launch_1.out log lines 108 calls 2061 closing blocks 72 (3.49 %) tf misses 0
+k_cross  launch_1.out log lines 269 calls 4924 closing blocks 2106 (42.77 %) tf misses 0
+# configure line: ['c format 3, obs blocks [prev_action, lidar_history, speed_cap], speed_cap 0.120 m/s, ema alpha v 1.000 w 1.000, scan mask 0 ranges, closing stop 0.260 m within 60.0 deg (lookback 1.000 s, spread 4.0 deg, closing 0.080 m/s, hold 0.300 s, min rays 2, tf in odom)']

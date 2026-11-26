@@ -1,0 +1,17 @@
+# plans per run: in the aisle band / outside, and how often two plans in a row changed side
+f_cart   RLShimDemoHistStop 0 SUCC plans  12 in  12 out   0 first in switches 0
+f_cart   RLShimDemoHistStop 1 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHistStop 2 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHistStop 3 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHistStop 4 SUCC plans  12 in  12 out   0 first in switches 0
+k_cross  RLShimDemoHistStop 0 SUCC plans  49 in  43 out   6 first in switches 12
+k_cross  RLShimDemoHistStop 1 SUCC plans  42 in  37 out   5 first in switches 10
+k_cross  RLShimDemoHistStop 2 ABOR plans  53 in  48 out   5 first in switches 9
+k_cross  RLShimDemoHistStop 3 SUCC plans  43 in  41 out   2 first in switches 4
+k_cross  RLShimDemoHistStop 4 TIME plans  83 in  73 out  10 first in switches 20
+PLAN f_cart   RLShimDemoHistStop runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 63
+PLAN k_cross  RLShimDemoHistStop runs 5 all plans in band 0 any plan outside 5 runs with a switch 5 switches 55 plans 270
+# plugin timing from the 1 s log lines (us): calls, call-weighted infer mean, infer max, call mean, call max
+f_cart   launch_1.out lines 108 calls 2061 infer mean 53 max 283 call mean 179 max 790
+k_cross  launch_1.out lines 269 calls 4924 infer mean 50 max 304 call mean 171 max 1689
+# launch output lines that mention the plan keeper, per scenario: {}
