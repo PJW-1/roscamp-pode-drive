@@ -649,6 +649,27 @@ TEST(ScanMaskFill, NeedsAMask)
   EXPECT_NO_THROW(check_scan_mask_fill(false, parse_scan_mask({138.0, 157.0})));
 }
 
+TEST(ScanMaskFill, FlagsAreTheSameBeforeAndAfterMasking)
+{
+  const PolicySpec s = spec();
+  // 가린 빔에 가까운 유효 반환이 남아 있어도(가리기 전의 scan) 그 빔은 쓸 수 있는 레이가 아니다
+  Scan scan = grid360(0.5f);
+  scan.ranges[20] = std::numeric_limits<float>::infinity();
+  scan.ranges[21] = std::nanf("");
+  const auto mask = pode_rl_controller::parse_scan_mask({-158.5, -140.5});
+  const auto plain = pode_rl_controller::masked_sectors(scan, 0.0, mask, s);
+  Scan masked = scan;
+  pode_rl_controller::mask_scan(masked, 0.0, mask);
+  const auto after = pode_rl_controller::masked_sectors(masked, 0.0, mask, s);
+  EXPECT_EQ(plain.touched, after.touched);
+  EXPECT_EQ(plain.usable, after.usable);
+  EXPECT_TRUE(plain.touched[2]);
+  EXPECT_FALSE(plain.usable[2]);
+  EXPECT_TRUE(plain.touched[3]);
+  EXPECT_FALSE(plain.usable[3]);
+  EXPECT_TRUE(plain.usable[4]);
+}
+
 // ---- Python과 같은 답(make_mask_fill_cases.py로 만든 기대값) ----
 TEST(ScanMaskFill, MatchesPythonOnGeneratedScans)
 {
