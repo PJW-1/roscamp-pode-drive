@@ -238,6 +238,30 @@ t_ctrl보다 높고, 이상 응답 두 칸(rand, head)에서는 t_ctrl보다 낮
   나는지는 이 묶음에서 견주지 않았다.
 - 첫 goal(pode1, 시작 13초 뒤)은 선택을 보내기 전이라 RPP로 갔다. 이것은 배선 확인이고 성능 비교가 아니다.
 
+### 7c. 후보 정책을 저장소에 넣기: `store_arena_demohist`와 `nav_rl:=rl_demohist` (계획 13:28)
+
+13절의 후보(t_demo_hist)를 다른 PC에서도 저장소만으로 시뮬에 올릴 수 있게 등록했다(d24a2d6c, OpenCode 에이전트가 별도
+worktree에서 만든 4067d262를 직접 확인하고 병합). acd3를 넣은 방식(c190452a)을 그대로 따랐다.
+
+- 들어간 것: `pode/pode_rl_controller/policies/store_arena_demohist/`(onnx, spec), parity 시험 자료, CMake parity 목록,
+  `sim/fleet_gz_sim/nav_overrides/follow_path_rl_demohist.yaml`, `gz.launch.py`의 `nav_rl:=rl_demohist`, 체크포인트
+  `learning/store_arena/checkpoints/store_arena_demohist/model_2044.pt`(sha256은 `index.json`, 학습 PC의 원본과 같다),
+  `docs/rl_quickstart.md` 3절의 두 줄. C++ 플러그인 코드는 바꾸지 않았다(이력 관측은 11-22에 들어가 있었다).
+- 확인한 것(13:27): Windows에서 정책 파일·launch 배선·학습 시험 통과. WSL에서 통합 작업 사본을 빌드해
+  `pode_rl_controller` 87개(이 가운데 `test_parity_store_arena_demohist` 8개), `fleet_gz_sim` 662개 모두 통과.
+- 내보내기만 하고 넣지 않은 것: `store_arena_demo`(t_demo, 두 후보 조건 모두 채우지 못함), `store_arena_demostd`
+  (t_demo_std, Gazebo 참고용으로만 썼다). 둘 다 저장소에 없다.
+
+남은 확인(결과를 보기 전에 적는다): 7b와 같은 방식으로 플릿 시뮬을 `nav_rl:=rl_demohist`로 띄우고 세 로봇의
+`controller_selector`에 `FollowPathRL`을 보낸 뒤 관제 시나리오(gz_v7)를 300초 돌린다. 도메인 74, 빌드는 통합 작업 사본
+(GitHub에서 새로 받은 사본으로 하는 확인은 마지막 커밋 뒤에 한 번 한다).
+- 통과 기준(7b와 같다): 세 로봇의 controller_server가 정책 `store_arena_demohist`를 읽고, 선택 뒤 RL 추론 로그가 Nav2
+  goal을 받은 로봇에서 나오며, 죽은 프로세스가 없다.
+- 이것은 배선 확인이다. 주문 수와 시간은 성능 비교로 읽지 않는다. 이력 관측(116칸)이 세 로봇에서 동시에 도는 것은
+  이번이 처음이므로 추론 시간도 같이 적는다.
+
+결과: (채움)
+
 ## 8. 시연 조건 갈래 (사용자 설명, 11-26 00:40쯤)
 
 사용자가 학습 도중에 실제 시연 조건을 알려 주었다. 표현이 "~일 거야", "아마"라서 확정은 아니다.
