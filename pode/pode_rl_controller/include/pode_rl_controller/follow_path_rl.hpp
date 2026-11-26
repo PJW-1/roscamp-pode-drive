@@ -83,6 +83,7 @@ private:
   ObsMemory memory_;
   TargetSmoother smoother_;
   std::vector<AngleRange> scan_mask_;
+  bool scan_mask_fill_{false};
   double v_top_{0.0};
   double speed_cap_{0.0};
   rclcpp::Time last_policy_{0, 0, RCL_ROS_TIME};

@@ -50,6 +50,20 @@ Deployment options, all off by default (off leaves the command bit-identical, `t
   sectors were masked, so this value is not recommended for the real robot as it is. Each training ray takes the nearest scan beam and a ray with
   no beam near it is no return too, so check with the robot's own scan (its angle range and step) that every
   sector keeps at least one ray whose beam is not masked.
+- `scan_mask_fill` (default false = off; on without `scan_mask_deg` stops configure): fills a policy sector
+  that the mask emptied from its neighbours, the same rule as `lidar_mask_fill` in
+  `learning/goal_reach/task_spec.py`. A training ray is masked when the beam it takes (the nearest one) is
+  masked; it is usable when its beam is not masked and returned a finite range within
+  `[range_min, range_max]` (a valid return beyond `obs_max` counts as usable: the sector reads `obs_max` and
+  is not filled). A sector with at least one masked ray and no usable ray is empty. An empty sector reads
+  the smaller of two candidates: on each side, the value of the nearest sector that is not empty, looking at
+  most 4 sectors away (the first and the last sector are neighbours). A side with no such sector is left out; with
+  none on either side the sector reads `obs_max`. Candidates are the values before the fill, so a filled
+  value never feeds another sector. Every other sector is unchanged, so a sector the mask does not touch
+  still reads `obs_max` when it has no return. The filled values go into the policy observation and the
+  lidar history only; the 360 rays that the reverse guard and the closing stop read keep the masked value
+  (no return). Checked in the Isaac evaluation and on recorded real scans only (worklog section 34); not run
+  on a robot.
 - `closing_stop_range` (default 0.0 = off): closing stop, the forward-only stop for something that moves
   toward the robot. The scan from `closing_lookback_s` ago is moved into the pose of now (each old point
   binned by its bearing from the lidar now, the minimum over `+-closing_spread_deg` of neighbouring bins:

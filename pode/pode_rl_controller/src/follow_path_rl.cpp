@@ -59,6 +59,7 @@ void FollowPathRL::configure(
   declare_parameter_if_not_declared(node, name_ + ".ema_alpha_w", ParameterValue(1.0));
   declare_parameter_if_not_declared(
     node, name_ + ".scan_mask_deg", ParameterValue(std::vector<double>{}));
+  declare_parameter_if_not_declared(node, name_ + ".scan_mask_fill", ParameterValue(false));
   const ClosingParams closing_default{};
   declare_parameter_if_not_declared(node, name_ + ".closing_stop_range", ParameterValue(0.0));
   declare_parameter_if_not_declared(
@@ -90,6 +91,8 @@ void FollowPathRL::configure(
   const double alpha_w = node->get_parameter(name_ + ".ema_alpha_w").as_double();
   smoother_ = TargetSmoother(alpha_v, alpha_w);
   scan_mask_ = parse_scan_mask(node->get_parameter(name_ + ".scan_mask_deg").as_double_array());
+  scan_mask_fill_ = node->get_parameter(name_ + ".scan_mask_fill").as_bool();
+  check_scan_mask_fill(scan_mask_fill_, scan_mask_);
   ClosingParams cp;
   cp.stop_range = node->get_parameter(name_ + ".closing_stop_range").as_double();
   cp.half_width_deg = node->get_parameter(name_ + ".closing_half_width_deg").as_double();
@@ -198,6 +201,11 @@ void FollowPathRL::configure(
     RCLCPP_WARN(
       logger_, "FollowPathRL %s: scan beams at %.1f..%.1f deg (base frame) are masked as no "
       "return", name_.c_str(), m.lo_deg, m.hi_deg);
+  }
+  if (scan_mask_fill_) {
+    RCLCPP_INFO(
+      logger_, "FollowPathRL %s: scan mask fill on (a masked sector with no usable ray reads the "
+      "nearer neighbour sector, up to %d sectors away)", name_.c_str(), kFillReach);
   }
 }
 
@@ -377,6 +385,11 @@ geometry_msgs::msg::TwistStamped FollowPathRL::computeVelocityCommands(
     const auto rays = scan_to_rays(s, yaw_l, spec_);
     auto obs = build_observation(
       rays, goal.dist, goal.angle, velocity.linear.x, velocity.angular.z, spec_);
+    // 가림 때문에 빈 섹터를 이웃 섹터 값으로 채운다. 관측과 기억에만 들어가고 rays는 그대로다
+    if (scan_mask_fill_) {
+      // 관측의 섹터 칸은 상한으로 나눈 값이라 상한이 1이다
+      fill_masked_sectors(obs, masked_sectors(s, yaw_l, scan_mask_, spec_), 1.0f);
+    }
     const std::vector<float> sectors(obs.begin(), obs.begin() + spec_.lidar.sectors);
     // 직전 주기에 정책이 돌지 않았으면 기억과 평활 상태를 에피소드 시작으로 되돌린다
     if (memory_stale(policy_ran_, (now - last_policy_).seconds(), spec_.control_dt)) {

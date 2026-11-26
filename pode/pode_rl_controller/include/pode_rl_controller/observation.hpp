@@ -104,4 +104,21 @@ struct AngleRange
 std::vector<AngleRange> parse_scan_mask(const std::vector<double> & deg);
 void mask_scan(Scan & scan, double lidar_yaw, const std::vector<AngleRange> & mask);
 
+// ---- 가린 섹터 채우기(scan_mask_fill, task_spec.lidar_mask_fill과 같은 규칙) ----
+// 채울 값을 찾아 한쪽으로 보는 섹터 수(task_spec.FILL_REACH)
+constexpr int kFillReach = 4;
+
+// 섹터마다: 고른 빔이 가려진 레이가 있는지(touched), 쓸 수 있는 레이가 있는지(usable)
+struct MaskedSectors
+{
+  std::vector<bool> touched;
+  std::vector<bool> usable;
+};
+
+void check_scan_mask_fill(bool fill, const std::vector<AngleRange> & mask);
+MaskedSectors masked_sectors(
+  const Scan & scan, double lidar_yaw, const std::vector<AngleRange> & mask,
+  const PolicySpec & spec);
+void fill_masked_sectors(std::vector<float> & values, const MaskedSectors & flags, float limit);
+
 }  // namespace pode_rl_controller
