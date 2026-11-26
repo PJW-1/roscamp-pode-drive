@@ -55,3 +55,35 @@ def test_paired_comparison_refuses_runs_with_different_envs_or_repeated_envs(tmp
     c = fr.load(save(tmp_path, "c", [0, 1, 1], [1, 1, 1], [10, 10, 10]))
     with pytest.raises(ValueError, match="more than one episode per env"):
         fr.compare(c, c, paired=True)
+
+
+def test_resampled_rates_are_also_totals_over_totals():
+    r = {"flips": np.array([3.0, 1.0]), "length_s": np.array([30.0, 90.0])}
+    got = fr.resampled(r, np.array([[0, 0], [0, 1], [1, 1]]))
+    assert got == pytest.approx([6.0, 2.0, 60 * 2 / 180])
+
+
+def test_runs_are_paired_only_when_the_start_check_passes(tmp_path, monkeypatch):
+    env = np.arange(40)
+    a = save(tmp_path, "a", env, np.arange(40) % 7, 10.0 + np.arange(40) % 5)
+    b = save(tmp_path, "b", env[::-1], (np.arange(40) % 7)[::-1], (10.0 + np.arange(40) % 5)[::-1])
+    monkeypatch.setattr(fr.nt, "check_same", lambda x, y: ("", 16))
+    r, why = fr.compare_runs(a, b, n_boot=200)
+    assert (r["kind"], r["se"], why) == ("paired", 0.0, "same start checked on 16 tracked envs")
+    # 시작 확인이 문제를 내면 같은 자료라도 짝을 짓지 않는다
+    monkeypatch.setattr(fr.nt, "check_same", lambda x, y: ("different start episodes", 0))
+    r, why = fr.compare_runs(a, b, n_boot=200)
+    assert r["kind"] == "unpaired" and r["se"] > 0.1 and why == "different start episodes"
+
+
+def test_runs_of_different_sizes_are_compared_unpaired(tmp_path, monkeypatch):
+    a = save(tmp_path, "a", np.arange(30), np.arange(30) % 4, np.full(30, 60.0))
+    b = save(tmp_path, "b", np.arange(20), np.arange(20) % 3, np.full(20, 60.0))
+    monkeypatch.setattr(fr.nt, "check_same", lambda x, y: ("different env sets", 0))
+    r, why = fr.compare_runs(a, b, n_boot=100)
+    assert (r["kind"], r["n"], r["n_b"], why) == ("unpaired", 30, 20, "different env sets")
+    assert r["se"] > 0
+    # 시작 확인은 통과했는데 env가 맞지 않으면 까닭을 적고 따로 뽑는다
+    monkeypatch.setattr(fr.nt, "check_same", lambda x, y: ("", 16))
+    r, why = fr.compare_runs(a, b, n_boot=100)
+    assert r["kind"] == "unpaired" and "not the same episodes" in why

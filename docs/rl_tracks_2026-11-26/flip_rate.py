@@ -14,6 +14,8 @@ import sys
 
 import numpy as np
 
+import n26_tables as nt
+
 N_BOOT = 2000
 SEED = 0
 
@@ -51,19 +53,28 @@ def compare(a: dict, b: dict, paired: bool, n_boot: int = N_BOOT, seed: int = SE
     else:
         ib = rng.integers(0, len(b["env"]), size=(n_boot, len(b["env"])))
     ra, rb = rate(a["flips"], a["length_s"]), rate(b["flips"], b["length_s"])
-    return {"kind": "paired" if paired else "unpaired", "n": len(a["env"]), "rate_a": ra, "rate_b": rb,
-            "diff": ra - rb, "se": float(np.std(resampled(a, ia) - resampled(b, ib)))}
+    return {"kind": "paired" if paired else "unpaired", "n": len(a["env"]), "n_b": len(b["env"]),
+            "rate_a": ra, "rate_b": rb, "diff": ra - rb,
+            "se": float(np.std(resampled(a, ia) - resampled(b, ib)))}
+
+
+def compare_runs(run_a, run_b, n_boot: int = N_BOOT) -> tuple[dict, str]:
+    """두 실행 폴더의 차이(a - b)와 짝을 지었는지의 까닭. 같은 에피소드로 시작했을 때만 짝을 짓는다."""
+    a, b = load(run_a), load(run_b)
+    bad, tracked = nt.check_same(str(run_a), str(run_b))
+    if not bad:
+        try:
+            return compare(a, b, True, n_boot), f"same start checked on {tracked} tracked envs"
+        except ValueError as e:
+            bad = str(e)
+    return compare(a, b, False, n_boot), bad
 
 
 def main():
-    import n26_tables as nt
-    run_a, run_b = sys.argv[1], sys.argv[2]
-    bad, tracked = nt.check_same(str(run_a), str(run_b))
-    r = compare(load(run_a), load(run_b), paired=not bad)
-    why = bad or f"same start checked on {tracked} tracked envs"
+    r, why = compare_runs(sys.argv[1], sys.argv[2])
     out = abs(r["diff"]) > 2 * r["se"]
     print(f"w flips per min: {r['rate_a']:.2f} vs {r['rate_b']:.2f}, a - b {r['diff']:+.2f} "
-          f"(SE {r['se']:.2f}, {r['kind']}: {why}, n {r['n']}, {'outside' if out else 'inside'} 2 SE)")
+          f"(SE {r['se']:.2f}, {r['kind']}: {why}, n {r['n']} and {r['n_b']}, {'outside' if out else 'inside'} 2 SE)")
 
 
 if __name__ == "__main__":
