@@ -2878,6 +2878,17 @@ launch의 Nav2 로그 수준 기본값이 warn이라 플러그인의 INFO 줄(�
 `RL_POLICY` 로그 수준 줄). Windows에서 도는 시험은 148 passed, 3 skipped다. ROS가 필요한 시험(launch 연결, `tools/test`의 실물
 스크립트 시험)과 C++ 빌드는 Gazebo 열두째 묶음이 끝난 뒤에 돌리고, 통과한 뒤에 push한다.
 
+merge 뒤 빌드의 시험(11-27 00:17~00:23, WSL, 32af9399. 적은 때 00:28): colcon 빌드 18개 패키지 성공, 플러그인 ctest
+11/11(정책 8개의 C++·torch 일치 포함), 저장소 파이썬 시험 138 passed 2 skipped, 시뮬 launch 시험 237 passed, keeper 패키지
+시험 50 passed였다. 실물 스크립트 시험(`tools/test`)은 356 passed, 10 failed였다. 10건을 나누면:
+- 2건은 merge가 만든 실제 어긋남이다. `test_start_default_passes_no_rl`이 "아무 옵션 없이 시작하면 launch 인자가 이것뿐이다"를
+  통째로 고정하는데, main이 keeper를 기본으로 켠 뒤로 `start.sh`가 `plan_keep:=true`를 넘긴다. 동작은 main이 정한 대로이고
+  시험의 기대값만 옛것이어서 기대값을 고쳤다(261b72f5). Windows에서는 bash가 필요한 이 시험이 건너뛰어져 merge 직후의
+  시험(148 passed)에 걸리지 않았다.
+- 8건은 `deploy.sh`와 한 시험이 `git`을 부르는데 WSL의 빌드용 소스 사본(rsync, `.git` 없음)에서 돌아서 난 것이다. 같은 커밋을
+  WSL에 git으로 받아 배포·시작 시험만 다시 돌리니 91 passed였다(261b72f5).
+그 뒤 push했다(원격 261b72f5).
+
 **keeper 기본 켬이 이 문서에 주는 영향**
 
 - 이 문서의 Gazebo 묶음은 여섯째(8c절, `plan_keep:=true`를 직접 줌)만 빼고 모두 `plan_keep`을 주지 않고 돌렸다. 그때의
