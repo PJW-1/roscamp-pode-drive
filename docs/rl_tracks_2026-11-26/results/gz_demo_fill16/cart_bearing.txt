@@ -1,0 +1,261 @@
+body footprint: [(0.04, 0.021), (0.036, 0.031), (0.029, 0.056), (-0.029, 0.056), (-0.049, 0.049), (-0.071, 0.042), (-0.076, 0.037), (-0.076, -0.037), (-0.071, -0.042), (-0.049, -0.049), (-0.029, -0.056), (0.029, -0.056), (0.036, -0.031), (0.04, -0.021)]
+## DemoHistFill 0 SUCC min 0.037 at 8.5s first contact None
+   t   4.5 d 0.221 bearing   -21.3 deg        range 0.266 robot (0.51,0.64) yaw   21.2
+   t   5.0 d 0.222 bearing   -15.3 deg        range 0.266 robot (0.51,0.64) yaw   15.2
+   t   5.5 d 0.224 bearing     9.8 deg        range 0.266 robot (0.51,0.64) yaw   -6.1
+   t   6.0 d 0.226 bearing    37.5 deg        range 0.281 robot (0.50,0.65) yaw  -30.6
+   t   6.5 d 0.225 bearing    45.8 deg        range 0.285 robot (0.50,0.65) yaw  -40.9
+   t   7.0 d 0.191 bearing    32.7 deg        range 0.243 robot (0.54,0.62) yaw  -23.3
+   t   7.5 d 0.140 bearing    21.8 deg        range 0.185 robot (0.60,0.61) yaw  -10.8
+   t   8.0 d 0.080 bearing    36.3 deg        range 0.131 robot (0.66,0.60) yaw  -15.1
+   t   8.5 d 0.038 bearing    75.0 deg        range 0.097 robot (0.71,0.57) yaw  -28.4
+   t   9.0 d 0.040 bearing   103.0 deg        range 0.099 robot (0.77,0.55) yaw  -20.4
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 9 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHistFill 1 SUCC min 0.046 at 8.5s first contact None
+   t   4.5 d 0.209 bearing   -27.1 deg        range 0.257 robot (0.52,0.64) yaw   27.1
+   t   5.0 d 0.217 bearing    -2.5 deg        range 0.257 robot (0.52,0.64) yaw    2.5
+   t   5.5 d 0.217 bearing    32.2 deg        range 0.269 robot (0.51,0.65) yaw  -23.7
+   t   6.0 d 0.221 bearing    46.5 deg        range 0.281 robot (0.50,0.66) yaw  -41.9
+   t   6.5 d 0.195 bearing    43.3 deg        range 0.253 robot (0.53,0.63) yaw  -37.1
+   t   7.1 d 0.155 bearing    26.1 deg        range 0.201 robot (0.58,0.60) yaw  -14.9
+   t   7.6 d 0.095 bearing    37.1 deg        range 0.148 robot (0.64,0.59) yaw  -16.0
+   t   8.1 d 0.049 bearing    67.9 deg        range 0.112 robot (0.70,0.57) yaw  -25.4
+   t   8.6 d 0.046 bearing    91.7 deg        range 0.102 robot (0.75,0.55) yaw  -16.8
+   t   9.1 d 0.052 bearing   107.1 deg        range 0.113 robot (0.81,0.53) yaw   -6.0
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 19 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHistFill 2 SUCC min 0.036 at 8.1s first contact None
+   t   4.1 d 0.217 bearing   -17.3 deg        range 0.262 robot (0.52,0.65) yaw   16.6
+   t   4.6 d 0.209 bearing   -10.0 deg        range 0.252 robot (0.53,0.65) yaw    8.7
+   t   5.1 d 0.208 bearing    18.6 deg        range 0.252 robot (0.53,0.65) yaw  -16.8
+   t   5.6 d 0.213 bearing    41.3 deg        range 0.270 robot (0.51,0.66) yaw  -35.3
+   t   6.1 d 0.192 bearing    39.7 deg        range 0.249 robot (0.53,0.64) yaw  -32.2
+   t   6.6 d 0.148 bearing    22.9 deg        range 0.193 robot (0.59,0.62) yaw  -15.6
+   t   7.1 d 0.086 bearing    38.6 deg        range 0.139 robot (0.65,0.60) yaw  -21.2
+   t   7.6 d 0.041 bearing    66.0 deg        range 0.103 robot (0.70,0.58) yaw  -25.2
+   t   8.1 d 0.036 bearing    92.1 deg        range 0.092 robot (0.76,0.55) yaw  -16.0
+   t   8.6 d 0.042 bearing   109.4 deg        range 0.104 robot (0.82,0.54) yaw   -6.4
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 21 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHistFill 3 SUCC min 0.035 at 7.8s first contact None
+   t   3.8 d 0.220 bearing   -25.8 deg        range 0.268 robot (0.51,0.65) yaw   25.5
+   t   4.3 d 0.178 bearing   -28.3 deg        range 0.226 robot (0.55,0.67) yaw   22.5
+   t   4.8 d 0.185 bearing     5.4 deg        range 0.226 robot (0.55,0.67) yaw   -0.3
+   t   5.3 d 0.180 bearing    36.6 deg        range 0.235 robot (0.55,0.67) yaw  -27.4
+   t   5.8 d 0.184 bearing    48.7 deg        range 0.244 robot (0.54,0.68) yaw  -44.2
+   t   6.3 d 0.147 bearing    54.9 deg        range 0.209 robot (0.57,0.63) yaw  -51.6
+   t   6.8 d 0.113 bearing    48.6 deg        range 0.173 robot (0.61,0.59) yaw  -31.4
+   t   7.3 d 0.073 bearing    43.6 deg        range 0.130 robot (0.67,0.57) yaw  -10.4
+   t   7.8 d 0.035 bearing    73.5 deg        range 0.095 robot (0.73,0.56) yaw  -14.5
+   t   8.3 d 0.041 bearing   123.5 deg        range 0.106 robot (0.79,0.54) yaw  -30.4
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 10 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHistFill 4 ABOR min 0.000 at 5.4s first contact 5.4
+   t   1.4 d 0.237 bearing   -40.7 deg        range 0.294 robot (0.49,0.59) yaw   52.2
+   t   1.9 d 0.207 bearing   -19.2 deg        range 0.252 robot (0.53,0.61) yaw   26.2
+   t   2.4 d 0.187 bearing    -2.0 deg        range 0.227 robot (0.55,0.62) yaw    7.3
+   t   2.9 d 0.195 bearing    19.3 deg        range 0.239 robot (0.54,0.63) yaw  -14.8
+   t   3.4 d 0.218 bearing    13.4 deg        range 0.262 robot (0.52,0.63) yaw  -10.7
+   t   3.9 d 0.182 bearing    -7.1 deg        range 0.224 robot (0.56,0.63) yaw    9.6
+   t   4.4 d 0.123 bearing    -6.4 deg        range 0.164 robot (0.62,0.64) yaw    6.1
+   t   4.9 d 0.060 bearing    19.1 deg        range 0.105 robot (0.68,0.64) yaw  -11.7
+   t   5.4 d 0.000 bearing    62.5 deg        range 0.062 robot (0.73,0.62) yaw  -31.1
+   t   5.9 d 0.000 bearing    50.5 deg        range 0.044 robot (0.75,0.61) yaw   -5.0
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 13 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHistFill 5 SUCC min 0.040 at 7.8s first contact None
+   t   3.8 d 0.239 bearing   -16.3 deg        range 0.284 robot (0.50,0.64) yaw   16.9
+   t   4.3 d 0.204 bearing   -19.8 deg        range 0.248 robot (0.53,0.65) yaw   18.1
+   t   4.8 d 0.207 bearing    -4.7 deg        range 0.248 robot (0.53,0.65) yaw    2.6
+   t   5.4 d 0.200 bearing    33.6 deg        range 0.253 robot (0.53,0.65) yaw  -24.7
+   t   5.9 d 0.201 bearing    47.9 deg        range 0.261 robot (0.52,0.66) yaw  -43.5
+   t   6.4 d 0.171 bearing    47.5 deg        range 0.231 robot (0.55,0.63) yaw  -42.2
+   t   6.9 d 0.133 bearing    32.3 deg        range 0.184 robot (0.60,0.60) yaw  -18.0
+   t   7.4 d 0.080 bearing    38.5 deg        range 0.133 robot (0.66,0.59) yaw  -12.3
+   t   7.9 d 0.040 bearing    75.3 deg        range 0.099 robot (0.72,0.57) yaw  -23.9
+   t   8.4 d 0.043 bearing   104.0 deg        range 0.102 robot (0.77,0.54) yaw  -17.7
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 9 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHistFill 6 ABOR min 0.000 at 5.8s first contact 5.8
+   t   1.8 d 0.226 bearing   -23.9 deg        range 0.272 robot (0.51,0.61) yaw   30.8
+   t   2.3 d 0.231 bearing     4.7 deg        range 0.272 robot (0.51,0.61) yaw    2.2
+   t   2.8 d 0.237 bearing    29.6 deg        range 0.287 robot (0.50,0.62) yaw  -21.2
+   t   3.3 d 0.261 bearing    26.3 deg        range 0.310 robot (0.47,0.62) yaw  -18.1
+   t   3.8 d 0.243 bearing    -4.1 deg        range 0.284 robot (0.50,0.63) yaw    7.7
+   t   4.3 d 0.181 bearing   -17.0 deg        range 0.225 robot (0.55,0.64) yaw   17.6
+   t   4.8 d 0.126 bearing    -4.3 deg        range 0.166 robot (0.61,0.65) yaw    1.2
+   t   5.3 d 0.062 bearing    20.5 deg        range 0.107 robot (0.67,0.65) yaw  -15.5
+   t   5.8 d 0.000 bearing    62.9 deg        range 0.063 robot (0.73,0.62) yaw  -32.7
+   t   6.3 d 0.000 bearing    50.5 deg        range 0.043 robot (0.75,0.61) yaw   -2.6
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 13 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHistFill 7 SUCC min 0.019 at 7.9s first contact None
+   t   3.9 d 0.228 bearing   -17.0 deg        range 0.272 robot (0.51,0.64) yaw   17.3
+   t   4.4 d 0.196 bearing   -17.5 deg        range 0.240 robot (0.54,0.65) yaw   15.2
+   t   4.9 d 0.198 bearing    10.5 deg        range 0.240 robot (0.54,0.65) yaw   -6.9
+   t   5.4 d 0.211 bearing    33.4 deg        range 0.263 robot (0.52,0.66) yaw  -24.7
+   t   5.9 d 0.210 bearing    40.2 deg        range 0.267 robot (0.51,0.66) yaw  -33.6
+   t   6.4 d 0.189 bearing    31.3 deg        range 0.240 robot (0.54,0.65) yaw  -21.6
+   t   6.9 d 0.136 bearing    13.5 deg        range 0.179 robot (0.60,0.63) yaw   -9.0
+   t   7.4 d 0.076 bearing    26.0 deg        range 0.121 robot (0.66,0.62) yaw  -15.5
+   t   7.9 d 0.019 bearing    70.2 deg        range 0.080 robot (0.72,0.60) yaw  -34.2
+   t   8.4 d 0.022 bearing   113.5 deg        range 0.085 robot (0.76,0.56) yaw  -34.6
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 10 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHistFill 8 SUCC min 0.029 at 8.5s first contact None
+   t   4.5 d 0.223 bearing   -20.9 deg        range 0.268 robot (0.51,0.64) yaw   20.9
+   t   5.0 d 0.225 bearing   -14.0 deg        range 0.268 robot (0.51,0.64) yaw   14.0
+   t   5.5 d 0.226 bearing    11.3 deg        range 0.269 robot (0.51,0.64) yaw   -7.9
+   t   6.0 d 0.233 bearing    36.5 deg        range 0.288 robot (0.49,0.65) yaw  -29.9
+   t   6.6 d 0.227 bearing    45.3 deg        range 0.286 robot (0.49,0.65) yaw  -40.6
+   t   7.1 d 0.191 bearing    33.1 deg        range 0.243 robot (0.54,0.62) yaw  -23.6
+   t   7.6 d 0.141 bearing    16.8 deg        range 0.185 robot (0.60,0.61) yaw   -5.1
+   t   8.1 d 0.082 bearing    29.8 deg        range 0.129 robot (0.66,0.60) yaw   -9.7
+   t   8.6 d 0.030 bearing    73.4 deg        range 0.089 robot (0.72,0.58) yaw  -28.7
+   t   9.1 d 0.035 bearing   117.3 deg        range 0.098 robot (0.77,0.55) yaw  -35.4
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 9 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHistFill 9 SUCC min 0.011 at 8.8s first contact None
+   t   4.8 d 0.234 bearing   -23.9 deg        range 0.280 robot (0.50,0.63) yaw   27.2
+   t   5.3 d 0.240 bearing     0.4 deg        range 0.280 robot (0.50,0.63) yaw    2.9
+   t   5.8 d 0.249 bearing    27.9 deg        range 0.298 robot (0.49,0.63) yaw  -19.5
+   t   6.3 d 0.259 bearing    37.2 deg        range 0.314 robot (0.47,0.64) yaw  -31.1
+   t   6.8 d 0.232 bearing    27.6 deg        range 0.281 robot (0.50,0.62) yaw  -18.7
+   t   7.3 d 0.180 bearing     1.8 deg        range 0.220 robot (0.56,0.62) yaw    5.2
+   t   7.8 d 0.119 bearing     1.1 deg        range 0.159 robot (0.62,0.63) yaw    5.6
+   t   8.3 d 0.054 bearing    41.7 deg        range 0.108 robot (0.68,0.62) yaw  -16.7
+   t   8.8 d 0.012 bearing    73.7 deg        range 0.071 robot (0.73,0.59) yaw  -29.8
+   t   9.3 d 0.018 bearing    81.5 deg        range 0.075 robot (0.77,0.57) yaw   -2.7
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 15 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHist 0 ABOR min 0.043 at 8.1s first contact None
+   t   4.1 d 0.212 bearing   -16.4 deg        range 0.256 robot (0.52,0.65) yaw   15.9
+   t   4.6 d 0.208 bearing    -9.9 deg        range 0.251 robot (0.53,0.65) yaw    9.0
+   t   5.1 d 0.207 bearing    15.6 deg        range 0.251 robot (0.53,0.65) yaw  -12.9
+   t   5.6 d 0.210 bearing    41.0 deg        range 0.268 robot (0.51,0.66) yaw  -34.8
+   t   6.1 d 0.198 bearing    44.7 deg        range 0.257 robot (0.52,0.65) yaw  -38.8
+   t   6.6 d 0.157 bearing    31.7 deg        range 0.208 robot (0.58,0.62) yaw  -19.9
+   t   7.1 d 0.100 bearing    36.8 deg        range 0.153 robot (0.63,0.60) yaw  -19.6
+   t   7.7 d 0.050 bearing    60.4 deg        range 0.113 robot (0.69,0.58) yaw  -23.2
+   t   8.2 d 0.043 bearing    90.9 deg        range 0.099 robot (0.75,0.55) yaw  -21.4
+   t   8.7 d 0.050 bearing   110.4 deg        range 0.112 robot (0.80,0.53) yaw  -10.3
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 17 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHist 1 SUCC min 0.000 at 9.1s first contact 9.1
+   t   5.1 d 0.214 bearing     6.1 deg        range 0.255 robot (0.53,0.64) yaw   -1.5
+   t   5.6 d 0.229 bearing    27.9 deg        range 0.278 robot (0.51,0.64) yaw  -18.7
+   t   6.1 d 0.235 bearing    10.7 deg        range 0.278 robot (0.50,0.65) yaw   -7.5
+   t   6.6 d 0.177 bearing    -3.1 deg        range 0.218 robot (0.56,0.65) yaw    2.5
+   t   7.1 d 0.114 bearing    14.4 deg        range 0.158 robot (0.62,0.64) yaw   -9.2
+   t   7.6 d 0.049 bearing    46.7 deg        range 0.106 robot (0.68,0.63) yaw  -26.7
+   t   8.1 d 0.014 bearing    75.7 deg        range 0.072 robot (0.73,0.59) yaw  -31.3
+   t   8.6 d 0.013 bearing    67.1 deg        range 0.075 robot (0.76,0.57) yaw    2.4
+   t   9.1 d 0.000 bearing    63.0 deg        range 0.063 robot (0.79,0.58) yaw   29.3
+   t   9.6 d 0.002 bearing    59.2 deg        range 0.062 robot (0.79,0.58) yaw   38.0
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 44 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHist 2 SUCC min 0.016 at 6.4s first contact None
+   t   2.4 d 0.181 bearing     3.2 deg        range 0.222 robot (0.56,0.63) yaw    0.1
+   t   3.0 d 0.190 bearing    30.4 deg        range 0.241 robot (0.54,0.64) yaw  -20.4
+   t   3.5 d 0.212 bearing    15.7 deg        range 0.256 robot (0.52,0.64) yaw  -13.4
+   t   4.0 d 0.167 bearing    -1.8 deg        range 0.207 robot (0.57,0.64) yaw    2.7
+   t   4.5 d 0.105 bearing    12.3 deg        range 0.148 robot (0.63,0.64) yaw   -6.0
+   t   5.0 d 0.106 bearing    39.8 deg        range 0.161 robot (0.62,0.65) yaw  -26.1
+   t   5.5 d 0.100 bearing    38.9 deg        range 0.155 robot (0.63,0.64) yaw  -24.4
+   t   6.0 d 0.042 bearing    50.1 deg        range 0.102 robot (0.68,0.62) yaw  -30.4
+   t   6.5 d 0.016 bearing    78.0 deg        range 0.074 robot (0.73,0.59) yaw  -26.4
+   t   7.0 d 0.020 bearing    98.3 deg        range 0.077 robot (0.78,0.57) yaw   -8.7
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 18 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHist 3 SUCC min 0.040 at 7.8s first contact None
+   t   3.8 d 0.220 bearing   -24.7 deg        range 0.267 robot (0.51,0.64) yaw   24.5
+   t   4.3 d 0.184 bearing   -24.7 deg        range 0.230 robot (0.55,0.66) yaw   20.1
+   t   4.8 d 0.189 bearing     6.5 deg        range 0.230 robot (0.55,0.66) yaw   -1.6
+   t   5.3 d 0.189 bearing    35.9 deg        range 0.243 robot (0.54,0.67) yaw  -26.9
+   t   5.8 d 0.189 bearing    48.7 deg        range 0.250 robot (0.53,0.67) yaw  -44.2
+   t   6.3 d 0.153 bearing    54.8 deg        range 0.215 robot (0.57,0.63) yaw  -51.1
+   t   6.8 d 0.119 bearing    48.6 deg        range 0.179 robot (0.61,0.59) yaw  -30.8
+   t   7.3 d 0.079 bearing    42.8 deg        range 0.136 robot (0.67,0.57) yaw   -9.7
+   t   7.8 d 0.040 bearing    73.0 deg        range 0.101 robot (0.73,0.56) yaw  -15.7
+   t   8.3 d 0.044 bearing   111.9 deg        range 0.106 robot (0.78,0.54) yaw  -20.7
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 8 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHist 4 SUCC min 0.038 at 8.2s first contact None
+   t   4.2 d 0.199 bearing   -30.1 deg        range 0.249 robot (0.53,0.66) yaw   26.5
+   t   4.7 d 0.204 bearing   -17.5 deg        range 0.249 robot (0.53,0.66) yaw   15.5
+   t   5.2 d 0.206 bearing    12.7 deg        range 0.249 robot (0.53,0.66) yaw   -9.6
+   t   5.7 d 0.207 bearing    39.7 deg        range 0.264 robot (0.52,0.67) yaw  -32.8
+   t   6.2 d 0.200 bearing    53.4 deg        range 0.262 robot (0.52,0.66) yaw  -50.6
+   t   6.7 d 0.166 bearing    48.1 deg        range 0.227 robot (0.55,0.62) yaw  -42.8
+   t   7.2 d 0.130 bearing    32.6 deg        range 0.181 robot (0.61,0.59) yaw  -16.5
+   t   7.7 d 0.076 bearing    39.5 deg        range 0.130 robot (0.67,0.58) yaw  -10.9
+   t   8.2 d 0.038 bearing    74.9 deg        range 0.097 robot (0.72,0.56) yaw  -20.4
+   t   8.7 d 0.041 bearing   113.5 deg        range 0.104 robot (0.78,0.54) yaw  -24.2
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 10 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHist 5 SUCC min 0.039 at 7.9s first contact None
+   t   3.9 d 0.234 bearing   -17.1 deg        range 0.278 robot (0.50,0.64) yaw   17.4
+   t   4.4 d 0.204 bearing   -15.4 deg        range 0.248 robot (0.53,0.65) yaw   13.4
+   t   4.9 d 0.206 bearing    10.6 deg        range 0.249 robot (0.53,0.65) yaw   -6.9
+   t   5.4 d 0.206 bearing    38.3 deg        range 0.262 robot (0.52,0.66) yaw  -31.1
+   t   5.9 d 0.203 bearing    51.0 deg        range 0.264 robot (0.52,0.66) yaw  -47.6
+   t   6.4 d 0.167 bearing    46.5 deg        range 0.227 robot (0.55,0.62) yaw  -40.4
+   t   6.9 d 0.130 bearing    31.8 deg        range 0.180 robot (0.61,0.59) yaw  -15.1
+   t   7.4 d 0.074 bearing    41.0 deg        range 0.129 robot (0.67,0.58) yaw  -11.7
+   t   7.9 d 0.039 bearing    75.9 deg        range 0.098 robot (0.72,0.56) yaw  -20.2
+   t   8.4 d 0.042 bearing   113.5 deg        range 0.105 robot (0.78,0.54) yaw  -23.3
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 10 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHist 6 ABOR min 0.045 at 8.5s first contact None
+   t   4.5 d 0.214 bearing   -18.0 deg        range 0.258 robot (0.52,0.65) yaw   17.0
+   t   5.0 d 0.218 bearing    -3.8 deg        range 0.258 robot (0.52,0.65) yaw    2.8
+   t   5.5 d 0.211 bearing    32.5 deg        range 0.264 robot (0.52,0.65) yaw  -23.9
+   t   6.0 d 0.213 bearing    48.7 deg        range 0.274 robot (0.51,0.66) yaw  -44.4
+   t   6.5 d 0.192 bearing    48.9 deg        range 0.253 robot (0.53,0.63) yaw  -44.3
+   t   7.0 d 0.155 bearing    31.8 deg        range 0.206 robot (0.58,0.60) yaw  -20.0
+   t   7.5 d 0.103 bearing    33.7 deg        range 0.154 robot (0.64,0.59) yaw  -12.2
+   t   8.0 d 0.051 bearing    63.8 deg        range 0.114 robot (0.69,0.57) yaw  -22.6
+   t   8.5 d 0.045 bearing    91.5 deg        range 0.101 robot (0.75,0.55) yaw  -18.4
+   t   9.0 d 0.052 bearing   108.8 deg        range 0.113 robot (0.81,0.53) yaw   -7.5
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 17 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHist 7 ABOR min 0.000 at 8.7s first contact 8.6
+   t   4.6 d 0.219 bearing   -24.3 deg        range 0.265 robot (0.52,0.63) yaw   27.0
+   t   5.1 d 0.224 bearing     5.3 deg        range 0.265 robot (0.52,0.63) yaw   -0.7
+   t   5.6 d 0.227 bearing    33.0 deg        range 0.280 robot (0.50,0.64) yaw  -24.9
+   t   6.1 d 0.245 bearing    31.0 deg        range 0.297 robot (0.49,0.64) yaw  -23.3
+   t   6.6 d 0.222 bearing     0.2 deg        range 0.262 robot (0.52,0.64) yaw    0.4
+   t   7.2 d 0.162 bearing    -4.0 deg        range 0.202 robot (0.58,0.65) yaw    3.5
+   t   7.7 d 0.099 bearing    14.3 deg        range 0.143 robot (0.64,0.64) yaw   -8.5
+   t   8.2 d 0.033 bearing    50.4 deg        range 0.092 robot (0.70,0.63) yaw  -27.0
+   t   8.7 d 0.000 bearing    63.7 deg        range 0.062 robot (0.73,0.60) yaw  -20.6
+   t   9.2 d 0.000 bearing    56.0 deg        range 0.048 robot (0.76,0.60) yaw   11.8
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 19 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHist 8 SUCC min 0.044 at 8.6s first contact None
+   t   4.6 d 0.209 bearing   -12.1 deg        range 0.252 robot (0.53,0.65) yaw   11.0
+   t   5.1 d 0.209 bearing    12.9 deg        range 0.253 robot (0.53,0.65) yaw  -10.0
+   t   5.6 d 0.215 bearing    39.1 deg        range 0.271 robot (0.51,0.66) yaw  -32.3
+   t   6.1 d 0.211 bearing    52.1 deg        range 0.273 robot (0.51,0.66) yaw  -49.1
+   t   6.6 d 0.182 bearing    45.0 deg        range 0.241 robot (0.54,0.63) yaw  -39.1
+   t   7.1 d 0.144 bearing    28.5 deg        range 0.191 robot (0.59,0.60) yaw  -15.1
+   t   7.6 d 0.085 bearing    40.5 deg        range 0.140 robot (0.65,0.59) yaw  -15.9
+   t   8.1 d 0.045 bearing    70.6 deg        range 0.106 robot (0.71,0.56) yaw  -22.3
+   t   8.6 d 0.044 bearing   102.7 deg        range 0.102 robot (0.77,0.54) yaw  -20.7
+   t   9.1 d 0.058 bearing   107.3 deg        range 0.119 robot (0.82,0.53) yaw   -6.2
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 21 samples under 0.06 m, of which nearest point in the masked angles: 0
+## DemoHist 9 SUCC min 0.041 at 8.1s first contact None
+   t   4.1 d 0.216 bearing   -32.6 deg        range 0.269 robot (0.51,0.63) yaw   34.9
+   t   4.6 d 0.215 bearing   -27.2 deg        range 0.263 robot (0.52,0.64) yaw   28.7
+   t   5.1 d 0.222 bearing    -6.3 deg        range 0.263 robot (0.52,0.64) yaw    7.8
+   t   5.6 d 0.222 bearing    29.2 deg        range 0.272 robot (0.51,0.64) yaw  -20.0
+   t   6.1 d 0.230 bearing    38.8 deg        range 0.286 robot (0.50,0.65) yaw  -32.6
+   t   6.6 d 0.194 bearing    32.2 deg        range 0.245 robot (0.54,0.62) yaw  -22.7
+   t   7.1 d 0.142 bearing    22.8 deg        range 0.187 robot (0.60,0.61) yaw  -11.5
+   t   7.6 d 0.082 bearing    36.5 deg        range 0.134 robot (0.66,0.59) yaw  -15.0
+   t   8.1 d 0.041 bearing    75.7 deg        range 0.100 robot (0.71,0.57) yaw  -29.3
+   t   8.6 d 0.043 bearing   101.3 deg        range 0.101 robot (0.76,0.54) yaw  -20.0
+   within 3 s before: 84 samples, any part of the cart inside the masked angles in 0 of them
+   within 3 s before: 9 samples under 0.06 m, of which nearest point in the masked angles: 0

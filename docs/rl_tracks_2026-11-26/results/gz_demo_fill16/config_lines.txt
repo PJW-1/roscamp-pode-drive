@@ -1,0 +1,15 @@
+## g_demo/launch_1.out
+      1 FollowPathRL: scan mask 0 ranges
+      1 FollowPathRLShimACD3: scan mask 0 ranges
+      1 FollowPathRLShimDemoHist2: scan mask 0 ranges
+      1 FollowPathRLShimDemoHist: scan mask 0 ranges
+      1 FollowPathRLShimDemoHistFill: scan beams at -152.5..-137.0 deg (base frame) are masked as no return
+      1 FollowPathRLShimDemoHistFill: scan beams at 138.0..157.0 deg (base frame) are masked as no return
+      1 FollowPathRLShimDemoHistFill: scan mask 2 ranges
+      1 FollowPathRLShimDemoHistFill: scan mask fill on (a masked sector with no usable ray reads the nearer neighbour sector, up to 4 sectors away)
+      1 FollowPathRLShimDemoHistMask: scan beams at -152.5..-137.0 deg (base frame) are masked as no return
+      1 FollowPathRLShimDemoHistMask: scan beams at 138.0..157.0 deg (base frame) are masked as no return
+      1 FollowPathRLShimDemoHistMask: scan mask 2 ranges
+      1 FollowPathRLShimDemoHistMask: the scan mask covers every ray angle of sector(s) 3, 32 and scan_mask_fill is off, so the policy always reads no return there (judged by the policy's ray angles; a scan grid offset from them can diffe
+      1 FollowPathRLShimDemoHistStop: scan mask 0 ranges
+      1 FollowPathRLShimStd: scan mask 0 ranges

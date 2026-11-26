@@ -1,0 +1,26 @@
+# plans per run: in the aisle band / outside, and how often two plans in a row changed side
+g_demo   RLShimDemoHistFill 0 SUCC plans  20 in  20 out   0 first in switches 0
+g_demo   RLShimDemoHistFill 1 SUCC plans  16 in  16 out   0 first in switches 0
+g_demo   RLShimDemoHistFill 2 SUCC plans  19 in  19 out   0 first in switches 0
+g_demo   RLShimDemoHistFill 3 SUCC plans  20 in  20 out   0 first in switches 0
+g_demo   RLShimDemoHistFill 4 ABOR plans   8 in   8 out   0 first in switches 0
+g_demo   RLShimDemoHistFill 5 SUCC plans  17 in  17 out   0 first in switches 0
+g_demo   RLShimDemoHistFill 6 ABOR plans   9 in   9 out   0 first in switches 0
+g_demo   RLShimDemoHistFill 7 SUCC plans  16 in  16 out   0 first in switches 0
+g_demo   RLShimDemoHistFill 8 SUCC plans  19 in  19 out   0 first in switches 0
+g_demo   RLShimDemoHistFill 9 SUCC plans  25 in  25 out   0 first in switches 0
+g_demo   RLShimDemoHist   0 ABOR plans  27 in  27 out   0 first in switches 0
+g_demo   RLShimDemoHist   1 SUCC plans  23 in  17 out   6 first in switches 4
+g_demo   RLShimDemoHist   2 SUCC plans  22 in  22 out   0 first in switches 0
+g_demo   RLShimDemoHist   3 SUCC plans  18 in  18 out   0 first in switches 0
+g_demo   RLShimDemoHist   4 SUCC plans  22 in  22 out   0 first in switches 0
+g_demo   RLShimDemoHist   5 SUCC plans  18 in  18 out   0 first in switches 0
+g_demo   RLShimDemoHist   6 ABOR plans  19 in  19 out   0 first in switches 0
+g_demo   RLShimDemoHist   7 ABOR plans  13 in  13 out   0 first in switches 0
+g_demo   RLShimDemoHist   8 SUCC plans  18 in  18 out   0 first in switches 0
+g_demo   RLShimDemoHist   9 SUCC plans  17 in  17 out   0 first in switches 0
+PLAN g_demo   RLShimDemoHist   runs 10 all plans in band 9 any plan outside 1 runs with a switch 1 switches 4 plans 197
+PLAN g_demo   RLShimDemoHistFill runs 10 all plans in band 10 any plan outside 0 runs with a switch 0 switches 0 plans 169
+# plugin timing from the 1 s log lines (us): calls, call-weighted infer mean, infer max, call mean, call max
+g_demo   launch_1.out lines 505 calls 9404 infer mean 52 max 4461 call mean 140 max 4894
+# launch output lines that mention the plan keeper, per scenario: {}

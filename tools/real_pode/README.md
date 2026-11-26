@@ -133,8 +133,8 @@ Nav2 goal을 모는 컨트롤러(FollowPathGoal)의 속도는 `nav2_params.yaml`
   (Isaac 평가와 실물 bag의 scan에서만 확인했고 로봇에서 돌려 본 적은 없다).
   확인한 조합은 `RL_SCAN_MASK="138,157,-152.5,-137" RL_SCAN_MASK_FILL=1`이다
   (Isaac 평가에서 기둥이 없는 기준보다 성공 −1.22 %p, 가리지 않는 것보다 +2.83 %p).
-  **Gazebo 닫힌 고리 확인(같은 문서 35절, 기둥이 없는 시뮬 로봇, 5판씩)에서는 이 조합이 시연 조건 시나리오의 성공을
-  2/5(가리지 않은 대조 5/5)로 떨어뜨렸다. 지금은 권하지 않는다. 쓸지는 사용자가 정한다.**
+  **Gazebo 닫힌 고리 확인(같은 문서 35절과 37절, 기둥이 없는 시뮬 로봇)은 두 묶음이 갈렸다: 시연 조건 시나리오의 성공이
+  첫 묶음 2/5 대 가리지 않은 대조 5/5, 다시 돌린 묶음 7/10 대 6/10. 권하지도 막지도 않는다. 쓸지는 사용자가 정한다.**
   이 넓은 가림을 `RL_SCAN_MASK_FILL` 없이 주면 섹터 둘이 통째로 비어 정책이 깨진다
   (Isaac 평가의 성공 52.8 → 16.7 %. 시작 로그에 `covers every ray angle of sector(s)` 경고가 찍힌다).
 - 쓰는 controller는 그대로 FollowPathGoal(RPP)이다. `controller_selector`에 이름을 보낸 뒤의 Nav2 goal(navigate_to_pose)만 RL로 간다. 고정 경로(pode_fsm의 FollowPath 등)는 늘 RPP다.
