@@ -61,7 +61,8 @@ ros2 topic pub --times 3 --rate 2 --keep-alive 1 --qos-durability transient_loca
 - `store_arena_demohist`는 시연 조건 후보다: 시뮬에서만 확인했고 실물에서는 돌려 본 적 없다
   (근거는 `docs/worklog_rl_tracks_2026-11-26.md` 12~13절).
 - `store_arena_demohist2`는 `store_arena_demohist`를 같은 설정으로 600번 더 학습한 것이다: 시뮬에서만 확인했고 실물에서는
-  돌려 본 적 없다.
+  돌려 본 적 없다. Gazebo 열한째 묶음에서 미리 적은 기준을 채워 넣었다(근거는 작업 기록 15절, 17절, 17c절). 건너는 사람
+  앞에서 서지 못하는 것은 `store_arena_demohist`와 같다.
 - 로봇 한 대로 컨트롤러를 견주는 묶음은 `tools/nav_bench/run_bench.sh`다. RL 컨트롤러 설정은
   `sim/fleet_gz_sim/nav_overrides/follow_path_rl_acd3.yaml`을 `BENCH_OVERRIDES`로 준다.
 - 인자 설명: `sim/fleet_gz_sim/README.md`.

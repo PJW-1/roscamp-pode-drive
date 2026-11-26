@@ -1607,6 +1607,24 @@ t_demo_hist와 성공이 같으면서 충돌이 더 적다는 것이 나왔다. 
   바뀐 것은 `docs/` 아래와 `learning/store_arena/POLICIES.md`의 표뿐이다.
 - 한계: 한 번 돌린 것이다. 실물에서는 돌려 보지 않았다.
 
+### 17c. `store_arena_demohist2`를 저장소에 넣음 (19:27)
+
+17절의 기준을 채웠으므로 넣었다.
+
+- 넣은 방법: 16:36에 서브에이전트가 `docs/rl_quickstart.md` 5절의 순서로 만들어 둔 등록 브랜치
+  `feat/rl-demohist2-policy-2026-11-26`(26852e5a)을 통합 브랜치에 merge했다(a343cfe7). 그 커밋은 만든 직후 검토(Codex)를 받았고,
+  지적은 "quickstart가 통합 브랜치에 이 정책이 있다고 적는데 아직 합쳐지지 않았다" 하나였다. 이번 merge로 풀렸다.
+- 들어간 것: 정책 폴더 `pode/pode_rl_controller/policies/store_arena_demohist2/`(onnx sha256 앞 12자 `2b58f8fbb442`, 관측 116칸),
+  추론 일치 시험의 기준 입력 네 파일, 체크포인트 `learning/store_arena/checkpoints/store_arena_demohist2/model_2643.pt`와
+  `run_config.json`·`run.json`, 시뮬 덮어쓰기 `follow_path_rl_demohist2.yaml`, launch 인자 값 `nav_rl:=rl_demohist2`. 플러그인
+  코드는 바꾸지 않았다. `store_arena_demohist`는 그대로다.
+- Gazebo 열한째 묶음이 쓴 파일과 같은가: 그 묶음은 저장소에 넣기 전의 내보내기 폴더로 빌드했다. 그 폴더와 등록 브랜치의 파일을
+  견주면 `policy.onnx`는 바이트까지 같고, `policy_spec.json`과 기준 입력 네 파일은 줄 끝(CRLF, LF)만 다르고 JSON 내용이 같다.
+- 확인: Windows에서 정책 파일 시험, 문서 도구 시험, 체크포인트 시험이 통과했다(90 passed, 3 skipped). WSL에서 merge한 작업
+  사본을 빌드해 `pode_rl_controller` 시험 10개가 통과했고(`test_parity_store_arena_demohist2` 포함, C++ onnxruntime과 torch의 최대
+  차이 3.81e-06), launch 연결 시험 91개가 통과했다(`rl_demohist2` 포함).
+- 한계: 실물에서는 돌려 보지 않았다. 건너는 사람 앞에서 서지 못하는 것은 부모와 같다(17절).
+
 ## 18. 묶음 12: 시연 조건 없이 이력만 (`jobs_b12.txt`, 계획 14:41)
 
 아래는 `t_hist_std`의 학습을 시작하기 전에 적는다. t_std의 rand, head 평가도 아직 없다.
