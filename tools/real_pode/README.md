@@ -117,8 +117,9 @@ Nav2 goal을 모는 컨트롤러(FollowPathGoal)의 속도는 `nav2_params.yaml`
   (base 기준, 쌍마다 `-180 <= lo < hi <= 180`, 180을 넘는 구간은 둘로 나눈다).
   틀린 값이거나 `RL_POLICY` 없이 주면 아무것도 띄우지 않는다.
   `NO_MOTION=1`과는 같이 받지 않는다.
-  값을 넣기 전에 `docs/worklog_rl_tracks_2026-11-26.md` 29절과 31절을 읽는다
-  (넓게 가리면 정책이 크게 나빠진 Isaac 평가 결과가 있다).
+  값을 넣기 전에 `docs/worklog_rl_tracks_2026-11-26.md` 29절, 31절, 33절을 읽는다
+  (넓게 가리면 정책이 크게 나빠진 Isaac 평가 결과가 있고,
+  좁게 가린 값도 실물 bag의 scan에서는 남긴 레이가 자주 비어 맞지 않았다).
 - 쓰는 controller는 그대로 FollowPathGoal(RPP)이다. `controller_selector`에 이름을 보낸 뒤의 Nav2 goal(navigate_to_pose)만 RL로 간다. 고정 경로(pode_fsm의 FollowPath 등)는 늘 RPP다.
 - RL controller는 start.sh의 SPEED를 따르지 않는다. 정책의 v_max(0.12 m/s, `nav_speed.yaml`보다 커질 수 없음)까지 낸다. SPEED를 0.12보다 낮게 주면 make_params.py가 WARNING을 찍는다.
 

@@ -43,7 +43,11 @@ Deployment options, all off by default (off leaves the command bit-identical, `t
   52.8 to 15.8 %, while a mask of more beams that left at least one ray in every sector showed no difference
   from the base (52.2 %) and was better than leaving the tray posts of pode1 unmasked (48.8 %). The narrow
   mask for those posts is `[140.0, 147.0, 149.0, 155.0, -150.5, -147.5, -144.0, -139.0]` (read from 20 scans
-  of one robot, not run on the real robot yet). Each training ray takes the nearest scan beam and a ray with
+  of one robot, not run on the real robot yet). Applied to the 6312 real scans of the pode1 bag of 2026-11-26
+  (worklog section 33) this mask left 2 to 8 rays in every post sector, but those rays sit between and beside
+  the posts and often have no return: at least one of the four post sectors read `obs_max` in 35 % of the
+  scans (12.5 % while the robot was moving). That is the kind of input that broke the policy when whole
+  sectors were masked, so this value is not recommended for the real robot as it is. Each training ray takes the nearest scan beam and a ray with
   no beam near it is no return too, so check with the robot's own scan (its angle range and step) that every
   sector keeps at least one ray whose beam is not masked.
 - `closing_stop_range` (default 0.0 = off): closing stop, the forward-only stop for something that moves
