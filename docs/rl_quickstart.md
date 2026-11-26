@@ -55,6 +55,7 @@ ros2 topic pub --times 3 --rate 2 --keep-alive 1 --qos-durability transient_loca
 
 - `nav_rl:=rl`은 정책 `store_arena_4b`, `nav_rl:=rl_acd3`은 `store_arena_acd3`다.
 - `nav_rl:=rl_demohist`는 `store_arena_demohist`다(`follow_path_rl_demohist.yaml`).
+- `nav_rl:=rl_std`는 `store_arena_std`다(`follow_path_rl_std.yaml`).
 - `store_arena_demohist`는 시연 조건 후보다: 시뮬에서만 확인했고 실물에서는 돌려 본 적 없다
   (근거는 `docs/worklog_rl_tracks_2026-11-26.md` 12~13절).
 - 로봇 한 대로 컨트롤러를 견주는 묶음은 `tools/nav_bench/run_bench.sh`다. RL 컨트롤러 설정은
@@ -114,8 +115,8 @@ Pi 4에서 RL 추론과 MPPI의 계산 시간을 주행 없이 재려면 `tools/
 넣는 순서는 `pode/pode_rl_controller/README.md`(정책 폴더, 시험 fixture, 추론 일치 시험 목록, 시뮬 덮어쓰기 파일)와
 `learning/store_arena/POLICIES.md`의 기록 규칙에 있다.
 
-`feat/rl-tracks-2026-11-26`에서 `store_arena_demohist`를 넣은 순서다. 정책 이름 `store_arena_<이름>`을 `<NAME>`, 체크포인트를
-`<CK>`로 적는다.
+`feat/rl-tracks-2026-11-26`에서 `store_arena_demohist`와 `store_arena_std`를 넣은 순서다(둘째는 이 절만 보고 넣으면서 빠진
+곳을 채웠다). 정책 이름 `store_arena_<이름>`을 `<NAME>`, 체크포인트를 `<CK>`로 적는다.
 
 1. 내보내기(Isaac Lab을 깐 python으로, CPU에서 돌렸다):
    ```bash
@@ -126,16 +127,21 @@ Pi 4에서 RL 추론과 MPPI의 계산 시간을 주행 없이 재려면 `tools/
      --set prev_action_obs=1 --set speed_cap_obs=1 --set speed_cap_range=0.08,0.16
    ```
    `--set`은 학습 때 관측을 정한 설정과 같아야 한다. 라이다 이력 정책(demohist)은 `--set lidar_frames=3 --set lidar_stride_steps=4`를
-   더했다.
+   더했다. `--source-commit`에 넣을 학습 코드 커밋은 실행 폴더 `run_config.json`의 `git.commit`에 있다(실행 폴더의 `git/`은
+   Isaac Lab 쪽 차이만 담는다). 같은 곳의 `git.branch`는 학습을 돌린 작업 사본의 브랜치라서, `--source-branch`에는 그 커밋이
+   들어 있는 통합 브랜치 이름을 적었다. 내보내기가 끝에 적는 onnxruntime 대 torch 최대 차이를 확인한다.
 2. `pode/pode_rl_controller/CMakeLists.txt`의 추론 일치 시험 목록과 그 README의 정책 표에 `<NAME>`을 더한다.
-3. 시뮬에서 고르려면 `sim/fleet_gz_sim/nav_overrides/follow_path_rl_<이름>.yaml`(acd3 파일에서 policy만 바꾼 것)을 만들고,
-   `gz.launch.py`의 `RL_FILES`에 더한다. 시험도 맞춘다: `sim/fleet_gz_sim/test/test_launch_wiring.py`의 선택 이름 목록과
-   그 아래 정책 이름 표(고른 이름 → 정책 이름) 둘 다, `tools/test/test_policy_files.py`의 덮어쓰기 파일 목록.
-4. `learning/store_arena/checkpoints/<NAME>/`에 체크포인트, 실행 폴더의 `run.json`과 `run_config.json`을 두고 `index.json`에 줄을
-   더한다. `POLICIES.md` 계보표를 채우고 Drive `RL_정책_백업`에 같은 파일을 올린다.
+3. 시뮬에서 고르려면 `sim/fleet_gz_sim/nav_overrides/follow_path_rl_<이름>.yaml`(관측이 같은 정책의 파일에서 첫 줄 주석과
+   `policy` 두 곳만 바꾼 것)을 만들고, `gz.launch.py`의 `RL_FILES`와 `nav_rl` 인자 설명 글, `sim/fleet_gz_sim/README.md`의
+   `nav_rl` 줄에 더한다. 시험도 맞춘다: `sim/fleet_gz_sim/test/test_launch_wiring.py`의 선택 이름 목록과 그 아래 정책 이름
+   표(고른 이름 → 정책 이름) 둘 다, `tools/test/test_policy_files.py`의 덮어쓰기 파일 목록.
+4. `learning/store_arena/checkpoints/<NAME>/`에 체크포인트, 실행 폴더의 `run.json`과 `run_config.json`을 두고 `index.json`과
+   그 폴더 `README.md`의 표에 줄을 더한다. 이 문서의 1절 표와 3절에도 이름을 더한다. `POLICIES.md` 계보표를 채우고
+   Drive `RL_정책_백업`에 같은 파일을 올린다.
 5. 새 파일을 모두 `git add`한 뒤에 시험한다(`test_policy_files.py`는 git이 추적하는 파일만 본다. 커밋까지 해야 다른 PC에서 받을
    수 있다): `python -m pytest tools/test/test_policy_files.py learning/store_arena/test_checkpoints.py sim/fleet_gz_sim/test/test_launch_wiring.py`,
-   그리고 2절의 colcon build와 `colcon test --packages-select pode_rl_controller`.
+   그리고 2절의 colcon build와 `colcon test --packages-select pode_rl_controller`. `test_launch_wiring.py`는 ROS를 source한
+   셸에서만 돈다(ROS가 없는 python에서는 파일째 건너뛴다).
 
 ## 6. 확인된 것과 아닌 것 (2026-11-26)
 
