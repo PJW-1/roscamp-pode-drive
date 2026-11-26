@@ -147,7 +147,14 @@ def table_value(table: dict, a: str, b: str, cell: str, col: str):
     d, se = r.get(f"{col}_diff_pp", ""), r.get(f"{col}_se_pp", "")
     if d == "" or se == "":
         return MISSING
-    return float(d), float(se)
+    return finite(float(d), float(se))
+
+
+def finite(diff: float, se: float):
+    """차이와 SE가 모두 유한하면 그 둘, 아니면 판정하지 않는 까닭."""
+    if not (np.isfinite(diff) and np.isfinite(se)):
+        return f"값이 유한하지 않음 ({diff}, SE {se})"
+    return diff, se
 
 
 def eval_runs(runs) -> dict:
@@ -186,7 +193,7 @@ def flip_value(ev: dict, a: str, b: str):
         return f"읽지 못함 ({type(e).__name__})"
     if r["kind"] != "paired":
         return f"{NOT_PAIRED} ({why})"
-    return r["diff"], r["se"]
+    return finite(r["diff"], r["se"])
 
 
 # ---- Markdown ----

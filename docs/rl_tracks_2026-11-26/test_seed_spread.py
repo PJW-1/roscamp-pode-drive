@@ -1,4 +1,5 @@
 import csv
+import pathlib
 
 import numpy as np
 import pytest
@@ -165,6 +166,31 @@ def test_rows_not_on_the_same_episodes_are_reported_and_not_judged(tmp_path):
     assert ss.S4_KEEP not in s4 and ss.S4_GONE not in s4 and ss.NOT_PAIRED in s4
     # 짝이 아닌 줄이 낀 2번은 값을 내지 않는다
     assert ss.section2(ss.section1(t)[1])[1] is None
+
+
+def test_non_finite_values_get_no_sentence(tmp_path, monkeypatch):
+    write_paired(tmp_path, [row("stds4", "std", "demo1", s=(0.5, "nan")),
+                            row("stds4", "ctrl", "demo1", s=("nan", 1.0))])
+    t = ss.read_paired(tmp_path)
+    assert isinstance(ss.table_value(t, "stds4", "std", "demo1", "success"), str)
+    s1, s4 = "\n".join(ss.section1(t)[0]), "\n".join(ss.section4(t))
+    assert ss.S1_IN not in s1 and ss.S4_GONE not in s4
+    monkeypatch.setattr(ss.fr, "compare_runs", lambda a, b: ({"kind": "paired", "diff": 0.1, "se": float("nan")}, ""))
+    s5 = "\n".join(ss.section5({("stds4", "rand"): "a", ("ctrl", "rand"): "b", ("std", "rand"): "c"}))
+    assert not [s for s in sentences() if s in s5]
+
+
+def test_sentences_are_the_words_of_section_22():
+    text = pathlib.Path(__file__).resolve().parents[1] / "worklog_rl_tracks_2026-11-26.md"
+    text = text.read_text(encoding="utf-8")
+    sec = text[text.index("## 22. 묶음 17"):text.index("## 9a.")]
+    flat = " ".join(ln.strip() for ln in sec.splitlines())
+    for s in sentences():
+        assert f'"{s}"' in flat, s
+    # seed 조합은 t_demo_hist의 seed - t_std의 seed
+    assert [c[1:] for c in ss.COMBOS] == [("demohist", "std"), ("demohist", "stds4"),
+                                          ("demohists4", "std"), ("demohists4", "stds4")]
+    assert ss.SETTINGS == (("t_std", "std", "stds4"), ("t_demo_hist", "demohist", "demohists4"))
 
 
 def test_eval_comparisons_not_on_the_same_episodes_are_not_judged(tmp_path, monkeypatch):
