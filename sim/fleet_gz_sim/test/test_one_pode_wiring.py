@@ -315,6 +315,29 @@ def test_aisle_first_rejects_a_typo(one):
         run(one, aisle_first="yes")
 
 
+# ---- keepout 마스크 바꿔 끼우기 (시뮬 시험) ----
+
+def test_keepout_mask_file_replaces_only_the_mask(one, monkeypatch, tmp_path):
+    assert one.ARGS["keepout_mask_file"][0] == ""
+    default, default_nodes = pode_call(one, monkeypatch)
+    assert default["keepout_mask"].endswith("arena_v7_keepout.yaml")
+    mask = tmp_path / "lock.yaml"
+    mask.write_text("image: lock.pgm\n")
+    mine, mine_nodes = pode_call(one, monkeypatch, keepout_mask_file=str(mask))
+    assert mine.pop("keepout_mask") == str(mask)
+    default.pop("keepout_mask")
+    assert mine == default and mine_nodes == default_nodes
+    # keepout을 끄면 마스크 파일을 줘도 필터를 띄우지 않는다
+    off, _ = pode_call(one, monkeypatch, keepout="false", keepout_mask_file=str(mask))
+    assert off["keepout_mask"] == ""
+
+
+def test_keepout_mask_file_must_exist(one, tmp_path):
+    need("pinky_description", "pode_nav_config", "pode_fsm")
+    with pytest.raises(ValueError, match="keepout_mask_file"):
+        run(one, layout="v7", start="O_IN", keepout_mask_file=str(tmp_path / "missing.yaml"))
+
+
 def test_aisle_first_params_differ_only_in_the_global_obstacle_layer(tmp_path):
     need("pode_nav_config", "pode_avoidance")
     import yaml
