@@ -1,0 +1,18 @@
+== f_cart: 5 legs, 11 detour-on lines in the whole run
+f_cart_FollowPathGoal_0            SUCC start_mode aisle  detour_on 1  9s detour on at (0.69, 0.57) after 5.0 s without progress; 22s back to aisle mode (moved 0.42 m) at (1.11, 0.53)
+f_cart_FollowPathGoal_1            SUCC start_mode aisle  detour_on 1  9s detour on at (0.69, 0.56) after 5.0 s without progress; 23s back to aisle mode (moved 0.40 m) at (1.09, 0.52)
+f_cart_FollowPathGoal_2            SUCC start_mode aisle  detour_on 1  9s detour on at (0.71, 0.57) after 5.0 s without progress; 24s back to aisle mode (moved 0.41 m) at (1.13, 0.53)
+f_cart_FollowPathGoal_3            SUCC start_mode aisle  detour_on 1  9s detour on at (0.67, 0.57) after 5.0 s without progress; 14s back to aisle mode (moved 0.42 m) at (1.09, 0.52)
+f_cart_FollowPathGoal_4            SUCC start_mode aisle  detour_on 1  9s detour on at (0.68, 0.57) after 5.0 s without progress; 21s back to aisle mode (moved 0.41 m) at (1.09, 0.53)
+== g_demo: 5 legs, 19 detour-on lines in the whole run
+g_demo_FollowPathGoal_0            SUCC start_mode aisle  detour_on 1  5s detour on at (0.51, 0.62) after 5.0 s without progress; 24s back to aisle mode (moved 0.41 m) at (0.56, 0.21)
+g_demo_FollowPathGoal_1            SUCC start_mode aisle  detour_on 1  5s detour on at (0.53, 0.61) after 5.0 s without progress; 13s back to aisle mode (moved 0.42 m) at (0.94, 0.52)
+g_demo_FollowPathGoal_2            SUCC start_mode aisle  detour_on 1  5s detour on at (0.52, 0.61) after 5.0 s without progress; 12s back to aisle mode (moved 0.41 m) at (0.92, 0.51)
+g_demo_FollowPathGoal_3            SUCC start_mode aisle  detour_on 1  5s detour on at (0.52, 0.62) after 5.0 s without progress; 15s back to aisle mode (moved 0.41 m) at (0.91, 0.52)
+g_demo_FollowPathGoal_4            SUCC start_mode aisle  detour_on 2  10s detour on at (0.54, 0.61) after 5.2 s without progress; 29s back to aisle mode (moved 0.42 m) at (0.94, 0.51); 39s detour on at (1.02, 0.54) after 5.0 s without progr
+== h_block: 5 legs, 10 detour-on lines in the whole run
+h_block_FollowPathGoal_0           SUCC start_mode aisle  detour_on 1  9s detour on at (0.68, 0.57) after 5.0 s without progress; 25s back to aisle mode (moved 0.40 m) at (0.75, 0.17)
+h_block_FollowPathGoal_1           SUCC start_mode aisle  detour_on 1  9s detour on at (0.66, 0.57) after 5.0 s without progress; 23s back to aisle mode (moved 0.41 m) at (0.76, 0.17)
+h_block_FollowPathGoal_2           SUCC start_mode aisle  detour_on 1  9s detour on at (0.67, 0.57) after 5.0 s without progress; 26s back to aisle mode (moved 0.41 m) at (0.77, 0.17)
+h_block_FollowPathGoal_3           SUCC start_mode aisle  detour_on 1  9s detour on at (0.68, 0.57) after 5.0 s without progress; 25s back to aisle mode (moved 0.41 m) at (0.76, 0.17)
+h_block_FollowPathGoal_4           SUCC start_mode aisle  detour_on 1  9s detour on at (0.69, 0.57) after 5.0 s without progress; 24s back to aisle mode (moved 0.40 m) at (0.74, 0.17)

@@ -1,0 +1,6 @@
+== h_block: 5 legs, 16 detour-on lines in the whole run
+h_block_FollowPathRLShimACD3_0     SUCC start_mode aisle  detour_on 1  9s detour on at (0.55, 0.58) after 5.0 s without progress; 17s back to aisle mode (moved 0.41 m) at (0.71, 0.21)
+h_block_FollowPathRLShimACD3_1     SUCC start_mode aisle  detour_on 1  5s detour on at (0.52, 0.60) after 5.0 s without progress; 12s back to aisle mode (moved 0.41 m) at (0.69, 0.22)
+h_block_FollowPathRLShimACD3_2     SUCC start_mode aisle  detour_on 1  5s detour on at (0.52, 0.59) after 5.0 s without progress; 11s back to aisle mode (moved 0.41 m) at (0.70, 0.23)
+h_block_FollowPathRLShimACD3_3     SUCC start_mode aisle  detour_on 1  5s detour on at (0.52, 0.60) after 5.0 s without progress; 12s back to aisle mode (moved 0.41 m) at (0.69, 0.22)
+h_block_FollowPathRLShimACD3_4     SUCC start_mode aisle  detour_on 2  5s detour on at (0.51, 0.61) after 5.0 s without progress; 11s back to aisle mode (moved 0.41 m) at (0.67, 0.23); 27s detour on at (1.69, 0.52) after 5.0 s without progre
