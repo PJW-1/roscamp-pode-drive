@@ -35,7 +35,7 @@ ARGS = {
                             "(pode_scan_filter). false면 띄우지 않는다(비교용)"),
     "wall_band_m": ("0.05", "스캔 거르개: 벽·진열대에서 이만큼 안의 점을 지운다(m)."
                             " 0.05는 D2 측정으로 고른 값(fixed_line_results.md)"),
-    "plan_keep": ("false", "true면(시험 중) Nav2 goal을 다시 계획할 때 길이가 비슷한 다른 길로"
+    "plan_keep": ("true", "true(기본)면 Nav2 goal을 다시 계획할 때 길이가 비슷한 다른 길로"
                            " 바꾸지 않고 지금 길을 지킨다(pode_plan_keep). false면 main과 같다"),
     "aisle_first": ("false", "시뮬 시험. true면 전역 costmap 장애물 층을 끈 채 통로 안에서 지나가 보고,"
                              " 못 움직이면 aisle_first 노드가 켜서 돌아가게 한다. false면 main과 같다"),
