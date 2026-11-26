@@ -86,9 +86,9 @@ def test_a_triggered_mover_waits_until_the_robot_passes_start_x(tmp_path):
     assert [m.start_x for m in loaded.values() if m.start_x is not None] == [0.85]
     # 양보(yield_m)와 같이 쓰면 출발 신호를 잃을 수 있어 받지 않는다
     both = tmp_path / "both.yaml"
-    both.write_text(text.replace("yield_m: 0.25", "yield_m: 0.25" + chr(10) + "    start_x: 0.85", 1),
-                    encoding="utf-8")
     assert "yield_m: 0.25" in text
+    with_both = text.replace("yield_m: 0.25", "yield_m: 0.25" + chr(10) + "    start_x: 0.85", 1)
+    both.write_text(with_both, encoding="utf-8")
     with pytest.raises(ValueError, match="start_x"):
         mv.load(both)
 
