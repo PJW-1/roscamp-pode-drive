@@ -29,3 +29,4 @@ def test_reversing_reads_only_the_commands_that_made_the_displacement():
     assert bb.reversing(v, t=3, w=3) is False
     assert bb.reversing([0.1, -0.1, -0.1, -0.1], t=3, w=3) is True
     assert bb.reversing([0.1, 0.1, -0.05, -0.05], t=3, w=2) is True
+    assert bb.reversing([0.1, 0.1, 0.1, -1.0], t=3, w=3) is True  # 스텝 t의 명령은 변위에 든다
