@@ -632,7 +632,7 @@ def test_nav_bt_xml_names_a_tree_in_pode_nav_config_or_an_absolute_file(made, tm
 RL_NAMES = ("FollowPathRL", "FollowPathRLAlone")
 
 
-@pytest.mark.parametrize("choice", ["rl", "rl_shim", "rl_acd3"])
+@pytest.mark.parametrize("choice", ["rl", "rl_shim", "rl_acd3", "rl_demohist"])
 def test_nav_rl_adds_the_rl_controller_from_the_repo_file(made, choice):
     # 시뮬 Nav2 설정 파일은 로봇과 프로세스마다 이름이 같아 다음 펼침이 덮는다: 펼친 직후에 읽는다
     plain = [_controllers(launch_args(nav)["params_file"])
@@ -647,8 +647,9 @@ def test_nav_rl_adds_the_rl_controller_from_the_repo_file(made, choice):
         assert shim["plugin"] == "nav2_rotation_shim_controller::RotationShimController"
         assert shim["primary_controller"] == "pode_rl_controller::FollowPathRL"
         assert controllers["FollowPathRLAlone"]["plugin"] == "pode_rl_controller::FollowPathRL"
-        # 정책은 고른 이름을 따른다: rl_acd3만 store_arena_acd3, 나머지는 기본 정책
-        policy = "store_arena_acd3" if choice == "rl_acd3" else "store_arena_4b"
+        # 정책은 고른 이름을 따른다: rl_acd3, rl_demohist는 그 정책, 나머지는 기본 정책
+        policy = {"rl_acd3": "store_arena_acd3",
+                  "rl_demohist": "store_arena_demohist"}.get(choice, "store_arena_4b")
         assert [controllers[name]["policy"] for name in RL_NAMES] == [policy, policy]
         # 다른 controller(FollowPathGoal 값 등)는 그대로다
         assert {k: v for k, v in controllers.items()
