@@ -123,7 +123,7 @@ d = 에피소드마다 최고 속도 U(0.08, 0.16)와 그 관측(RW:12-15). 최�
 | 이름(실행 폴더) | 날짜 | 브랜치·커밋 | 부모 체크포인트 | 반복(이번/누적) | seed | 지도 판 | 기본과 다른 설정(acd3 설정에 더한 것) | 레시피 | 보상·랜덤화 변경 | 관측 칸 수 | 평가 세트와 결과(비교 대상, 짝 여부) | Gazebo 결과 | 상태와 이유 | 기록 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | t_ctrl (`n26/t_ctrl`) | 11-26 | `feat/rl-tracks-2026-11-26` 52719475 | `acd3/t_wall/model_1745.pt` | 300 / 2044 | 3 | 줄자 진열대 v7 | 없음 | a+c+d | 없음(같은 설정으로 300번 더: 다른 실험의 대조) | 44 | rand 75.95 %(acd3와 짝 차이 -0.37 %p, SE 0.34: 2 SE 안), aisle 55.35 %, demo1 43.33 %, demo2 39.70 %. head는 평가 전 | 없음 | 끝. 대조로만 쓴다(acd3와 차이가 없다) | 작업 기록 2절, 8c절 끝 |
-| t_std (`n26/t_std`) | 11-26 | 같음 52719475 | 같음 | 300 / 2044 | 3 | 같음 | `--init_std 0.3` | a+c+d | 탐색 std(v, w)를 0.3으로 되돌려 시작 | 44 | aisle 67.90 %(acd3 +11.28 %p, SE 0.66. t_ctrl +12.55, 0.66), demo1 52.49 %(acd3 +8.84, 0.67. t_ctrl +9.16, 0.66), demo2 48.49 %(acd3 +8.18, 0.61. t_ctrl +8.79, 0.60). 모두 같은 에피소드 짝. rand, head는 평가 전 | 없음(열한째 묶음 예정, 작업 기록 17절) | 끝. 둘째 후보: `store_arena_std`로 저장소에 넣었다(`nav_rl:=rl_std`). 시연 칸의 성공이 t_demo_hist와 2 SE 안이고 충돌이 더 적다(시간 초과는 더 많다). rand 조건은 평가 뒤에 확인. 실물에서는 돌려 보지 않았다 | 작업 기록 2절, 8c절 끝, 17절 |
+| t_std (`n26/t_std`) | 11-26 | 같음 52719475 | 같음 | 300 / 2044 | 3 | 같음 | `--init_std 0.3` | a+c+d | 탐색 std(v, w)를 0.3으로 되돌려 시작 | 44 | aisle 67.90 %(acd3 +11.28 %p, SE 0.66. t_ctrl +12.55, 0.66), demo1 52.49 %(acd3 +8.84, 0.67. t_ctrl +9.16, 0.66), demo2 48.49 %(acd3 +8.18, 0.61. t_ctrl +8.79, 0.60). 모두 같은 에피소드 짝. rand 79.27 %(acd3 +2.95, 0.47), head 52.54 %(acd3 +5.13, 0.61) | 없음(열한째 묶음 예정, 작업 기록 17절) | 끝. 둘째 후보: `store_arena_std`로 저장소에 넣었다(`nav_rl:=rl_std`). 시연 칸의 성공이 t_demo_hist와 2 SE 안이고 충돌이 더 적다(시간 초과는 더 많다). rand 조건을 채웠다(작업 기록 17a절). 실물에서는 돌려 보지 않았다 | 작업 기록 2절, 8c절 끝, 17절 |
 | t_sysid (`n26/t_sysid`) | 11-26 | 같음 e51add4b | 같음 | 300 / (진행) | 3 | 같음 | `cmd_delay_steps_range=0,2 cmd_lag_tau_range=0.0,0.12 cmd_gain_v_range=0.95,1.05 cmd_gain_w_range=0.85,1.15` | a+c+d | 명령 응답 랜덤화(지연, 1차 지연, 이득) | 44 | (진행) | 없음 | 진행 | 작업 기록 3절, `docs/report_2026-11-26_rl_sysid.md` |
 | t_dyn (`n26/t_dyn`) | 11-26 | 같음 4015354f | 같음 | 300 / 2044 | 3 | 같음 | `near_dyn_m=0.10 w_near_dyn=-1.0` | a+c+d | 움직이는 물체·로봇 0.10 m 안 벌점 | 44 | (진행) | 없음 | 학습 끝, 평가 대기 | 작업 기록 5절 |
 | t_gam (`n26/t_gam`) | 11-26 | 같음 4015354f | 같음 | 300 / (진행) | 3 | 같음 | `--gamma 0.995 --init_std 0.3` | a+c+d | 할인율 0.99 → 0.995 | 44 | (진행) | 없음 | 진행 | 작업 기록 5절 |
@@ -148,7 +148,7 @@ corner·tee·entry(`robot_scenario=<이름> mover_prob=0`). 같은 칸의 판끼
 | e_acd3_head | acd3 | head | 성공 47.41 %, 충돌 52.17 %. 가까운 것: 벽·진열대 195, 상자 40, 움직이는 물체 414, 로봇 1488. 45.1회/분 | 끝 |
 | e_acd3_realrand, e_acd3_rand_chk, e_acd3_rand_chk2, e_acd3_corner, e_acd3_tee, e_acd3_entry | acd3 | 이름대로 | (진행) | 진행 |
 | e_ctrl_rand | t_ctrl | rand | 성공 75.95 %, 충돌 23.29 %, 시간 초과 0.76 %(acd3와 짝 차이 -0.37 %p, SE 0.34) | 끝 |
-| e_ctrl_head, e_std_rand, e_std_head, e_sysid_*, e_dyn_*, e_gam_* | 위 학습의 마지막 모델 | rand, head(+ sysid·ctrl은 realrand) | (진행) | 진행(e_std_rand, e_std_head는 앞당겼다: 작업 기록 17절) |
+| e_ctrl_head, e_std_rand, e_std_head, e_sysid_*, e_dyn_*, e_gam_* | 위 학습의 마지막 모델 | rand, head(+ sysid·ctrl은 realrand) | (진행) | 진행(e_std_rand, e_std_head는 끝났다: 작업 기록 17a절) |
 | e_{acd3, ctrl, std, demo, demostd, demohist}_{aisle, demo1, demo2} | acd3 또는 위 학습의 마지막 모델 | aisle(통로 상자 하나, 사람·로봇 없음), demo1·demo2(상자 1·2 + 틈을 건너는 사람 + 운반 1·청소 1). 설정은 작업 기록 8절 | 성공 %는 아래 표. 짝 차이와 충돌 종류는 작업 기록 8c절 끝, 12절 | 끝 |
 | e_{demo, demostd, demohist}_{rand, head} | 위 학습의 마지막 모델 | rand, head | 성공 %는 아래 표. 짝 차이는 작업 기록 12절, 13절 | 끝 |
 | e_caps_*, e_capsstd_*, e_sym_*, e_demohist2_*, e_demostd2_*, e_demohistdyn_*, e_histstd_* | 위 학습의 마지막 모델 | 작업 기록 10, 11, 15, 16, 18절 | (진행) | 진행 |
@@ -162,7 +162,7 @@ corner·tee·entry(`robot_scenario=<이름> mover_prob=0`). 같은 칸의 판끼
 |---|---|---|---|---|---|
 | acd3 | 76.32 | 47.41 | 56.62 | 43.65 | 40.31 |
 | t_ctrl | 75.95 | 평가 전 | 55.35 | 43.33 | 39.70 |
-| t_std | 평가 전 | 평가 전 | 67.90 | 52.49 | 48.49 |
+| t_std | 79.27 | 52.54 | 67.90 | 52.49 | 48.49 |
 | t_demo | 75.02 | 45.07 | 55.98 | 41.65 | 39.36 |
 | t_demo_std | 77.51 | 48.10 | 70.41 | 51.25 | 47.80 |
 | t_demo_hist | 77.37 | 51.12 | 72.19 | 52.81 | 48.27 |
