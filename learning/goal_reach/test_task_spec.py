@@ -657,6 +657,7 @@ def test_closing_guard_treats_rays_without_a_return_as_far():
             rays = _ramp_scan(0.40 - 0.01 * i, where)
             rays[0, 100:110] = float("nan")
             rays[0, 250:260] = float("inf")
+            rays[0, 60:70] = float("-inf")
             blocked.append(bool(guard.step(fwd, rays, at0, yaw0)[1][0]))
     assert blocked == ([False] * 15 + [True] * 3) * 2
     # 돌아오지 않게 된 레이는 가까워진 것이 아니다
