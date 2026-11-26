@@ -63,6 +63,27 @@ def test_a_one_way_mover_stops_at_the_end_and_yields_to_the_robot():
     assert mv.step(m, 0.2, 0.1, (0.9, 0.0), mv.pose_at(m, 0.2)) == pytest.approx(0.25)
 
 
+def test_a_triggered_mover_waits_until_the_robot_passes_start_x(tmp_path):
+    m = mv.Mover("p", "cylinder", (0.04, 0.25), ((1.0, 0.3), (1.0, 0.7)), 0.1, start_x=0.85)
+    pose = mv.pose_at(m, 0.0)
+    assert mv.step(m, 0.0, 0.5, None, pose) == 0.0  # 로봇 위치를 모르면 출발하지 않는다
+    assert mv.step(m, 0.0, 0.5, (0.80, 0.55), pose) == 0.0
+    s = mv.step(m, 0.0, 0.5, (0.86, 0.55), pose)
+    assert s == pytest.approx(0.05)
+    # 한 번 출발하면 로봇이 물러나도 계속 간다
+    assert mv.step(m, s, 0.5, (0.50, 0.55), mv.pose_at(m, s)) == pytest.approx(0.10)
+    # start_x가 없는 mover는 로봇과 상관없이 간다
+    free = mv.Mover("q", "cylinder", (0.04, 0.25), ((1.0, 0.3), (1.0, 0.7)), 0.1)
+    assert mv.step(free, 0.0, 0.5, None, pose) == pytest.approx(0.05)
+    # 설정 파일의 start_x를 읽는다
+    cfg = tmp_path / "t.yaml"
+    text = CONFIG.read_text(encoding="utf-8")
+    assert "speed: 0.10" in text
+    cfg.write_text(text.replace("speed: 0.10", "speed: 0.10" + chr(10) + "    start_x: 0.85", 1), encoding="utf-8")
+    loaded = mv.load(cfg)["movers"]
+    assert [m.start_x for m in loaded.values() if m.start_x is not None] == [0.85]
+
+
 # ---- 지표 ----
 def test_sign_changes_skip_the_deadband():
     assert mt.sign_changes([0.1, -0.1, 0.01, -0.2, 0.3], 0.02) == 2

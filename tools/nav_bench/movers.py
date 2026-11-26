@@ -15,6 +15,7 @@ class Mover:
     speed: float
     once: bool = False
     yield_m: float = 0.0
+    start_x: float | None = None  # 로봇의 x가 이 값을 넘어야 출발한다. None이면 처음부터 간다
 
 
 def load(path) -> dict:
@@ -27,7 +28,8 @@ def load(path) -> dict:
             raise ValueError(f"mover {name}: a path of two or more points needs a speed above 0")
         movers[name] = Mover(name, m["shape"], tuple(m["size"]),
                              tuple(tuple(p) for p in m["path"]), float(m["speed"]),
-                             bool(m.get("once", False)), float(m.get("yield_m", 0.0)))
+                             bool(m.get("once", False)), float(m.get("yield_m", 0.0)),
+                             None if m.get("start_x") is None else float(m["start_x"]))
     for scenario, names in data["scenarios"].items():
         unknown = set(names) - set(movers)
         if unknown:
@@ -67,6 +69,10 @@ def pose_at(mover: Mover, travelled: float) -> tuple:
 
 
 def step(mover: Mover, travelled: float, dt: float, robot_xy, pose) -> float:
+    # 로봇이 start_x를 넘기 전에는 출발하지 않는다: 만남이 로봇의 속도와 출발 시각에 따라 달라지지 않게
+    if mover.start_x is not None and travelled == 0.0:
+        if robot_xy is None or robot_xy[0] < mover.start_x:
+            return travelled
     near = robot_xy is not None and math.dist(robot_xy, pose[:2]) < mover.yield_m
     if mover.yield_m > 0.0 and near:
         return travelled
