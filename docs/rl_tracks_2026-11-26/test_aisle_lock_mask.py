@@ -28,6 +28,21 @@ def test_paint_rejects_a_rectangle_that_blocks_nothing():
         alm.paint(grid, (0.0, 0.0), 0.01, (0.02, 0.0, 0.01, 0.01))
 
 
+def test_load_pgm_keeps_a_first_pixel_that_is_a_whitespace_byte(tmp_path):
+    grid = np.array([[10, 32], [9, 254]], dtype=np.uint8)  # 10은 줄바꿈, 32는 빈칸, 9는 탭 바이트다
+    alm.save_pgm(tmp_path / "w.pgm", grid)
+    assert alm.load_pgm(tmp_path / "w.pgm").tolist() == grid.tolist()
+
+
+def test_load_pgm_rejects_a_file_with_the_wrong_number_of_pixels(tmp_path):
+    (tmp_path / "s.pgm").write_bytes(b"P5\n2 2\n255\n\xfe\xfe")
+    with pytest.raises(ValueError, match="pixel"):
+        alm.load_pgm(tmp_path / "s.pgm")
+    (tmp_path / "t.pgm").write_bytes(b"P2\n1 1\n255\n\xfe")
+    with pytest.raises(ValueError, match="P5"):
+        alm.load_pgm(tmp_path / "t.pgm")
+
+
 def test_write_makes_a_mask_the_map_server_can_read(tmp_path):
     base = tmp_path / "base"
     base.mkdir()

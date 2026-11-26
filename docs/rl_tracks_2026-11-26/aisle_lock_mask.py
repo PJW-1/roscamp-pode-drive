@@ -7,6 +7,7 @@
 네모를 주지 않으면 v7의 남쪽 통로를 막는다. 출력은 <출력 폴더>/aisle_lock.yaml과 aisle_lock.pgm이다.
 """
 import pathlib
+import re
 import sys
 
 import numpy as np
@@ -21,11 +22,15 @@ V7_SOUTH_AISLE = (0.70, 0.0, 1.58, 0.36)
 def load_pgm(path) -> np.ndarray:
     """P5(8비트) pgm을 (행, 열) 배열로 읽는다. 행 0이 맨 위다."""
     raw = pathlib.Path(path).read_bytes()
-    parts = raw.split(maxsplit=4)
-    if parts[0] != b"P5" or parts[3] != b"255":
+    # 최댓값 뒤의 공백 한 바이트까지가 헤더다. 그 뒤는 공백 바이트여도 픽셀이다
+    head = re.match(rb"P5\s+(\d+)\s+(\d+)\s+255\s", raw)
+    if not head:
         raise ValueError(f"{path}: not an 8-bit P5 pgm")
-    w, h = int(parts[1]), int(parts[2])
-    return np.frombuffer(parts[4][:w * h], dtype=np.uint8).reshape(h, w).copy()
+    w, h = int(head.group(1)), int(head.group(2))
+    data = raw[head.end():]
+    if len(data) != w * h:
+        raise ValueError(f"{path}: {len(data)} pixel bytes, expected {w * h}")
+    return np.frombuffer(data, dtype=np.uint8).reshape(h, w).copy()
 
 
 def save_pgm(path, grid: np.ndarray) -> None:
