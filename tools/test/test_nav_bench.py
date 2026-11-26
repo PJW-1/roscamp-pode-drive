@@ -68,6 +68,7 @@ def test_a_triggered_mover_waits_until_the_robot_passes_start_x(tmp_path):
     pose = mv.pose_at(m, 0.0)
     assert mv.step(m, 0.0, 0.5, None, pose) == 0.0  # 로봇 위치를 모르면 출발하지 않는다
     assert mv.step(m, 0.0, 0.5, (0.80, 0.55), pose) == 0.0
+    assert mv.step(m, 0.0, 0.5, (0.85, 0.55), pose) == 0.0  # 넘어야 출발한다: 같은 값이면 아직이다
     s = mv.step(m, 0.0, 0.5, (0.86, 0.55), pose)
     assert s == pytest.approx(0.05)
     # 한 번 출발하면 로봇이 물러나도 계속 간다
@@ -83,6 +84,13 @@ def test_a_triggered_mover_waits_until_the_robot_passes_start_x(tmp_path):
     cfg.write_text(with_start, encoding="utf-8")
     loaded = mv.load(cfg)["movers"]
     assert [m.start_x for m in loaded.values() if m.start_x is not None] == [0.85]
+    # 양보(yield_m)와 같이 쓰면 출발 신호를 잃을 수 있어 받지 않는다
+    both = tmp_path / "both.yaml"
+    both.write_text(text.replace("yield_m: 0.25", "yield_m: 0.25" + chr(10) + "    start_x: 0.85", 1),
+                    encoding="utf-8")
+    assert "yield_m: 0.25" in text
+    with pytest.raises(ValueError, match="start_x"):
+        mv.load(both)
 
 
 # ---- 지표 ----

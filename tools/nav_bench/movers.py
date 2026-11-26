@@ -26,6 +26,9 @@ def load(path) -> dict:
             raise ValueError(f"mover {name}: shape must be box or cylinder")
         if len(m["path"]) > 1 and float(m["speed"]) <= 0.0:
             raise ValueError(f"mover {name}: a path of two or more points needs a speed above 0")
+        # 양보로 서 있는 동안에는 출발했다는 것이 남지 않는다. 그래서 둘을 같이 쓰지 못하게 한다
+        if m.get("start_x") is not None and float(m.get("yield_m", 0.0)) > 0.0:
+            raise ValueError(f"mover {name}: start_x cannot be combined with yield_m")
         movers[name] = Mover(name, m["shape"], tuple(m["size"]),
                              tuple(tuple(p) for p in m["path"]), float(m["speed"]),
                              bool(m.get("once", False)), float(m.get("yield_m", 0.0)),
@@ -71,7 +74,7 @@ def pose_at(mover: Mover, travelled: float) -> tuple:
 def step(mover: Mover, travelled: float, dt: float, robot_xy, pose) -> float:
     # 로봇이 start_x를 넘기 전에는 출발하지 않는다: 만남이 로봇의 속도와 출발 시각에 묶이지 않게
     if mover.start_x is not None and travelled == 0.0:
-        if robot_xy is None or robot_xy[0] < mover.start_x:
+        if robot_xy is None or robot_xy[0] <= mover.start_x:
             return travelled
     near = robot_xy is not None and math.dist(robot_xy, pose[:2]) < mover.yield_m
     if mover.yield_m > 0.0 and near:
