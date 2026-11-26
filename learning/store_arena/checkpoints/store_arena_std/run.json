@@ -1,0 +1,37 @@
+{
+ "num_envs": 4096,
+ "max_iterations": 300,
+ "num_steps_per_env": 24,
+ "seed": 3,
+ "resume": "",
+ "init": "D:/isaac/runs/store_arena/acd3/t_wall/model_1745.pt",
+ "init_std": [
+  0.3,
+  0.3
+ ],
+ "run_config_sha256": "3c197975713180bd60bf5f4a50cc62288d18dacd2dc1da80893364c0285271d2",
+ "spec_overrides": {
+  "prev_action_obs": 1,
+  "critic_privileged": 1,
+  "speed_cap_obs": 1,
+  "speed_cap_range": [
+   0.08,
+   0.16
+  ],
+  "w_action_rate": -0.05,
+  "w_w_flip": -0.5
+ },
+ "arena_overrides": {
+  "robot_max": 2,
+  "robot_priority_prob": 0.5,
+  "handover_start_prob": 0.15,
+  "near_wall_m": 0.08,
+  "w_near_wall": -0.2
+ },
+ "routes": 4224,
+ "env_build_s": 19.7,
+ "learn_s": 2032.3,
+ "env_steps": 29491200,
+ "env_steps_per_s_incl_update": 14511.0,
+ "cuda_max_mem_alloc_MB": 741.8
+}

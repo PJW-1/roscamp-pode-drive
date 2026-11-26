@@ -59,7 +59,8 @@ def test_a_policy_override_file_differs_from_the_default_only_in_its_policy():
     """follow_path_rl_<이름>.yaml은 follow_path_rl.yaml과 정책 이름만 다르고, 그 정책 폴더가 있다."""
     base = yaml.safe_load((OVERRIDES / "follow_path_rl.yaml").read_text(encoding="utf-8"))
     others = sorted(OVERRIDES.glob("follow_path_rl_*.yaml"))
-    assert [p.name for p in others] == ["follow_path_rl_acd3.yaml", "follow_path_rl_demohist.yaml"]
+    assert [p.name for p in others] == ["follow_path_rl_acd3.yaml", "follow_path_rl_demohist.yaml",
+                                        "follow_path_rl_std.yaml"]
     for path in others:
         policy = "store_arena_" + path.stem.removeprefix("follow_path_rl_")
         assert policy in _names()
