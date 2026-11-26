@@ -1,7 +1,9 @@
 """real_scan_mask_check가 플러그인의 규칙(가림, 레이 고르기, 섹터 값)대로 셈하는지 본다."""
+import importlib.util
 import json
 import math
 import pathlib
+import sys
 
 import numpy as np
 import pytest
@@ -214,6 +216,82 @@ def test_check_flags_a_sector_with_no_ray_left(tmp_path):
     res = m.check(path, spec, tmp_path / "out", "138,157,-152.5,-137")
     assert res["m1"]["verdict"].startswith("남지 않는 섹터가 있다")
     assert res["m1"]["min_left"]["32"] == 0
+
+
+# ---- 채우기 ----
+WIDE = "138,157,-152.5,-137"
+
+
+def test_fill_sectors_takes_the_nearer_side_and_skips_empty_neighbours():
+    values = np.full(36, 0.5)
+    values[[31, 34]] = [0.4, 0.7]
+    values[[32, 33]] = 2.0
+    touched = np.zeros(36, dtype=bool)
+    touched[[31, 32, 33]] = True
+    usable = np.ones(36, dtype=bool)
+    usable[[32, 33]] = False
+    out, empty = m.fill_sectors(values, usable, touched, 2.0)
+    assert list(np.flatnonzero(empty)) == [32, 33]
+    assert out[32] == 0.4 and out[33] == 0.4 and out[31] == 0.4 and out[34] == 0.7
+    assert values[32] == 2.0  # 받은 배열은 바꾸지 않는다
+    # 가림에 걸리지 않은 섹터는 쓸 수 있는 레이가 없어도 그대로다
+    usable[18] = False
+    values[18] = 2.0
+    out, empty = m.fill_sectors(values, usable, touched, 2.0)
+    assert out[18] == 2.0 and not empty[18]
+
+
+def test_fill_sectors_gives_the_limit_when_no_neighbour_is_within_reach():
+    values = np.full(36, 1.7)
+    values[35], values[10] = 0.2, 0.9
+    touched = np.zeros(36, dtype=bool)
+    touched[:10] = True
+    out, _ = m.fill_sectors(values, ~touched, touched, 2.0)
+    assert list(out[:10]) == [0.2] * 4 + [2.0] * 2 + [0.9] * 4
+
+
+def test_fill_sectors_matches_the_evaluation_code():
+    torch = pytest.importorskip("torch")
+    path = pathlib.Path(__file__).resolve().parents[2] / "learning/goal_reach/task_spec.py"
+    spec = importlib.util.spec_from_file_location("task_spec_for_fill", path)
+    ts = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = ts
+    spec.loader.exec_module(ts)
+    assert m.FILL_REACH == ts.FILL_REACH
+    rng = np.random.default_rng(34)
+    for _ in range(300):
+        values = rng.uniform(0.05, 2.0, 36).astype(np.float32)
+        touched = rng.random(36) < rng.uniform(0.05, 0.9)
+        usable = rng.random(36) < rng.uniform(0.1, 0.9)
+        ours, _ = m.fill_sectors(values, usable, touched, 2.0)
+        theirs = ts.fill_masked_sectors(
+            torch.from_numpy(values)[None], torch.from_numpy(usable)[None],
+            torch.from_numpy(touched), 2.0)[0].numpy()
+        assert np.array_equal(ours.astype(np.float32), theirs)
+
+
+def test_check_with_fill_reads_a_fully_masked_sector_from_its_neighbours(tmp_path):
+    n, amin, inc = grid()
+    deg = m.beam_deg(n, amin, inc, 0.0)
+    scan = np.full(n, 1.0, dtype=np.float32)
+    scan[(deg > 140.0) & (deg < 157.0)] = 0.06  # 기둥: 넓은 가림 안
+    scan[(deg > 130.0) & (deg < 138.0)] = 0.4  # 섹터 31 에 남는 레이
+    scan[(deg > 157.0) & (deg < 160.0)] = 0.7  # 섹터 33 에 남는 레이
+    path = scan_npz(tmp_path, [scan], n, amin, inc)
+    spec = tmp_path / "policy_spec.json"
+    spec.write_text(json.dumps({"lidar": LID}), encoding="utf-8")
+    plain = m.check(path, spec, tmp_path / "plain", WIDE)
+    assert plain["m3"]["per_sector_masked"]["32"] == pytest.approx(1.0)
+    assert plain["m1"]["verdict"].startswith("남지 않는 섹터가 있다") and plain["fill"] == {}
+    res = m.check(path, spec, tmp_path / "fill", WIDE, fill=True)
+    assert res["m3"]["masked"] == pytest.approx(0.0) and res["m2"]["masked"] == pytest.approx(0.0)
+    assert res["fill"]["per_sector_filled"] == {"3": 1.0, "4": 0.0, "32": 1.0, "33": 0.0}
+    assert res["fill"]["filled_any"] == pytest.approx(1.0)
+    assert res["post_value_masked_m"]["32"] == [0.4, 0.4, 0.4]
+    assert res["post_value_masked_m"]["3"] == [1.0, 1.0, 1.0]
+    assert res["fill"]["touched"] == [2, 3, 4, 31, 32, 33]
+    assert res["m1"]["verdict"].startswith("채우기를 켰다")
+    assert "채우기" in (tmp_path / "fill" / "summary.md").read_text(encoding="utf-8")
 
 
 def test_module_file_has_a_usage_docstring():
