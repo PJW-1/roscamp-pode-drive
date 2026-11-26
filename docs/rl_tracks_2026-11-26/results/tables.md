@@ -1,6 +1,6 @@
 # n26 표
 
-실행 폴더 `D:/isaac/runs/store_arena/n26`, 끝난 실행(exit=0): c_clean, c_cross, c_demo_box, e_acd3_aisle, e_acd3_aislet, e_acd3_demo1, e_acd3_demo1c08, e_acd3_demo1t, e_acd3_demo2, e_acd3_head, e_acd3_rand, e_acd3_rand_chk2, e_ctrl_aisle, e_ctrl_demo1, e_ctrl_demo2, e_ctrl_rand, e_demo_aisle, e_demo_demo1, e_demo_demo2, e_demo_head, e_demo_rand, e_demohist2_aisle, e_demohist2_demo1, e_demohist2_demo2, e_demohist2_head, e_demohist2_rand, e_demohist2m_demo1, e_demohist_aisle, e_demohist_aislel958, e_demohist_aislepost, e_demohist_aislepostm, e_demohist_aislet, e_demohist_demo1, e_demohist_demo1c08, e_demohist_demo1l958, e_demohist_demo1post, e_demohist_demo1postm, e_demohist_demo1t, e_demohist_demo1tc26a60, e_demohist_demo1tc26a90, e_demohist_demo1tf15a60, e_demohist_demo1tf20a30, e_demohist_demo1tf20a60, e_demohist_demo1tp30a60, e_demohist_demo1tp30a90, e_demohist_demo1tw26a60, e_demohist_demo1tw26a60n, e_demohist_demo2, e_demohist_head, e_demohist_rand, e_demostd2_aisle, e_demostd2_demo1, e_demostd2_demo2, e_demostd2_rand, e_demostd2m_demo1, e_demostd_aisle, e_demostd_demo1, e_demostd_demo2, e_demostd_head, e_demostd_rand, e_histstd_aisle, e_histstd_demo1, e_histstd_demo2, e_histstd_head, e_histstd_rand, e_std_aisle, e_std_aislet, e_std_demo1, e_std_demo1c08, e_std_demo1t, e_std_demo2, e_std_head, e_std_rand, smoke_b11, smoke_b4, smoke_demo, smoke_hist, smoke_hstd, smoke_resume, smoke_std, smoke_sysid, t_ctrl, t_demo, t_demo_hist, t_demo_hist2, t_demo_std, t_demo_std2, t_dyn, t_hist_std, t_std
+실행 폴더 `D:/isaac/runs/store_arena/n26`, 끝난 실행(exit=0): c_clean, c_cross, c_demo_box, e_acd3_aisle, e_acd3_aislet, e_acd3_demo1, e_acd3_demo1c08, e_acd3_demo1t, e_acd3_demo2, e_acd3_head, e_acd3_rand, e_acd3_rand_chk2, e_ctrl_aisle, e_ctrl_demo1, e_ctrl_demo2, e_ctrl_rand, e_demo_aisle, e_demo_demo1, e_demo_demo2, e_demo_head, e_demo_rand, e_demohist2_aisle, e_demohist2_demo1, e_demohist2_demo2, e_demohist2_head, e_demohist2_rand, e_demohist2m_demo1, e_demohist_aisle, e_demohist_aislel958, e_demohist_aislepost, e_demohist_aislepostm, e_demohist_aislepostn, e_demohist_aislet, e_demohist_demo1, e_demohist_demo1c08, e_demohist_demo1l958, e_demohist_demo1maskw, e_demohist_demo1post, e_demohist_demo1postm, e_demohist_demo1postn, e_demohist_demo1t, e_demohist_demo1tc26a60, e_demohist_demo1tc26a90, e_demohist_demo1tf15a60, e_demohist_demo1tf20a30, e_demohist_demo1tf20a60, e_demohist_demo1tp30a60, e_demohist_demo1tp30a90, e_demohist_demo1tw26a60, e_demohist_demo1tw26a60n, e_demohist_demo2, e_demohist_head, e_demohist_rand, e_demostd2_aisle, e_demostd2_demo1, e_demostd2_demo2, e_demostd2_rand, e_demostd2m_demo1, e_demostd_aisle, e_demostd_demo1, e_demostd_demo2, e_demostd_head, e_demostd_rand, e_histstd_aisle, e_histstd_demo1, e_histstd_demo2, e_histstd_head, e_histstd_rand, e_std_aisle, e_std_aislet, e_std_demo1, e_std_demo1c08, e_std_demo1t, e_std_demo2, e_std_head, e_std_rand, smoke_b11, smoke_b4, smoke_demo, smoke_hist, smoke_hstd, smoke_resume, smoke_std, smoke_sysid, t_ctrl, t_demo, t_demo_hist, t_demo_hist2, t_demo_std, t_demo_std2, t_dyn, t_hist_std, t_std
 
 ## 1. 평가 칸
 
@@ -29,12 +29,15 @@
 | demohist | aislel958 | 4096 | 73.27 | 23.8 | 2.93 | 180 | 795 | 0 | 0 | 812 | 44.49 | 1.225 |
 | demohist | aislepost | 4096 | 67.68 | 28.88 | 3.44 | 279 | 904 | 0 | 0 | 1068 | 47.77 | 1.366 |
 | demohist | aislepostm | 4096 | 33.94 | 63.7 | 2.37 | 1900 | 709 | 0 | 0 | 2342 | 38.64 | 1.395 |
+| demohist | aislepostn | 4096 | 71.83 | 25.2 | 2.98 | 173 | 859 | 0 | 0 | 859 | 44.27 | 1.224 |
 | demohist | aislet | 4096 | 72.22 | 24.9 | 2.88 | 168 | 852 | 0 | 0 | 835 | 44.35 | 1.213 |
 | demohist | demo1 | 4096 | 52.81 | 46.02 | 1.17 | 232 | 774 | 324 | 555 | 1729 | 40.22 | 1.309 |
 | demohist | demo1c08 | 4096 | 52.05 | 46.9 | 1.05 | 222 | 728 | 457 | 514 | 1825 | 50.25 | 1.159 |
 | demohist | demo1l958 | 4096 | 52.95 | 46.04 | 1.0 | 234 | 760 | 336 | 556 | 1734 | 40.11 | 1.309 |
+| demohist | demo1maskw | 4096 | 15.82 | 83.52 | 0.66 | 2106 | 482 | 240 | 593 | 3075 | 29.49 | 1.371 |
 | demohist | demo1post | 4096 | 48.75 | 50.34 | 0.9 | 333 | 853 | 361 | 515 | 1898 | 41.96 | 1.428 |
 | demohist | demo1postm | 4096 | 16.72 | 82.52 | 0.76 | 2063 | 493 | 232 | 592 | 3001 | 28.99 | 1.353 |
+| demohist | demo1postn | 4096 | 52.2 | 46.83 | 0.98 | 232 | 793 | 338 | 555 | 1742 | 40.96 | 1.303 |
 | demohist | demo1t | 4096 | 52.54 | 46.39 | 1.07 | 232 | 777 | 337 | 554 | 1739 | 40.43 | 1.305 |
 | demohist | demo1tc26a60 | 4096 | 53.2 | 45.58 | 1.22 | 242 | 814 | 281 | 530 | 1725 | 41.19 | 1.351 |
 | demohist | demo1tc26a90 | 4096 | 51.98 | 46.88 | 1.15 | 245 | 798 | 362 | 515 | 1781 | 41.82 | 1.385 |
@@ -326,12 +329,15 @@
 | demohist | aislel958 | 2792 | 60.78 | 0.924 | 0 |  | 691 | 6.66 | 757 | 54.16 | 751 | 88.02 | 593 | 97.81 | 0 |  |
 | demohist | aislepost | 2792 | 53.01 | 0.9445 | 0 |  | 691 | 4.49 | 757 | 44.39 | 751 | 74.83 | 593 | 92.92 | 0 |  |
 | demohist | aislepostm | 2792 | 23.39 | 0.8011 | 0 |  | 691 | 18.09 | 757 | 22.32 | 751 | 23.83 | 593 | 30.35 | 0 |  |
+| demohist | aislepostn | 2792 | 58.7 | 0.9318 | 0 |  | 691 | 5.07 | 757 | 50.07 | 751 | 85.89 | 593 | 97.81 | 0 |  |
 | demohist | aislet | 2792 | 59.24 | 0.93 | 0 |  | 691 | 4.78 | 757 | 52.31 | 751 | 86.28 | 593 | 97.3 | 0 |  |
 | demohist | demo1 | 2792 | 36.57 | 0.9115 | 0 |  | 691 | 3.91 | 757 | 33.55 | 751 | 53.13 | 593 | 57.5 | 0 |  |
 | demohist | demo1c08 | 2792 | 35.89 | 0.9078 | 0 |  | 691 | 3.33 | 757 | 32.36 | 751 | 53.79 | 593 | 55.65 | 0 |  |
 | demohist | demo1l958 | 2792 | 36.86 | 0.913 | 0 |  | 691 | 4.2 | 757 | 33.55 | 751 | 54.19 | 593 | 57.17 | 0 |  |
+| demohist | demo1maskw | 2792 | 5.59 | 0.4348 | 0 |  | 691 | 4.2 | 757 | 5.02 | 751 | 5.73 | 593 | 7.76 | 0 |  |
 | demohist | demo1post | 2792 | 30.87 | 0.8743 | 0 |  | 691 | 3.47 | 757 | 26.95 | 751 | 43.54 | 593 | 51.77 | 0 |  |
 | demohist | demo1postm | 2792 | 5.84 | 0.4438 | 0 |  | 691 | 4.2 | 757 | 5.42 | 751 | 6.39 | 593 | 7.59 | 0 |  |
+| demohist | demo1postn | 2792 | 35.78 | 0.9072 | 0 |  | 691 | 3.91 | 757 | 32.5 | 751 | 52.06 | 593 | 56.49 | 0 |  |
 | demohist | demo1t | 2792 | 36.25 | 0.9098 | 0 |  | 691 | 3.33 | 757 | 32.89 | 751 | 53.79 | 593 | 56.66 | 0 |  |
 | demohist | demo1tc26a60 | 2792 | 36.57 | 0.9115 | 0 |  | 691 | 2.89 | 757 | 33.03 | 751 | 54.06 | 593 | 58.18 | 0 |  |
 | demohist | demo1tc26a90 | 2792 | 35.17 | 0.9037 | 0 |  | 691 | 1.88 | 757 | 31.57 | 751 | 53.0 | 593 | 55.99 | 0 |  |
@@ -831,12 +837,15 @@ eval.json의 by_crossing: 나온 사람의 건넘 구간이 전역 경로를 덮
 | demohist | aislel958 | 0 |  |  |  | 0 |  |  |  | 4096 | 73.27 | 23.8 | 2.93 |  |  |  |
 | demohist | aislepost | 0 |  |  |  | 0 |  |  |  | 4096 | 67.68 | 28.88 | 3.44 |  |  |  |
 | demohist | aislepostm | 0 |  |  |  | 0 |  |  |  | 4096 | 33.94 | 63.7 | 2.37 |  |  |  |
+| demohist | aislepostn | 0 |  |  |  | 0 |  |  |  | 4096 | 71.83 | 25.2 | 2.98 |  |  |  |
 | demohist | aislet | 0 |  |  |  | 0 |  |  |  | 4096 | 72.22 | 24.9 | 2.88 |  |  |  |
 | demohist | demo1 | 2122 | 34.54 | 63.85 | 1.6 | 1140 | 88.95 | 11.05 | 0.0 | 834 | 49.88 | 48.44 | 1.68 | 52.8 | 1.3964 | outside |
 | demohist | demo1c08 | 2122 | 32.66 | 65.88 | 1.46 | 1140 | 87.63 | 12.28 | 0.09 | 834 | 52.76 | 45.92 | 1.32 | 53.6 | 1.4157 | outside |
 | demohist | demo1l958 | 2122 | 34.21 | 64.33 | 1.46 | 1140 | 88.86 | 11.14 | 0.0 | 834 | 51.56 | 47.24 | 1.2 | 53.19 | 1.3963 | outside |
+| demohist | demo1maskw | 2122 | 6.88 | 91.99 | 1.13 | 1140 | 38.51 | 61.4 | 0.09 | 834 | 7.55 | 92.21 | 0.24 | 30.59 | 1.5576 | outside |
 | demohist | demo1post | 2122 | 28.18 | 70.83 | 0.99 | 1140 | 88.6 | 11.14 | 0.26 | 834 | 46.64 | 51.8 | 1.56 | 59.69 | 1.3572 | outside |
 | demohist | demo1postm | 2122 | 7.07 | 91.56 | 1.37 | 1140 | 40.7 | 59.3 | 0.0 | 834 | 8.51 | 91.25 | 0.24 | 32.26 | 1.5752 | outside |
+| demohist | demo1postn | 2122 | 33.13 | 65.5 | 1.37 | 1140 | 88.77 | 11.23 | 0.0 | 834 | 50.72 | 47.96 | 1.32 | 54.27 | 1.3926 | outside |
 | demohist | demo1t | 2122 | 34.35 | 64.18 | 1.46 | 1140 | 88.77 | 11.23 | 0.0 | 834 | 49.28 | 49.16 | 1.56 | 52.95 | 1.3992 | outside |
 | demohist | demo1tc26a60 | 2122 | 34.59 | 63.57 | 1.84 | 1140 | 90.26 | 9.74 | 0.0 | 834 | 49.88 | 48.8 | 1.32 | 53.83 | 1.3647 | outside |
 | demohist | demo1tc26a90 | 2122 | 32.52 | 65.74 | 1.74 | 1140 | 89.3 | 10.7 | 0.0 | 834 | 50.48 | 48.32 | 1.2 | 55.04 | 1.3782 | outside |
