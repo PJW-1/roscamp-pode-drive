@@ -1,0 +1,24 @@
+# plans per run: in the aisle band / outside, and how often two plans in a row changed side
+f_cart   RLShimDemoHist   0 SUCC plans  12 in  12 out   0 first in switches 0
+f_cart   RLShimDemoHist   1 SUCC plans  20 in   5 out  15 first in switches 2
+f_cart   RLShimDemoHist   2 SUCC plans  13 in  12 out   1 first in switches 2
+f_cart   RLShimDemoHist   3 SUCC plans  12 in  11 out   1 first in switches 2
+f_cart   RLShimDemoHist   4 SUCC plans  13 in  12 out   1 first in switches 2
+g_demo   RLShimDemoHist   0 SUCC plans  23 in   5 out  18 first in switches 2
+g_demo   RLShimDemoHist   1 SUCC plans  11 in  10 out   1 first in switches 2
+g_demo   RLShimDemoHist   2 SUCC plans  32 in   8 out  24 first in switches 4
+g_demo   RLShimDemoHist   3 SUCC plans  13 in  13 out   0 first in switches 0
+g_demo   RLShimDemoHist   4 SUCC plans  11 in  11 out   0 first in switches 0
+k_cross  RLShimDemoHist   0 SUCC plans  16 in  16 out   0 first in switches 0
+k_cross  RLShimDemoHist   1 ABOR plans  11 in  11 out   0 first in switches 0
+k_cross  RLShimDemoHist   2 SUCC plans  15 in  15 out   0 first in switches 0
+k_cross  RLShimDemoHist   3 SUCC plans  15 in  15 out   0 first in switches 0
+k_cross  RLShimDemoHist   4 SUCC plans  14 in  14 out   0 first in switches 0
+PLAN f_cart   RLShimDemoHist   runs 5 all plans in band 1 any plan outside 4 runs with a switch 4 switches 8 plans 70
+PLAN g_demo   RLShimDemoHist   runs 5 all plans in band 2 any plan outside 3 runs with a switch 3 switches 8 plans 90
+PLAN k_cross  RLShimDemoHist   runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 71
+# plugin timing from the 1 s log lines (us): calls, call-weighted infer mean, infer max, call mean, call max
+f_cart   launch_1.out lines 134 calls 2616 infer mean 55 max 176 call mean 124 max 646
+g_demo   launch_1.out lines 138 calls 2523 infer mean 54 max 223 call mean 121 max 663
+k_cross  launch_1.out lines 107 calls 2026 infer mean 54 max 346 call mean 121 max 849
+# launch output lines that mention the plan keeper, per scenario: {'f_cart': 8, 'g_demo': 38, 'k_cross': 6}

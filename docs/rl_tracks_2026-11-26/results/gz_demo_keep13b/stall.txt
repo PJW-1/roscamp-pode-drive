@@ -1,0 +1,18 @@
+f_cart   RLShimDemoHist 0 SUCC  12.7s cart_min 0.042 person_min inf plan_in_band True truth_in_band True end (1.60,0.57) stalls -
+f_cart   RLShimDemoHist 1 SUCC  12.3s cart_min 0.054 person_min inf plan_in_band True truth_in_band True end (1.61,0.56) stalls -
+f_cart   RLShimDemoHist 2 SUCC  13.1s cart_min 0.049 person_min inf plan_in_band True truth_in_band True end (1.60,0.57) stalls -
+f_cart   RLShimDemoHist 3 SUCC  12.1s cart_min 0.049 person_min inf plan_in_band True truth_in_band True end (1.60,0.56) stalls -
+f_cart   RLShimDemoHist 4 SUCC  12.9s cart_min 0.053 person_min inf plan_in_band True truth_in_band True end (1.61,0.57) stalls -
+g_demo   RLShimDemoHist 0 SUCC  20.2s cart_min 0.031 person_min 0.000 plan_in_band True truth_in_band True end (1.59,0.56) stalls -
+g_demo   RLShimDemoHist 1 SUCC  18.8s cart_min 0.017 person_min 0.004 plan_in_band True truth_in_band True end (1.58,0.56) stalls -
+g_demo   RLShimDemoHist 2 SUCC  16.9s cart_min 0.016 person_min 0.000 plan_in_band True truth_in_band True end (1.59,0.56) stalls -
+g_demo   RLShimDemoHist 3 SUCC  19.3s cart_min 0.034 person_min 0.000 plan_in_band True truth_in_band True end (1.58,0.56) stalls -
+g_demo   RLShimDemoHist 4 SUCC  31.4s cart_min 0.000@6s person_min 0.337 plan_in_band False truth_in_band False end (0.43,0.66) stalls -
+k_cross  RLShimDemoHist 0 ABOR  45.2s cart_min inf person_min 0.000 plan_in_band True truth_in_band True end (1.22,0.51) stalls 22~46s(1.19,0.51)
+k_cross  RLShimDemoHist 1 SUCC  15.9s cart_min inf person_min 0.000 plan_in_band True truth_in_band True end (1.58,0.52) stalls -
+k_cross  RLShimDemoHist 2 SUCC  19.4s cart_min inf person_min 0.000 plan_in_band True truth_in_band True end (1.58,0.56) stalls -
+k_cross  RLShimDemoHist 3 SUCC  16.9s cart_min inf person_min 0.000 plan_in_band True truth_in_band True end (1.60,0.57) stalls -
+k_cross  RLShimDemoHist 4 SUCC  13.8s cart_min inf person_min 0.000 plan_in_band True truth_in_band True end (1.59,0.57) stalls -
+== f_cart RLShimDemoHist: n 5 ok 5 stalled 0 cart_contact 0 person_contact 0 detour_planned 0 detour_driven 0 failed_and_stalled 0 failed_and_cart_contact 0
+== g_demo RLShimDemoHist: n 5 ok 5 stalled 0 cart_contact 1 person_contact 4 detour_planned 1 detour_driven 1 failed_and_stalled 0 failed_and_cart_contact 0
+== k_cross RLShimDemoHist: n 5 ok 4 stalled 1 cart_contact 0 person_contact 5 detour_planned 0 detour_driven 0 failed_and_stalled 1 failed_and_cart_contact 0

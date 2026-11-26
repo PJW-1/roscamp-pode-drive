@@ -1,0 +1,18 @@
+f_cart   RLShimDemoHist 0 SUCC  13.2s passed       cart_min 0.046 demo_cart@5s(0.79,0.54)            person_min inf x_max 1.60 end (1.60,0.56)
+f_cart   RLShimDemoHist 1 SUCC  12.3s passed       cart_min 0.042 demo_cart@5s(0.79,0.54)            person_min inf x_max 1.60 end (1.60,0.56)
+f_cart   RLShimDemoHist 2 SUCC  13.0s passed       cart_min 0.048 demo_cart@5s(0.80,0.54)            person_min inf x_max 1.61 end (1.61,0.57)
+f_cart   RLShimDemoHist 3 SUCC  13.0s passed       cart_min 0.047 demo_cart@5s(0.80,0.54)            person_min inf x_max 1.62 end (1.62,0.58)
+f_cart   RLShimDemoHist 4 SUCC  13.3s passed       cart_min 0.045 demo_cart@5s(0.80,0.54)            person_min inf x_max 1.61 end (1.61,0.57)
+g_demo   RLShimDemoHist 0 SUCC  20.5s passed       cart_min 0.037 demo_cart@8s(0.75,0.56)            person_min 0.000 x_max 1.59 end (1.59,0.62)
+g_demo   RLShimDemoHist 1 SUCC  20.5s passed       cart_min 0.027 demo_cart@8s(0.71,0.59)            person_min 0.000 x_max 1.61 end (1.61,0.56)
+g_demo   RLShimDemoHist 2 SUCC  16.5s passed       cart_min 0.035 demo_cart@8s(0.74,0.56)            person_min 0.003 x_max 1.60 end (1.60,0.56)
+g_demo   RLShimDemoHist 3 ABOR  50.0s cart_contact cart_min 0.000 demo_cart@8s(0.72,0.62)            person_min 0.319 x_max 0.76 end (0.09,0.82)
+g_demo   RLShimDemoHist 4 SUCC  21.8s passed       cart_min 0.033 demo_cart_hall@8s(0.70,0.57)       person_min 0.000 x_max 1.60 end (1.60,0.57)
+k_cross  RLShimDemoHist 0 SUCC  18.1s passed       cart_min inf                                    person_min 0.000 x_max 1.62 end (1.62,0.54)
+k_cross  RLShimDemoHist 1 SUCC  16.9s passed       cart_min inf                                    person_min 0.000 x_max 1.60 end (1.60,0.52)
+k_cross  RLShimDemoHist 2 SUCC  16.8s passed       cart_min inf                                    person_min 0.000 x_max 1.63 end (1.63,0.59)
+k_cross  RLShimDemoHist 3 SUCC  16.8s passed       cart_min inf                                    person_min 0.000 x_max 1.61 end (1.61,0.53)
+k_cross  RLShimDemoHist 4 ABOR  37.7s passed       cart_min inf                                    person_min 0.000 x_max 1.22 end (1.19,0.46)
+== f_cart RLShimDemoHist: n 5 passed 5 cart_contact 0 short 0 person_contact 0
+== g_demo RLShimDemoHist: n 5 passed 4 cart_contact 1 short 0 person_contact 4
+== k_cross RLShimDemoHist: n 5 passed 5 cart_contact 0 short 0 person_contact 5

@@ -1,0 +1,24 @@
+# plans per run: in the aisle band / outside, and how often two plans in a row changed side
+f_cart   RLShimDemoHist   0 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHist   1 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHist   2 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHist   3 SUCC plans  13 in  13 out   0 first in switches 0
+f_cart   RLShimDemoHist   4 SUCC plans  13 in  13 out   0 first in switches 0
+g_demo   RLShimDemoHist   0 SUCC plans  22 in  22 out   0 first in switches 0
+g_demo   RLShimDemoHist   1 SUCC plans  21 in  21 out   0 first in switches 0
+g_demo   RLShimDemoHist   2 SUCC plans  17 in  17 out   0 first in switches 0
+g_demo   RLShimDemoHist   3 ABOR plans  25 in  10 out  15 first in switches 1
+g_demo   RLShimDemoHist   4 SUCC plans  22 in  22 out   0 first in switches 0
+k_cross  RLShimDemoHist   0 SUCC plans  18 in  18 out   0 first in switches 0
+k_cross  RLShimDemoHist   1 SUCC plans  18 in  18 out   0 first in switches 0
+k_cross  RLShimDemoHist   2 SUCC plans  17 in  17 out   0 first in switches 0
+k_cross  RLShimDemoHist   3 SUCC plans  18 in  18 out   0 first in switches 0
+k_cross  RLShimDemoHist   4 ABOR plans  17 in  17 out   0 first in switches 0
+PLAN f_cart   RLShimDemoHist   runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 65
+PLAN g_demo   RLShimDemoHist   runs 5 all plans in band 4 any plan outside 1 runs with a switch 1 switches 1 plans 107
+PLAN k_cross  RLShimDemoHist   runs 5 all plans in band 5 any plan outside 0 runs with a switch 0 switches 0 plans 88
+# plugin timing from the 1 s log lines (us): calls, call-weighted infer mean, infer max, call mean, call max
+f_cart   launch_1.out lines 115 calls 2203 infer mean 54 max 355 call mean 119 max 855
+g_demo   launch_1.out lines 131 calls 2410 infer mean 52 max 238 call mean 118 max 724
+k_cross  launch_1.out lines 110 calls 2123 infer mean 53 max 244 call mean 119 max 751
+# launch output lines that mention the plan keeper, per scenario: {}

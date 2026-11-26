@@ -1,0 +1,39 @@
+# contact with the person: speed over the 0.2 s before the first contact
+g_demo   RLShimDemoHist     0 SUCC ok True  24.2s person_min 0.035 no contact
+g_demo   RLShimDemoHist     1 SUCC ok True  11.5s person_min 0.054 no contact
+g_demo   RLShimDemoHist     2 SUCC ok True  34.4s person_min 0.024 no contact
+g_demo   RLShimDemoHist     3 SUCC ok True  13.4s person_min 0.029 no contact
+g_demo   RLShimDemoHist     4 SUCC ok True  11.6s person_min 0.052 no contact
+k_cross  RLShimDemoHist     0 SUCC ok True  16.5s person_min 0.000 first contact 7.5s at (1.06,0.56) v_0.2s 0.117 standing False
+k_cross  RLShimDemoHist     1 ABOR ok False  34.3s person_min 0.000 first contact 7.5s at (1.07,0.58) v_0.2s 0.118 standing False
+k_cross  RLShimDemoHist     2 SUCC ok False  31.9s person_min 0.000 first contact 7.3s at (1.06,0.58) v_0.2s 0.120 standing False
+k_cross  RLShimDemoHist     3 SUCC ok True  14.9s person_min 0.000 first contact 7.4s at (1.06,0.56) v_0.2s 0.110 standing False
+k_cross  RLShimDemoHist     4 SUCC ok True  14.5s person_min 0.000 first contact 7.6s at (1.06,0.56) v_0.2s 0.106 standing False
+# fleet stall rule (1 s without 5 cm -> wait, 2 s more -> stuck) replayed on the true trajectory, per run: waits/stuck and where
+f_cart   RLShimDemoHist     0 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHist     1 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHist     2 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHist     3 SUCC waits 0 stuck 0 []
+f_cart   RLShimDemoHist     4 SUCC waits 0 stuck 0 []
+g_demo   RLShimDemoHist     0 SUCC waits 1 stuck 0 [[4.9, 0.49, 0.62, 'wait']]
+g_demo   RLShimDemoHist     1 SUCC waits 0 stuck 0 []
+g_demo   RLShimDemoHist     2 SUCC waits 1 stuck 0 [[11.3, 0.4, 0.55, 'wait']]
+g_demo   RLShimDemoHist     3 SUCC waits 0 stuck 0 []
+g_demo   RLShimDemoHist     4 SUCC waits 0 stuck 0 []
+k_cross  RLShimDemoHist     0 SUCC waits 1 stuck 0 [[11.8, 1.21, 0.49, 'wait']]
+k_cross  RLShimDemoHist     1 ABOR waits 1 stuck 1 [[12.9, 1.16, 0.57, 'stuck']]
+k_cross  RLShimDemoHist     2 SUCC waits 4 stuck 2 [[12.7, 1.11, 0.53, 'wait'], [15.9, 1.17, 0.52, 'stuck'], [22.4, 1.19, 0.51, 'wait'], [26.2, 1.05, 0.3, 'stuck']]
+k_cross  RLShimDemoHist     3 SUCC waits 1 stuck 0 [[11.2, 1.23, 0.54, 'wait']]
+k_cross  RLShimDemoHist     4 SUCC waits 0 stuck 0 []
+STALL f_cart   RLShimDemoHist     runs 5 with a wait 0 with a stuck 0 waits in all 0
+STALL g_demo   RLShimDemoHist     runs 5 with a wait 2 with a stuck 0 waits in all 2
+STALL k_cross  RLShimDemoHist     runs 5 with a wait 4 with a stuck 2 waits in all 7
+# leg time: all runs, and the median over the runs that arrived (ok)
+f_cart   RLShimDemoHist     n 5 ok 5 median_ok_s 13.3 times [13.1, 21.6, 13.3, 12.9, 13.3]
+g_demo   RLShimDemoHist     n 5 ok 5 median_ok_s 13.4 times [24.2, 11.5, 34.4, 13.4, 11.6]
+k_cross  RLShimDemoHist     n 5 ok 3 median_ok_s 14.9 times [16.5, 34.3, 31.9, 14.9, 14.5]
+# plugin log: control cycles and closing blocks of the controller with the closing stop on, summed per scenario
+f_cart   launch_1.out log lines 0 calls 0 closing blocks 0 (-) tf misses 0
+g_demo   launch_1.out log lines 0 calls 0 closing blocks 0 (-) tf misses 0
+k_cross  launch_1.out log lines 0 calls 0 closing blocks 0 (-) tf misses 0
+# configure line: ['c format 3, obs blocks [prev_action, lidar_history, speed_cap], speed_cap 0.120 m/s, ema alpha v 1.000 w 1.000, scan mask 0 ranges, closing stop 0.260 m within 60.0 deg (lookback 1.000 s, spread 4.0 deg, closing 0.080 m/s, hold 0.300 s, min rays 2, tf in odom)']

@@ -91,7 +91,9 @@ python3 tools/nav_bench/report.py --config docs/rl_tracks_2026-11-26/gz_demo.yam
 - 판별 결과는 `~/rl_demo_out/report/legs.csv`(성공, 통로 안인지, 몸 여유 최솟값)다. 지금까지의 결과와 읽는 법은
   `docs/worklog_rl_tracks_2026-11-26.md` 8d, 13, 13b, 13c절에 있다. 건너는 사람(`j_cross`, `k_cross`)은 두 정책 모두 닿는다.
 - 길 유지(`plan_keep`)는 main 441aaf93부터 기본으로 켜진다. 이 브랜치도 그 main을 merge했으므로 `plan_keep:=false`를 주지
-  않으면 keeper가 켜진 채로 돈다. 후보 정책을 keeper와 같이 돌린 결과는 작업 기록 28절에 있다.
+  않으면 keeper가 켜진 채로 돈다. 후보 정책을 keeper와 같이 돌린 결과(Gazebo 5판씩, 작업 기록 28절): `aisle_first:=true`에서는
+  keeper를 켜도 끈 것과 달라 보이지 않았다. 기본 전역 costmap(실물에서 `RL_POLICY`만 줬을 때와 같은 조합)에서는 keeper를 켠
+  쪽이 통로 카트를 통로 안으로 지나간 판이 많았고(4/5 대 1/5) 충돌은 없었다. `aisle_first`는 시뮬 launch에만 있다.
 - 플러그인의 다가옴 막기 옵션(`closing_stop_range`, 기본 꺼짐. `pode/pode_rl_controller/README.md`)은 여기에 켜는 법을 적지
   않는다: `j_cross`, `k_cross`에서 켜고 돌린 10판 가운데 사람과 닿지 않고 도착한 판이 없었다(첫 건넘에서는 섰지만 그 뒤에
   닿았고, 도착 시간은 1.8~3.7배였다. 작업 기록 26절). 한 번만 건너는 사람(`l_once`, `m_once`)의 결과는 30절에 있다.
