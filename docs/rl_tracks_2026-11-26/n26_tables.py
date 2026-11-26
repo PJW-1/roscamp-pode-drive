@@ -51,6 +51,10 @@ CAPS_PAIRS = [("caps", "ctrl"), ("capsstd", "std"), ("capsstd", "caps"), ("caps"
 SYM_PAIRS = [("sym", "ctrl"), ("sym", "acd3")]
 # 라이다 이력 + std 되돌리기 + 시연 조건 (대조는 이력만 없는 demostd)
 HIST_PAIRS = [("demohist", "demostd"), ("demohist", "acd3")]
+# 600번 더 이어 학습한 것 (대조는 이어 학습 전의 자신). 이름 끝의 m은 중간 점(누적 2350)
+LONG_PAIRS = [("demohist2", "demohist"), ("demostd2", "demostd"), ("demohist2", "demostd2"),
+              ("demohist2", "acd3"), ("demostd2", "acd3"), ("demohist2m", "demohist"),
+              ("demostd2m", "demostd"), ("demohist2m", "acd3"), ("demostd2m", "acd3")]
 COMPARISONS = (
     [(a, c, b, c) for c in ("rand", "head") for a, b in BASE_PAIRS]
     + [("sysid", "realrand", "ctrl", "realrand"), ("ctrl", "realrand", "acd3", "realrand")]
@@ -61,6 +65,7 @@ COMPARISONS = (
     + [(a, c, b, c) for c in ("rand", "head") for a, b in CAPS_PAIRS]
     + [(a, c, b, c) for c in ("rand", "head", "aisle") for a, b in SYM_PAIRS]
     + [(a, c, b, c) for c in ("demo1", "demo2", "aisle", "rand", "head") for a, b in HIST_PAIRS]
+    + [(a, c, b, c) for c in ("demo1", "demo2", "aisle", "rand") for a, b in LONG_PAIRS]
 )
 # (기준, 다시 돌린 것): 같은 체크포인트·같은 seed를 병합 코드로 다시 돌린 칸
 REGRESSION = (("e_acd3_rand", "e_acd3_rand_chk"), ("e_acd3_rand", "e_acd3_rand_chk2"))
