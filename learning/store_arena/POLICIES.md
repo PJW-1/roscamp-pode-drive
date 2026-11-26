@@ -133,7 +133,7 @@ d = 에피소드마다 최고 속도 U(0.08, 0.16)와 그 관측(RW:12-15). 최�
 | t_caps_std (`n26/t_caps_std`) | 11-26 | 같음 c6a6bd02 | 같음 | 300 / (진행) | 3 | 같음 | t_caps + `--init_std 0.3` | a+c+d(부드러움 벌점 없음) | 위 + 탐색 std를 0.3으로 되돌려 시작 | 44 | (진행) | 없음 | 진행 | 작업 기록 10절 |
 | t_sym (`n26/t_sym`) | 11-26 | 같음 3e770458 | 같음 | 300 / (진행) | 3 | 같음 | `--symmetry aug` | a+c+d | 좌우 거울 증강(표본마다 거울 사본을 붙여 학습) | 44 | (진행) | 없음 | 진행 | 작업 기록 11절, `docs/report_2026-11-26_rl_symmetry.md` |
 | t_demo_hist (`n26/t_demo_hist`) | 11-26 | 같음 51b51d39 | `n26/init_acd3_hist3.pt` (acd3에 `widen_checkpoint.py --add_lidar_history`) | 300 / 2044 | 3 | 같음 | t_demo_std 설정 + `lidar_frames=3 lidar_stride_steps=4` | a+b+c+d | 라이다 이력 + std 0.3 + 시연 조건 절반 | 116 | rand 77.37 %(acd3 +1.05, SE 0.47), head 51.12 %(acd3 +3.71, 0.68. t_demo_std +3.03, 0.62), aisle 72.19 %(acd3 +15.58, 0.71. t_std +4.30, 0.57), demo1 52.81 %(acd3 +9.16, 0.68. t_demo_std +1.56, 0.56. t_std +0.32, 0.60), demo2 48.27 %(acd3 +7.96, 0.63). demo1에서 건넘이 경로 위인 에피소드의 사람 충돌 15.3 %(t_demo_std 17.3 %, 짝 차이 -2.07 %p, SE 0.68). 같은 에피소드 짝 | 아홉째 묶음(13절): `f_cart` 통로 판 5/5, 충돌 0. `g_demo` 도착 4/5(acd3 3/5, 판정하지 않음). 보충 묶음 `j_cross`, `k_cross`(13b, 13c절): 닿지 않고 지난 판 없음(acd3도 같다). 플릿 시뮬 세 번 PASS(7c절) | 끝. 후보: `store_arena_demohist`로 저장소에 넣었다(`nav_rl:=rl_demohist`). 실물에서는 돌려 보지 않았다 | 작업 기록 7c절, 8c절 끝, 12절, 13절 |
-| t_demo_hist2 (`n26/t_demo_hist2`) | 11-26 | 같음 74e82c53 | `n26/t_demo_hist/model_2044.pt` (`--resume`) | 600 / (진행) | 3 | 같음 | t_demo_hist와 같다(이어 학습이라 `--init`, `--init_std` 없음) | a+b+c+d | 없음(같은 설정으로 600번 더) | 116 | (진행) | 없음 | 학습 중(14:24 시작) | 작업 기록 15절 |
+| t_demo_hist2 (`n26/t_demo_hist2`) | 11-26 | 같음 74e82c53 | `n26/t_demo_hist/model_2044.pt` (`--resume`) | 600 / 2643 | 3 | 같음 | t_demo_hist와 같다(이어 학습이라 `--init`, `--init_std` 없음) | a+b+c+d | 없음(같은 설정으로 600번 더) | 116 | demo1 54.27 %(부모 +1.46, SE 0.54. acd3 +10.62, 0.68), demo2 50.05 %(부모 +1.78, 0.51), aisle 73.95 %(부모 +1.76, 0.49), rand 78.54 %(부모 +1.17, 0.41. acd3 +2.22, 0.48). 충돌은 네 칸 모두 부모보다 2 SE 넘게 적다. demo1의 건넘 경로 위 사람 충돌은 17.0 %로 부모(15.3 %)보다 높다(+1.74, 0.66). head는 평가하지 않았다. 같은 에피소드 짝 | 열한째 묶음에 같이 넣는다(작업 기록 17절) | 끝(학습 4510 s). "더 길게 학습하면 오른다". `store_arena_demohist2`로 내보냈고(onnx sha256 앞 12자 `2b58f8fbb442`) 저장소에는 아직 넣지 않았다: 넣는 기준은 작업 기록 17절 | 작업 기록 15절 |
 | t_demo_std2 (`n26/t_demo_std2`) | 11-26 | 같음 74e82c53 | `n26/t_demo_std` 마지막 모델 (`--resume`) | 600 / (진행) | 3 | 같음 | t_demo_std와 같다(이어 학습) | a+c+d | 없음(같은 설정으로 600번 더) | 44 | (진행) | 없음 | 진행 | 작업 기록 15절 |
 | t_demo_hist_dyn (`n26/t_demo_hist_dyn`) | 11-26 | 같음 e9e19c69 | `n26/init_acd3_hist3.pt` (t_demo_hist와 같다) | 300 / (진행) | 3 | 같음 | t_demo_hist 설정 + `near_dyn_m=0.10 w_near_dyn=-1.0` | a+b+c+d | 위 + 움직이는 것(사람, 움직이는 카트, 로봇) 0.10 m 안 벌점 | 116 | (진행) | 없음 | 진행 | 작업 기록 16절 |
 | t_hist_std (`n26/t_hist_std`) | 11-26 | 같음 51b51d39 | `n26/init_acd3_hist3.pt` (t_demo_hist와 같다) | 300 / (진행) | 3 | 같음 | t_demo_hist 설정에서 시연 조건 셋(`obstacle_demo_share`, `mover_cross_prob`, `robot_cleaner_prob`)을 뺀 것 | a+b+c+d | 라이다 이력 + std 0.3, 시연 조건 없음(시연 조건 × 이력 2×2의 빈 칸) | 116 | (진행) | 없음 | 큐에서 대기(학습 전) | 작업 기록 18절 |
@@ -151,7 +151,8 @@ corner·tee·entry(`robot_scenario=<이름> mover_prob=0`). 같은 칸의 판끼
 | e_ctrl_head, e_std_rand, e_std_head, e_sysid_*, e_dyn_*, e_gam_* | 위 학습의 마지막 모델 | rand, head(+ sysid·ctrl은 realrand) | (진행) | 진행(e_std_rand, e_std_head는 끝났다: 작업 기록 17a절) |
 | e_{acd3, ctrl, std, demo, demostd, demohist}_{aisle, demo1, demo2} | acd3 또는 위 학습의 마지막 모델 | aisle(통로 상자 하나, 사람·로봇 없음), demo1·demo2(상자 1·2 + 틈을 건너는 사람 + 운반 1·청소 1). 설정은 작업 기록 8절 | 성공 %는 아래 표. 짝 차이와 충돌 종류는 작업 기록 8c절 끝, 12절 | 끝 |
 | e_{demo, demostd, demohist}_{rand, head} | 위 학습의 마지막 모델 | rand, head | 성공 %는 아래 표. 짝 차이는 작업 기록 12절, 13절 | 끝 |
-| e_caps_*, e_capsstd_*, e_sym_*, e_demohist2_*, e_demostd2_*, e_demohistdyn_*, e_histstd_* | 위 학습의 마지막 모델 | 작업 기록 10, 11, 15, 16, 18절 | (진행) | 진행 |
+| e_demohist2_{demo1, rand, demo2, aisle}, e_demohist2m_demo1 | t_demo_hist2의 마지막 모델(m은 중간 점 `model_2350.pt`) | 이름대로 | 성공 54.27, 78.54, 50.05, 73.95 %. 중간 점 demo1 54.76 %(부모 +1.95, SE 0.52). 작업 기록 15절 | 끝 |
+| e_caps_*, e_capsstd_*, e_sym_*, e_demostd2_*, e_demohistdyn_*, e_histstd_* | 위 학습의 마지막 모델 | 작업 기록 10, 11, 15, 16, 18절 | (진행) | 진행 |
 | e_{acd3, std, demohist}_demo1c08 | acd3 또는 위 학습의 마지막 모델 | demo1에서 속도 상한만 0.08로 낮춘 것(작업 기록 19절) | (진행) | 큐에서 대기 |
 | e_{acd3, std, demohist}_aislet | acd3 또는 위 학습의 마지막 모델 | aisle 평가를 궤적 1024개로 다시 돌린 것(시간 초과의 끝 동작, 작업 기록 20절) | (진행) | 큐에서 대기 |
 | e_{acd3, std, demohist}_demo1t | acd3 또는 위 학습의 마지막 모델 | demo1 평가를 궤적 1024개로 다시 돌린 것(건너는 사람이 닿기 전에 보인 시간, 작업 기록 21절) | (진행) | 큐에서 대기 |
@@ -166,6 +167,7 @@ corner·tee·entry(`robot_scenario=<이름> mover_prob=0`). 같은 칸의 판끼
 | t_demo | 75.02 | 45.07 | 55.98 | 41.65 | 39.36 |
 | t_demo_std | 77.51 | 48.10 | 70.41 | 51.25 | 47.80 |
 | t_demo_hist | 77.37 | 51.12 | 72.19 | 52.81 | 48.27 |
+| t_demo_hist2 | 78.54 | 평가 없음 | 73.95 | 54.27 | 50.05 |
 
 ## 기록 규칙
 

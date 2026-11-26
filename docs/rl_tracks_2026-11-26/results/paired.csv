@@ -51,3 +51,13 @@ demohist,rand,std,rand,4096,yes (16 tracked envs),-1.9043,0.4303,outside,2.0752,
 demohist,head,demostd,head,4096,yes (16 tracked envs),3.0273,0.6188,outside,-2.9785,0.6188,outside,-0.0488,0.0345,inside,0.708,0.3693,inside,-0.0488,0.1145,inside,0.0244,0.3444,inside,-3.6621,0.5842,outside
 demohist,head,acd3,head,4096,yes (16 tracked envs),3.7109,0.6795,outside,-3.2959,0.6778,outside,-0.415,0.1005,outside,,,,,,,,,,,,
 demohist,head,std,head,4096,yes (16 tracked envs),-1.416,0.6584,outside,1.7822,0.6578,outside,-0.3662,0.0944,outside,,,,,,,,,,,,
+demohist2,demo1,demohist,demo1,4096,yes (16 tracked envs),1.4648,0.5422,outside,-1.6846,0.5788,outside,0.2197,0.2057,inside,-0.1221,0.4078,inside,-0.9033,0.5884,inside,0.9033,0.3407,outside,-1.5625,0.4456,outside
+demohist2,demo1,acd3,demo1,4096,yes (16 tracked envs),10.6201,0.6832,outside,-8.3984,0.7475,outside,-2.2217,0.3374,outside,-1.3916,0.4647,outside,-4.1504,0.7072,outside,-1.8311,0.4694,outside,-1.0254,0.5414,inside
+demohist2m,demo1,demohist,demo1,4096,yes (16 tracked envs),1.9531,0.5228,outside,-1.7334,0.5502,outside,-0.2197,0.1743,inside,-0.2686,0.3899,inside,-0.6836,0.527,inside,0.5859,0.322,inside,-1.3672,0.4252,outside
+demohist2m,demo1,acd3,demo1,4096,yes (16 tracked envs),11.1084,0.6821,outside,-8.4473,0.7328,outside,-2.6611,0.3147,outside,-1.5381,0.4671,outside,-3.9307,0.69,outside,-2.1484,0.4659,outside,-0.8301,0.5314,inside
+demohist2,demo2,demohist,demo2,4096,yes (16 tracked envs),1.7822,0.5061,outside,-2.002,0.5527,outside,0.2197,0.2251,inside,-0.415,0.474,inside,-0.0488,0.608,inside,-0.3418,0.34,inside,-1.1963,0.4699,outside
+demohist2,demo2,acd3,demo2,4096,yes (16 tracked envs),9.7412,0.6245,outside,-5.1758,0.7206,outside,-4.5654,0.406,outside,-0.4639,0.5242,inside,-1.8066,0.732,outside,-1.8799,0.4351,outside,-1.0254,0.5302,inside
+demohist2,aisle,demohist,aisle,4096,yes (16 tracked envs),1.7578,0.4924,outside,-1.4648,0.5509,outside,-0.293,0.2629,inside,-0.8789,0.3363,outside,-0.5859,0.603,inside,0.0,0.0,inside,0.0,0.0,inside
+demohist2,aisle,acd3,aisle,4096,yes (16 tracked envs),17.334,0.6735,outside,-12.0605,0.7278,outside,-5.2734,0.4506,outside,-2.0996,0.3954,outside,-9.9609,0.7819,outside,0.0,0.0,inside,0.0,0.0,inside
+demohist2,rand,demohist,rand,4096,yes (16 tracked envs),1.1719,0.4096,outside,-1.123,0.4111,outside,-0.0488,0.0345,inside,0.1953,0.2211,inside,-0.0244,0.1007,inside,-1.1475,0.3642,outside,-0.1465,0.2514,inside
+demohist2,rand,acd3,rand,4096,yes (16 tracked envs),2.2217,0.4816,outside,-1.8311,0.4807,outside,-0.3906,0.0975,outside,,,,,,,,,,,,
