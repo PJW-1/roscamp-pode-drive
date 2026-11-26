@@ -228,6 +228,36 @@ def test_capped_action_is_the_full_speed_target_clamped_to_the_cap():
     assert torch.allclose(got[4], full[4], atol=1e-7)  # 학습한 최고속도에서는 그대로
 
 
+def test_block_forward_zeroes_the_forward_v_only_when_the_front_cone_is_near():
+    rays = torch.full((6, 360), 2.0)  # 레이는 -180 deg 부터 1 deg 씩: 정면은 index 180
+    rays[0, 180] = 0.15  # 정면이 가깝다
+    rays[1, 180 + 30] = 0.15  # 부채꼴의 끝 레이 (포함)
+    rays[2, 180 + 31] = 0.15  # 부채꼴 바로 밖
+    rays[3, 180] = 0.15  # 가깝지만 후진 목표
+    rays[4, 180] = 0.20  # 거리가 문턱과 같다 (막지 않음)
+    rays[5, 0] = 0.05  # 뒤만 가깝다
+    target = torch.tensor(
+        [[0.12, 0.4], [0.12, -0.4], [0.12, 0.4], [-0.05, 0.4], [0.12, 0.4], [0.12, 0.4]]
+    )
+    out, blocked = ts.block_forward(target, rays, 0.20, 30.0)
+    assert blocked.tolist() == [True, True, False, False, False, False]
+    assert torch.equal(out[:2, 0], torch.zeros(2))
+    assert torch.equal(out[:, 1], target[:, 1])  # w 는 그대로
+    assert torch.equal(out[2:], target[2:])
+    assert torch.equal(target[0], torch.tensor([0.12, 0.4]))  # 입력을 고치지 않음
+
+
+def test_block_forward_is_off_at_zero_range_and_follows_the_ray_count():
+    rays = torch.full((2, 360), 0.06)
+    target = torch.tensor([[0.12, 0.0], [0.08, 1.0]])
+    out, blocked = ts.block_forward(target, rays, 0.0, 30.0)
+    assert not blocked.any() and torch.equal(out, target)
+    coarse = torch.full((1, 36), 2.0)  # 10 deg 간격: 정면은 index 18
+    coarse[0, 18 + 6] = 0.1  # +60 deg
+    assert ts.block_forward(target[:1], coarse, 0.2, 60.0)[1].tolist() == [True]
+    assert ts.block_forward(target[:1], coarse, 0.2, 59.0)[1].tolist() == [False]
+
+
 def test_speed_cap_draw_stays_in_range_and_a_single_value_draws_nothing():
     spec = dataclasses.replace(ts.SPEC, speed_cap_range=(0.08, 0.16))
     torch.manual_seed(0)

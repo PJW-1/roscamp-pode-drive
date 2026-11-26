@@ -288,6 +288,23 @@ def capped_action(actions: torch.Tensor, v_cap: torch.Tensor, lim: ActionLimits 
     return out
 
 
+def block_forward(
+    target: torch.Tensor, rays: torch.Tensor, stop_range: float, half_width_deg: float
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """앞 막기: 정면 +-half_width_deg 안의 레이 가운데 stop_range 보다 가까운 것이 있으면
+    전진 목표 v 를 0 으로 (w 는 그대로). 플러그인 block_reverse 의 앞쪽 짝이고 평가에서만 쓴다
+    (play.py --front_stop). rays (N, R) 는 라이다 중심에서의 거리, -180 deg 부터 고른 간격.
+    반환: (목표 (N, 2), 막았는지 (N,))."""
+    n_rays = rays.shape[1]
+    deg = -180.0 + torch.arange(n_rays, device=rays.device) * (360.0 / n_rays)
+    front = deg.abs() <= half_width_deg + 1e-9
+    near = (rays[:, front] < stop_range).any(dim=-1)
+    blocked = near & (target[:, 0] > 0.0) & (stop_range > 0.0)
+    out = target.clone()
+    out[:, 0] = torch.where(blocked, torch.zeros_like(out[:, 0]), out[:, 0])
+    return out, blocked
+
+
 def sample_speed_cap(n: int, device, spec: TaskSpec = SPEC) -> torch.Tensor:
     """에피소드별 최고속도 (n,), speed_cap_range 균등 (한 값이면 뽑지 않음)."""
     lo, hi = spec.speed_cap_range

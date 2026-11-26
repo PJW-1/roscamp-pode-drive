@@ -123,6 +123,9 @@ class GoalReachEnv(DirectRLEnv):
         )
         n, dev = self.num_envs, self.device
         self.cmd = torch.zeros(n, 2, device=dev)  # 변화율 제한된 (v, w) 명령
+        # 앞 막기 (평가 전용, play.py --front_stop): (거리 m, 반각 deg) 이면 켬. 학습에서는 None
+        self.front_stop = None
+        self.front_blocked = torch.zeros(n, dtype=torch.bool, device=dev)  # 지난 스텝에 막았는지
         # 관측 라이다 거리 배율 (lidar_scale_range): 리셋 때 env 별로 뽑음
         self.lidar_scale = ts.sample_lidar_scale(n, dev, self.spec)
         # 명령 응답 모델 (cmd_*_range): 끄면 (기본) _pre_physics_step 이 건너뜀
@@ -190,6 +193,12 @@ class GoalReachEnv(DirectRLEnv):
 
     def _pre_physics_step(self, actions: torch.Tensor) -> None:
         self.target = target = self.action_target(actions)
+        # 앞 막기는 명령만 바꾼다. 관측의 직전 행동 (self.target) 은 정책 목표 그대로다
+        # (플러그인의 뒤쪽 막기와 같은 자리)
+        if self.front_stop is not None:
+            target, self.front_blocked = ts.block_forward(
+                target, self.lidar_ranges(), *self.front_stop
+            )
         if self.cmd_response:  # 정책 목표 -> 실물 응답 모델 -> 변화율 제한
             target, self.resp_buf = ts.cmd_response_step(
                 self.resp_buf,

@@ -36,6 +36,15 @@ parser.add_argument(
     "at the trained top speed, clamped to c (what the plugin does with a format-2 policy)",
 )
 parser.add_argument(
+    "--front_stop",
+    type=str,
+    default="",
+    metavar="RANGE_M,HALF_DEG",
+    help="front stop on top of the policy: while any lidar ray within +-HALF_DEG of straight "
+    "ahead is nearer than RANGE_M (from the lidar centre), a forward v target becomes 0 and w is "
+    "kept (the front twin of the plugin's rear_stop_range; evaluation only)",
+)
+parser.add_argument(
     "--dump_obs",
     type=int,
     default=0,
@@ -102,6 +111,15 @@ def main():
             def policy(obs):
                 return arena.ts.capped_action(trained(obs), raw.v_cap)
 
+        front_stop = None
+        if args_cli.front_stop:
+            if args_cli.still:
+                raise SystemExit("--front_stop guards the policy's forward target: no --still")
+            front_stop = tuple(float(x) for x in args_cli.front_stop.split(","))
+            if len(front_stop) != 2 or front_stop[0] <= 0.0 or not 0.0 < front_stop[1] <= 180.0:
+                raise SystemExit("--front_stop wants RANGE_M,HALF_DEG with a positive range")
+            raw.front_stop = front_stop
+        blocked_steps = 0  # 앞 막기가 걸린 (env, 스텝) 수
         routes = raw.routes
         n_boxes = torch.as_tensor(
             (~np.isnan(routes.obstacle_xy[..., 0])).sum(-1), device=raw.device
@@ -147,6 +165,8 @@ def main():
                     dump_act.append(act.cpu().numpy())
                 obs, _, dones, _ = env.step(act)
             step += 1
+            if front_stop is not None:
+                blocked_steps += int(raw.front_blocked.sum())
             d = dones.bool()
             lidar_min = min(lidar_min, float(raw.lidar_ranges().min()))
             counted = d & (ep_done < E)
@@ -284,6 +304,14 @@ def main():
             "w_flips_per_min_success": flips_per_min(codes == 0),
             "still": bool(args_cli.still),
             "capped": bool(args_cli.capped),
+            # 앞 막기 (--front_stop): 끄면 None. blocked_step_frac 은 막힌 (env, 스텝) 의 비율
+            "front_stop": None
+            if front_stop is None
+            else {
+                "range_m": front_stop[0],
+                "half_width_deg": front_stop[1],
+                "blocked_step_frac": round(blocked_steps / max(step * n, 1), 5),
+            },
             "spec_overrides": task_over,
             "arena_overrides": arena_over,
         }
