@@ -1,0 +1,55 @@
+{
+  "min_distance_m": 0.217,
+  "min_distance_pair": [
+    "pode1",
+    "pode2"
+  ],
+  "min_distance_at_s": 66.17,
+  "stops": 23,
+  "stops_while_moving": 16,
+  "outside_held_samples": 0,
+  "no_zone_held_samples": 0,
+  "zone_samples": 17583,
+  "sim_span_s": 213.62,
+  "wall_span_s": 213.83,
+  "real_time_factor": 0.999,
+  "keepout_depth_m": 0.0,
+  "keepout_zone": null,
+  "keepout_robot": null,
+  "keepout_at_s": null,
+  "robots": {
+    "pode1": {
+      "stops": 7,
+      "stops_while_moving": 5,
+      "outside_held_samples": 0,
+      "no_zone_held_samples": 0,
+      "zone_samples": 5861,
+      "worst_outside_m": 0.0,
+      "keepout_depth_m": 0.0,
+      "keepout_samples": 0,
+      "keepout_checked_samples": 2578
+    },
+    "pode2": {
+      "stops": 9,
+      "stops_while_moving": 6,
+      "outside_held_samples": 0,
+      "no_zone_held_samples": 0,
+      "zone_samples": 5861,
+      "worst_outside_m": 0.0,
+      "keepout_depth_m": 0.0,
+      "keepout_samples": 0,
+      "keepout_checked_samples": 2906
+    },
+    "pode3": {
+      "stops": 7,
+      "stops_while_moving": 5,
+      "outside_held_samples": 0,
+      "no_zone_held_samples": 0,
+      "zone_samples": 5861,
+      "worst_outside_m": 0.0,
+      "keepout_depth_m": 0.0,
+      "keepout_samples": 0,
+      "keepout_checked_samples": 3569
+    }
+  }
+}

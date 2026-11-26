@@ -119,7 +119,11 @@ Pi 4에서 RL 추론과 MPPI의 계산 시간을 주행 없이 재려면 `tools/
 
 1. 내보내기(Isaac Lab을 깐 python으로, CPU에서 돌렸다):
    ```bash
-   CUDA_VISIBLE_DEVICES= <Isaac Lab python> learning/goal_reach/export_policy.py --checkpoint <CK>      --out pode/pode_rl_controller/policies/<NAME> --fixtures pode/pode_rl_controller/test/fixtures/<NAME>      --goal-rule lookahead --lookahead-m 0.40 --follow-window 20 --route-spec learning/store_arena/route_spec.py      --source-branch <브랜치> --source-commit <학습 코드 커밋>      --set prev_action_obs=1 --set speed_cap_obs=1 --set speed_cap_range=0.08,0.16
+   CUDA_VISIBLE_DEVICES= <Isaac Lab python> learning/goal_reach/export_policy.py --checkpoint <CK> \
+     --out pode/pode_rl_controller/policies/<NAME> --fixtures pode/pode_rl_controller/test/fixtures/<NAME> \
+     --goal-rule lookahead --lookahead-m 0.40 --follow-window 20 --route-spec learning/store_arena/route_spec.py \
+     --source-branch <브랜치> --source-commit <학습 코드 커밋> \
+     --set prev_action_obs=1 --set speed_cap_obs=1 --set speed_cap_range=0.08,0.16
    ```
    `--set`은 학습 때 관측을 정한 설정과 같아야 한다. 라이다 이력 정책(demohist)은 `--set lidar_frames=3 --set lidar_stride_steps=4`를
    더했다.
@@ -144,5 +148,7 @@ Pi 4에서 RL 추론과 MPPI의 계산 시간을 주행 없이 재려면 `tools/
   `nav_rl:=rl_demohist`를 두 번 돌려 두 번 모두 시나리오가 PASS(주문 8건, 215 s)였다. 첫 번째에서는 pode3의 선택이
   먹지 않아 pode3만 RPP로 갔고, 두 번째에서는 세 로봇 모두 RL로 갔다(작업 기록 7c절). 이 확인은 학습 PC의 작업 사본
   빌드로 했다.
-- 세 번 보내는 선택 명령은 대역 구독자로 문법과 전달만 확인했다.
+- GitHub에서 `feat/rl-tracks-2026-11-26`(d4d7c77e)을 새로 받은 사본만으로도 확인했다: WSL 빌드, `pode_rl_controller` 시험
+  8개 통과, 플릿 시뮬 `nav_rl:=rl_demohist`에서 세 번 보내는 선택 명령으로 세 로봇 모두 RL로 주행했고 시나리오가
+  PASS(주문 8건, 216 s)였다(작업 기록 7c절).
 - 실물: 돌려 보지 않았다.

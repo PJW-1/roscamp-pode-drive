@@ -254,7 +254,7 @@ worktree에서 만든 4067d262를 직접 확인하고 병합). acd3를 넣은 �
 
 남은 확인(결과를 보기 전에 적는다): 7b와 같은 방식으로 플릿 시뮬을 `nav_rl:=rl_demohist`로 띄우고 세 로봇의
 `controller_selector`에 `FollowPathRL`을 보낸 뒤 관제 시나리오(gz_v7)를 300초 돌린다. 도메인 74, 빌드는 통합 작업 사본
-(GitHub에서 새로 받은 사본으로 하는 확인은 마지막 커밋 뒤에 한 번 한다).
+(GitHub에서 새로 받은 사본으로 하는 확인은 이 절 끝의 "새 사본 확인"에 있다).
 - 통과 기준(7b와 같다): 세 로봇의 controller_server가 정책 `store_arena_demohist`를 읽고, 선택 뒤 RL 추론 로그가 Nav2
   goal을 받은 로봇에서 나오며, 죽은 프로세스가 없다.
 - 이것은 배선 확인이다. 주문 수와 시간은 성능 비교로 읽지 않는다. 이력 관측(116칸)이 세 로봇에서 동시에 도는 것은
@@ -281,6 +281,26 @@ worktree에서 만든 4067d262를 직접 확인하고 병합). acd3를 넣은 �
   60~85 µs와 비슷하다. PC 숫자이고 Pi 4 숫자는 아니다.
 - 시나리오가 끝나기 전의 오류 로그는 두 번 모두 `Failed to get result for follow_path in node halt!`뿐이다(6줄, 4줄. 7b에서도
   난 로그다). "process has died" 4줄은 시나리오 판정 뒤 launch가 내려가며 강제로 끝낸 것이다.
+
+새 사본 확인 (13:50~13:59, 원본은 `results/gz_fleet_demohist/`의 `check_clone.txt`, `summary_clone.json`, `fleet_check_clone.json`):
+**통과.** GitHub에서 `feat/rl-tracks-2026-11-26`(d4d7c77e)을 새로 받은 사본만으로 했다.
+
+- 빌드와 시험: WSL에서 18개 패키지를 95 s에 빌드했다. 설치된 정책은 여섯(`store_arena_demohist` 포함)이고 onnx의 sha256 앞
+  12자는 `49747b8717d7`로 저장소 README와 같다. `pode_rl_controller` 시험 8개가 통과했고, demohist의 추론 일치 시험은
+  onnxruntime C++ 대 torch 최대 차이 2.86e-06이다.
+- 플릿 시뮬(인자는 위와 같다. 선택은 세 번 보내는 새 명령): 세 로봇 모두 RL 추론 로그가 나왔다(pode1 32줄, pode2 46줄,
+  pode3 30줄). 시나리오는 PASS(주문 8건, 216.3 s), 로봇 사이 최소 거리 0.217 m다. 추론 시간은 1초 줄의 평균 76~78 µs다.
+- pode3의 첫 goal: 확인용 `param get`이 pode2에서 15 s 시간 초과가 나서 pode3의 선택이 늦어졌고, pode3의 첫 Nav2 goal 시작(45 s)과
+  겹쳤다. pode3는 그 goal의 처음 1 s쯤 RPP 경고를 5줄 내고 46 s부터 RL 추론 로그를 냈다. 곧 달리는 goal 안에서 선택이
+  바뀐 것을 한 번 봤다. 실물 안내의 "goal을 취소하고 다시 보낸다"는 그대로 둔다(한 번 본 것이고 실물에서 본 것이 아니다).
+  pode2가 정책을 읽은 것은 launch 로그의 정책 읽기 줄(로봇마다 2줄)로 확인했다.
+- 시나리오 판정 전의 오류 로그는 `Failed to get result for follow_path in node halt!` 5줄뿐이다. 판정 뒤 종료 단계에서
+  강제로 끝난 4개(컨테이너 셋, gz_server)에 더해 시뮬 점검 노드 `fleet_check`가 exit 1로 끝났다: 종료 신호를 받는 순간
+  rclpy의 `take_message`가 RuntimeError를 냈다. 결과 JSON은 그 전에 썼고, 오늘의 다른 세 번에서는 없던 일이다. 점검
+  노드의 종료 처리 문제이고 RL과 무관해 고치지 않았다.
+- 이 확인 뒤의 커밋이 `pode/`, `sim/`, `tools/`의 실행 코드를 바꾸면 다시 한다. 문서, 학습 쪽 시험, 결과 파일만 바꾼
+  커밋은 다시 하지 않는다.
+
 
 ## 8. 시연 조건 갈래 (사용자 설명, 11-26 00:40쯤)
 
