@@ -27,6 +27,7 @@ find_package(yaml-cpp REQUIRED)
 add_library(pode_rl_core SHARED
   src/policy_spec.cpp
   src/observation.cpp
+  src/closing_guard.cpp
   src/onnx_policy.cpp)
 target_include_directories(pode_rl_core PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -75,6 +76,10 @@ if(BUILD_TESTING)
     POLICY_DIR="${CMAKE_CURRENT_SOURCE_DIR}/policies/store_arena_4b"
     FORMAT3_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/test/fixtures/format3/format3_cases.json"
     NAV_SPEED_FILE="${CMAKE_CURRENT_SOURCE_DIR}/../pode_nav_config/params/nav_speed.yaml")
+  ament_add_gtest(test_closing_guard test/test_closing_guard.cpp)
+  target_link_libraries(test_closing_guard pode_rl_core)
+  target_compile_definitions(test_closing_guard PRIVATE
+    CLOSING_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/test/fixtures/closing/closing_cases.json")
 endif()
 
 ament_export_include_directories(include)
