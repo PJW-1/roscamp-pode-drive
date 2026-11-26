@@ -855,9 +855,9 @@ def test_lidar_posts_cap_only_the_rays_in_range_and_keep_nearer_readings():
     r[1, 180 + 145] = 0.03  # 더 가까운 것은 그대로
     before = r.clone()
     out = ts.own_body_rays(r, spec)
-    # 받은 텐서는 바꾸지 않는다 (NaN 이 있어 -1 로 바꿔 견준다)
-    assert out is not r
-    assert torch.equal(torch.nan_to_num(r, nan=-1.0), torch.nan_to_num(before, nan=-1.0))
+    # 받은 텐서는 바꾸지 않는다 (NaN 자리와 나머지 값을 따로 견준다)
+    assert out is not r and torch.equal(r.isnan(), before.isnan())
+    assert torch.equal(r[~r.isnan()], before[~before.isnan()])
     deg = torch.arange(360) - 180
     left = (deg >= 141) & (deg <= 146)
     right = (deg >= -143) & (deg <= -140)
