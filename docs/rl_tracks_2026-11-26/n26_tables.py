@@ -51,6 +51,8 @@ CAPS_PAIRS = [("caps", "ctrl"), ("capsstd", "std"), ("capsstd", "caps"), ("caps"
 SYM_PAIRS = [("sym", "ctrl"), ("sym", "acd3")]
 # 라이다 이력 + std 되돌리기 + 시연 조건 (대조는 이력만 없는 demostd, std만 되돌린 std와도 견준다)
 HIST_PAIRS = [("demohist", "demostd"), ("demohist", "acd3"), ("demohist", "std")]
+# 라이다 이력 + std 되돌리기, 시연 조건 없음 (대조는 이력 없는 std와 시연 조건을 섞은 demohist)
+FACT_PAIRS = [("histstd", "std"), ("histstd", "demohist"), ("histstd", "acd3")]
 # 이력 정책에 움직이는 물체 근접 벌점을 더한 것 (대조는 벌점 없는 이력 정책)
 DYN_PAIRS = [("demohistdyn", "demohist"), ("demohistdyn", "acd3")]
 # 600번 더 이어 학습한 것 (대조는 이어 학습 전의 자신). 이름 끝의 m은 중간 점(누적 2350)
@@ -67,6 +69,7 @@ COMPARISONS = (
     + [(a, c, b, c) for c in ("rand", "head") for a, b in CAPS_PAIRS]
     + [(a, c, b, c) for c in ("rand", "head", "aisle") for a, b in SYM_PAIRS]
     + [(a, c, b, c) for c in ("demo1", "demo2", "aisle", "rand", "head") for a, b in HIST_PAIRS]
+    + [(a, c, b, c) for c in ("demo1", "demo2", "aisle", "rand", "head") for a, b in FACT_PAIRS]
     + [(a, c, b, c) for c in ("demo1", "demo2", "aisle", "rand") for a, b in LONG_PAIRS]
     + [(a, c, b, c) for c in ("demo1", "demo2", "aisle", "rand") for a, b in DYN_PAIRS]
 )
