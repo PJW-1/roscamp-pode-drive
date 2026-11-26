@@ -1435,7 +1435,8 @@ t_demo_hist와 성공이 같으면서 충돌이 더 적다는 것이 나왔다. 
   (`FollowPathRLShimDemoHist2` = 내보낸 `store_arena_demohist2`). 같은 묶음에 acd3와 부모(`store_arena_demohist`)가 이미 있어서
   열두째 묶음에서 그 둘을 다시 돌릴 필요가 없기 때문이다(Gazebo 45분쯤을 아낀다. 이 묶음은 23분쯤 길어진다). 15절은 "둘 다
   조건을 채우면 demo1 성공이 높은 쪽 하나만 올린다"고 했는데 t_demo_std2는 아직 학습 전이다. 기다리지 않는다. t_demo_std2도
-  조건을 채우고 demo1 성공이 t_demo_hist2보다 높으면 그것은 열두째 묶음으로 따로 돌린다. Gazebo 결과는 아직 하나도 없다.)
+  조건을 채우고 demo1 성공 수가 t_demo_hist2보다 많거나 같으면(15절의 동점 규칙은 t_demo_std2다) 그것은 열두째 묶음으로 따로
+  돌린다. Gazebo 결과는 아직 하나도 없다.)
 - t_demo_hist2의 판정: `f_cart`, `k_cross`, `j_cross`는 위와 같은 문장을 쓴다. 충돌 판의 합(20판)은 부모(t_demo_hist)와 견주고
   위의 3판 규칙을 그대로 쓴다.
 - t_demo_hist2를 저장소에 넣는 기준(Gazebo 결과 전에 정한다): `f_cart`에서 통로 판이 4/5 이상이고 충돌 판이 0이며, 네 시나리오의
