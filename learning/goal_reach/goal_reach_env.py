@@ -376,8 +376,10 @@ class GoalReachEnv(DirectRLEnv):
         self.resp_lag[env_ids] = self.cmd[env_ids]
 
     def obs_lidar_ranges(self) -> torch.Tensor:
-        """관측용 거리: lidar_ranges 에 에피소드 배율을 곱함 (시뮬 판정은 lidar_ranges 그대로)."""
-        return ts.scale_ranges(self.lidar_ranges(), self.lidar_scale)
+        """관측용 거리: lidar_ranges 에 에피소드 배율을 곱하고, 몸에 붙은 것의 반환과 가림을 넣음
+        (시뮬 판정은 lidar_ranges 그대로)."""
+        scaled = ts.scale_ranges(self.lidar_ranges(), self.lidar_scale)
+        return ts.own_body_rays(scaled, self.spec)
 
     def _get_observations(self) -> dict:
         obs = ts.build_observation(

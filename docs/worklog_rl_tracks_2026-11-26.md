@@ -2919,9 +2919,14 @@ launch의 Nav2 로그 수준 기본값이 warn이라 플러그인의 INFO 줄(�
 
 | 이름 | 칸 | 바꾼 것 |
 |---|---|---|
-| `e_demohist_demo1_post`, `e_demohist_aisle_post` | demo1, aisle | 기둥 |
-| `e_demohist_demo1_postm`, `e_demohist_aisle_postm` | demo1, aisle | 기둥 + 가림 |
-| `e_demohist_demo1_l958`, `e_demohist_aisle_l958` | demo1, aisle | 거리 배율 0.958 |
+| `e_demohist_demo1post`, `e_demohist_aislepost` | demo1, aisle | 기둥 |
+| `e_demohist_demo1postm`, `e_demohist_aislepostm` | demo1, aisle | 기둥 + 가림 |
+| `e_demohist_demo1l958`, `e_demohist_aislel958` | demo1, aisle | 거리 배율 0.958 |
+
+(23:29에 고침: 평가는 아직 시작하지 않았다. 실행 이름에서 밑줄을 뺐다(`demo1_post` → `demo1post`). 표 도구가 이름의 마지막
+밑줄 뒤를 칸 이름으로 읽기 때문이다. 아래 판정의 `_post`, `_postm`, `_l958`은 이 이름들을 가리킨다. 코드는
+`learning/goal_reach/task_spec.py`의 `own_body_rays`이고 시험은 `test_task_spec.py`에 있다. 필드를 주지 않으면 받은 텐서를
+그대로 돌려주므로 기준 평가와 다른 평가는 바뀌지 않는다. 순서는 Gazebo 열두째 묶음의 추가 판 뒤, 열셋째 묶음 앞이다.)
 
 **가설과 판정** (주 지표는 demo1 성공률의 짝 차이, 기준은 2 SE. 결과를 보기 전에 정한다)
 - H-29a "기둥을 가리지 않으면 나빠진다": `_post` − 기준이 2 SE 넘게 낮으면 맞다. 2 SE 안이면 "이 평가에서는 차이가 보이지

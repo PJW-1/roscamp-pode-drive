@@ -833,3 +833,76 @@ def test_block_for_movers_stops_only_for_a_moving_active_mover_in_the_front_cone
     both = ts.block_for_movers(target, xy, yaw, [far, (pos, vel, active)], 0.30, 60.0)[1]
     assert both.tolist() == blocked.tolist()
     assert not ts.block_for_movers(target, xy, yaw, [], 0.30, 60.0)[1].any()
+
+
+# ---- 몸에 붙은 것의 반환(lidar_posts)과 가림(lidar_mask_deg): 관측 레이에만 ----
+POSTS = "lidar_posts=141,146,0.0715,-143,-140,0.0575"
+MASK = "lidar_mask_deg=138,157,-152.5,-137"
+
+
+def test_own_body_rays_is_off_by_default_and_returns_the_same_tensor():
+    assert ts.SPEC.lidar_posts == () and ts.SPEC.lidar_mask_deg == ()
+    r = torch.rand(3, 360)
+    assert ts.own_body_rays(r) is r
+
+
+def test_lidar_posts_cap_only_the_rays_in_range_and_keep_nearer_readings():
+    spec = ts.make_spec(ts.parse_overrides([POSTS]))
+    assert spec.lidar_posts == (141.0, 146.0, 0.0715, -143.0, -140.0, 0.0575)
+    r = torch.full((2, 360), 1.0)
+    r[0, 180 + 143] = float("inf")  # 반환 없음도 기둥 거리로
+    r[1, 180 + 144] = float("nan")
+    r[1, 180 + 145] = 0.03  # 더 가까운 것은 그대로
+    out = ts.own_body_rays(r, spec)
+    assert out is not r and torch.equal(r[0, :3], torch.ones(3))  # 받은 텐서는 바꾸지 않는다
+    deg = torch.arange(360) - 180
+    left = (deg >= 141) & (deg <= 146)
+    right = (deg >= -143) & (deg <= -140)
+    assert left.sum() == 6 and right.sum() == 4
+    assert torch.allclose(out[0, left], torch.full((6,), 0.0715))
+    assert torch.allclose(out[0, right], torch.full((4,), 0.0575))
+    assert torch.equal(out[0, ~(left | right)], torch.ones(350))
+    assert out[1, 180 + 144] == torch.tensor(0.0715) and out[1, 180 + 145] == torch.tensor(0.03)
+
+
+def test_lidar_mask_turns_rays_into_no_return_after_the_posts():
+    spec = ts.make_spec(ts.parse_overrides([POSTS, MASK]))
+    r = torch.full((1, 360), 0.5)
+    out = ts.own_body_rays(r, spec)
+    deg = torch.arange(360) - 180
+    masked = ((deg >= 138) & (deg <= 157)) | ((deg >= -152.5) & (deg <= -137))
+    assert masked.sum() == 20 + 16
+    assert torch.equal(out[0, masked], torch.full((36,), ts.SPEC.lidar_obs_max))
+    assert torch.equal(out[0, ~masked], torch.full((324,), 0.5))  # 기둥은 모두 가려졌다
+    # 섹터로 줄이면: 통째로 가린 섹터는 상한, 일부만 가린 섹터는 남은 레이의 최솟값
+    sectors = ts.lidar_sectors(out, spec)
+    assert sectors[0, 32] == ts.SPEC.lidar_obs_max and sectors[0, 3] == ts.SPEC.lidar_obs_max
+    assert sectors[0, 31] == 0.5 and sectors[0, 33] == 0.5
+    # 가림만 주면 기둥 없이 가린다
+    only = ts.own_body_rays(r, ts.make_spec(ts.parse_overrides([MASK])))
+    assert torch.equal(only, out)
+
+
+def test_own_body_ranges_meet_at_the_back_seam():
+    # 바로 뒤 레이는 -180 이고 180 으로도 가리킬 수 있다
+    r = torch.full((1, 360), 0.5)
+    a = ts.own_body_rays(r, ts.make_spec(ts.parse_overrides(["lidar_mask_deg=178,180"])))
+    assert a[0, 0] == ts.SPEC.lidar_obs_max and a[0, 358] == ts.SPEC.lidar_obs_max
+    assert a[0, 359] == ts.SPEC.lidar_obs_max and a[0, 1] == 0.5 and a[0, 357] == 0.5
+    b = ts.own_body_rays(r, ts.make_spec(ts.parse_overrides(["lidar_posts=-180,-179,0.07"])))
+    assert torch.allclose(b[0, :2], torch.full((2,), 0.07)) and b[0, 2] == 0.5 and b[0, 359] == 0.5
+
+
+@pytest.mark.parametrize("item", [
+    "lidar_posts=141,146",  # 셋씩 묶이지 않는다
+    "lidar_posts=146,141,0.07",  # lo > hi
+    "lidar_posts=141,146,0.0",  # 거리 0
+    "lidar_posts=141,181,0.07",  # 범위 밖
+    "lidar_mask_deg=138",  # 둘씩 묶이지 않는다
+    "lidar_mask_deg=157,138",
+    "lidar_mask_deg=-181,-170",
+    "lidar_posts=",  # 빈 값은 필드를 주지 않는 것으로 한다
+])
+def test_own_body_overrides_reject_bad_groups(item):
+    with pytest.raises(ValueError, match=item.split("=")[0]):
+        ts.make_spec(ts.parse_overrides([item]))

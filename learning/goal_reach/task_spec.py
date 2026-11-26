@@ -74,6 +74,12 @@ class TaskSpec:
     lidar_obs_max: float = 2.0  # m; [0, 1] 로 스케일하기 전 클리핑
     # 관측 거리 = s × 실제 거리, s 는 에피소드마다 이 범위에서 균등 (로봇별 라이다 배율 오차)
     lidar_scale_range: tuple[float, float] = (1.0, 1.0)
+    # 몸에 붙은 것(트레이 기둥)의 반환: (lo deg, hi deg, 거리 m) 묶음. base 기준 각이 그 범위인
+    # 관측 레이는 min(레이, 거리) 를 읽는다. 빈 값이면 없음 (평가용: 실물 로봇의 scan 을 흉내 냄)
+    lidar_posts: tuple[float, ...] = ()
+    # 가릴 각도: (lo deg, hi deg) 묶음. 그 범위의 관측 레이는 반환 없음 (lidar_obs_max).
+    # 플러그인의 scan_mask_deg 와 같은 뜻이고 lidar_posts 뒤에 적용한다
+    lidar_mask_deg: tuple[float, ...] = ()
     # ---- 명령 응답 모델: 목표 -> 이득 -> 지연 -> 1차 지연 -> 변화율 제한 -> 바퀴 ----
     # 에피소드마다 env 별로 균등하게 뽑음 (한 값이면 뽑지 않음). 기본값은 응답 모델 없음
     cmd_delay_steps_range: tuple[int, int] = (0, 0)  # 제어 스텝 수, 양끝 포함 정수
@@ -128,6 +134,8 @@ OVERRIDABLE = (
     "success_radius",
     "out_of_bounds",
     "lidar_scale_range",
+    "lidar_posts",
+    "lidar_mask_deg",
     "cmd_delay_steps_range",
     "cmd_lag_tau_range",
     "cmd_gain_v_range",
@@ -156,13 +164,24 @@ OVERRIDABLE = (
 )
 
 
+# 길이가 정해지지 않은 튜플 필드와 한 묶음의 크기 (값은 묶음 수만큼 이어 적음)
+GROUPED = {"lidar_posts": 3, "lidar_mask_deg": 2}
+
+
 def parse_overrides(items, spec=SPEC) -> dict:
     """--set 의 FIELD=VALUE 문자열을 spec 필드 기본값 타입으로 변환 (튜플은 a,b)."""
     out = {}
     for item in items:
         key, text = item.split("=", 1)
         default = getattr(spec, key, None)
-        if isinstance(default, str):
+        if key in GROUPED:
+            parts = [x for x in text.split(",") if x.strip()]
+            if not parts or len(parts) % GROUPED[key]:
+                raise ValueError(
+                    f"{key} takes groups of {GROUPED[key]} comma-separated numbers, got {text!r}"
+                )
+            out[key] = tuple(float(x) for x in parts)
+        elif isinstance(default, str):
             out[key] = text
         elif isinstance(default, int) and not isinstance(default, bool):
             out[key] = int(float(text))
@@ -196,7 +215,9 @@ def make_spec(overrides: dict) -> TaskSpec:
     bad = sorted(set(overrides) - set(OVERRIDABLE))
     if bad:
         raise ValueError(f"TaskSpec fields {bad} cannot be overridden; allowed: {OVERRIDABLE}")
-    return dataclasses.replace(SPEC, **overrides)
+    spec = dataclasses.replace(SPEC, **overrides)
+    own_body_groups(spec)  # 틀린 묶음은 여기서 거절
+    return spec
 
 
 OBS_LIDAR = SPEC.lidar_sectors
@@ -527,6 +548,51 @@ def sample_lidar_scale(n: int, device, spec: TaskSpec = SPEC) -> torch.Tensor:
 def scale_ranges(ranges: torch.Tensor, scale: torch.Tensor) -> torch.Tensor:
     """(N, rays) 거리에 env 별 배율 (N,) 을 곱한다. 섹터 최솟값·자르기 전에 부름 (관측 전용)."""
     return ranges * scale[:, None]
+
+
+def own_body_groups(spec: TaskSpec = SPEC) -> tuple[list, list]:
+    """(lidar_posts 의 (lo, hi, 거리) 목록, lidar_mask_deg 의 (lo, hi) 목록).
+    각도는 -180 <= lo <= hi <= 180, 거리는 0 보다 커야 한다. 아니면 ValueError."""
+    out = []
+    for name, size in GROUPED.items():
+        flat = tuple(getattr(spec, name))
+        if len(flat) % size:
+            raise ValueError(f"{name} takes groups of {size} numbers, got {len(flat)} values")
+        groups = [flat[i : i + size] for i in range(0, len(flat), size)]
+        for g in groups:
+            if not -180.0 <= g[0] <= g[1] <= 180.0:
+                raise ValueError(f"{name}: a range must be -180 <= lo <= hi <= 180, got {g[:2]}")
+            if size == 3 and not g[2] > 0.0:
+                raise ValueError(f"{name}: the distance must be above 0, got {g[2]}")
+        out.append(groups)
+    return out[0], out[1]
+
+
+def own_body_rays(ranges: torch.Tensor, spec: TaskSpec = SPEC) -> torch.Tensor:
+    """관측용 (N, rays) 거리에 몸에 붙은 것의 반환 (lidar_posts) 을 넣고, 가릴 각도
+    (lidar_mask_deg) 를 반환 없음으로 바꾼다. 레이는 -180 deg 부터 같은 간격이다. 둘 다 비면 받은
+    텐서를 그대로 돌려준다 (배율을 곱한 뒤, 섹터 최솟값·자르기 전에 부름. 관측 전용)."""
+    posts, masks = own_body_groups(spec)
+    if not posts and not masks:
+        return ranges
+    n_rays = ranges.shape[1]
+    deg = -180.0 + torch.arange(n_rays, device=ranges.device) * (360.0 / n_rays)
+
+    def within(lo: float, hi: float) -> torch.Tensor:
+        # 바로 뒤 레이 (-180) 는 180 으로도 본다
+        back = deg + 360.0
+        tol = 1e-6
+        front = (deg >= lo - tol) & (deg <= hi + tol)
+        return front | ((back >= lo - tol) & (back <= hi + tol))
+
+    out = ranges.clone()
+    for lo, hi, dist in posts:
+        hit = within(lo, hi)
+        seen = torch.nan_to_num(out[:, hit], nan=float("inf"))
+        out[:, hit] = seen.clamp(max=dist)
+    for lo, hi in masks:
+        out[:, within(lo, hi)] = spec.lidar_obs_max
+    return out
 
 
 def flip_step(w: torch.Tensor, last_sign: torch.Tensor, deadband: float):
