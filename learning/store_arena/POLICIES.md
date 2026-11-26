@@ -158,7 +158,7 @@ corner·tee·entry(`robot_scenario=<이름> mover_prob=0`). 같은 칸의 판끼
 | e_histstd_{demo1, aisle, rand, head, demo2} | t_hist_std의 마지막 모델 | 이름대로 | 성공 51.27, 68.65, 77.98, 49.27, 47.12 %. 작업 기록 18절 | 끝 |
 | e_stds4_{demo1, aisle, rand, head}, e_demohists4_{demo1, aisle, rand, head} | t_std_s4, t_demo_hist_s4의 마지막 모델 | 이름대로(작업 기록 22절) | (진행) | 큐에서 대기 |
 | e_caps_*, e_capsstd_*, e_sym_*, e_demostd2_*, e_demohistdyn_* | 위 학습의 마지막 모델 | 작업 기록 10, 11, 15, 16절 | (진행) | 진행 |
-| e_{acd3, std, demohist}_demo1c08 | acd3 또는 위 학습의 마지막 모델 | demo1에서 속도 상한만 0.08로 낮춘 것(작업 기록 19절) | (진행) | 큐에서 대기 |
+| e_{acd3, std, demohist}_demo1c08 | acd3 또는 위 학습의 마지막 모델 | demo1에서 속도 상한만 0.08로 낮춘 것(작업 기록 19절) | 성공 44.63, 53.86, 52.05 %. 건넘 경로 위 사람 충돌은 상한 0.12보다 +2.54, +3.30, +6.27 %p(SE 1.27, 1.22, 1.19)로 세 정책 모두 늘었다. 시간 한도와 다른 로봇의 속도가 달라 성공 %는 다른 줄과 견주지 않는다 | 끝 |
 | e_{acd3, std, demohist}_aislet | acd3 또는 위 학습의 마지막 모델 | aisle 평가를 궤적 1024개로 다시 돌린 것(시간 초과의 끝 동작, 작업 기록 20절) | (진행) | 큐에서 대기 |
 | e_{acd3, std, demohist}_demo1t | acd3 또는 위 학습의 마지막 모델 | demo1 평가를 궤적 1024개로 다시 돌린 것(건너는 사람이 닿기 전에 보인 시간, 작업 기록 21절) | (진행) | 큐에서 대기 |
 

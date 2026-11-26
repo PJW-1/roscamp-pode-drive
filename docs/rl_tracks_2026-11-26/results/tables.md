@@ -1,6 +1,6 @@
 # n26 표
 
-실행 폴더 `D:/isaac/runs/store_arena/n26`, 끝난 실행(exit=0): c_clean, c_cross, c_demo_box, e_acd3_aisle, e_acd3_demo1, e_acd3_demo2, e_acd3_head, e_acd3_rand, e_acd3_rand_chk2, e_ctrl_aisle, e_ctrl_demo1, e_ctrl_demo2, e_ctrl_rand, e_demo_aisle, e_demo_demo1, e_demo_demo2, e_demo_head, e_demo_rand, e_demohist2_aisle, e_demohist2_demo1, e_demohist2_demo2, e_demohist2_rand, e_demohist2m_demo1, e_demohist_aisle, e_demohist_demo1, e_demohist_demo2, e_demohist_head, e_demohist_rand, e_demostd_aisle, e_demostd_demo1, e_demostd_demo2, e_demostd_head, e_demostd_rand, e_histstd_aisle, e_histstd_demo1, e_histstd_demo2, e_histstd_head, e_histstd_rand, e_std_aisle, e_std_demo1, e_std_demo2, e_std_head, e_std_rand, smoke_b4, smoke_demo, smoke_hist, smoke_hstd, smoke_resume, smoke_std, smoke_sysid, t_ctrl, t_demo, t_demo_hist, t_demo_hist2, t_demo_std, t_dyn, t_hist_std, t_std
+실행 폴더 `D:/isaac/runs/store_arena/n26`, 끝난 실행(exit=0): c_clean, c_cross, c_demo_box, e_acd3_aisle, e_acd3_demo1, e_acd3_demo1c08, e_acd3_demo2, e_acd3_head, e_acd3_rand, e_acd3_rand_chk2, e_ctrl_aisle, e_ctrl_demo1, e_ctrl_demo2, e_ctrl_rand, e_demo_aisle, e_demo_demo1, e_demo_demo2, e_demo_head, e_demo_rand, e_demohist2_aisle, e_demohist2_demo1, e_demohist2_demo2, e_demohist2_rand, e_demohist2m_demo1, e_demohist_aisle, e_demohist_demo1, e_demohist_demo1c08, e_demohist_demo2, e_demohist_head, e_demohist_rand, e_demostd_aisle, e_demostd_demo1, e_demostd_demo2, e_demostd_head, e_demostd_rand, e_histstd_aisle, e_histstd_demo1, e_histstd_demo2, e_histstd_head, e_histstd_rand, e_std_aisle, e_std_demo1, e_std_demo1c08, e_std_demo2, e_std_head, e_std_rand, smoke_b4, smoke_demo, smoke_hist, smoke_hstd, smoke_resume, smoke_std, smoke_sysid, t_ctrl, t_demo, t_demo_hist, t_demo_hist2, t_demo_std, t_dyn, t_hist_std, t_std
 
 ## 1. 평가 칸
 
@@ -9,6 +9,7 @@
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | acd3 | aisle | 4096 | 56.62 | 35.62 | 7.76 | 221 | 1238 | 0 | 0 | 1375 | 55.65 | 1.476 |
 | acd3 | demo1 | 4096 | 43.65 | 52.73 | 3.61 | 284 | 907 | 436 | 533 | 2088 | 51.5 | 1.558 |
+| acd3 | demo1c08 | 4096 | 44.63 | 50.05 | 5.32 | 253 | 849 | 490 | 458 | 2020 | 71.71 | 1.386 |
 | acd3 | demo2 | 4096 | 40.31 | 53.61 | 6.08 | 370 | 895 | 403 | 528 | 2131 | 56.2 | 1.522 |
 | acd3 | head | 4096 | 47.41 | 52.17 | 0.42 | 195 | 40 | 414 | 1488 | 1970 | 45.15 | 1.407 |
 | acd3 | rand | 4096 | 76.32 | 23.27 | 0.42 | 114 | 45 | 436 | 358 | 896 | 43.3 | 1.158 |
@@ -24,6 +25,7 @@
 | demo | rand | 4096 | 75.02 | 24.58 | 0.39 | 99 | 51 | 473 | 384 | 890 | 39.13 | 1.146 |
 | demohist | aisle | 4096 | 72.19 | 25.02 | 2.78 | 171 | 854 | 0 | 0 | 844 | 44.3 | 1.213 |
 | demohist | demo1 | 4096 | 52.81 | 46.02 | 1.17 | 232 | 774 | 324 | 555 | 1729 | 40.22 | 1.309 |
+| demohist | demo1c08 | 4096 | 52.05 | 46.9 | 1.05 | 222 | 728 | 457 | 514 | 1825 | 50.25 | 1.159 |
 | demohist | demo2 | 4096 | 48.27 | 50.44 | 1.29 | 368 | 823 | 340 | 535 | 1854 | 39.82 | 1.306 |
 | demohist | head | 4096 | 51.12 | 48.88 | 0.0 | 230 | 24 | 432 | 1316 | 1749 | 46.69 | 1.282 |
 | demohist | rand | 4096 | 77.37 | 22.56 | 0.07 | 60 | 26 | 457 | 381 | 829 | 51.56 | 1.117 |
@@ -44,6 +46,7 @@
 | histstd | rand | 4096 | 77.98 | 21.92 | 0.1 | 54 | 36 | 433 | 375 | 810 | 48.66 | 1.142 |
 | std | aisle | 4096 | 67.9 | 22.66 | 9.45 | 171 | 757 | 0 | 0 | 842 | 66.75 | 1.368 |
 | std | demo1 | 4096 | 52.49 | 43.8 | 3.71 | 254 | 703 | 379 | 458 | 1698 | 47.82 | 1.433 |
+| std | demo1c08 | 4096 | 53.86 | 43.26 | 2.88 | 260 | 613 | 449 | 450 | 1696 | 59.01 | 1.276 |
 | std | demo2 | 4096 | 48.49 | 46.92 | 4.59 | 372 | 724 | 342 | 484 | 1825 | 48.36 | 1.472 |
 | std | head | 4096 | 52.54 | 47.09 | 0.37 | 181 | 32 | 371 | 1345 | 1772 | 46.64 | 1.433 |
 | std | rand | 4096 | 79.27 | 20.48 | 0.24 | 55 | 25 | 376 | 383 | 778 | 47.22 | 1.146 |
@@ -131,6 +134,12 @@
 | demohist2 | aisle | acd3 | aisle | 4096 | yes (16 tracked envs) | 17.334 | 0.6735 | outside | -12.0605 | 0.7278 | outside | -5.2734 | 0.4506 | outside | -2.0996 | 0.3954 | outside | -9.9609 | 0.7819 | outside | 0.0 | 0.0 | inside | 0.0 | 0.0 | inside |
 | demohist2 | rand | demohist | rand | 4096 | yes (16 tracked envs) | 1.1719 | 0.4096 | outside | -1.123 | 0.4111 | outside | -0.0488 | 0.0345 | inside | 0.1953 | 0.2211 | inside | -0.0244 | 0.1007 | inside | -1.1475 | 0.3642 | outside | -0.1465 | 0.2514 | inside |
 | demohist2 | rand | acd3 | rand | 4096 | yes (16 tracked envs) | 2.2217 | 0.4816 | outside | -1.8311 | 0.4807 | outside | -0.3906 | 0.0975 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
+| acd3 | demo1c08 | acd3 | demo1 | 4096 | different start episodes |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| std | demo1c08 | std | demo1 | 4096 | different start episodes |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| demohist | demo1c08 | demohist | demo1 | 4096 | different start episodes |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| std | demo1c08 | acd3 | demo1c08 | 4096 | yes (16 tracked envs) | 9.2285 | 0.6575 | outside | -6.7871 | 0.737 | outside | -2.4414 | 0.3949 | outside | 0.1709 | 0.4639 | inside | -5.7617 | 0.7002 | outside | -1.001 | 0.4662 | outside | -0.1953 | 0.5248 | inside |
+| demohist | demo1c08 | acd3 | demo1c08 | 4096 | yes (16 tracked envs) | 7.4219 | 0.6764 | outside | -3.1494 | 0.7402 | outside | -4.2725 | 0.3634 | outside | -0.7568 | 0.4599 | inside | -2.9541 | 0.7175 | outside | -0.8057 | 0.502 | inside | 1.3672 | 0.5334 | outside |
+| demohist | demo1c08 | std | demo1c08 | 4096 | yes (16 tracked envs) | -1.8066 | 0.6073 | outside | 3.6377 | 0.6595 | outside | -1.8311 | 0.2926 | outside | -0.9277 | 0.4618 | outside | 2.8076 | 0.631 | outside | 0.1953 | 0.4201 | inside | 1.5625 | 0.489 | outside |
 
 ## 3. 회귀 확인 (같은 체크포인트, 같은 seed, 병합 코드)
 
@@ -245,6 +254,7 @@
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | acd3 | aisle | 2792 | 36.35 | 0.9103 | 0 |  | 691 | 3.04 | 757 | 20.48 | 751 | 46.07 | 593 | 83.14 | 0 |  |
 | acd3 | demo1 | 2792 | 23.03 | 0.7968 | 0 |  | 691 | 1.88 | 757 | 14.66 | 751 | 31.96 | 593 | 47.05 | 0 |  |
+| acd3 | demo1c08 | 2792 | 24.0 | 0.8083 | 0 |  | 691 | 2.03 | 757 | 15.98 | 751 | 34.22 | 593 | 46.88 | 0 |  |
 | acd3 | demo2 | 2792 | 17.69 | 0.7222 | 0 |  | 664 | 1.81 | 752 | 11.44 | 801 | 23.22 | 575 | 36.52 | 0 |  |
 | ctrl | aisle | 2792 | 34.74 | 0.9011 | 0 |  | 691 | 2.03 | 757 | 14.93 | 751 | 45.81 | 593 | 84.15 | 0 |  |
 | ctrl | demo1 | 2792 | 22.13 | 0.7856 | 0 |  | 691 | 0.72 | 757 | 12.42 | 751 | 30.23 | 593 | 49.24 | 0 |  |
@@ -256,6 +266,7 @@
 | demo | rand | 49 | 46.94 | 7.1295 | 0 |  | 5 | 0.0 | 21 | 38.1 | 12 | 66.67 | 11 | 63.64 | 0 |  |
 | demohist | aisle | 2792 | 59.2 | 0.9301 | 0 |  | 691 | 4.92 | 757 | 52.05 | 751 | 86.28 | 593 | 97.3 | 0 |  |
 | demohist | demo1 | 2792 | 36.57 | 0.9115 | 0 |  | 691 | 3.91 | 757 | 33.55 | 751 | 53.13 | 593 | 57.5 | 0 |  |
+| demohist | demo1c08 | 2792 | 35.89 | 0.9078 | 0 |  | 691 | 3.33 | 757 | 32.36 | 751 | 53.79 | 593 | 55.65 | 0 |  |
 | demohist | demo2 | 2792 | 30.16 | 0.8686 | 0 |  | 664 | 4.52 | 752 | 28.99 | 801 | 42.32 | 575 | 44.35 | 0 |  |
 | demohist | head | 49 | 30.61 | 6.5839 | 0 |  | 5 | 0.0 | 21 | 28.57 | 12 | 58.33 | 11 | 18.18 | 0 |  |
 | demohist | rand | 49 | 69.39 | 6.5839 | 0 |  | 5 | 20.0 | 21 | 76.19 | 12 | 75.0 | 11 | 72.73 | 0 |  |
@@ -276,6 +287,7 @@
 | histstd | rand | 49 | 67.35 | 6.699 | 0 |  | 5 | 0.0 | 21 | 66.67 | 12 | 91.67 | 11 | 72.73 | 0 |  |
 | std | aisle | 2792 | 52.97 | 0.9446 | 0 |  | 691 | 2.6 | 757 | 38.71 | 751 | 79.23 | 593 | 96.63 | 0 |  |
 | std | demo1 | 2792 | 35.92 | 0.908 | 0 |  | 691 | 2.46 | 757 | 32.36 | 751 | 53.0 | 593 | 57.84 | 0 |  |
+| std | demo1c08 | 2792 | 37.54 | 0.9164 | 0 |  | 691 | 3.62 | 757 | 35.8 | 751 | 54.73 | 593 | 57.5 | 0 |  |
 | std | demo2 | 2792 | 29.76 | 0.8653 | 0 |  | 664 | 3.01 | 752 | 28.86 | 801 | 41.45 | 575 | 45.57 | 0 |  |
 
 ## 6b. 통로 상자 에피소드 짝 비교 (a - 대조)
@@ -643,6 +655,7 @@ eval.json의 by_crossing: 나온 사람의 건넘 구간이 전역 경로를 덮
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | acd3 | aisle | 0 |  |  |  | 0 |  |  |  | 4096 | 56.62 | 35.62 | 7.76 |  |  |  |
 | acd3 | demo1 | 2122 | 21.44 | 74.69 | 3.86 | 1140 | 89.39 | 9.65 | 0.96 | 834 | 37.65 | 55.76 | 6.59 | 65.04 | 1.2867 | outside |
+| acd3 | demo1c08 | 2122 | 20.59 | 72.81 | 6.6 | 1140 | 90.0 | 8.86 | 1.14 | 834 | 43.76 | 48.44 | 7.79 | 63.95 | 1.2811 | outside |
 | acd3 | demo2 | 2017 | 15.22 | 76.85 | 7.93 | 1009 | 89.99 | 9.51 | 0.5 | 1070 | 40.75 | 51.4 | 7.85 | 67.34 | 1.3172 | outside |
 | ctrl | aisle | 0 |  |  |  | 0 |  |  |  | 4096 | 55.35 | 35.28 | 9.38 |  |  |  |
 | ctrl | demo1 | 2122 | 21.44 | 74.98 | 3.58 | 1140 | 90.44 | 8.6 | 0.96 | 834 | 34.65 | 59.71 | 5.64 | 66.38 | 1.2544 | outside |
@@ -654,6 +667,7 @@ eval.json의 by_crossing: 나온 사람의 건넘 구간이 전역 경로를 덮
 | demo | rand | 0 |  |  |  | 0 |  |  |  | 4096 | 75.02 | 24.58 | 0.39 |  |  |  |
 | demohist | aisle | 0 |  |  |  | 0 |  |  |  | 4096 | 72.19 | 25.02 | 2.78 |  |  |  |
 | demohist | demo1 | 2122 | 34.54 | 63.85 | 1.6 | 1140 | 88.95 | 11.05 | 0.0 | 834 | 49.88 | 48.44 | 1.68 | 52.8 | 1.3964 | outside |
+| demohist | demo1c08 | 2122 | 32.66 | 65.88 | 1.46 | 1140 | 87.63 | 12.28 | 0.09 | 834 | 52.76 | 45.92 | 1.32 | 53.6 | 1.4157 | outside |
 | demohist | demo2 | 2017 | 26.23 | 72.14 | 1.64 | 1009 | 88.11 | 11.89 | 0.0 | 1070 | 52.24 | 45.89 | 1.87 | 60.25 | 1.4264 | outside |
 | demohist | head | 0 |  |  |  | 0 |  |  |  | 4096 | 51.12 | 48.88 | 0.0 |  |  |  |
 | demohist | rand | 0 |  |  |  | 0 |  |  |  | 4096 | 77.37 | 22.56 | 0.07 |  |  |  |
@@ -674,4 +688,5 @@ eval.json의 by_crossing: 나온 사람의 건넘 구간이 전역 경로를 덮
 | histstd | rand | 0 |  |  |  | 0 |  |  |  | 4096 | 77.98 | 21.92 | 0.1 |  |  |  |
 | std | aisle | 0 |  |  |  | 0 |  |  |  | 4096 | 67.9 | 22.66 | 9.45 |  |  |  |
 | std | demo1 | 2122 | 32.99 | 62.3 | 4.71 | 1140 | 89.12 | 10.53 | 0.35 | 834 | 52.04 | 42.21 | 5.76 | 51.77 | 1.3904 | outside |
+| std | demo1c08 | 2122 | 34.45 | 61.97 | 3.58 | 1140 | 89.82 | 9.47 | 0.7 | 834 | 54.08 | 41.85 | 4.08 | 52.5 | 1.3648 | outside |
 | std | demo2 | 2017 | 26.13 | 67.77 | 6.1 | 1009 | 89.3 | 10.31 | 0.4 | 1070 | 52.15 | 42.15 | 5.7 | 57.46 | 1.414 | outside |
