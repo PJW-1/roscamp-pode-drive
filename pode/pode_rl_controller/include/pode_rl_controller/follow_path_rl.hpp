@@ -9,6 +9,7 @@
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "nav2_core/controller.hpp"
 #include "nav_msgs/msg/path.hpp"
+#include "pode_rl_controller/closing_guard.hpp"
 #include "pode_rl_controller/observation.hpp"
 #include "pode_rl_controller/onnx_policy.hpp"
 #include "pode_rl_controller/policy_spec.hpp"
@@ -40,9 +41,13 @@ public:
 private:
   double lidar_yaw(const std::string & frame);
   void goals(GoalPolar & goal, GoalPolar & end, double & yaw_end);
+  void add_closing_scan(
+    const sensor_msgs::msg::LaserScan & scan, const std::vector<float> & rays, double yaw_l,
+    double now);
 
   std::string name_;
   std::string base_frame_;
+  std::string global_frame_;
   rclcpp::Logger logger_{rclcpp::get_logger("FollowPathRL")};
   rclcpp::Clock::SharedPtr clock_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
@@ -67,6 +72,11 @@ private:
   std::string speed_mismatch_;
   double rear_half_width_deg_{30.0};
   int rear_blocks_{0};
+  ClosingGuard closing_;
+  builtin_interfaces::msg::Time closing_stamp_{};
+  bool have_closing_stamp_{false};
+  int closing_blocks_{0};
+  int closing_tf_misses_{0};
   double speed_limit_{0.0};
   Twist2 cmd_{0.0, 0.0};
   ObsMemory memory_;

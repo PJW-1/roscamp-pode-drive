@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstdio>
 #include <vector>
 
 #include "ament_index_cpp/get_package_share_directory.hpp"
@@ -36,6 +37,7 @@ void FollowPathRL::configure(
   name_ = name;
   tf_ = tf;
   base_frame_ = costmap_ros->getBaseFrameID();
+  global_frame_ = costmap_ros->getGlobalFrameID();
   logger_ = node->get_logger();
   clock_ = node->get_clock();
 
@@ -57,6 +59,20 @@ void FollowPathRL::configure(
   declare_parameter_if_not_declared(node, name_ + ".ema_alpha_w", ParameterValue(1.0));
   declare_parameter_if_not_declared(
     node, name_ + ".scan_mask_deg", ParameterValue(std::vector<double>{}));
+  const ClosingParams closing_default{};
+  declare_parameter_if_not_declared(node, name_ + ".closing_stop_range", ParameterValue(0.0));
+  declare_parameter_if_not_declared(
+    node, name_ + ".closing_half_width_deg", ParameterValue(closing_default.half_width_deg));
+  declare_parameter_if_not_declared(
+    node, name_ + ".closing_lookback_s", ParameterValue(closing_default.lookback_s));
+  declare_parameter_if_not_declared(
+    node, name_ + ".closing_spread_deg", ParameterValue(closing_default.spread_deg));
+  declare_parameter_if_not_declared(
+    node, name_ + ".closing_mps", ParameterValue(closing_default.closing_mps));
+  declare_parameter_if_not_declared(
+    node, name_ + ".closing_hold_s", ParameterValue(closing_default.hold_s));
+  declare_parameter_if_not_declared(
+    node, name_ + ".closing_min_rays", ParameterValue(closing_default.min_rays));
 
   const std::string policy = node->get_parameter(name_ + ".policy").as_string();
   const std::string rule_param = node->get_parameter(name_ + ".goal_rule").as_string();
@@ -74,6 +90,16 @@ void FollowPathRL::configure(
   const double alpha_w = node->get_parameter(name_ + ".ema_alpha_w").as_double();
   smoother_ = TargetSmoother(alpha_v, alpha_w);
   scan_mask_ = parse_scan_mask(node->get_parameter(name_ + ".scan_mask_deg").as_double_array());
+  ClosingParams cp;
+  cp.stop_range = node->get_parameter(name_ + ".closing_stop_range").as_double();
+  cp.half_width_deg = node->get_parameter(name_ + ".closing_half_width_deg").as_double();
+  cp.lookback_s = node->get_parameter(name_ + ".closing_lookback_s").as_double();
+  cp.spread_deg = node->get_parameter(name_ + ".closing_spread_deg").as_double();
+  cp.closing_mps = node->get_parameter(name_ + ".closing_mps").as_double();
+  cp.hold_s = node->get_parameter(name_ + ".closing_hold_s").as_double();
+  cp.min_rays = static_cast<int>(node->get_parameter(name_ + ".closing_min_rays").as_int());
+  closing_ = ClosingGuard(cp);
+  have_closing_stamp_ = false;
   const std::string dir = policy.rfind('/', 0) == 0 ? policy :
     ament_index_cpp::get_package_share_directory("pode_rl_controller") + "/policies/" + policy;
   spec_ = load_policy_spec(dir + "/policy_spec.json");
@@ -82,6 +108,14 @@ void FollowPathRL::configure(
   const double nav_speed = load_nav_speed(
     ament_index_cpp::get_package_share_directory("pode_nav_config") + "/params/nav_speed.yaml");
   memory_ = ObsMemory(spec_);
+  // 다가옴 막기는 레이 i의 방위를 -180도부터 고른 간격으로 읽는다
+  if (closing_.enabled() && (spec_.lidar.first_ray_deg != -180.0 ||
+    std::abs(spec_.lidar.rays * spec_.lidar.ray_step_deg - 360.0) > 1e-6))
+  {
+    throw std::runtime_error(
+      "FollowPathRL: closing_stop_range needs the policy's rays to start at -180 deg and cover 360 "
+      "deg evenly");
+  }
   if (spec_.has_block("speed_cap")) {
     max_v_ = max_v_param > 0.0 ? std::min(max_v_param, nav_speed) : nav_speed;
     const SpeedCapValue cap = speed_cap_value(max_v_, spec_.speed_cap);
@@ -140,15 +174,25 @@ void FollowPathRL::configure(
   for (const auto & b : spec_.obs_blocks) {
     blocks += (blocks.empty() ? "" : ", ") + b;
   }
+  // 다가옴 막기가 켜져 있을 때만 요약 줄 끝에 그 값을 덧붙인다
+  std::string closing_note;
+  if (closing_.enabled()) {
+    char buf[256];
+    std::snprintf(
+      buf, sizeof(buf), ", closing stop %.3f m within %.1f deg (lookback %.3f s, spread %.1f deg, "
+      "closing %.3f m/s, hold %.3f s, min rays %d, tf in %s)", cp.stop_range, cp.half_width_deg,
+      cp.lookback_s, cp.spread_deg, cp.closing_mps, cp.hold_s, cp.min_rays, global_frame_.c_str());
+    closing_note = buf;
+  }
   RCLCPP_INFO(
     logger_, "FollowPathRL %s: policy %s (obs %d, dt %.3f s, v %.2f..%.2f m/s, w %.2f rad/s), "
     "goal_rule %s (lookahead %.2f m, window %d points), scan %s, ORT CPU threads %d, "
     "max linear vel %.2f m/s, spec format %d, obs blocks [%s], speed_cap %.3f m/s, "
-    "ema alpha v %.3f w %.3f, scan mask %zu ranges",
+    "ema alpha v %.3f w %.3f, scan mask %zu ranges%s",
     name_.c_str(), dir.c_str(), spec_.obs_dim, spec_.control_dt, spec_.action.v_min,
     spec_.action.v_max, spec_.action.w_max, rule_.rule.c_str(), rule_.lookahead_m,
     rule_.follow_window, scan_topic_.c_str(), threads, max_v_, spec_.format, blocks.c_str(),
-    speed_cap_, alpha_v, alpha_w, scan_mask_.size());
+    speed_cap_, alpha_v, alpha_w, scan_mask_.size(), closing_note.c_str());
   for (const auto & m : scan_mask_) {
     RCLCPP_WARN(
       logger_, "FollowPathRL %s: scan beams at %.1f..%.1f deg (base frame) are masked as no "
@@ -160,6 +204,8 @@ void FollowPathRL::cleanup()
 {
   scan_sub_.reset();
   policy_.reset();
+  closing_.reset();
+  have_closing_stamp_ = false;
 }
 
 void FollowPathRL::activate()
@@ -250,6 +296,27 @@ void FollowPathRL::goals(GoalPolar & goal, GoalPolar & end, double & yaw_end)
   goal = path_goal(path_, prog_, robot, yaw, rule_);
 }
 
+// ---- 다가옴 막기: 스캔 시각의 라이다 자세로 이력에 넣기 ----
+void FollowPathRL::add_closing_scan(
+  const sensor_msgs::msg::LaserScan & scan, const std::vector<float> & rays, double yaw_l,
+  double now)
+{
+  geometry_msgs::msg::TransformStamped t;
+  try {
+    t = tf_->lookupTransform(
+      global_frame_, scan.header.frame_id, tf2_ros::fromMsg(scan.header.stamp),
+      tf2::durationFromSec(transform_tolerance_));
+  } catch (const tf2::TransformException &) {
+    // 자세를 모르면 그 스캔만 건너뛴다(주행은 멈추지 않는다)
+    ++closing_tf_misses_;
+    return;
+  }
+  const double yaw = tf2::getYaw(t.transform.rotation) - yaw_l;
+  closing_.add_scan(
+    rays, t.transform.translation.x, t.transform.translation.y, yaw,
+    rclcpp::Time(scan.header.stamp).seconds(), now);
+}
+
 // ---- 한 주기: 관측 -> 정책 -> (v, w) ----
 geometry_msgs::msg::TwistStamped FollowPathRL::computeVelocityCommands(
   const geometry_msgs::msg::PoseStamped & pose, const geometry_msgs::msg::Twist & velocity,
@@ -334,6 +401,17 @@ geometry_msgs::msg::TwistStamped FollowPathRL::computeVelocityCommands(
     const double policy_v = target.v;
     target = block_reverse(target, rays, rear_stop_range_, rear_half_width_deg_, spec_);
     rear_blocks_ += target.v != policy_v ? 1 : 0;
+    // 다가옴 막기: 새 스캔만 이력에 넣고, 걸려 있으면 전진 목표만 0으로
+    if (closing_.enabled()) {
+      if (!have_closing_stamp_ || scan->header.stamp != closing_stamp_) {
+        closing_stamp_ = scan->header.stamp;
+        have_closing_stamp_ = true;
+        add_closing_scan(*scan, rays, yaw_l, now.seconds());
+      }
+      const double guarded_v = target.v;
+      target = closing_.apply(target, now.seconds());
+      closing_blocks_ += target.v != guarded_v ? 1 : 0;
+    }
   }
   target.v = std::min(target.v, speed_limit_);
   cmd_ = rate_limit(cmd_, target, spec_.control_dt, lim);
@@ -348,15 +426,25 @@ geometry_msgs::msg::TwistStamped FollowPathRL::computeVelocityCommands(
     logger_, "FollowPathRL: goal %.3f m at %.3f rad, prog %zu, act (%.3f, %.3f) cmd (%.3f, %.3f) "
     "infer %.0f us", goal.dist, goal.angle, prog_, act[0], act[1], cmd_.v, cmd_.w, infer_us);
   if ((now - last_log_).seconds() >= log_period_) {
+    std::string closing_note;
+    if (closing_.enabled()) {
+      char buf[64];
+      std::snprintf(
+        buf, sizeof(buf), " | closing blocks %d, tf misses %d", closing_blocks_,
+        closing_tf_misses_);
+      closing_note = buf;
+    }
     RCLCPP_INFO(
       logger_, "FollowPathRL: %d calls, infer mean %.0f max %.0f us, call mean %.0f max %.0f us | "
-      "%s goal %.3f m at %.2f rad, end %.3f m | act (%.2f, %.2f) cmd v %.3f w %.3f | rear blocks %d | scan age %.2f s",
+      "%s goal %.3f m at %.2f rad, end %.3f m | act (%.2f, %.2f) cmd v %.3f w %.3f | rear blocks %d | scan age %.2f s%s",
       calls_, infer_sum_us_ / calls_, infer_max_us_, call_sum_us_ / calls_, call_max_us_,
       rotating ? "rotate" : "policy", goal.dist, goal.angle, end.dist, act[0],
-      act[1], cmd_.v, cmd_.w, rear_blocks_, scan_age);
+      act[1], cmd_.v, cmd_.w, rear_blocks_, scan_age, closing_note.c_str());
     last_log_ = now;
     calls_ = 0;
     rear_blocks_ = 0;
+    closing_blocks_ = 0;
+    closing_tf_misses_ = 0;
     infer_sum_us_ = infer_max_us_ = call_sum_us_ = call_max_us_ = 0.0;
   }
 
