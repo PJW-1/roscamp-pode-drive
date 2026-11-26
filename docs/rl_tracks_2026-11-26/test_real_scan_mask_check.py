@@ -128,6 +128,8 @@ def test_check_reports_a_leak_and_an_empty_sector(tmp_path):
     assert res["m2"]["masked"] == pytest.approx(0.25) and res["m2"]["raw"] == pytest.approx(1.0)
     assert res["m3"]["masked"] == pytest.approx(0.25) and res["m3"]["raw"] == pytest.approx(0.0)
     assert res["m3"]["per_sector_masked"]["32"] == pytest.approx(0.25)
+    assert res["m3"]["no_usable"] == pytest.approx(0.25)
+    assert res["m3"]["per_sector_no_usable"] == {"3": 0.0, "4": 0.0, "32": 0.25, "33": 0.0}
     assert res["near"]["outside_mask"] == 2
     ray = {r["ray_deg"]: r for r in res["rays"]}
     assert ray[148.0]["masked"] is False and ray[148.0]["valid"] == pytest.approx(0.75)
@@ -159,6 +161,39 @@ def test_check_splits_moving_and_stopped_scans(tmp_path):
     assert res["motion"]["moving"]["m3_masked"] == pytest.approx(2 / 3)
     assert res["motion"]["stopped"]["m3_masked"] == pytest.approx(0.0)
     assert "움직이는 동안" in (tmp_path / "out" / "summary.md").read_text(encoding="utf-8")
+
+
+def test_far_valid_rays_read_as_the_limit_but_are_not_counted_as_no_return(tmp_path):
+    # 남긴 레이가 2 m보다 먼 반환을 읽으면 섹터 값은 상한이지만 "반환이 없던 장"은 아니다
+    n, amin, inc = grid()
+    deg = m.beam_deg(n, amin, inc, 0.0)
+    far = np.full(n, 1.0, dtype=np.float32)
+    far[(deg > 147.0) & (deg < 149.0)] = 5.0
+    path = scan_npz(tmp_path, [far], n, amin, inc)
+    spec = tmp_path / "policy_spec.json"
+    spec.write_text(json.dumps({"lidar": LID}), encoding="utf-8")
+    res = m.check(path, spec, tmp_path / "out", m.NARROW_MASK)
+    assert res["m3"]["masked"] == pytest.approx(1.0)
+    assert res["m3"]["no_usable"] == pytest.approx(0.0)
+
+
+def test_motion_split_with_one_odom_sample_and_an_empty_side(tmp_path):
+    n, amin, inc = grid()
+    path = scan_npz(tmp_path, [np.full(n, 1.0, dtype=np.float32)] * 3, n, amin, inc)
+    with np.load(path) as z:
+        data = dict(z)
+    data.update(odom_t=np.array([1.2]), odom_v=np.array([0.0]), odom_w=np.array([0.0]))
+    np.savez(path, **data)
+    with np.load(path) as z:
+        assert list(m.moving_scans(z)) == [False, False, False]
+    spec = tmp_path / "policy_spec.json"
+    spec.write_text(json.dumps({"lidar": LID}), encoding="utf-8")
+    res = m.check(path, spec, tmp_path / "out", m.NARROW_MASK)
+    assert res["motion"]["moving"] == {
+        "scans": 0, "m2_masked": None, "m3_masked": None,
+        "m3_per_sector_masked": {"3": None, "4": None, "32": None, "33": None}, "m2_raw": None}
+    assert res["motion"]["stopped"]["scans"] == 3 and res["motion"]["stopped"]["m3_masked"] == 0.0
+    assert "없음" in (tmp_path / "out" / "summary.md").read_text(encoding="utf-8")
 
 
 def test_check_without_odom_has_no_motion_split(tmp_path):

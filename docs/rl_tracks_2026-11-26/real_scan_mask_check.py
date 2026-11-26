@@ -87,6 +87,7 @@ def sector_values(ranges, n, angle_min, inc, range_min, range_max, yaw, lid, mas
         "masked": masked.reshape(shape).min(axis=1),
         "left": (covered & ~ray_hit).reshape(shape).sum(axis=1),
         "all_bad": bad.reshape(shape).all(axis=1),
+        "usable": (covered & ~ray_hit & ~bad).reshape(shape).any(axis=1),
         "rays_masked": int(ray_hit.sum()),
         "beam_hit": hit,
         "ray": raw,
@@ -97,6 +98,11 @@ def sector_values(ranges, n, angle_min, inc, range_min, range_max, yaw, lid, mas
 
 
 # ---- 지표와 판정 ----
+def share(flags):
+    """참인 장의 비율을 낸다. 장이 하나도 없으면 None이다."""
+    return float(flags.mean()) if len(flags) else None
+
+
 def grade(frac, words):
     """비율을 미리 정한 문턱(1 %, 10 %)으로 세 낱말 가운데 하나로 바꾼다."""
     return words[0] if frac <= 0.01 else (words[1] if frac <= 0.10 else words[2])
@@ -122,6 +128,7 @@ def check(npz_path, spec_path, out_dir, mask_text):
     raw = np.empty((count, lid["sectors"]))
     masked, left = np.empty_like(raw), np.empty(raw.shape, dtype=np.int64)
     all_bad, rays_masked = np.empty(raw.shape, dtype=bool), np.empty(count, dtype=np.int64)
+    usable = np.empty(raw.shape, dtype=bool)
     near_in, near_out, short = {}, {}, 0
     grids, first = {}, None
     ray_val = np.empty((count, lid["rays"]))
@@ -133,7 +140,7 @@ def check(npz_path, spec_path, out_dir, mask_text):
         out = sector_values(ranges, n, amin, inc, rmin, rmax, yaw, lid, mask)
         raw[i], masked[i] = out["raw"], out["masked"]
         left[i], all_bad[i] = out["left"], out["all_bad"]
-        rays_masked[i] = out["rays_masked"]
+        rays_masked[i], usable[i] = out["rays_masked"], out["usable"]
         ray_val[i], ray_bad[i] = out["ray"], out["ray_bad"]
         first = first or out
         key = (n, round(math.degrees(amin), 3), round(math.degrees(amax), 3),
@@ -178,6 +185,9 @@ def check(npz_path, spec_path, out_dir, mask_text):
         "m3": {"masked": m3, "raw": float(top[:, posts].any(axis=1).mean()),
                "per_sector_masked": {str(s): float(top_masked[:, s].mean()) for s in posts},
                "per_sector_raw": {str(s): float(top[:, s].mean()) for s in posts},
+               "no_usable": float((top_masked[:, posts] & ~usable[:, posts]).any(axis=1).mean()),
+               "per_sector_no_usable": {
+                   str(s): float((top_masked[:, s] & ~usable[:, s]).mean()) for s in posts},
                "verdict": grade(m3, EMPTY_WORDS)},
         "m4": {
             "other_sector_top": {str(s): float(top[:, s].mean()) for s in others},
@@ -203,11 +213,10 @@ def check(npz_path, spec_path, out_dir, mask_text):
         for name, sel in (("moving", moving), ("stopped", ~moving)):
             res["motion"][name] = {
                 "scans": int(sel.sum()),
-                "m2_masked": float((masked[sel][:, posts] < NEAR_M).any(axis=1).mean()),
-                "m3_masked": float(top_masked[sel][:, posts].any(axis=1).mean()),
-                "m3_per_sector_masked": {
-                    str(s): float(top_masked[sel][:, s].mean()) for s in posts},
-                "m2_raw": float((raw[sel][:, posts] < NEAR_M).any(axis=1).mean()),
+                "m2_masked": share((masked[sel][:, posts] < NEAR_M).any(axis=1)),
+                "m3_masked": share(top_masked[sel][:, posts].any(axis=1)),
+                "m3_per_sector_masked": {str(s): share(top_masked[sel][:, s]) for s in posts},
+                "m2_raw": share((raw[sel][:, posts] < NEAR_M).any(axis=1)),
             }
     # 기둥 둘레의 학습 레이마다 가림 전의 값을 적는다. 고른 빔과 가림 여부는 첫 장의 격자로 본다
     for k in range(lid["rays"]):
@@ -279,6 +288,8 @@ def markdown(res):
         row("M2 가림 뒤 0.10 m 아래로 읽힌 장", cells(m2["per_sector_masked"]), pct(m2["masked"])),
         row("(가림 없이) 0.10 m 아래로 읽힌 장", cells(m2["per_sector_raw"]), pct(m2["raw"])),
         row("M3 가림 뒤 2.0 m로 읽힌 장", cells(m3["per_sector_masked"]), pct(m3["masked"])),
+        row("M3 가운데 가리지 않은 레이의 반환이 하나도 없던 장", cells(m3["per_sector_no_usable"]),
+            pct(m3["no_usable"])),
         row("(가림 없이) 2.0 m로 읽힌 장", cells(m3["per_sector_raw"]), pct(m3["raw"])),
         row("가림 뒤 섹터 값 m (5 %, 중앙값, 95 %)",
             [", ".join(f"{x:.2f}" for x in res["post_value_masked_m"][s]) for s in posts]),
