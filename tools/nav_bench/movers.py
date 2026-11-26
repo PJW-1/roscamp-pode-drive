@@ -69,7 +69,7 @@ def pose_at(mover: Mover, travelled: float) -> tuple:
 
 
 def step(mover: Mover, travelled: float, dt: float, robot_xy, pose) -> float:
-    # 로봇이 start_x를 넘기 전에는 출발하지 않는다: 만남이 로봇의 속도와 출발 시각에 따라 달라지지 않게
+    # 로봇이 start_x를 넘기 전에는 출발하지 않는다: 만남이 로봇의 속도와 출발 시각에 묶이지 않게
     if mover.start_x is not None and travelled == 0.0:
         if robot_xy is None or robot_xy[0] < mover.start_x:
             return travelled

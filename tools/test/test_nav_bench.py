@@ -79,7 +79,8 @@ def test_a_triggered_mover_waits_until_the_robot_passes_start_x(tmp_path):
     cfg = tmp_path / "t.yaml"
     text = CONFIG.read_text(encoding="utf-8")
     assert "speed: 0.10" in text
-    cfg.write_text(text.replace("speed: 0.10", "speed: 0.10" + chr(10) + "    start_x: 0.85", 1), encoding="utf-8")
+    with_start = text.replace("speed: 0.10", "speed: 0.10" + chr(10) + "    start_x: 0.85", 1)
+    cfg.write_text(with_start, encoding="utf-8")
     loaded = mv.load(cfg)["movers"]
     assert [m.start_x for m in loaded.values() if m.start_x is not None] == [0.85]
 
