@@ -1,0 +1,12 @@
+f_cart   Goal         0 SUCC  20.6s passed       cart_min 0.071 demo_cart@5s(0.76,0.52)            person_min inf x_max 1.60 end (1.60,0.56)
+f_cart   Goal         1 ABOR  39.3s short        cart_min 0.079 demo_cart@8s(0.76,0.51)            person_min inf x_max 0.79 end (0.79,0.51)
+f_cart   Goal         2 SUCC  15.4s passed       cart_min 0.074 demo_cart@6s(0.76,0.51)            person_min inf x_max 1.60 end (1.60,0.56)
+f_cart   Goal         3 ABOR  38.8s short        cart_min 0.085 demo_cart@7s(0.77,0.50)            person_min inf x_max 0.80 end (0.80,0.50)
+f_cart   Goal         4 SUCC  14.4s passed       cart_min 0.063 demo_cart@7s(0.91,0.52)            person_min inf x_max 1.61 end (1.61,0.56)
+f_cart   RLShimACD3   0 SUCC  13.0s passed       cart_min 0.067 demo_cart@8s(0.96,0.52)            person_min inf x_max 1.60 end (1.60,0.55)
+f_cart   RLShimACD3   1 SUCC  12.9s passed       cart_min 0.070 demo_cart@7s(0.96,0.52)            person_min inf x_max 1.61 end (1.61,0.56)
+f_cart   RLShimACD3   2 SUCC  13.3s passed       cart_min 0.067 demo_cart@7s(0.96,0.52)            person_min inf x_max 1.60 end (1.60,0.55)
+f_cart   RLShimACD3   3 SUCC  12.9s passed       cart_min 0.068 demo_cart@7s(0.96,0.52)            person_min inf x_max 1.61 end (1.61,0.55)
+f_cart   RLShimACD3   4 SUCC  13.1s passed       cart_min 0.069 demo_cart@7s(0.96,0.52)            person_min inf x_max 1.61 end (1.61,0.55)
+== f_cart Goal: n 5 passed 3 cart_contact 0 short 2 person_contact 0
+== f_cart RLShimACD3: n 5 passed 5 cart_contact 0 short 0 person_contact 0

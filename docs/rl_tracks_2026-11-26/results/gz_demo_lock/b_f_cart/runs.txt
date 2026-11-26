@@ -1,0 +1,3 @@
+f_cart start 2026-11-26T10:42:34+09:00 avail 15347MB domain 72 args keepout_mask_file:=/home/pjw/rl_gz_check/aisle_lock_mask/aisle_lock.yaml
+f_cart: exit 0, bench f_cart: 5/5 repeats, 9 resets
+f_cart end 2026-11-26T10:49:33+09:00

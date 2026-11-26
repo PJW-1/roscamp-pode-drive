@@ -1,0 +1,5 @@
+g_demo    Goal           0 SUCC  29.6s  person 0.000@26s(1.21,0.55)  demo_cart_hall 0.032@8s(0.73,0.56)  demo_cart 0.044@9s(0.75,0.55)  wall 0.052@19s(0.94,0.52)
+g_demo    Goal           1 ABOR  39.2s  person 0.000@10s(1.07,0.55)  demo_cart_hall 0.038@5s(0.74,0.56)  demo_cart 0.040@5s(0.74,0.56)  wall 0.052@7s(0.90,0.52)
+g_demo    Goal           2 ABOR  37.8s  demo_cart 0.041@9s(0.69,0.59)  demo_cart_hall 0.044@9s(0.69,0.59)  wall 0.080@3s(0.60,0.62)  person 0.353@11s(0.69,0.59)
+g_demo    Goal           3 ABOR   6.6s  demo_cart_hall 0.057@4s(0.62,0.61)  wall 0.094@3s(0.58,0.62)  demo_cart 0.111@4s(0.62,0.61)  person 0.430@4s(0.62,0.61)
+g_demo    Goal           4 SUCC  21.4s  person 0.004@17s(1.23,0.55)  demo_cart_hall 0.032@5s(0.69,0.58)  demo_cart 0.046@6s(0.74,0.55)  wall 0.055@8s(0.86,0.52)

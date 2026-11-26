@@ -1,0 +1,11 @@
+g_demo   RLShimACD3   0 ABOR  31.2s cart_contact cart_min 0.000 demo_cart@6s(0.78,0.58)            person_min 0.286 x_max 0.78 end (0.74,0.58)
+g_demo   RLShimACD3   1 ABOR  31.5s cart_contact cart_min 0.000 demo_cart@4s(0.75,0.59)            person_min 0.287 x_max 0.77 end (0.61,0.66)
+g_demo   RLShimACD3   2 ABOR  30.2s passed       cart_min 0.015 demo_cart@4s(0.74,0.58)            person_min 0.060 x_max 1.00 end (1.00,0.55)
+g_demo   RLShimACD3   3 ABOR  32.2s cart_contact cart_min 0.000 demo_cart@5s(0.73,0.61)            person_min 0.317 x_max 0.76 end (0.64,0.66)
+g_demo   RLShimACD3   4 ABOR  32.5s cart_contact cart_min 0.003 demo_cart@7s(0.78,0.58)            person_min 0.321 x_max 0.78 end (0.73,0.58)
+g_demo   RLShimACD3   5 ABOR  33.5s cart_contact cart_min 0.000 demo_cart@5s(0.74,0.59)            person_min 0.304 x_max 0.77 end (0.63,0.66)
+g_demo   RLShimACD3   6 ABOR  31.5s cart_contact cart_min 0.000 demo_cart@5s(0.73,0.61)            person_min 0.310 x_max 0.77 end (0.70,0.62)
+g_demo   RLShimACD3   7 ABOR  31.5s cart_contact cart_min 0.000 demo_cart@5s(0.73,0.61)            person_min 0.328 x_max 0.76 end (0.71,0.61)
+g_demo   RLShimACD3   8 ABOR  35.5s cart_contact cart_min 0.000 demo_cart@7s(0.75,0.59)            person_min 0.340 x_max 0.77 end (0.62,0.65)
+g_demo   RLShimACD3   9 ABOR  34.5s cart_contact cart_min 0.001 demo_cart@7s(0.78,0.58)            person_min 0.323 x_max 0.78 end (0.64,0.63)
+== g_demo RLShimACD3: n 10 passed 1 cart_contact 9 short 0 person_contact 0

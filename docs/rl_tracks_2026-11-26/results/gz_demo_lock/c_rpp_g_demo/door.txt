@@ -1,0 +1,6 @@
+g_demo   Goal         0 SUCC  29.6s passed       cart_min 0.032 demo_cart_hall@8s(0.73,0.56)       person_min 0.000 x_max 1.59 end (1.59,0.56)
+g_demo   Goal         1 ABOR  39.2s passed       cart_min 0.038 demo_cart_hall@5s(0.74,0.56)       person_min 0.000 x_max 1.10 end (1.07,0.53)
+g_demo   Goal         2 ABOR  37.8s short        cart_min 0.041 demo_cart@9s(0.69,0.59)            person_min 0.353 x_max 0.69 end (0.69,0.59)
+g_demo   Goal         3 ABOR   6.6s short        cart_min 0.057 demo_cart_hall@4s(0.62,0.61)       person_min 0.430 x_max 0.62 end (0.62,0.61)
+g_demo   Goal         4 SUCC  21.4s passed       cart_min 0.032 demo_cart_hall@5s(0.69,0.58)       person_min 0.004 x_max 1.60 end (1.60,0.56)
+== g_demo Goal: n 5 passed 3 cart_contact 0 short 2 person_contact 3
