@@ -1,7 +1,7 @@
 # RL 주행 정책 controller 둘을 더 띄운다(시뮬 전용 nav_overrides). controller_plugins는 목록이라 통째로 다시 적는다.
 # - FollowPathRL: RL 기본. RotationShim이 정책을 감싸 0.785 rad보다 틀어지면 제자리에서 돌고, 0.39 rad 안으로 들어오면 정책에 넘긴다.
 # - FollowPathRLAlone: 감싸지 않은 같은 정책(비교용).
-# 고르기: ros2 topic pub --once /<로봇>/controller_selector std_msgs/msg/String "{data: FollowPathRL}" (되돌리기 data: FollowPathGoal)
+# 고르기: /<로봇>/controller_selector에 std_msgs/String "{data: FollowPathRL}"을 보낸다(되돌리기 data: FollowPathGoal). 명령과 확인하는 법은 docs/rl_quickstart.md 3절
 # 실물 nav2_params.yaml에는 아직 넣지 않는다.
 # 정책 숫자와 목표점 규칙은 정책 폴더의 policy_spec.json에 있다. goal_rule, lookahead_dist를 적으면 명세를 덮고 WARN을 남긴다.
 controller_server:

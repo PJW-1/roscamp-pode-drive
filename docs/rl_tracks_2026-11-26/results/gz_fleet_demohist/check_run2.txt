@@ -1,0 +1,14 @@
+start 2026-11-26T13:36:55+09:00 avail 15340MB domain 74 build /home/pjw/gg_build/pd-rl-int run_s 300
+nav2 active on 3 robots: 1 2026-11-26T13:37:16+09:00
+pode1 param String value is: store_arena_demohist
+pode1 selector rc=0 2026-11-26T13:37:21+09:00
+pode2 param String value is: store_arena_demohist
+pode2 selector rc=0 2026-11-26T13:37:26+09:00
+pode3 param String value is: store_arena_demohist
+pode3 selector rc=0 2026-11-26T13:37:29+09:00
+ran 200s, launch alive: no 2026-11-26T13:40:49+09:00
+died: 4  errors: 74
+events.csv fleet_check.json fleet_robots.csv recovery_probe.csv releases.csv robots.csv safety.json summary.json zones.csv end 2026-11-26T13:40:59+09:00
+pode1: policy configure lines 2, RL call lines 33, nav goals begun 5, RPP warning lines between 40 s and 215 s 0
+pode2: policy configure lines 2, RL call lines 55, nav goals begun 6, RPP warning lines between 40 s and 215 s 0
+pode3: policy configure lines 2, RL call lines 30, nav goals begun 3, RPP warning lines between 40 s and 215 s 0

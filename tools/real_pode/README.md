@@ -129,10 +129,11 @@ Nav2 goal을 모는 컨트롤러(FollowPathGoal)의 속도는 `nav2_params.yaml`
    `FollowPathRL <이름>: policy store_arena_acd3 (obs 44, ...` 꼴 줄이 controller 둘 몫으로 보여야 하고 "Failed to load"가 없어야 한다.
 6. RL로 바꾸기(PC는 `SUPER=1 source tools/real_pode/pc_env.sh`, 로봇은 `source ~/nav2fleet_real/env.sh` 뒤):
    ```bash
-   ros2 topic pub --once --qos-durability transient_local --qos-reliability reliable \
+   ros2 topic pub --times 3 --rate 2 --keep-alive 1 --qos-durability transient_local --qos-reliability reliable \
      /pode1/controller_selector std_msgs/msg/String "{data: FollowPathRL}"
    ```
-   그다음 보내는 Nav2 goal부터 RL이다. 감싸지 않은 정책은 `{data: FollowPathRLAlone}`. QoS 두 옵션을 빼면 `--once`가 구독자를 기다리며 아무것도 보내지 않는다.
+   그다음 보내는 Nav2 goal부터 RL이다. 감싸지 않은 정책은 `{data: FollowPathRLAlone}`. QoS 두 옵션을 빼면 구독자를 기다리며 아무것도 보내지 않는다.
+   한 번만 보내는 `--once`는 시뮬에서 오류 없이 끝나고도 전달되지 않은 적이 있다. 주행 중 8번의 로그 줄이 나오는지 보고, 없으면 RPP로 간 것이므로 다시 보낸다.
 7. RPP로 되돌리기: 같은 명령에 `{data: FollowPathGoal}`. 달리던 goal 안에서 바로 바뀌는지는 모르므로 goal을 취소하고 다시 보낸다.
    급하면 goal 취소, 그래도 움직이면 `~/nav2fleet_real/stop.sh`.
 8. 시간 로그: `grep "FollowPathRL: " ~/nav2fleet_real/logs/launch_*.log | tail`. 1초마다 `N calls, infer mean/max, call mean/max ... | scan age`,
