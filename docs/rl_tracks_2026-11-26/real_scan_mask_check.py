@@ -205,7 +205,8 @@ def check(npz_path, spec_path, out_dir, mask_text, fill=False):
             "median_left": {str(s): float(np.median(left[:, s])) for s in posts},
             "scans_with_empty_sector": int((left[:, posts] == 0).any(axis=1).sum()),
             "min_left_any_sector": int(left.min()),
-            "verdict": ("채우기를 켰다: 레이가 남지 않는 섹터는 이웃 섹터 값으로 채운다" if fill
+            "verdict": ("채우기를 켰다: 레이가 남지 않는 섹터는 이웃 섹터 값으로 채우고, "
+                        "양쪽 넷 안에 이웃이 없으면 상한으로 둔다(그 경우는 M3에 잡힌다)" if fill
                         else "실물 scan 격자에서 섹터마다 레이가 남는다"
                         if min(min_left.values()) >= 1
                         else "남지 않는 섹터가 있다: 이 값을 실물에 쓰면 안 된다"),

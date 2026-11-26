@@ -294,6 +294,18 @@ def test_check_with_fill_reads_a_fully_masked_sector_from_its_neighbours(tmp_pat
     assert "채우기" in (tmp_path / "fill" / "summary.md").read_text(encoding="utf-8")
 
 
+def test_check_with_fill_says_that_a_sector_with_no_neighbour_stays_at_the_limit(tmp_path):
+    # 모두 가리면 채울 이웃이 없어 상한으로 남는다: M1 문장이 그 경우를 말하고 M3이 잡는다
+    n, amin, inc = grid()
+    path = scan_npz(tmp_path, [np.full(n, 1.0, dtype=np.float32)], n, amin, inc)
+    spec = tmp_path / "policy_spec.json"
+    spec.write_text(json.dumps({"lidar": LID}), encoding="utf-8")
+    res = m.check(path, spec, tmp_path / "all", "-180,180", fill=True)
+    assert res["m3"]["masked"] == pytest.approx(1.0)
+    assert res["m3"]["verdict"] == m.grade(1.0, m.EMPTY_WORDS)
+    assert "상한" in res["m1"]["verdict"] and "M3" in res["m1"]["verdict"]
+
+
 def test_module_file_has_a_usage_docstring():
     text = pathlib.Path(m.__file__).read_text(encoding="utf-8")
     assert "dump <bag.mcap>" in text and "check <scans.npz>" in text
