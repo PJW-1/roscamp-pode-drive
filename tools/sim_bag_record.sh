@@ -13,4 +13,4 @@ command -v ros2 > /dev/null || { echo "ros2 not found; source /opt/ros/jazzy/set
 
 # 녹화 시각도 시뮬 시계로 찍는다
 exec ros2 bag record -o "$out" -s mcap --use-sim-time \
-  -e "^/$ns/(scan|odom|cmd_vel|amcl_pose|particle_cloud|plan|tf|tf_static|state|sim/truth)$|^/clock$"
+  -e "^/$ns/(scan|odom|cmd_vel|amcl_pose|particle_cloud|plan|plan_kept|tf|tf_static|state|sim/truth)$|^/clock$"

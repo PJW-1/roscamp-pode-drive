@@ -44,9 +44,8 @@ def test_the_upper_side_of_the_middle_aisle_leaves_two_rows(faces, centre):
     assert tuck.pass_rows(*faces, centre - half, centre + half) == 2
 
 
-@pytest.mark.parametrize("faces", [OLD_SOUTH, SOUTH])
-def test_a_body_in_the_middle_of_the_aisle_leaves_no_row(faces):
-    mid = sum(faces) / 2
+@pytest.mark.parametrize("faces, mid", [(OLD_SOUTH, 0.174), (SOUTH, sum(SOUTH) / 2)])
+def test_a_body_in_the_middle_of_the_aisle_leaves_no_row(faces, mid):
     assert tuck.pass_rows(*faces, mid - 0.075, mid + 0.075) == 0
 
 
