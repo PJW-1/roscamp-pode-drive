@@ -84,7 +84,8 @@ COMPARISONS = (
     + [(a, "demo1c08", b, "demo1c08") for a, b in CAP_PAIRS]
 )
 # (기준, 다시 돌린 것): 같은 체크포인트·같은 seed를 병합 코드로 다시 돌린 칸
-REGRESSION = (("e_acd3_rand", "e_acd3_rand_chk"), ("e_acd3_rand", "e_acd3_rand_chk2"))
+REGRESSION = (("e_acd3_rand", "e_acd3_rand_chk"), ("e_acd3_rand", "e_acd3_rand_chk2"),
+              ("e_acd3_rand_chk", "e_acd3_rand_chkb"))  # 마지막 짝은 같은 코드를 두 번 돌린 것
 SCENARIOS = ("corner", "tee", "entry")
 HIT_KINDS = ("wall_shelf", "box", "mover", "robot")
 CELL_RE = re.compile(r"^e_([a-z0-9]+)_(.+)$")
