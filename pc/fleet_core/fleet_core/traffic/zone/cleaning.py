@@ -118,7 +118,8 @@ class CleanPlan:
         plan = coverage.make_plan(site)
         self.params = plan.params
         self.grid = plan.grid
-        self.free = plan.grid.free
+        # 출발점에서 닿는 빈칸만 쓴다(진열대 모서리 옆에 홀로 남은 칸은 뺀다)
+        self.free = coverage.reached(plan.grid.free, plan.grid.cell(plan.start))
         self.solids = tuple(dict.fromkeys(tuple(r) for r in (*site.shelves, *site.sim_shelves)))
         self.lines = [(a, b) for a, b, _ in plan.lines]
         self.start = plan.start
@@ -138,7 +139,7 @@ class CleanPlan:
         cell = self.grid.cell(here)
         inside = (cell is not None and self.free[cell[1], cell[0]]
                   and self.cov.path_clear(self.grid, [here]))
-        first = here if inside else self.grid.centre(self.grid.nearest_free(here))
+        first = here if inside else self.grid.centre(self.cov._nearest(self.grid, self.free, here))
         pts = self.cov.transit(self.grid, self.free, first, to, self.radius, away)
         return ([] if inside else [here]) + pts, pts
 
@@ -149,7 +150,7 @@ class CleanPlan:
     def steps(self, here):
         cell = self.grid.cell(here)
         if cell is None or not self.free[cell[1], cell[0]]:
-            cell = self.grid.nearest_free(here)
+            cell = self.cov._nearest(self.grid, self.free, here)
         return self.cov.distances(self.free, cell)
 
     # ---- 막다른 자리: 그 점에서 reach 안을 지나야만 출발점으로 나갈 수 있는 자리인가 ----

@@ -392,14 +392,45 @@ def _nearest(grid: CleanGrid, mask: np.ndarray, p: Point) -> Cell:
     return (int(iz[k]), int(js[k]))
 
 
+def reached(free: np.ndarray, cell: Cell) -> np.ndarray:
+    """cell에서 빈칸만 밟아 닿는 칸."""
+    return np.isfinite(distances(free, cell))
+
+
 def pocket(grid: CleanGrid, free: np.ndarray, start: Point, centre: Point,
            radius: float) -> np.ndarray:
     """centre에서 radius 안을 지나지 않고는 start에 닿지 못하는 빈칸. start가 그 안이면 없다.
-    둘레에 걸친 칸은 중심이 안쪽일 수 있어, start 쪽은 둘레 밖 빈칸 가운데 가장 가까운 칸에서 센다."""
+    둘레에 걸친 칸은 중심이 안쪽일 수 있어, start 쪽은 둘레 밖 빈칸 가운데 가장 가까운 칸에서 센다.
+    둘레를 지나도 start에 닿지 못하는 빈칸은 넣지 않는다."""
     left = _outside(grid, free, centre, radius)
     if math.dist(start, centre) <= radius or not left.any():
         return np.zeros_like(free)
-    return left & ~np.isfinite(distances(left, _nearest(grid, left, start)))
+    joined = reached(free, _nearest(grid, free, start))
+    return left & joined & ~_reached_outside(grid, left, _nearest(grid, left, start), centre, radius)
+
+
+def _reached_outside(grid: CleanGrid, left: np.ndarray, cell: Cell, centre: Point,
+                     radius: float) -> np.ndarray:
+    """둘레 밖 빈칸만 밟아 닿는 칸. 모서리를 끼는 대각선 걸음은 그 선분이 막힌 것에서 떨어지고
+    가운데 점이 둘레 밖이면 간다(진열대 모서리와 둘레 사이 좁은 출구)."""
+    seen = np.zeros_like(left)
+    seen[cell[1], cell[0]] = True
+    queue = [cell]
+    h, w = left.shape
+    while queue:
+        i, j = queue.pop()
+        for di, dj in _STEPS:
+            ni, nj = i + di, j + dj
+            if not (0 <= ni < w and 0 <= nj < h) or not left[nj, ni] or seen[nj, ni]:
+                continue
+            if di and dj and not (left[j, ni] and left[nj, i]):
+                a, b = grid.centre((i, j)), grid.centre((ni, nj))
+                mid = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+                if math.dist(mid, centre) <= radius or not path_clear(grid, [a, b]):
+                    continue
+            seen[nj, ni] = True
+            queue.append((ni, nj))
+    return seen
 
 
 def in_pocket(grid: CleanGrid, free: np.ndarray, shut: np.ndarray, centre: Point, radius: float,
@@ -560,8 +591,7 @@ def make_plan(site, params: Params = Params()) -> Plan:
         start_cell = grid.nearest_free(home)
     start = grid.centre(start_cell) if moved else home
     # 집 자리에서 닿는 빈칸만 쓴다
-    reach = distances(grid.free, start_cell)
-    free = np.isfinite(reach)
+    free = reached(grid.free, start_cell)
     unreachable = int(grid.free.sum() - free.sum())
     todo = []
     jump = max(1, math.floor(params.line_spacing_m / params.grid_m + _EPS))

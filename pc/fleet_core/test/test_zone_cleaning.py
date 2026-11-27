@@ -505,12 +505,24 @@ def test_an_early_success_without_arrival_fails_as_not_at_target(kind):
         assert not w.events("CLEAN_LAP_DONE")
 
 
+# ---- 출발점에서 닿지 않는 빈칸: 길과 막다른 자리 판단에 쓰지 않는다 ----
+def test_a_cell_the_start_cannot_reach_is_not_used_for_ways_or_pockets():
+    plan = World().t._clean_plan
+    alone = (0.6125, 0.2875)  # v7: 남쪽 서쪽 진열대 모서리 옆에 홀로 남은 빈칸
+    i, j = plan.grid.cell(alone)
+    assert plan.grid.free[j, i] and not plan.free[j, i]
+    send, check = plan.way(alone, plan.start)
+    assert send[0] == alone and check[-1] == pytest.approx(plan.start)
+    assert plan.steps(alone)[plan.grid.cell(plan.start)[1], plan.grid.cell(plan.start)[0]] < 1e9
+    assert not plan.shut_in(alone, (1.66, 0.15), 0.18)
+
+
 # ---- 연결 길: 멈춤 오차로 reach 안에 선 자리 ----
 def test_a_stop_just_inside_reach_still_joins_the_next_lines():
     """칸은 빈칸이어도 지금 자리가 reach 안이면 가장 가까운 빈칸 중심부터 검사해 다음 줄로 간다."""
     w = World()
     plan, job = w.t._clean_plan, w.job
-    here = (0.598, 0.322)  # 남쪽 진열대 서쪽 모서리에서 0.105 m(진열대에서 떨어질 0.113 m 안)
+    here = (0.598, 0.338)  # 남쪽 진열대 서쪽 모서리에서 0.109 m(진열대에서 떨어질 0.113 m 안)
     cell = plan.grid.cell(here)
     assert plan.free[cell[1], cell[0]] and not plan.clear([here])
     w.pos[CLEANER_NAME] = here

@@ -6,6 +6,7 @@ from pathlib import Path
 
 from types import SimpleNamespace
 
+import numpy as np
 import pytest
 import yaml
 from fleet_core import coverage as cov
@@ -354,7 +355,8 @@ def test_turn_radius_matches_pode_fsm():
 
 
 # ---- 이동 구간: 막힌 것 옆을 지나칠 때는 way_slack_m을 더 둔다(틈처럼 그럴 자리가 없으면 한가운데로) ----
-S_WEST, S_EAST, SHELF_A = (0.70, 0.3475, 0.99, 0.3875), (1.25, 0.3475, 1.56, 0.3875), (0.65, 0.735, 1.56, 0.775)
+SHELF_A, S_WEST, S_EAST = load_fleet_map("v7").shelves[:3]
+GAP_X = 1.1375  # 남쪽 진열대 틈 가운데에 가장 가까운 칸 중심
 
 
 def _rect_gap(rect, path):
@@ -388,9 +390,9 @@ def _way(a, b, **changes):
                                       ((0.9125, 0.2125), (1.2125, 0.5125))])
 def test_a_way_through_the_shelf_gap_goes_down_its_middle(a, b):
     _, path = _way(a, b)
-    # 틈에서 빈칸은 x = 1.1125 한 줄이다: 진열대 두 면 사이에서는 그 줄 위로만 지난다
+    # 틈에서 빈칸은 x = GAP_X 한 줄이다: 진열대 두 면 사이에서는 그 줄 위로만 지난다
     inside = _between_the_shelf_faces(path)
-    assert inside and max(abs(x - 1.1125) for x in inside) <= 0.003
+    assert inside and max(abs(x - GAP_X) for x in inside) <= 0.003
 
 
 @pytest.mark.parametrize(("a", "b", "shelf"), [
@@ -405,7 +407,7 @@ def test_a_way_round_a_shelf_end_keeps_the_extra_slack(a, b, shelf):
 
 def test_without_the_slack_a_way_hugs_the_shelf_end():
     _, path = _way((1.1375, 0.4625), (1.3125, 0.2125), way_slack_m=0.0)
-    assert max(abs(x - 1.1125) for x in _between_the_shelf_faces(path)) > 0.01
+    assert max(abs(x - GAP_X) for x in _between_the_shelf_faces(path)) > 0.01
     assert _rect_gap(S_EAST, path) < 0.12
 
 
@@ -431,6 +433,33 @@ def test_the_cells_behind_q2_are_shut_in_by_it():
     assert all(x > 1.66 and y < 0.375 and math.dist((x, y), (1.66, 0.15)) > 0.18 for x, y in inside)
     i, j = grid.cell((1.4125, 0.2125))
     assert grid.free[j, i] and not shut[j, i]
+
+
+ALONE = (0.6125, 0.2875)  # v7: 남쪽 서쪽 진열대 모서리 옆에 홀로 남은 빈칸(이웃 네 칸이 막힘)
+
+
+def test_a_free_cell_that_cannot_reach_the_start_at_all_is_in_no_pocket():
+    site = load_fleet_map("v7")
+    plan = cov.make_plan(site)
+    grid = plan.grid
+    i, j = grid.cell(ALONE)
+    assert grid.free[j, i] and plan.unreachable_cells == 1
+    assert not np.isfinite(cov.distances(grid.free, grid.cell(plan.start)))[j, i]
+    for centre in ((1.66, 0.15), site.node_pose("O_IN"), site.node_pose("E-2")):
+        assert not cov.pocket(grid, grid.free, plan.start, centre, 0.18)[j, i]
+
+
+def test_o_in_shuts_in_nothing_since_the_middle_aisle_leaves_by_a_diagonal_past_it():
+    """가운데 통로 서쪽 출구는 대각선 한 걸음(가운데 점이 O_IN에서 0.184 m)으로만 이어진다."""
+    site = load_fleet_map("v7")
+    plan = cov.make_plan(site)
+    o_in = site.node_pose("O_IN")
+    assert not cov.pocket(plan.grid, plan.grid.free, plan.start, o_in, 0.18).any()
+    # 둘레가 그 가운데 점을 덮으면 두 통로가 다 막다른 쪽이다
+    shut = cov.pocket(plan.grid, plan.grid.free, plan.start, o_in, 0.185)
+    for p in ((1.1375, 0.5375), (1.4125, 0.2375)):
+        i, j = plan.grid.cell(p)
+        assert shut[j, i]
 
 
 def test_the_whole_south_aisle_is_shut_in_by_the_shelf_gap():
