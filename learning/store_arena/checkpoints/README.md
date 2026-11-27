@@ -1,6 +1,6 @@
 # 정책 체크포인트 백업
 
-실물 기본 정책(4b)과 후보 정책(acd2, acd3, demohist, std, demohist2)의 rsl_rl 체크포인트다. 다른 PC에서도 저장소만으로 이어 학습하거나
+실물 기본 정책(4b)과 후보 정책(acd2, acd3, demohist, std, demohist2, demohistsym)의 rsl_rl 체크포인트다. 다른 PC에서도 저장소만으로 이어 학습하거나
 onnx를 다시 내보낼 수 있게 여기에 둔다. 나머지 체크포인트는 학습 PC의 `D:/isaac/runs/store_arena/`에만 있다.
 
 | 정책 | 파일 | 출처(학습 PC) | 설정 기록 |
@@ -11,9 +11,10 @@ onnx를 다시 내보낼 수 있게 여기에 둔다. 나머지 체크포인트�
 | store_arena_demohist | `store_arena_demohist/model_2044.pt` | `n26/t_demo_hist/model_2044.pt` | `store_arena_demohist/run.json` |
 | store_arena_std | `store_arena_std/model_2044.pt` | `n26/t_std/model_2044.pt` | `store_arena_std/run.json` |
 | store_arena_demohist2 | `store_arena_demohist2/model_2643.pt` | `n26/t_demo_hist2/model_2643.pt` | `store_arena_demohist2/run.json` |
+| store_arena_demohistsym | `store_arena_demohistsym/model_2044.pt` | `n26/t_demo_hist_sym/model_2044.pt` | `store_arena_demohistsym/run.json` |
 
 - 파일마다 sha256, 반복 번호(`iter`), 입력 칸 수는 `index.json`에 있고 `test_checkpoints.py`가 파일과 맞는지 본다.
-- 4b, acd2, acd3 실행은 `run_config.json`이 생기기 전 것이라 그때의 `run.json`을 같이 둔다. demohist, std, demohist2는 `run.json`과
+- 4b, acd2, acd3 실행은 `run_config.json`이 생기기 전 것이라 그때의 `run.json`을 같이 둔다. demohist, std, demohist2, demohistsym은 `run.json`과
   학습 설정 전체가 든 `run_config.json`을 같이 둔다(`run.json`의 `run_config_sha256`이 그 파일의 해시이고 시험이 맞는지 본다).
   계보는 `../POLICIES.md`에 있다.
 - 이어 학습: `train.py --init learning/store_arena/checkpoints/store_arena_acd3/model_1745.pt ...`
