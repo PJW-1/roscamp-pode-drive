@@ -167,6 +167,20 @@ std,demo2,ctrl,demo2,yes (16 tracked envs),same,0.16-0.19,752,18.484,1.7818,outs
 std,demo2,ctrl,demo2,yes (16 tracked envs),same,0.19-0.22,801,19.3508,1.7445,outside,-17.9775,1.8701,outside
 std,demo2,ctrl,demo2,yes (16 tracked envs),same,0.22-0.25,575,9.913,1.6997,outside,-9.2174,1.8757,outside
 std,demo2,ctrl,demo2,yes (16 tracked envs),same,>= 0.25,0,,,,,,
+sym,aisle,ctrl,aisle,yes (16 tracked envs),same,all,2792,31.3754,0.9961,outside,-18.7679,1.1417,outside
+sym,aisle,ctrl,aisle,yes (16 tracked envs),same,< 0.13,0,,,,,,
+sym,aisle,ctrl,aisle,yes (16 tracked envs),same,0.13-0.16,691,7.0912,1.1901,outside,15.6295,2.1438,outside
+sym,aisle,ctrl,aisle,yes (16 tracked envs),same,0.16-0.19,757,49.0092,2.2788,outside,-37.6486,2.5622,outside
+sym,aisle,ctrl,aisle,yes (16 tracked envs),same,0.19-0.22,751,48.3356,2.0099,outside,-40.213,2.0056,outside
+sym,aisle,ctrl,aisle,yes (16 tracked envs),same,0.22-0.25,593,15.683,1.5135,outside,-7.5885,1.1142,outside
+sym,aisle,ctrl,aisle,yes (16 tracked envs),same,>= 0.25,0,,,,,,
+sym,aisle,acd3,aisle,yes (16 tracked envs),same,all,2792,29.7636,1.0105,outside,-19.2693,1.0997,outside
+sym,aisle,acd3,aisle,yes (16 tracked envs),same,< 0.13,0,,,,,,
+sym,aisle,acd3,aisle,yes (16 tracked envs),same,0.13-0.16,691,6.0781,1.2745,outside,10.9986,2.0153,outside
+sym,aisle,acd3,aisle,yes (16 tracked envs),same,0.16-0.19,757,43.461,2.3499,outside,-31.7041,2.4514,outside
+sym,aisle,acd3,aisle,yes (16 tracked envs),same,0.19-0.22,751,48.0692,2.0184,outside,-41.012,2.0194,outside
+sym,aisle,acd3,aisle,yes (16 tracked envs),same,0.22-0.25,593,16.6948,1.5512,outside,-11.1298,1.3144,outside
+sym,aisle,acd3,aisle,yes (16 tracked envs),same,>= 0.25,0,,,,,,
 demohist,demo1,demostd,demo1,yes (16 tracked envs),same,all,2792,1.9341,0.7488,outside,-2.9728,0.7853,outside
 demohist,demo1,demostd,demo1,yes (16 tracked envs),same,< 0.13,0,,,,,,
 demohist,demo1,demostd,demo1,yes (16 tracked envs),same,0.13-0.16,691,0.8683,0.7925,inside,-5.2098,1.1953,outside
