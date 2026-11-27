@@ -44,13 +44,16 @@ def test_the_upper_side_of_the_middle_aisle_leaves_two_rows(faces, centre):
     assert tuck.pass_rows(*faces, centre - half, centre + half) == 2
 
 
-def test_a_body_in_the_middle_of_the_aisle_leaves_no_row():
-    assert tuck.pass_rows(*OLD_SOUTH, 0.174 - 0.075, 0.174 + 0.075) == 0
+@pytest.mark.parametrize("faces", [OLD_SOUTH, SOUTH])
+def test_a_body_in_the_middle_of_the_aisle_leaves_no_row(faces):
+    mid = sum(faces) / 2
+    assert tuck.pass_rows(*faces, mid - 0.075, mid + 0.075) == 0
 
 
 def test_an_empty_aisle_has_rows_from_three_cells_off_each_face():
     """벽(칸 경계 위)에서는 셋째 칸부터, 진열대 면(칸 안)에서는 그 칸에서 셋째 칸부터다: 0.0625~0.2625."""
     assert tuck.pass_rows(*OLD_SOUTH, 1.0, 1.0) == 9
+    assert tuck.pass_rows(*SOUTH, 1.0, 1.0) == 10  # 지금 지도: 0.0625~0.2875
 
 
 # ---- 통로의 양쪽 면 ----

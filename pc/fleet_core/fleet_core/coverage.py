@@ -405,8 +405,10 @@ def pocket(grid: CleanGrid, free: np.ndarray, start: Point, centre: Point,
     left = _outside(grid, free, centre, radius)
     if math.dist(start, centre) <= radius or not left.any():
         return np.zeros_like(free)
-    joined = reached(free, _nearest(grid, free, start))
-    return left & joined & ~_reached_outside(grid, left, _nearest(grid, left, start), centre, radius)
+    left &= reached(free, _nearest(grid, free, start))
+    if not left.any():
+        return np.zeros_like(free)
+    return left & ~_reached_outside(grid, left, _nearest(grid, left, start), centre, radius)
 
 
 def _reached_outside(grid: CleanGrid, left: np.ndarray, cell: Cell, centre: Point,

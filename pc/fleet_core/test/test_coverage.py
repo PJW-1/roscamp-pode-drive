@@ -449,6 +449,16 @@ def test_a_free_cell_that_cannot_reach_the_start_at_all_is_in_no_pocket():
         assert not cov.pocket(grid, grid.free, plan.start, centre, 0.18)[j, i]
 
 
+def test_a_start_beside_the_lone_cell_still_counts_from_the_cells_it_reaches():
+    """출발점 바로 옆에 홀로 남은 칸이 있어도 그 칸에서 세지 않는다."""
+    plan = cov.make_plan(load_fleet_map("v7"))
+    grid, start, centre = plan.grid, (0.6001, 0.3126), (0.58, 0.32)
+    shut = cov.pocket(grid, grid.free, start, centre, 0.02)
+    i, j = grid.cell((1.1375, 0.5375))
+    assert grid.free[j, i] and not shut[j, i]
+    assert not shut.any()
+
+
 def test_o_in_shuts_in_nothing_since_the_middle_aisle_leaves_by_a_diagonal_past_it():
     """가운데 통로 서쪽 출구는 대각선 한 걸음(가운데 점이 O_IN에서 0.184 m)으로만 이어진다."""
     site = load_fleet_map("v7")
