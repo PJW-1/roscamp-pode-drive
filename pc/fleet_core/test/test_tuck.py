@@ -8,8 +8,14 @@ from fleet_core.fleet_map import load_fleet_map
 SITE = load_fleet_map("v7")
 BOX = SITE.bounds()
 SOLIDS = tuple(dict.fromkeys(tuple(r) for r in (*SITE.shelves, *SITE.sim_shelves)))
-SOUTH = (0.0, 0.3475)  # 남쪽 통로: 벽과 진열대 남쪽 면
-MIDDLE = (0.3875, 0.735)  # 가운데 통로: 남쪽 진열대 북쪽 면과 진열대 A 남쪽 면
+SHELF_A, S_WEST, S_EAST = SITE.shelves[:3]
+SOUTH = (0.0, S_WEST[1])  # 남쪽 통로: 벽과 진열대 남쪽 면
+MIDDLE = (S_WEST[3], SHELF_A[1])  # 가운데 통로: 남쪽 진열대 북쪽 면과 진열대 A 남쪽 면
+LINE_Y = 0.2375  # 남쪽 통로 위쪽 청소 줄
+TUCK_Y = SOUTH[1] - 0.03 - tuck.BODY_HALF_M  # 진열대 면에서 몸 옆면을 3 cm 띄운 자리
+MID_TUCK_Y = MIDDLE[1] - 0.03 - tuck.BODY_HALF_M
+# 11-25 Gazebo 측정 때의 진열대 면(지도를 줄자 값으로 바꾸기 전)
+OLD_SOUTH, OLD_MIDDLE = (0.0, 0.3475), (0.3875, 0.735)
 
 
 def _flat(points) -> list:
@@ -22,33 +28,35 @@ def _plan(here, yaw, axis=0, **over):
 
 
 # ---- 지나갈 줄 수 ----
-@pytest.mark.parametrize("centre, rows", [
-    (0.2615, 3),   # 진열대 쪽에 붙음: Gazebo에서 지나갔다
-    (0.086, 2),    # 벽 쪽에 붙음: Gazebo에서 충돌 판정으로 섰다
+@pytest.mark.parametrize("faces, centre, rows", [
+    (OLD_SOUTH, 0.2615, 3),   # 진열대 쪽에 붙음: Gazebo에서 지나갔다
+    (OLD_SOUTH, 0.086, 2),    # 벽 쪽에 붙음: Gazebo에서 충돌 판정으로 섰다
+    (SOUTH, TUCK_Y, 4),       # 지금 지도에서 붙어 서는 자리
 ])
-def test_the_rows_left_beside_a_body_in_the_south_aisle(centre, rows):
+def test_the_rows_left_beside_a_body_in_the_south_aisle(faces, centre, rows):
     half = tuck.MARK_HALF_M
-    assert tuck.pass_rows(*SOUTH, centre - half, centre + half) == rows
+    assert tuck.pass_rows(*faces, centre - half, centre + half) == rows
 
 
-def test_the_upper_side_of_the_middle_aisle_leaves_two_rows():
+@pytest.mark.parametrize("faces, centre", [(OLD_MIDDLE, 0.649), (MIDDLE, MID_TUCK_Y)])
+def test_the_upper_side_of_the_middle_aisle_leaves_two_rows(faces, centre):
     half = tuck.MARK_HALF_M
-    assert tuck.pass_rows(*MIDDLE, 0.649 - half, 0.649 + half) == 2
+    assert tuck.pass_rows(*faces, centre - half, centre + half) == 2
 
 
 def test_a_body_in_the_middle_of_the_aisle_leaves_no_row():
-    assert tuck.pass_rows(*SOUTH, 0.174 - 0.075, 0.174 + 0.075) == 0
+    assert tuck.pass_rows(*OLD_SOUTH, 0.174 - 0.075, 0.174 + 0.075) == 0
 
 
 def test_an_empty_aisle_has_rows_from_three_cells_off_each_face():
     """벽(칸 경계 위)에서는 셋째 칸부터, 진열대 면(칸 안)에서는 그 칸에서 셋째 칸부터다: 0.0625~0.2625."""
-    assert tuck.pass_rows(*SOUTH, 1.0, 1.0) == 9
+    assert tuck.pass_rows(*OLD_SOUTH, 1.0, 1.0) == 9
 
 
 # ---- 통로의 양쪽 면 ----
 @pytest.mark.parametrize("p, faces", [
     ((1.40, 0.20), SOUTH), ((0.85, 0.10), SOUTH), ((0.85, 0.55), MIDDLE),
-    ((1.12, 0.20), (0.0, 0.735)),  # 진열대 틈 아래: 위쪽 면은 진열대 A
+    ((1.12, 0.20), (0.0, SHELF_A[1])),  # 진열대 틈 아래: 위쪽 면은 진열대 A
     ((0.30, 0.50), (0.0, 0.98)),
 ])
 def test_the_faces_across_an_aisle_along_x(p, faces):
@@ -56,45 +64,46 @@ def test_the_faces_across_an_aisle_along_x(p, faces):
 
 
 def test_the_faces_across_a_way_along_y():
-    """남쪽 진열대 사이 틈(x 0.99~1.25)을 y 방향으로 지나는 길."""
-    assert tuck.faces(SOLIDS, BOX, (1.12, 0.3675), 1) == pytest.approx((0.99, 1.25))
+    """남쪽 진열대 사이 틈을 y 방향으로 지나는 길."""
+    mid = (S_WEST[2] + S_EAST[0]) / 2, (S_WEST[1] + S_WEST[3]) / 2
+    assert tuck.faces(SOLIDS, BOX, mid, 1) == pytest.approx((S_WEST[2], S_EAST[0]))
 
 
 # ---- 붙어 설 자리와 가는 길 ----
 def test_the_south_aisle_tucks_to_the_shelf_side():
     """좌표가 큰 쪽 면: 운반 로봇의 길은 반 칸 원점 쪽에 그려져 청소 로봇에서 멀어진다."""
-    t = _plan((1.30, 0.2125), 0.0)
-    assert t.rows == 3 and t.yaw == pytest.approx(0.0)
-    assert _flat(t.path) == pytest.approx(_flat([(1.30, 0.2125), (1.38, 0.2615), (1.43, 0.2615)]))
-    assert t.spot == pytest.approx((1.43, 0.2615))
-    assert t.back == pytest.approx((1.51, 0.2125))
+    t = _plan((1.30, LINE_Y), 0.0)
+    assert t.rows == 4 and t.yaw == pytest.approx(0.0)
+    assert _flat(t.path) == pytest.approx(_flat([(1.30, LINE_Y), (1.38, TUCK_Y), (1.43, TUCK_Y)]))
+    assert t.spot == pytest.approx((1.43, TUCK_Y))
+    assert t.back == pytest.approx((1.51, LINE_Y))
 
 
 def test_the_far_row_still_goes_to_the_shelf_side_with_a_longer_lead():
     t = _plan((1.30, 0.1375), 0.0)
-    lead = 1.5 * (0.2615 - 0.1375)
-    assert t.path[1] == pytest.approx((1.30 + lead, 0.2615))
-    assert t.spot == pytest.approx((1.30 + lead + 0.05, 0.2615))
+    lead = 1.5 * (TUCK_Y - 0.1375)
+    assert t.path[1] == pytest.approx((1.30 + lead, TUCK_Y))
+    assert t.spot == pytest.approx((1.30 + lead + 0.05, TUCK_Y))
 
 
 def test_a_cleaner_heading_west_tucks_westward():
-    t = _plan((1.50, 0.2125), math.pi)
+    t = _plan((1.50, LINE_Y), math.pi)
     assert t.yaw == pytest.approx(math.pi)
-    assert _flat(t.path) == pytest.approx(_flat([(1.50, 0.2125), (1.42, 0.2615), (1.37, 0.2615)]))
+    assert _flat(t.path) == pytest.approx(_flat([(1.50, LINE_Y), (1.42, TUCK_Y), (1.37, TUCK_Y)]))
 
 
 def test_the_middle_aisle_has_no_tuck_unless_two_rows_are_enough():
-    assert _plan((1.27, 0.5125), 0.0) is None
-    assert _plan((1.27, 0.5125), 0.0, rows=2).spot[1] == pytest.approx(0.649)
-    assert _plan((1.27, 0.6125), 0.0, rows=2).spot[1] == pytest.approx(0.649)
+    assert _plan((1.27, 0.5375), 0.0) is None
+    assert _plan((1.27, 0.5375), 0.0, rows=2).spot[1] == pytest.approx(MID_TUCK_Y)
+    assert _plan((1.27, 0.6375), 0.0, rows=2).spot[1] == pytest.approx(MID_TUCK_Y)
 
 
 def test_the_body_stays_clear_of_both_faces_all_the_way():
-    t = _plan((1.30, 0.2125), 0.0)
+    t = _plan((1.30, LINE_Y), 0.0)
     for (ax, ay), (bx, by) in zip(t.path, t.path[1:], strict=False):
         for k in range(11):
             q = (ax + (bx - ax) * k / 10, ay + (by - ay) * k / 10)
-            assert 0.083 - 1e-9 <= q[1] <= 0.3475 - 0.083 + 1e-9
+            assert 0.083 - 1e-9 <= q[1] <= SOUTH[1] - 0.083 + 1e-9
 
 
 def test_no_tuck_in_a_wide_place():
@@ -104,24 +113,24 @@ def test_no_tuck_in_a_wide_place():
 @pytest.mark.parametrize("x", [0.93, 1.12, 1.20, 1.60])
 def test_the_gap_between_the_shelves_is_the_same_aisle(x):
     """진열대 틈 아래와 진열대 끝 가까이도 진열대 줄에 맞춰 붙는다."""
-    t = _plan((x, 0.2125), 0.0)
-    assert t is not None and t.spot[1] == pytest.approx(0.2615) and t.rows == 3
+    t = _plan((x, LINE_Y), 0.0)
+    assert t is not None and t.spot[1] == pytest.approx(TUCK_Y) and t.rows == 4
 
 
 def test_no_tuck_when_something_stands_on_the_way_to_the_spot():
-    box = (1.36, 0.27, 1.42, 0.3475)
-    assert tuck.plan((*SOLIDS, box), BOX, (1.30, 0.2125), 0.0, 0, clear=0.03, radius=0.083,
+    box = (1.36, 0.27, 1.42, SOUTH[1])
+    assert tuck.plan((*SOLIDS, box), BOX, (1.30, LINE_Y), 0.0, 0, clear=0.03, radius=0.083,
                      rows=3) is None
 
 
 def test_no_tuck_when_too_few_rows_are_left():
-    assert _plan((1.30, 0.2125), 0.0, rows=4) is None
+    assert _plan((1.30, LINE_Y), 0.0, rows=5) is None
 
 
 def test_a_spot_already_on_the_tuck_line_only_goes_straight_on():
-    t = _plan((1.30, 0.2615), 0.0)
-    assert _flat(t.path) == pytest.approx(_flat([(1.30, 0.2615), (1.35, 0.2615)]))
-    assert t.back == pytest.approx((1.35, 0.2615))
+    t = _plan((1.30, TUCK_Y), 0.0)
+    assert _flat(t.path) == pytest.approx(_flat([(1.30, TUCK_Y), (1.35, TUCK_Y)]))
+    assert t.back == pytest.approx((1.35, TUCK_Y))
 
 
 def test_the_grid_values_match_the_nav2_maps_and_parameters():

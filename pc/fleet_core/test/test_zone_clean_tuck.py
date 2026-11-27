@@ -14,7 +14,7 @@ from fleet_core.common.params import load_params
 from fleet_core.traffic.zone.cleaning import LINE, TUCK, YIELD
 from test_zone_cleaning import CLEANER_NAME, World
 
-LINE_Y, TUCK_Y = 0.2125, 0.2615  # 남쪽 통로 위쪽 줄, 진열대 면(0.3475)에서 3 cm 띄운 자리
+LINE_Y, TUCK_Y = 0.2375, 0.278  # 남쪽 통로 위쪽 줄, 진열대 면(0.364)에서 몸 옆면을 3 cm 띄운 자리
 WAY = [(0.64, 0.24), (1.66, 0.15)]  # 운반 로봇 길: E-3에서 Q2로
 S = 0.05  # 줄 시작에서 이만큼 간 자리: 붙어 설 자리가 Q2 둘레 밖이다
 

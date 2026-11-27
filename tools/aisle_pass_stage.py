@@ -1,6 +1,6 @@
 """통로 교차 시연 준비: 청소 로봇을 남쪽 통로 진열대 쪽에 붙여 세운다(Gazebo).
 
-  python3 tools/aisle_pass_stage.py [로봇] [x,y,yaw]     기본: pode3 1.40,0.2615,0
+  python3 tools/aisle_pass_stage.py [로봇] [x,y,yaw]     기본: pode3 1.40,0.278,0
 
 gz.launch.py(cleaners:=<로봇>)를 띄운 터미널과 같은 환경(ROS_DOMAIN_ID, GZ_PARTITION)에서 띄운 직후에 돌린다.
 관제가 뜨기 전에 옮겨야 청소 로봇이 집 밖에 선 것으로 보고 그 자리에 서 있는다(CLEAN_NOT_HOME).
@@ -18,7 +18,7 @@ from geometry_msgs.msg import PoseWithCovarianceStamped
 from nav_msgs.msg import Odometry
 from rclpy.qos import qos_profile_sensor_data
 
-DEFAULT_ROBOT, DEFAULT_POSE = "pode3", (1.40, 0.2615, 0.0)
+DEFAULT_ROBOT, DEFAULT_POSE = "pode3", (1.40, 0.278, 0.0)
 TRUTH_WAIT_S = 180.0  # Gazebo가 뜨기를 기다리는 시간
 SETTLE_M = 0.03  # AMCL 자세가 놓은 자리에서 이 안이면 자리를 잡은 것으로 본다
 SETTLE_S = 60.0  # 처음 자세를 되풀이해 보내는 시간

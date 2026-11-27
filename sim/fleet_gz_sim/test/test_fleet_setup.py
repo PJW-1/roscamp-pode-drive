@@ -202,10 +202,11 @@ def test_narrow_strips_add_a_box_around_each_shelf_end_face():
 def test_aisle_strips_cover_the_two_aisles_beside_the_v7_shelves():
     site = load_fleet_map("v7")
     strips = fleet_setup.aisle_strips(site.sim_shelves, site.bounds(), band=0.05)
+    shelf_a, west, east = site.sim_shelves[:3]
     # 남쪽 통로: 남쪽 벽 너머 5 cm부터 남쪽 진열대 면 안쪽 5 cm까지, 두 진열대와 그 사이 틈을 잇는다
-    assert (0.7, -0.05, 1.56, 0.3975) in strips
+    assert (west[0], -0.05, east[2], round(west[1] + 0.05, 6)) in strips
     # 가운데 통로: 남쪽 진열대 윗면에서 긴 진열대 아랫면까지, 남쪽 진열대가 마주 보는 길이만
-    assert (0.7, 0.3375, 1.56, 0.785) in strips
+    assert (west[0], round(west[3] - 0.05, 6), east[2], round(shelf_a[1] + 0.05, 6)) in strips
     # 충전 칸 사이 칸막이(길이 0.1 m)는 통로가 아니다
     assert not [r for r in strips if r[2] <= 0.6 and r[3] <= 0.2]
 
@@ -249,4 +250,6 @@ def test_narrow_strips_add_the_aisles_only_when_asked():
     site = load_fleet_map("v7")
     plain = fleet_setup.narrow_strips(site).split("; ")
     more = fleet_setup.narrow_strips(site, aisles=True).split("; ")
-    assert more[:len(plain)] == plain and "0.7,-0.05,1.56,0.3975" in more[len(plain):]
+    west, east = site.sim_shelves[1:3]
+    south = ",".join(f"{v:g}" for v in (west[0], -0.05, east[2], west[1] + 0.05))
+    assert more[:len(plain)] == plain and south in more[len(plain):]

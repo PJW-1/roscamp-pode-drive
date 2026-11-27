@@ -13,10 +13,13 @@ import aisle_pass_stage as stage  # noqa: E402
 
 
 def test_the_default_spot_is_the_shelf_side_of_the_south_aisle():
-    """남쪽 진열대 면(y 0.3475)에서 몸 옆면(반폭 0.056)을 3 cm 띄운 자리, 통로와 나란히."""
+    """v7 남쪽 동쪽 진열대 남쪽 면에서 몸 옆면(반폭 0.056)을 3 cm 띄운 자리, 통로와 나란히."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "pc/fleet_core"))
+    from fleet_core.fleet_map import load_fleet_map
+    shelf = load_fleet_map("v7").sim_shelves[2]
     x, y, yaw = stage.DEFAULT_POSE
     assert stage.DEFAULT_ROBOT == "pode3"
-    assert y == pytest.approx(0.3475 - 0.03 - 0.056) and yaw == 0.0 and 1.25 < x < 1.56
+    assert y == pytest.approx(shelf[1] - 0.03 - 0.056) and yaw == 0.0 and shelf[0] < x < shelf[2]
 
 
 def test_the_gazebo_request_carries_the_name_place_and_heading():
