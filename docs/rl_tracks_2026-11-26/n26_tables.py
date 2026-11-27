@@ -49,6 +49,10 @@ CAPS_PAIRS = [("caps", "ctrl"), ("capsstd", "std"), ("capsstd", "caps"), ("caps"
               ("capsstd", "acd3")]
 # 좌우 거울 증강 (대조는 ctrl)
 SYM_PAIRS = [("sym", "ctrl"), ("sym", "acd3")]
+# 거울 증강을 시연 조건 + 이력 학습과 합친 것 (대조는 거울 증강만 없는 demohist와 그 seed 4).
+# sym(거울 증강만)은 std, demohist와도 견주고 demo1에서도 본다
+MIRROR_PAIRS = [("demohistsym", "demohist"), ("demohistsym", "demohists4"), ("demohistsym", "sym"),
+                ("demohistsym", "acd3"), ("sym", "std"), ("sym", "demohist")]
 # 라이다 이력 + std 되돌리기 + 시연 조건 (대조는 이력만 없는 demostd, std만 되돌린 std와도 견준다)
 HIST_PAIRS = [("demohist", "demostd"), ("demohist", "acd3"), ("demohist", "std")]
 # 라이다 이력 + std 되돌리기, 시연 조건 없음 (대조는 이력 없는 std와 시연 조건을 섞은 demohist)
@@ -80,6 +84,8 @@ COMPARISONS = (
     + [(a, c, b, c) for c in ("demo1", "demo2", "aisle", "rand") for a, b in LONG_PAIRS]
     + [(a, c, b, c) for c in ("demo1", "demo2", "aisle", "rand") for a, b in DYN_PAIRS]
     + [(a, c, b, c) for c in SEED_CELLS for a, b in SEED_PAIRS]
+    + [(a, c, b, c) for c in SEED_CELLS for a, b in MIRROR_PAIRS]
+    + [("sym", "demo1", b, "demo1") for b in ("ctrl", "acd3")]
     + [(p, "demo1c08", p, "demo1") for p in CAP_POLICIES]
     + [(a, "demo1c08", b, "demo1c08") for a, b in CAP_PAIRS]
 )
