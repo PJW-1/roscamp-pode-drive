@@ -1,6 +1,6 @@
 # n26 표
 
-실행 폴더 `D:/isaac/runs/store_arena/n26`, 끝난 실행(exit=0): c_clean, c_cross, c_demo_box, c_ghost, e_acd3_aisle, e_acd3_aislet, e_acd3_corner, e_acd3_demo1, e_acd3_demo1c08, e_acd3_demo1t, e_acd3_demo2, e_acd3_entry, e_acd3_head, e_acd3_rand, e_acd3_rand_chk, e_acd3_rand_chk2, e_acd3_rand_chkb, e_acd3_realrand, e_acd3_tee, e_ctrl_aisle, e_ctrl_demo1, e_ctrl_demo2, e_ctrl_head, e_ctrl_rand, e_ctrl_rand_dump, e_demo_aisle, e_demo_demo1, e_demo_demo2, e_demo_head, e_demo_rand, e_demohist2_aisle, e_demohist2_demo1, e_demohist2_demo2, e_demohist2_head, e_demohist2_rand, e_demohist2m_demo1, e_demohist_aisle, e_demohist_aislel958, e_demohist_aislepost, e_demohist_aislepostm, e_demohist_aislepostmf, e_demohist_aislepostn, e_demohist_aislet, e_demohist_demo1, e_demohist_demo1c08, e_demohist_demo1l958, e_demohist_demo1maskw, e_demohist_demo1post, e_demohist_demo1postm, e_demohist_demo1postmf, e_demohist_demo1postn, e_demohist_demo1t, e_demohist_demo1tc26a60, e_demohist_demo1tc26a90, e_demohist_demo1tf15a60, e_demohist_demo1tf20a30, e_demohist_demo1tf20a60, e_demohist_demo1tp30a60, e_demohist_demo1tp30a90, e_demohist_demo1tw26a60, e_demohist_demo1tw26a60n, e_demohist_demo2, e_demohist_head, e_demohist_rand, e_demohistdyn_aisle, e_demohistdyn_demo1, e_demohistdyn_demo2, e_demohistdyn_rand, e_demohists4_aisle, e_demohists4_demo1, e_demohists4_head, e_demohists4_rand, e_demostd2_aisle, e_demostd2_demo1, e_demostd2_demo2, e_demostd2_rand, e_demostd2m_demo1, e_demostd_aisle, e_demostd_demo1, e_demostd_demo2, e_demostd_head, e_demostd_rand, e_dyn_rand, e_histstd_aisle, e_histstd_demo1, e_histstd_demo2, e_histstd_head, e_histstd_rand, e_std_aisle, e_std_aislet, e_std_demo1, e_std_demo1c08, e_std_demo1t, e_std_demo2, e_std_head, e_std_rand, e_stds4_aisle, e_stds4_demo1, e_stds4_head, e_stds4_rand, e_sym_aisle, e_sym_head, e_sym_rand, e_sysid_head, e_sysid_rand, e_sysid_realrand, smoke_b11, smoke_b4, smoke_caps, smoke_demo, smoke_hist, smoke_hstd, smoke_resume, smoke_std, smoke_sym, smoke_sysid, t_caps, t_ctrl, t_demo, t_demo_hist, t_demo_hist2, t_demo_hist_dyn, t_demo_hist_s4, t_demo_std, t_demo_std2, t_dyn, t_gam, t_hist_std, t_std, t_std_s4, t_sym, t_sysid
+실행 폴더 `D:/isaac/runs/store_arena/n26`, 끝난 실행(exit=0): c_clean, c_cross, c_demo_box, c_ghost, e_acd3_aisle, e_acd3_aislet, e_acd3_corner, e_acd3_demo1, e_acd3_demo1c08, e_acd3_demo1t, e_acd3_demo2, e_acd3_entry, e_acd3_head, e_acd3_rand, e_acd3_rand_chk, e_acd3_rand_chk2, e_acd3_rand_chkb, e_acd3_realrand, e_acd3_tee, e_ctrl_aisle, e_ctrl_demo1, e_ctrl_demo2, e_ctrl_head, e_ctrl_rand, e_ctrl_rand_dump, e_demo_aisle, e_demo_demo1, e_demo_demo2, e_demo_head, e_demo_rand, e_demohist2_aisle, e_demohist2_demo1, e_demohist2_demo2, e_demohist2_head, e_demohist2_rand, e_demohist2m_demo1, e_demohist_aisle, e_demohist_aislel958, e_demohist_aislepost, e_demohist_aislepostm, e_demohist_aislepostmf, e_demohist_aislepostn, e_demohist_aislet, e_demohist_demo1, e_demohist_demo1c08, e_demohist_demo1l958, e_demohist_demo1maskw, e_demohist_demo1post, e_demohist_demo1postm, e_demohist_demo1postmf, e_demohist_demo1postn, e_demohist_demo1t, e_demohist_demo1tc26a60, e_demohist_demo1tc26a90, e_demohist_demo1tf15a60, e_demohist_demo1tf20a30, e_demohist_demo1tf20a60, e_demohist_demo1tp30a60, e_demohist_demo1tp30a90, e_demohist_demo1tw26a60, e_demohist_demo1tw26a60n, e_demohist_demo2, e_demohist_head, e_demohist_rand, e_demohist_rand_dump, e_demohistdyn_aisle, e_demohistdyn_demo1, e_demohistdyn_demo2, e_demohistdyn_rand, e_demohists4_aisle, e_demohists4_demo1, e_demohists4_head, e_demohists4_rand, e_demohistsym_aisle, e_demohistsym_demo1, e_demohistsym_head, e_demohistsym_rand, e_demostd2_aisle, e_demostd2_demo1, e_demostd2_demo2, e_demostd2_rand, e_demostd2m_demo1, e_demostd_aisle, e_demostd_demo1, e_demostd_demo2, e_demostd_head, e_demostd_rand, e_dyn_head, e_dyn_rand, e_gam_rand, e_histstd_aisle, e_histstd_demo1, e_histstd_demo2, e_histstd_head, e_histstd_rand, e_std_aisle, e_std_aislet, e_std_demo1, e_std_demo1c08, e_std_demo1t, e_std_demo2, e_std_head, e_std_rand, e_stds4_aisle, e_stds4_demo1, e_stds4_head, e_stds4_rand, e_sym_aisle, e_sym_demo1, e_sym_head, e_sym_rand, e_sysid_head, e_sysid_rand, e_sysid_realrand, smoke_b11, smoke_b4, smoke_caps, smoke_demo, smoke_hist, smoke_hstd, smoke_resume, smoke_std, smoke_sym, smoke_sysid, t_caps, t_ctrl, t_demo, t_demo_hist, t_demo_hist2, t_demo_hist_dyn, t_demo_hist_s4, t_demo_hist_sym, t_demo_std, t_demo_std2, t_dyn, t_gam, t_hist_std, t_std, t_std_s4, t_sym, t_sysid
 
 ## 1. 평가 칸
 
@@ -61,6 +61,7 @@
 | demohist | demo2 | 4096 | 48.27 | 50.44 | 1.29 | 368 | 823 | 340 | 535 | 1854 | 39.82 | 1.306 |
 | demohist | head | 4096 | 51.12 | 48.88 | 0.0 | 230 | 24 | 432 | 1316 | 1749 | 46.69 | 1.282 |
 | demohist | rand | 4096 | 77.37 | 22.56 | 0.07 | 60 | 26 | 457 | 381 | 829 | 51.56 | 1.117 |
+| demohist | rand_dump | 4096 | 77.37 | 22.56 | 0.07 | 62 | 26 | 456 | 380 | 834 | 51.41 | 1.117 |
 | demohist2 | aisle | 4096 | 73.95 | 23.56 | 2.49 | 135 | 830 | 0 | 0 | 876 | 45.22 | 1.2 |
 | demohist2 | demo1 | 4096 | 54.27 | 44.34 | 1.39 | 227 | 737 | 361 | 491 | 1711 | 39.66 | 1.275 |
 | demohist2 | demo2 | 4096 | 50.05 | 48.44 | 1.51 | 351 | 821 | 326 | 486 | 1857 | 38.24 | 1.287 |
@@ -75,6 +76,10 @@
 | demohists4 | demo1 | 4096 | 50.44 | 48.93 | 0.63 | 149 | 955 | 373 | 527 | 1847 | 39.9 | 1.294 |
 | demohists4 | head | 4096 | 48.39 | 51.59 | 0.02 | 157 | 38 | 435 | 1483 | 1822 | 45.66 | 1.292 |
 | demohists4 | rand | 4096 | 77.22 | 22.75 | 0.02 | 52 | 34 | 456 | 390 | 811 | 48.89 | 1.126 |
+| demohistsym | aisle | 4096 | 82.32 | 13.94 | 3.74 | 145 | 426 | 0 | 0 | 511 | 37.57 | 1.158 |
+| demohistsym | demo1 | 4096 | 59.45 | 39.06 | 1.49 | 268 | 494 | 361 | 477 | 1517 | 33.8 | 1.228 |
+| demohistsym | head | 4096 | 53.64 | 46.36 | 0.0 | 230 | 25 | 380 | 1264 | 1785 | 41.58 | 1.253 |
+| demohistsym | rand | 4096 | 78.76 | 21.24 | 0.0 | 94 | 19 | 408 | 349 | 836 | 46.6 | 1.106 |
 | demostd | aisle | 4096 | 70.41 | 28.17 | 1.42 | 100 | 1054 | 0 | 0 | 977 | 43.59 | 1.223 |
 | demostd | demo1 | 4096 | 51.25 | 48.29 | 0.46 | 191 | 903 | 368 | 516 | 1811 | 38.48 | 1.289 |
 | demostd | demo2 | 4096 | 47.8 | 51.25 | 0.95 | 328 | 914 | 359 | 498 | 1916 | 36.88 | 1.29 |
@@ -85,7 +90,9 @@
 | demostd2 | demo2 | 4096 | 49.27 | 49.0 | 1.73 | 296 | 863 | 365 | 483 | 1870 | 38.29 | 1.296 |
 | demostd2 | rand | 4096 | 78.61 | 21.34 | 0.05 | 55 | 28 | 437 | 354 | 802 | 49.27 | 1.121 |
 | demostd2m | demo1 | 4096 | 51.73 | 47.49 | 0.78 | 202 | 885 | 356 | 502 | 1788 | 38.04 | 1.276 |
+| dyn | head | 4096 | 47.66 | 51.73 | 0.61 | 172 | 45 | 409 | 1493 | 1883 | 40.47 | 1.355 |
 | dyn | rand | 4096 | 76.39 | 22.8 | 0.81 | 86 | 49 | 424 | 375 | 836 | 42.28 | 1.147 |
+| gam | rand | 4096 | 79.08 | 20.83 | 0.1 | 72 | 36 | 380 | 365 | 799 | 49.6 | 1.175 |
 | histstd | aisle | 4096 | 68.65 | 27.34 | 4.0 | 161 | 959 | 0 | 0 | 1004 | 48.32 | 1.353 |
 | histstd | demo1 | 4096 | 51.27 | 47.44 | 1.29 | 238 | 826 | 407 | 472 | 1788 | 40.64 | 1.428 |
 | histstd | demo2 | 4096 | 47.12 | 51.1 | 1.78 | 362 | 883 | 373 | 475 | 1930 | 41.61 | 1.421 |
@@ -104,6 +111,7 @@
 | stds4 | head | 4096 | 53.78 | 45.97 | 0.24 | 287 | 25 | 366 | 1205 | 1769 | 43.78 | 1.378 |
 | stds4 | rand | 4096 | 78.71 | 21.09 | 0.2 | 103 | 30 | 375 | 356 | 815 | 47.83 | 1.146 |
 | sym | aisle | 4096 | 76.83 | 22.56 | 0.61 | 256 | 668 | 0 | 0 | 796 | 32.09 | 1.266 |
+| sym | demo1 | 4096 | 57.37 | 41.8 | 0.83 | 432 | 529 | 361 | 390 | 1587 | 29.26 | 1.331 |
 | sym | head | 4096 | 55.4 | 44.53 | 0.07 | 440 | 25 | 351 | 1008 | 1697 | 34.11 | 1.377 |
 | sym | rand | 4096 | 78.64 | 21.26 | 0.1 | 150 | 24 | 362 | 335 | 833 | 38.3 | 1.124 |
 | sysid | head | 4096 | 44.24 | 55.64 | 0.12 | 198 | 43 | 424 | 1614 | 2034 | 40.35 | 1.245 |
@@ -120,14 +128,18 @@
 | ctrl | rand | acd3 | rand | 4096 | yes (16 tracked envs) | -0.3662 | 0.3427 | inside | 0.0244 | 0.3679 | inside | 0.3418 | 0.1543 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
 | sysid | rand | ctrl | rand | 4096 | yes (16 tracked envs) | -0.0977 | 0.3418 | inside | 0.6348 | 0.3587 | inside | -0.5371 | 0.1421 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
 | dyn | rand | ctrl | rand | 4096 | yes (16 tracked envs) | 0.4395 | 0.3311 | inside | -0.4883 | 0.3238 | inside | 0.0488 | 0.1337 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
+| gam | rand | std | rand | 4096 | yes (16 tracked envs) | -0.1953 | 0.4489 | inside | 0.3418 | 0.4489 | inside | -0.1465 | 0.0913 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | std | rand | acd3 | rand | 4096 | yes (16 tracked envs) | 2.9541 | 0.468 | outside | -2.7832 | 0.4702 | outside | -0.1709 | 0.1119 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | sysid | rand | acd3 | rand | 4096 | yes (16 tracked envs) | -0.4639 | 0.3596 | inside | 0.6592 | 0.3694 | inside | -0.1953 | 0.1092 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | dyn | rand | acd3 | rand | 4096 | yes (16 tracked envs) | 0.0732 | 0.3679 | inside | -0.4639 | 0.379 | inside | 0.3906 | 0.1581 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
+| gam | rand | acd3 | rand | 4096 | yes (16 tracked envs) | 2.7588 | 0.4759 | outside | -2.4414 | 0.4782 | outside | -0.3174 | 0.1063 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
 | std | head | ctrl | head | 4096 | yes (16 tracked envs) | 5.1025 | 0.613 | outside | -4.7852 | 0.6132 | outside | -0.3174 | 0.16 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | ctrl | head | acd3 | head | 4096 | yes (16 tracked envs) | 0.0244 | 0.469 | inside | -0.293 | 0.4859 | inside | 0.2686 | 0.1524 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | sysid | head | ctrl | head | 4096 | yes (16 tracked envs) | -3.1982 | 0.4727 | outside | 3.7598 | 0.486 | outside | -0.5615 | 0.1357 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
+| dyn | head | ctrl | head | 4096 | yes (16 tracked envs) | 0.2197 | 0.4482 | inside | -0.1465 | 0.4502 | inside | -0.0732 | 0.1221 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | std | head | acd3 | head | 4096 | yes (16 tracked envs) | 5.127 | 0.6105 | outside | -5.0781 | 0.6097 | outside | -0.0488 | 0.1381 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | sysid | head | acd3 | head | 4096 | yes (16 tracked envs) | -3.1738 | 0.4645 | outside | 3.4668 | 0.4716 | outside | -0.293 | 0.0976 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
+| dyn | head | acd3 | head | 4096 | yes (16 tracked envs) | 0.2441 | 0.4581 | inside | -0.4395 | 0.4683 | inside | 0.1953 | 0.1465 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | acd3 | realrand | acd3 | rand | 4096 | yes (16 tracked envs) | -1.8555 | 0.3819 | outside | 1.5869 | 0.3997 | outside | 0.2686 | 0.1402 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | sysid | realrand | sysid | rand | 4096 | yes (16 tracked envs) | -1.5625 | 0.3392 | outside | 1.5869 | 0.3418 | outside | -0.0244 | 0.088 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | demo | rand | ctrl | rand | 4096 | yes (16 tracked envs) | -0.9277 | 0.3502 | outside | 1.2939 | 0.3507 | outside | -0.3662 | 0.1314 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
@@ -264,6 +276,32 @@
 | stds4 | head | ctrl | head | 4096 | yes (16 tracked envs) | 6.3477 | 0.6476 | outside | -5.9082 | 0.656 | outside | -0.4395 | 0.1504 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
 | stds4 | head | acd3 | head | 4096 | yes (16 tracked envs) | 6.3721 | 0.6256 | outside | -6.2012 | 0.6284 | outside | -0.1709 | 0.1268 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | demohists4 | head | acd3 | head | 4096 | yes (16 tracked envs) | 0.9766 | 0.6194 | inside | -0.5859 | 0.6167 | inside | -0.3906 | 0.1034 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
+| demohistsym | demo1 | demohist | demo1 | 4096 | yes (16 tracked envs) | 6.6406 | 0.589 | outside | -6.958 | 0.6278 | outside | 0.3174 | 0.2197 | inside | 0.8789 | 0.4474 | inside | -6.8359 | 0.6152 | outside | 0.9033 | 0.366 | outside | -1.9043 | 0.4838 | outside |
+| demohistsym | demo1 | demohists4 | demo1 | 4096 | yes (16 tracked envs) | 9.0088 | 0.6069 | outside | -9.8633 | 0.6415 | outside | 0.8545 | 0.2193 | outside | 2.9053 | 0.4268 | outside | -11.2549 | 0.6202 | outside | -0.293 | 0.3767 | inside | -1.2207 | 0.4693 | outside |
+| demohistsym | demo1 | sym | demo1 | 4096 | yes (16 tracked envs) | 2.0752 | 0.5856 | outside | -2.7344 | 0.6162 | outside | 0.6592 | 0.1966 | outside | -4.0039 | 0.529 | outside | -0.8545 | 0.5539 | inside | 0.0 | 0.4158 | inside | 2.124 | 0.4389 | outside |
+| demohistsym | demo1 | acd3 | demo1 | 4096 | yes (16 tracked envs) | 15.7959 | 0.7238 | outside | -13.6719 | 0.7804 | outside | -2.124 | 0.3446 | outside | -0.3906 | 0.4859 | inside | -10.083 | 0.7133 | outside | -1.8311 | 0.4782 | outside | -1.3672 | 0.5467 | outside |
+| sym | demo1 | std | demo1 | 4096 | yes (16 tracked envs) | 4.8828 | 0.647 | outside | -2.002 | 0.7019 | outside | -2.8809 | 0.3133 | outside | 4.3457 | 0.525 | outside | -4.248 | 0.6161 | outside | -0.4395 | 0.4312 | inside | -1.6602 | 0.4765 | outside |
+| sym | demo1 | demohist | demo1 | 4096 | yes (16 tracked envs) | 4.5654 | 0.6141 | outside | -4.2236 | 0.644 | outside | -0.3418 | 0.2013 | inside | 4.8828 | 0.5227 | outside | -5.9814 | 0.6246 | outside | 0.9033 | 0.4177 | outside | -4.0283 | 0.497 | outside |
+| demohistsym | aisle | demohist | aisle | 4096 | yes (16 tracked envs) | 10.1318 | 0.5366 | outside | -11.084 | 0.5939 | outside | 0.9521 | 0.2791 | outside | -0.6348 | 0.362 | inside | -10.4492 | 0.6383 | outside | 0.0 | 0.0 | inside | 0.0 | 0.0 | inside |
+| demohistsym | aisle | demohists4 | aisle | 4096 | yes (16 tracked envs) | 12.5244 | 0.5464 | outside | -14.917 | 0.598 | outside | 2.3926 | 0.2715 | outside | 1.4404 | 0.309 | outside | -16.3574 | 0.6313 | outside | 0.0 | 0.0 | inside | 0.0 | 0.0 | inside |
+| demohistsym | aisle | sym | aisle | 4096 | yes (16 tracked envs) | 5.4932 | 0.4887 | outside | -8.6182 | 0.5582 | outside | 3.125 | 0.301 | outside | -2.71 | 0.4012 | outside | -5.9082 | 0.5869 | outside | 0.0 | 0.0 | inside | 0.0 | 0.0 | inside |
+| demohistsym | aisle | acd3 | aisle | 4096 | yes (16 tracked envs) | 25.708 | 0.7145 | outside | -21.6797 | 0.7571 | outside | -4.0283 | 0.4824 | outside | -1.8555 | 0.3987 | outside | -19.8242 | 0.7863 | outside | 0.0 | 0.0 | inside | 0.0 | 0.0 | inside |
+| sym | aisle | std | aisle | 4096 | yes (16 tracked envs) | 8.9355 | 0.5764 | outside | -0.0977 | 0.6451 | inside | -8.8379 | 0.462 | outside | 2.0752 | 0.4066 | outside | -2.1729 | 0.6656 | outside | 0.0 | 0.0 | inside | 0.0 | 0.0 | inside |
+| sym | aisle | demohist | aisle | 4096 | yes (16 tracked envs) | 4.6387 | 0.5531 | outside | -2.4658 | 0.6072 | outside | -2.1729 | 0.2596 | outside | 2.0752 | 0.4006 | outside | -4.541 | 0.6568 | outside | 0.0 | 0.0 | inside | 0.0 | 0.0 | inside |
+| demohistsym | rand | demohist | rand | 4096 | yes (16 tracked envs) | 1.3916 | 0.4464 | outside | -1.3184 | 0.4484 | outside | -0.0732 | 0.0423 | inside | 0.8301 | 0.2759 | outside | -0.1709 | 0.1315 | inside | -1.1963 | 0.377 | outside | -0.7812 | 0.2928 | outside |
+| demohistsym | rand | demohists4 | rand | 4096 | yes (16 tracked envs) | 1.5381 | 0.4395 | outside | -1.5137 | 0.4402 | outside | -0.0244 | 0.0244 | inside | 1.0254 | 0.267 | outside | -0.3662 | 0.1314 | outside | -1.1719 | 0.3666 | outside | -1.001 | 0.2976 | outside |
+| demohistsym | rand | sym | rand | 4096 | yes (16 tracked envs) | 0.1221 | 0.4236 | inside | -0.0244 | 0.4236 | inside | -0.0977 | 0.0488 | outside | -1.3672 | 0.3081 | outside | -0.1221 | 0.1171 | inside | 1.123 | 0.3361 | outside | 0.3418 | 0.2783 | inside |
+| demohistsym | rand | acd3 | rand | 4096 | yes (16 tracked envs) | 2.4414 | 0.5177 | outside | -2.0264 | 0.5176 | outside | -0.415 | 0.1005 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
+| sym | rand | std | rand | 4096 | yes (16 tracked envs) | -0.6348 | 0.4721 | inside | 0.7812 | 0.4771 | inside | -0.1465 | 0.0846 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
+| sym | rand | demohist | rand | 4096 | yes (16 tracked envs) | 1.2695 | 0.4756 | outside | -1.2939 | 0.4762 | outside | 0.0244 | 0.0423 | inside | 2.1973 | 0.3146 | outside | -0.0488 | 0.1465 | inside | -2.3193 | 0.3988 | outside | -1.123 | 0.3103 | outside |
+| demohistsym | head | demohist | head | 4096 | yes (16 tracked envs) | 2.5146 | 0.6378 | outside | -2.5146 | 0.6378 | outside | 0.0 | 0.0 | inside | 0.0 | 0.4285 | inside | 0.0244 | 0.1403 | inside | -1.2695 | 0.3746 | outside | -1.2695 | 0.6212 | outside |
+| demohistsym | head | demohists4 | head | 4096 | yes (16 tracked envs) | 5.249 | 0.6431 | outside | -5.2246 | 0.6427 | outside | -0.0244 | 0.0244 | inside | 1.7822 | 0.398 | outside | -0.3174 | 0.1484 | outside | -1.3428 | 0.3753 | outside | -5.3467 | 0.6164 | outside |
+| demohistsym | head | sym | head | 4096 | yes (16 tracked envs) | -1.7578 | 0.6295 | outside | 1.8311 | 0.6281 | outside | -0.0732 | 0.0423 | inside | -5.127 | 0.4939 | outside | 0.0 | 0.1245 | inside | 0.708 | 0.3628 | inside | 6.25 | 0.5819 | outside |
+| demohistsym | head | acd3 | head | 4096 | yes (16 tracked envs) | 6.2256 | 0.685 | outside | -5.8105 | 0.6838 | outside | -0.415 | 0.1005 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
+| sym | head | std | head | 4096 | yes (16 tracked envs) | 2.8564 | 0.6541 | outside | -2.5635 | 0.6553 | outside | -0.293 | 0.1035 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
+| sym | head | demohist | head | 4096 | yes (16 tracked envs) | 4.2725 | 0.6756 | outside | -4.3457 | 0.6759 | outside | 0.0732 | 0.0423 | inside | 5.127 | 0.5244 | outside | 0.0244 | 0.1445 | inside | -1.9775 | 0.3871 | outside | -7.5195 | 0.6277 | outside |
+| sym | demo1 | ctrl | demo1 | 4096 | yes (16 tracked envs) | 14.0381 | 0.7351 | outside | -11.5967 | 0.776 | outside | -2.4414 | 0.3084 | outside | 4.248 | 0.5571 | outside | -12.3535 | 0.7258 | outside | -0.708 | 0.4521 | inside | -2.7832 | 0.5242 | outside |
+| sym | demo1 | acd3 | demo1 | 4096 | yes (16 tracked envs) | 13.7207 | 0.7255 | outside | -10.9375 | 0.7733 | outside | -2.7832 | 0.3191 | outside | 3.6133 | 0.5614 | outside | -9.2285 | 0.6971 | outside | -1.8311 | 0.477 | outside | -3.4912 | 0.5305 | outside |
 | acd3 | demo1c08 | acd3 | demo1 | 4096 | different start episodes |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | std | demo1c08 | std | demo1 | 4096 | different start episodes |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | demohist | demo1c08 | demohist | demo1 | 4096 | different start episodes |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
@@ -293,6 +331,7 @@
 | t_demo_hist2 | run_config.json | 4510 | agent.max_iterations=600 (ctrl 300); arena_spec.block_m=0.0 (ctrl -); arena_spec.block_v_mps=0.02 (ctrl -); arena_spec.ghost_headon_prob=0.25 (ctrl -); arena_spec.ghost_pairs=0 (ctrl -); arena_spec.ghost_scenario_prob=0.25 (ctrl -); arena_spec.mover_cross_prob=0.5 (ctrl -); arena_spec.mover_kinds= (ctrl -); arena_spec.near_dyn_m=0.0 (ctrl -); arena_spec.obstacle_demo_aisle_min_m=0.3 (ctrl -); arena_spec.obstacle_demo_aisle_prob=0.7 (ctrl -); arena_spec.obstacle_demo_counts=[1, 2] (ctrl -); arena_spec.obstacle_demo_gap_m=[0.13, 0.25] (ctrl -); arena_spec.obstacle_demo_keep_path=1 (ctrl -); arena_spec.obstacle_demo_share=0.5 (ctrl -); arena_spec.robot_cleaner_prob=0.5 (ctrl -); arena_spec.robot_cleaner_wait_s=10.0 (ctrl -); arena_spec.robot_cleaner_yield_m=0.3 (ctrl -); arena_spec.robot_min=0 (ctrl -); arena_spec.robot_scenario= (ctrl -); arena_spec.w_block=0.0 (ctrl -); arena_spec.w_near_dyn=0.0 (ctrl -); arena_spec.w_yield=0.0 (ctrl -); arena_spec.yield_m=0.0 (ctrl -); caps.enabled=False (ctrl -); caps.sigma=0.0 (ctrl -); caps.spatial=0.0 (ctrl -); caps.temporal=0.0 (ctrl -); init= (ctrl D:/isaac/runs/store_arena/acd3/t_wall/model_1745.pt); max_iterations=600 (ctrl 300); symmetry.mode=off (ctrl -); task_spec.cmd_delay_steps_range=[0, 0] (ctrl -); task_spec.cmd_gain_v_range=[1.0, 1.0] (ctrl -); task_spec.cmd_gain_w_range=[1.0, 1.0] (ctrl -); task_spec.cmd_lag_tau_range=[0.0, 0.0] (ctrl -); task_spec.lidar_frames=3 (ctrl 1) |
 | t_demo_hist_dyn | run_config.json | 2254 | arena_spec.block_m=0.0 (ctrl -); arena_spec.block_v_mps=0.02 (ctrl -); arena_spec.ghost_headon_prob=0.25 (ctrl -); arena_spec.ghost_pairs=0 (ctrl -); arena_spec.ghost_scenario_prob=0.25 (ctrl -); arena_spec.mover_cross_prob=0.5 (ctrl -); arena_spec.mover_kinds= (ctrl -); arena_spec.near_dyn_m=0.1 (ctrl -); arena_spec.obstacle_demo_aisle_min_m=0.3 (ctrl -); arena_spec.obstacle_demo_aisle_prob=0.7 (ctrl -); arena_spec.obstacle_demo_counts=[1, 2] (ctrl -); arena_spec.obstacle_demo_gap_m=[0.13, 0.25] (ctrl -); arena_spec.obstacle_demo_keep_path=1 (ctrl -); arena_spec.obstacle_demo_share=0.5 (ctrl -); arena_spec.robot_cleaner_prob=0.5 (ctrl -); arena_spec.robot_cleaner_wait_s=10.0 (ctrl -); arena_spec.robot_cleaner_yield_m=0.3 (ctrl -); arena_spec.robot_min=0 (ctrl -); arena_spec.robot_scenario= (ctrl -); arena_spec.w_block=0.0 (ctrl -); arena_spec.w_near_dyn=-1.0 (ctrl -); arena_spec.w_yield=0.0 (ctrl -); arena_spec.yield_m=0.0 (ctrl -); caps.enabled=False (ctrl -); caps.sigma=0.0 (ctrl -); caps.spatial=0.0 (ctrl -); caps.temporal=0.0 (ctrl -); init=D:/isaac/runs/store_arena/n26/init_acd3_hist3.pt (ctrl D:/isaac/runs/store_arena/acd3/t_wall/model_1745.pt); init_std=[0.3, 0.3] (ctrl [0.0, 0.0]); symmetry.mode=off (ctrl -); task_spec.cmd_delay_steps_range=[0, 0] (ctrl -); task_spec.cmd_gain_v_range=[1.0, 1.0] (ctrl -); task_spec.cmd_gain_w_range=[1.0, 1.0] (ctrl -); task_spec.cmd_lag_tau_range=[0.0, 0.0] (ctrl -); task_spec.lidar_frames=3 (ctrl 1) |
 | t_demo_hist_s4 | run_config.json | 2267 | agent.seed=4 (ctrl 3); arena_spec.block_m=0.0 (ctrl -); arena_spec.block_v_mps=0.02 (ctrl -); arena_spec.ghost_headon_prob=0.25 (ctrl -); arena_spec.ghost_pairs=0 (ctrl -); arena_spec.ghost_scenario_prob=0.25 (ctrl -); arena_spec.mover_cross_prob=0.5 (ctrl -); arena_spec.mover_kinds= (ctrl -); arena_spec.near_dyn_m=0.0 (ctrl -); arena_spec.obstacle_demo_aisle_min_m=0.3 (ctrl -); arena_spec.obstacle_demo_aisle_prob=0.7 (ctrl -); arena_spec.obstacle_demo_counts=[1, 2] (ctrl -); arena_spec.obstacle_demo_gap_m=[0.13, 0.25] (ctrl -); arena_spec.obstacle_demo_keep_path=1 (ctrl -); arena_spec.obstacle_demo_share=0.5 (ctrl -); arena_spec.robot_cleaner_prob=0.5 (ctrl -); arena_spec.robot_cleaner_wait_s=10.0 (ctrl -); arena_spec.robot_cleaner_yield_m=0.3 (ctrl -); arena_spec.robot_min=0 (ctrl -); arena_spec.robot_scenario= (ctrl -); arena_spec.w_block=0.0 (ctrl -); arena_spec.w_near_dyn=0.0 (ctrl -); arena_spec.w_yield=0.0 (ctrl -); arena_spec.yield_m=0.0 (ctrl -); caps.enabled=False (ctrl -); caps.sigma=0.0 (ctrl -); caps.spatial=0.0 (ctrl -); caps.temporal=0.0 (ctrl -); init=D:/isaac/runs/store_arena/n26/init_acd3_hist3.pt (ctrl D:/isaac/runs/store_arena/acd3/t_wall/model_1745.pt); init_std=[0.3, 0.3] (ctrl [0.0, 0.0]); seed=4 (ctrl 3); symmetry.mode=off (ctrl -); task_spec.cmd_delay_steps_range=[0, 0] (ctrl -); task_spec.cmd_gain_v_range=[1.0, 1.0] (ctrl -); task_spec.cmd_gain_w_range=[1.0, 1.0] (ctrl -); task_spec.cmd_lag_tau_range=[0.0, 0.0] (ctrl -); task_spec.lidar_frames=3 (ctrl 1) |
+| t_demo_hist_sym | run_config.json | 2258 | agent.algorithm.symmetry_cfg.data_augmentation_func=symmetry:augment (ctrl -); agent.algorithm.symmetry_cfg.mirror_loss_coeff=0.0 (ctrl -); agent.algorithm.symmetry_cfg.use_data_augmentation=True (ctrl -); agent.algorithm.symmetry_cfg.use_mirror_loss=False (ctrl -); arena_spec.block_m=0.0 (ctrl -); arena_spec.block_v_mps=0.02 (ctrl -); arena_spec.ghost_headon_prob=0.25 (ctrl -); arena_spec.ghost_pairs=0 (ctrl -); arena_spec.ghost_scenario_prob=0.25 (ctrl -); arena_spec.mover_cross_prob=0.5 (ctrl -); arena_spec.mover_kinds= (ctrl -); arena_spec.near_dyn_m=0.0 (ctrl -); arena_spec.obstacle_demo_aisle_min_m=0.3 (ctrl -); arena_spec.obstacle_demo_aisle_prob=0.7 (ctrl -); arena_spec.obstacle_demo_counts=[1, 2] (ctrl -); arena_spec.obstacle_demo_gap_m=[0.13, 0.25] (ctrl -); arena_spec.obstacle_demo_keep_path=1 (ctrl -); arena_spec.obstacle_demo_share=0.5 (ctrl -); arena_spec.robot_cleaner_prob=0.5 (ctrl -); arena_spec.robot_cleaner_wait_s=10.0 (ctrl -); arena_spec.robot_cleaner_yield_m=0.3 (ctrl -); arena_spec.robot_min=0 (ctrl -); arena_spec.robot_scenario= (ctrl -); arena_spec.w_block=0.0 (ctrl -); arena_spec.w_near_dyn=0.0 (ctrl -); arena_spec.w_yield=0.0 (ctrl -); arena_spec.yield_m=0.0 (ctrl -); caps.enabled=False (ctrl -); caps.sigma=0.0 (ctrl -); caps.spatial=0.0 (ctrl -); caps.temporal=0.0 (ctrl -); init=D:/isaac/runs/store_arena/n26/init_acd3_hist3.pt (ctrl D:/isaac/runs/store_arena/acd3/t_wall/model_1745.pt); init_std=[0.3, 0.3] (ctrl [0.0, 0.0]); symmetry.mirror_loss_coeff=0.0 (ctrl -); symmetry.mode=aug (ctrl -); symmetry.use_data_augmentation=True (ctrl -); symmetry.use_mirror_loss=False (ctrl -); task_spec.cmd_delay_steps_range=[0, 0] (ctrl -); task_spec.cmd_gain_v_range=[1.0, 1.0] (ctrl -); task_spec.cmd_gain_w_range=[1.0, 1.0] (ctrl -); task_spec.cmd_lag_tau_range=[0.0, 0.0] (ctrl -); task_spec.lidar_frames=3 (ctrl 1) |
 | t_demo_std | run_config.json | 2244 | arena_spec.block_m=0.0 (ctrl -); arena_spec.block_v_mps=0.02 (ctrl -); arena_spec.ghost_headon_prob=0.25 (ctrl -); arena_spec.ghost_pairs=0 (ctrl -); arena_spec.ghost_scenario_prob=0.25 (ctrl -); arena_spec.mover_cross_prob=0.5 (ctrl -); arena_spec.mover_kinds= (ctrl -); arena_spec.near_dyn_m=0.0 (ctrl -); arena_spec.obstacle_demo_aisle_min_m=0.3 (ctrl -); arena_spec.obstacle_demo_aisle_prob=0.7 (ctrl -); arena_spec.obstacle_demo_counts=[1, 2] (ctrl -); arena_spec.obstacle_demo_gap_m=[0.13, 0.25] (ctrl -); arena_spec.obstacle_demo_keep_path=1 (ctrl -); arena_spec.obstacle_demo_share=0.5 (ctrl -); arena_spec.robot_cleaner_prob=0.5 (ctrl -); arena_spec.robot_cleaner_wait_s=10.0 (ctrl -); arena_spec.robot_cleaner_yield_m=0.3 (ctrl -); arena_spec.robot_min=0 (ctrl -); arena_spec.robot_scenario= (ctrl -); arena_spec.w_block=0.0 (ctrl -); arena_spec.w_near_dyn=0.0 (ctrl -); arena_spec.w_yield=0.0 (ctrl -); arena_spec.yield_m=0.0 (ctrl -); caps.enabled=False (ctrl -); caps.sigma=0.0 (ctrl -); caps.spatial=0.0 (ctrl -); caps.temporal=0.0 (ctrl -); init_std=[0.3, 0.3] (ctrl [0.0, 0.0]); symmetry.mode=off (ctrl -); task_spec.cmd_delay_steps_range=[0, 0] (ctrl -); task_spec.cmd_gain_v_range=[1.0, 1.0] (ctrl -); task_spec.cmd_gain_w_range=[1.0, 1.0] (ctrl -); task_spec.cmd_lag_tau_range=[0.0, 0.0] (ctrl -) |
 | t_demo_std2 | run_config.json | 4474 | agent.max_iterations=600 (ctrl 300); arena_spec.block_m=0.0 (ctrl -); arena_spec.block_v_mps=0.02 (ctrl -); arena_spec.ghost_headon_prob=0.25 (ctrl -); arena_spec.ghost_pairs=0 (ctrl -); arena_spec.ghost_scenario_prob=0.25 (ctrl -); arena_spec.mover_cross_prob=0.5 (ctrl -); arena_spec.mover_kinds= (ctrl -); arena_spec.near_dyn_m=0.0 (ctrl -); arena_spec.obstacle_demo_aisle_min_m=0.3 (ctrl -); arena_spec.obstacle_demo_aisle_prob=0.7 (ctrl -); arena_spec.obstacle_demo_counts=[1, 2] (ctrl -); arena_spec.obstacle_demo_gap_m=[0.13, 0.25] (ctrl -); arena_spec.obstacle_demo_keep_path=1 (ctrl -); arena_spec.obstacle_demo_share=0.5 (ctrl -); arena_spec.robot_cleaner_prob=0.5 (ctrl -); arena_spec.robot_cleaner_wait_s=10.0 (ctrl -); arena_spec.robot_cleaner_yield_m=0.3 (ctrl -); arena_spec.robot_min=0 (ctrl -); arena_spec.robot_scenario= (ctrl -); arena_spec.w_block=0.0 (ctrl -); arena_spec.w_near_dyn=0.0 (ctrl -); arena_spec.w_yield=0.0 (ctrl -); arena_spec.yield_m=0.0 (ctrl -); caps.enabled=False (ctrl -); caps.sigma=0.0 (ctrl -); caps.spatial=0.0 (ctrl -); caps.temporal=0.0 (ctrl -); init= (ctrl D:/isaac/runs/store_arena/acd3/t_wall/model_1745.pt); max_iterations=600 (ctrl 300); symmetry.mode=off (ctrl -); task_spec.cmd_delay_steps_range=[0, 0] (ctrl -); task_spec.cmd_gain_v_range=[1.0, 1.0] (ctrl -); task_spec.cmd_gain_w_range=[1.0, 1.0] (ctrl -); task_spec.cmd_lag_tau_range=[0.0, 0.0] (ctrl -) |
 | t_dyn | run_config.json | 2100 | arena_spec.block_m=0.0 (ctrl -); arena_spec.block_v_mps=0.02 (ctrl -); arena_spec.near_dyn_m=0.1 (ctrl -); arena_spec.robot_scenario= (ctrl -); arena_spec.w_block=0.0 (ctrl -); arena_spec.w_near_dyn=-1.0 (ctrl -); arena_spec.w_yield=0.0 (ctrl -); arena_spec.yield_m=0.0 (ctrl -); task_spec.cmd_delay_steps_range=[0, 0] (ctrl -); task_spec.cmd_gain_v_range=[1.0, 1.0] (ctrl -); task_spec.cmd_gain_w_range=[1.0, 1.0] (ctrl -); task_spec.cmd_lag_tau_range=[0.0, 0.0] (ctrl -) |
@@ -371,6 +410,14 @@
 | t_demo_hist_s4 | 1950 | 1950 |  |  |  |  | 0.1569 | 0.0906 |
 | t_demo_hist_s4 | 2000 | 2000 |  |  |  |  | 0.1498 | 0.0793 |
 | t_demo_hist_s4 | 2044 | 2044 |  |  |  |  | 0.1372 | 0.0706 |
+| t_demo_hist_sym | 0 | 0 |  |  |  |  | 0.3 | 0.3 |
+| t_demo_hist_sym | 1750 | 1750 |  |  |  |  | 0.2961 | 0.336 |
+| t_demo_hist_sym | 1800 | 1800 |  |  |  |  | 0.2381 | 0.283 |
+| t_demo_hist_sym | 1850 | 1850 |  |  |  |  | 0.2183 | 0.2386 |
+| t_demo_hist_sym | 1900 | 1900 |  |  |  |  | 0.2078 | 0.2141 |
+| t_demo_hist_sym | 1950 | 1950 |  |  |  |  | 0.1994 | 0.1829 |
+| t_demo_hist_sym | 2000 | 2000 |  |  |  |  | 0.1792 | 0.1597 |
+| t_demo_hist_sym | 2044 | 2044 |  |  |  |  | 0.1608 | 0.1411 |
 | t_demo_std | 0 | 1745 |  |  |  |  | 0.3 | 0.3 |
 | t_demo_std | 5 | 1750 | 0.6674 | 0.2421 | 0.0905 | 24.204 | 0.2717 | 0.2819 |
 | t_demo_std | 55 | 1800 | 0.6289 | 0.3667 | 0.0044 | 12.049 | 0.2069 | 0.1944 |
@@ -510,6 +557,7 @@
 | demohist | demo2 | 2792 | 30.16 | 0.8686 | 0 |  | 664 | 4.52 | 752 | 28.99 | 801 | 42.32 | 575 | 44.35 | 0 |  |
 | demohist | head | 49 | 30.61 | 6.5839 | 0 |  | 5 | 0.0 | 21 | 28.57 | 12 | 58.33 | 11 | 18.18 | 0 |  |
 | demohist | rand | 49 | 69.39 | 6.5839 | 0 |  | 5 | 20.0 | 21 | 76.19 | 12 | 75.0 | 11 | 72.73 | 0 |  |
+| demohist | rand_dump | 49 | 69.39 | 6.5839 | 0 |  | 5 | 20.0 | 21 | 76.19 | 12 | 75.0 | 11 | 72.73 | 0 |  |
 | demohist2 | aisle | 2792 | 61.93 | 0.9189 | 0 |  | 691 | 6.08 | 757 | 57.07 | 751 | 90.55 | 593 | 96.96 | 0 |  |
 | demohist2 | demo1 | 2792 | 39.04 | 0.9233 | 0 |  | 691 | 4.49 | 757 | 38.18 | 751 | 56.86 | 593 | 57.84 | 0 |  |
 | demohist2 | demo2 | 2792 | 32.7 | 0.8878 | 0 |  | 664 | 5.27 | 752 | 34.57 | 801 | 44.44 | 575 | 45.57 | 0 |  |
@@ -524,6 +572,10 @@
 | demohists4 | demo1 | 2792 | 33.67 | 0.8944 | 0 |  | 691 | 3.04 | 757 | 27.08 | 751 | 51.93 | 593 | 54.64 | 0 |  |
 | demohists4 | head | 49 | 30.61 | 6.5839 | 0 |  | 5 | 0.0 | 21 | 23.81 | 12 | 58.33 | 11 | 27.27 | 0 |  |
 | demohists4 | rand | 49 | 67.35 | 6.699 | 0 |  | 5 | 20.0 | 21 | 61.9 | 12 | 83.33 | 11 | 81.82 | 0 |  |
+| demohistsym | aisle | 2792 | 74.18 | 0.8283 | 0 |  | 691 | 15.77 | 757 | 84.54 | 751 | 97.34 | 593 | 99.66 | 0 |  |
+| demohistsym | demo1 | 2792 | 46.53 | 0.944 | 0 |  | 691 | 8.83 | 757 | 54.56 | 751 | 61.65 | 593 | 61.05 | 0 |  |
+| demohistsym | head | 49 | 42.86 | 7.0697 | 0 |  | 5 | 0.0 | 21 | 38.1 | 12 | 75.0 | 11 | 36.36 | 0 |  |
+| demohistsym | rand | 49 | 77.55 | 5.9608 | 0 |  | 5 | 20.0 | 21 | 80.95 | 12 | 91.67 | 11 | 81.82 | 0 |  |
 | demostd | aisle | 2792 | 56.59 | 0.938 | 0 |  | 691 | 4.2 | 757 | 41.74 | 751 | 86.15 | 593 | 99.16 | 0 |  |
 | demostd | demo1 | 2792 | 34.63 | 0.9004 | 0 |  | 691 | 3.04 | 757 | 28.8 | 751 | 51.26 | 593 | 57.84 | 0 |  |
 | demostd | demo2 | 2792 | 29.51 | 0.8632 | 0 |  | 664 | 3.92 | 752 | 26.06 | 801 | 41.45 | 575 | 46.96 | 0 |  |
@@ -550,6 +602,7 @@
 | stds4 | head | 49 | 32.65 | 6.699 | 0 |  | 5 | 0.0 | 21 | 28.57 | 12 | 50.0 | 11 | 36.36 | 0 |  |
 | stds4 | rand | 49 | 59.18 | 7.0214 | 0 |  | 5 | 0.0 | 21 | 47.62 | 12 | 91.67 | 11 | 72.73 | 0 |  |
 | sym | aisle | 2792 | 66.12 | 0.8957 | 0 |  | 691 | 9.12 | 757 | 63.94 | 751 | 94.14 | 593 | 99.83 | 0 |  |
+| sym | demo1 | 2792 | 43.37 | 0.9379 | 0 |  | 691 | 6.8 | 757 | 45.57 | 751 | 59.92 | 593 | 62.23 | 0 |  |
 | sym | head | 49 | 40.82 | 7.0214 | 0 |  | 5 | 0.0 | 21 | 33.33 | 12 | 58.33 | 11 | 54.55 | 0 |  |
 | sym | rand | 49 | 57.14 | 7.0697 | 0 |  | 5 | 0.0 | 21 | 47.62 | 12 | 75.0 | 11 | 81.82 | 0 |  |
 
@@ -1154,6 +1207,104 @@ aisle·demo1·demo2 비교에서 두 실행 모두 box_gap_m이 유한한 에피
 | demohists4 | aisle | acd3 | aisle | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 36.0852 | 2.1781 | outside | -29.028 | 2.1098 | outside |
 | demohists4 | aisle | acd3 | aisle | yes (16 tracked envs) | same | 0.22-0.25 | 593 | 15.0084 | 1.6332 | outside | -9.4435 | 1.4192 | outside |
 | demohists4 | aisle | acd3 | aisle | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
+| demohistsym | demo1 | demohist | demo1 | yes (16 tracked envs) | same | all | 2792 | 9.957 | 0.8045 | outside | -10.4226 | 0.8647 | outside |
+| demohistsym | demo1 | demohist | demo1 | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
+| demohistsym | demo1 | demohist | demo1 | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 4.9204 | 1.106 | outside | -6.9465 | 1.6681 | outside |
+| demohistsym | demo1 | demohist | demo1 | yes (16 tracked envs) | same | 0.16-0.19 | 757 | 21.004 | 1.9138 | outside | -20.8719 | 1.9202 | outside |
+| demohistsym | demo1 | demohist | demo1 | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 8.522 | 1.6457 | outside | -8.6551 | 1.6502 | outside |
+| demohistsym | demo1 | demohist | demo1 | yes (16 tracked envs) | same | 0.22-0.25 | 593 | 3.5413 | 1.4147 | outside | -3.3727 | 1.4452 | outside |
+| demohistsym | demo1 | demohist | demo1 | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
+| demohistsym | demo1 | demohists4 | demo1 | yes (16 tracked envs) | same | all | 2792 | 12.8582 | 0.8269 | outside | -14.1117 | 0.8792 | outside |
+| demohistsym | demo1 | demohists4 | demo1 | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
+| demohistsym | demo1 | demohists4 | demo1 | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 5.7887 | 1.0999 | outside | -10.9986 | 1.6362 | outside |
+| demohistsym | demo1 | demohists4 | demo1 | yes (16 tracked envs) | same | 0.16-0.19 | 757 | 27.4769 | 1.9466 | outside | -27.3448 | 1.9535 | outside |
+| demohistsym | demo1 | demohists4 | demo1 | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 9.7204 | 1.6849 | outside | -9.8535 | 1.6786 | outside |
+| demohistsym | demo1 | demohists4 | demo1 | yes (16 tracked envs) | same | 0.22-0.25 | 593 | 6.4081 | 1.4671 | outside | -6.2395 | 1.4972 | outside |
+| demohistsym | demo1 | demohists4 | demo1 | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
+| demohistsym | demo1 | sym | demo1 | yes (16 tracked envs) | same | all | 2792 | 3.1519 | 0.8004 | outside | -4.1189 | 0.8479 | outside |
+| demohistsym | demo1 | sym | demo1 | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
+| demohistsym | demo1 | sym | demo1 | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 2.026 | 1.293 | inside | -5.9334 | 1.7048 | outside |
+| demohistsym | demo1 | sym | demo1 | yes (16 tracked envs) | same | 0.16-0.19 | 757 | 8.9828 | 1.9242 | outside | -8.8507 | 1.9295 | outside |
+| demohistsym | demo1 | sym | demo1 | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 1.731 | 1.6143 | inside | -1.731 | 1.6143 | inside |
+| demohistsym | demo1 | sym | demo1 | yes (16 tracked envs) | same | 0.22-0.25 | 593 | -1.1804 | 1.2733 | inside | 1.0118 | 1.2847 | inside |
+| demohistsym | demo1 | sym | demo1 | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
+| demohistsym | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | all | 2792 | 23.4957 | 0.9718 | outside | -20.7736 | 1.066 | outside |
+| demohistsym | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
+| demohistsym | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 6.9465 | 1.1464 | outside | -6.5123 | 1.8997 | outside |
+| demohistsym | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | 0.16-0.19 | 757 | 39.8943 | 2.0628 | outside | -34.8745 | 2.1718 | outside |
+| demohistsym | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 29.6937 | 2.1016 | outside | -27.1638 | 2.1427 | outside |
+| demohistsym | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | 0.22-0.25 | 593 | 13.9966 | 1.9492 | outside | -11.2985 | 2.0493 | outside |
+| demohistsym | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
+| sym | demo1 | std | demo1 | yes (16 tracked envs) | same | all | 2792 | 7.4499 | 0.8764 | outside | -3.3668 | 0.9645 | outside |
+| sym | demo1 | std | demo1 | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
+| sym | demo1 | std | demo1 | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 4.3415 | 1.1283 | outside | 3.6179 | 1.7978 | outside |
+| sym | demo1 | std | demo1 | yes (16 tracked envs) | same | 0.16-0.19 | 757 | 13.21 | 2.1429 | outside | -8.7186 | 2.1891 | outside |
+| sym | demo1 | std | demo1 | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 6.9241 | 1.8192 | outside | -5.0599 | 1.8753 | outside |
+| sym | demo1 | std | demo1 | yes (16 tracked envs) | same | 0.22-0.25 | 593 | 4.3845 | 1.5548 | outside | -2.5295 | 1.6243 | inside |
+| sym | demo1 | std | demo1 | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
+| sym | demo1 | demohist | demo1 | yes (16 tracked envs) | same | all | 2792 | 6.8052 | 0.8409 | outside | -6.3037 | 0.8883 | outside |
+| sym | demo1 | demohist | demo1 | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
+| sym | demo1 | demohist | demo1 | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 2.8944 | 1.0585 | outside | -1.013 | 1.539 | inside |
+| sym | demo1 | demohist | demo1 | yes (16 tracked envs) | same | 0.16-0.19 | 757 | 12.0211 | 2.0566 | outside | -12.0211 | 2.0651 | outside |
+| sym | demo1 | demohist | demo1 | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 6.7909 | 1.7247 | outside | -6.9241 | 1.7291 | outside |
+| sym | demo1 | demohist | demo1 | yes (16 tracked envs) | same | 0.22-0.25 | 593 | 4.7218 | 1.5531 | outside | -4.3845 | 1.5548 | outside |
+| sym | demo1 | demohist | demo1 | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
+| demohistsym | aisle | demohist | aisle | yes (16 tracked envs) | same | all | 2792 | 14.9713 | 0.7678 | outside | -16.3682 | 0.8509 | outside |
+| demohistsym | aisle | demohist | aisle | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
+| demohistsym | aisle | demohist | aisle | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 10.8538 | 1.4253 | outside | -17.3661 | 2.0744 | outside |
+| demohistsym | aisle | demohist | aisle | yes (16 tracked envs) | same | 0.16-0.19 | 757 | 32.4967 | 1.934 | outside | -31.8362 | 1.935 | outside |
+| demohistsym | aisle | demohist | aisle | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 11.0519 | 1.3179 | outside | -10.9188 | 1.3126 | outside |
+| demohistsym | aisle | demohist | aisle | yes (16 tracked envs) | same | 0.22-0.25 | 593 | 2.3609 | 0.6681 | outside | -2.3609 | 0.6681 | outside |
+| demohistsym | aisle | demohist | aisle | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
+| demohistsym | aisle | demohists4 | aisle | yes (16 tracked envs) | same | all | 2792 | 18.3739 | 0.7723 | outside | -21.884 | 0.8411 | outside |
+| demohistsym | aisle | demohists4 | aisle | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
+| demohistsym | aisle | demohists4 | aisle | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 12.4457 | 1.3058 | outside | -26.6281 | 1.8827 | outside |
+| demohistsym | aisle | demohists4 | aisle | yes (16 tracked envs) | same | 0.16-0.19 | 757 | 40.1585 | 1.869 | outside | -40.1585 | 1.869 | outside |
+| demohistsym | aisle | demohists4 | aisle | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 15.1798 | 1.4394 | outside | -15.1798 | 1.4394 | outside |
+| demohistsym | aisle | demohists4 | aisle | yes (16 tracked envs) | same | 0.22-0.25 | 593 | 1.5177 | 0.5563 | outside | -1.5177 | 0.5563 | outside |
+| demohistsym | aisle | demohists4 | aisle | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
+| demohistsym | aisle | sym | aisle | yes (16 tracked envs) | same | all | 2792 | 8.0587 | 0.7064 | outside | -12.6433 | 0.8029 | outside |
+| demohistsym | aisle | sym | aisle | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
+| demohistsym | aisle | sym | aisle | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 6.657 | 1.4836 | outside | -25.3256 | 2.0618 | outside |
+| demohistsym | aisle | sym | aisle | yes (16 tracked envs) | same | 0.16-0.19 | 757 | 20.6077 | 1.9058 | outside | -20.4756 | 1.9122 | outside |
+| demohistsym | aisle | sym | aisle | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 3.1957 | 0.9903 | outside | -3.1957 | 0.9903 | outside |
+| demohistsym | aisle | sym | aisle | yes (16 tracked envs) | same | 0.22-0.25 | 593 | -0.1686 | 0.2922 | inside | 0.1686 | 0.2922 | inside |
+| demohistsym | aisle | sym | aisle | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
+| demohistsym | aisle | acd3 | aisle | yes (16 tracked envs) | same | all | 2792 | 37.8223 | 0.9643 | outside | -31.9126 | 1.0546 | outside |
+| demohistsym | aisle | acd3 | aisle | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
+| demohistsym | aisle | acd3 | aisle | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 12.7352 | 1.4395 | outside | -14.3271 | 2.4269 | outside |
+| demohistsym | aisle | acd3 | aisle | yes (16 tracked envs) | same | 0.16-0.19 | 757 | 64.0687 | 1.8519 | outside | -52.1797 | 1.9999 | outside |
+| demohistsym | aisle | acd3 | aisle | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 51.265 | 1.92 | outside | -44.2077 | 1.9088 | outside |
+| demohistsym | aisle | acd3 | aisle | yes (16 tracked envs) | same | 0.22-0.25 | 593 | 16.5261 | 1.5634 | outside | -10.9612 | 1.3276 | outside |
+| demohistsym | aisle | acd3 | aisle | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
+| sym | aisle | std | aisle | yes (16 tracked envs) | same | all | 2792 | 13.1447 | 0.83 | outside | -0.1791 | 0.943 | inside |
+| sym | aisle | std | aisle | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
+| sym | aisle | std | aisle | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 6.5123 | 1.2123 | outside | 23.8784 | 2.1363 | outside |
+| sym | aisle | std | aisle | yes (16 tracked envs) | same | 0.16-0.19 | 757 | 25.2312 | 2.1833 | outside | -11.7569 | 2.1902 | outside |
+| sym | aisle | std | aisle | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 14.9134 | 1.6497 | outside | -9.0546 | 1.5183 | outside |
+| sym | aisle | std | aisle | yes (16 tracked envs) | same | 0.22-0.25 | 593 | 3.204 | 0.7621 | outside | -2.1922 | 0.6474 | outside |
+| sym | aisle | std | aisle | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
+| sym | aisle | demohist | aisle | yes (16 tracked envs) | same | all | 2792 | 6.9126 | 0.8055 | outside | -3.7249 | 0.8878 | outside |
+| sym | aisle | demohist | aisle | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
+| sym | aisle | demohist | aisle | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 4.1968 | 1.2098 | outside | 7.9595 | 1.8581 | outside |
+| sym | aisle | demohist | aisle | yes (16 tracked envs) | same | 0.16-0.19 | 757 | 11.889 | 2.3097 | outside | -11.3606 | 2.3208 | outside |
+| sym | aisle | demohist | aisle | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 7.8562 | 1.3998 | outside | -7.723 | 1.3944 | outside |
+| sym | aisle | demohist | aisle | yes (16 tracked envs) | same | 0.22-0.25 | 593 | 2.5295 | 0.6881 | outside | -2.5295 | 0.6881 | outside |
+| sym | aisle | demohist | aisle | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
+| sym | demo1 | ctrl | demo1 | yes (16 tracked envs) | same | all | 2792 | 21.2393 | 0.9896 | outside | -18.0874 | 1.0601 | outside |
+| sym | demo1 | ctrl | demo1 | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
+| sym | demo1 | ctrl | demo1 | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 6.0781 | 0.9976 | outside | -1.4472 | 1.6503 | inside |
+| sym | demo1 | ctrl | demo1 | yes (16 tracked envs) | same | 0.16-0.19 | 757 | 33.1572 | 2.1469 | outside | -30.3831 | 2.2203 | outside |
+| sym | demo1 | ctrl | demo1 | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 29.6937 | 2.2087 | outside | -27.1638 | 2.224 | outside |
+| sym | demo1 | ctrl | demo1 | yes (16 tracked envs) | same | 0.22-0.25 | 593 | 12.9848 | 2.0041 | outside | -10.2867 | 2.0304 | outside |
+| sym | demo1 | ctrl | demo1 | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
+| sym | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | all | 2792 | 20.3438 | 0.9853 | outside | -16.6547 | 1.066 | outside |
+| sym | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | < 0.13 | 0 |  |  |  |  |  |  |
+| sym | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | 0.13-0.16 | 691 | 4.9204 | 1.0674 | outside | -0.5789 | 1.6763 | inside |
+| sym | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | 0.16-0.19 | 757 | 30.9115 | 2.1464 | outside | -26.0238 | 2.2345 | outside |
+| sym | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | 0.19-0.22 | 751 | 27.9627 | 2.1865 | outside | -25.4328 | 2.2392 | outside |
+| sym | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | 0.22-0.25 | 593 | 15.1771 | 1.9851 | outside | -12.3103 | 2.0809 | outside |
+| sym | demo1 | acd3 | demo1 | yes (16 tracked envs) | same | >= 0.25 | 0 |  |  |  |  |  |  |
 
 ## 7. 건너는 사람
 
@@ -1204,6 +1355,7 @@ eval.json의 by_crossing: 나온 사람의 건넘 구간이 전역 경로를 덮
 | demohist | demo2 | 2017 | 26.23 | 72.14 | 1.64 | 1009 | 88.11 | 11.89 | 0.0 | 1070 | 52.24 | 45.89 | 1.87 | 60.25 | 1.4264 | outside |
 | demohist | head | 0 |  |  |  | 0 |  |  |  | 4096 | 51.12 | 48.88 | 0.0 |  |  |  |
 | demohist | rand | 0 |  |  |  | 0 |  |  |  | 4096 | 77.37 | 22.56 | 0.07 |  |  |  |
+| demohist | rand_dump | 0 |  |  |  | 0 |  |  |  | 4096 | 77.37 | 22.56 | 0.07 |  |  |  |
 | demohist2 | aisle | 0 |  |  |  | 0 |  |  |  | 4096 | 73.95 | 23.56 | 2.49 |  |  |  |
 | demohist2 | demo1 | 2122 | 35.77 | 62.49 | 1.74 | 1140 | 88.42 | 11.58 | 0.0 | 834 | 54.68 | 42.93 | 2.4 | 50.91 | 1.4152 | outside |
 | demohist2 | demo2 | 2017 | 29.25 | 68.96 | 1.78 | 1009 | 88.31 | 11.69 | 0.0 | 1070 | 53.18 | 44.39 | 2.43 | 57.27 | 1.4437 | outside |
@@ -1218,6 +1370,10 @@ eval.json의 by_crossing: 나온 사람의 건넘 구간이 전역 경로를 덮
 | demohists4 | demo1 | 2122 | 31.15 | 67.95 | 0.9 | 1140 | 87.89 | 12.11 | 0.0 | 834 | 48.32 | 50.84 | 0.84 | 55.84 | 1.4 | outside |
 | demohists4 | head | 0 |  |  |  | 0 |  |  |  | 4096 | 48.39 | 51.59 | 0.02 |  |  |  |
 | demohists4 | rand | 0 |  |  |  | 0 |  |  |  | 4096 | 77.22 | 22.75 | 0.02 |  |  |  |
+| demohistsym | aisle | 0 |  |  |  | 0 |  |  |  | 4096 | 82.32 | 13.94 | 3.74 |  |  |  |
+| demohistsym | demo1 | 2122 | 43.69 | 53.91 | 2.4 | 1140 | 88.07 | 11.93 | 0.0 | 834 | 60.43 | 38.37 | 1.2 | 41.98 | 1.4466 | outside |
+| demohistsym | head | 0 |  |  |  | 0 |  |  |  | 4096 | 53.64 | 46.36 | 0.0 |  |  |  |
+| demohistsym | rand | 0 |  |  |  | 0 |  |  |  | 4096 | 78.76 | 21.24 | 0.0 |  |  |  |
 | demostd | aisle | 0 |  |  |  | 0 |  |  |  | 4096 | 70.41 | 28.17 | 1.42 |  |  |  |
 | demostd | demo1 | 2122 | 32.66 | 66.73 | 0.61 | 1140 | 88.16 | 11.84 | 0.0 | 834 | 48.08 | 51.2 | 0.72 | 54.89 | 1.4007 | outside |
 | demostd | demo2 | 2017 | 26.23 | 72.24 | 1.54 | 1009 | 88.11 | 11.89 | 0.0 | 1070 | 50.47 | 48.79 | 0.75 | 60.35 | 1.4257 | outside |
@@ -1244,5 +1400,6 @@ eval.json의 by_crossing: 나온 사람의 건넘 구간이 전역 경로를 덮
 | stds4 | head | 0 |  |  |  | 0 |  |  |  | 4096 | 53.78 | 45.97 | 0.24 |  |  |  |
 | stds4 | rand | 0 |  |  |  | 0 |  |  |  | 4096 | 78.71 | 21.09 | 0.2 |  |  |  |
 | sym | aisle | 0 |  |  |  | 0 |  |  |  | 4096 | 76.83 | 22.56 | 0.61 |  |  |  |
+| sym | demo1 | 2122 | 40.95 | 57.63 | 1.41 | 1140 | 89.12 | 10.88 | 0.0 | 834 | 55.76 | 43.76 | 0.48 | 46.75 | 1.4147 | outside |
 | sym | head | 0 |  |  |  | 0 |  |  |  | 4096 | 55.4 | 44.53 | 0.07 |  |  |  |
 | sym | rand | 0 |  |  |  | 0 |  |  |  | 4096 | 78.64 | 21.26 | 0.1 |  |  |  |
