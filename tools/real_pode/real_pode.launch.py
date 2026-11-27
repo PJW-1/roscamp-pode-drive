@@ -81,8 +81,8 @@ def generate_launch_description():
         DeclareLaunchArgument("initial_yaw", default_value="1.5708"),
         # costmap 지도(2.5 cm)
         DeclareLaunchArgument("map", default_value=str(MAPS / "arena_v7_a.yaml")),
-        # 위치 추정은 실물 SLAM 지도
-        DeclareLaunchArgument("map_fine", default_value=str(MAPS / "arena_real_slam.yaml")),
+        # 위치 추정은 도면 1 cm 지도(시뮬과 같다). 옛 SLAM 지도는 map_fine:=.../arena_real_slam.yaml
+        DeclareLaunchArgument("map_fine", default_value=str(MAPS / "arena_v7_fine.yaml")),
         DeclareLaunchArgument("keepout_mask", default_value=str(MAPS / "arena_v7_keepout.yaml"),
                               description="비우면 keepout을 끈다"),
         DeclareLaunchArgument("params_file", default_value=str(PARAMS / "nav2_params.yaml"),
@@ -102,8 +102,8 @@ def generate_launch_description():
                               description="BatteryState 토픽. 비면 배터리를 모름으로 알린다"),
         DeclareLaunchArgument("dock_aside", default_value="false",
                               description="true면 pode_fsm Dock 서버를 /<ns>/dock_fsm으로 비킨다"),
-        DeclareLaunchArgument("plan_keep", default_value="false",
-                              description="true면 길 유지 노드(pode_plan_keep)와 _goal_keep 행동 트리를 쓴다"),
+        DeclareLaunchArgument("plan_keep", default_value="true",
+                              description="true(기본)면 길 유지 노드(pode_plan_keep)와 _goal_keep 행동 트리를 쓴다"),
         DeclareLaunchArgument("log_level", default_value="warn"),
         # ---- 제조사 bringup ----
         GroupAction([

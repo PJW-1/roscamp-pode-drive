@@ -23,16 +23,17 @@ FORWARD = ("FollowPath", "FollowPathThrough")
 FIXED_LINE = ("FollowPath", "FollowPathThrough", "FollowPathReverse")
 # 전역 costmap 지도 2.5 cm(arena_v7_a), 위치 추정 1 cm, keepout
 MAPS = ("arena_v7_a", "arena_v7_fine", "arena_v7_keepout")
-# 위치 추정은 실물 SLAM 지도, costmap·keepout은 v7 도면 지도
-REAL_MAP = "arena_real_slam"
-LAUNCH_MAPS = ("arena_v7_a", REAL_MAP, "arena_v7_keepout")
+# 위치 추정도 v7 도면 1 cm 지도(시뮬과 같다). 옛 SLAM 지도는 map_fine 인자로 고른다
+AMCL_MAP = "arena_v7_fine"
+OLD_SLAM_MAP = "arena_real_slam"
+LAUNCH_MAPS = ("arena_v7_a", AMCL_MAP, "arena_v7_keepout")
 # 실물 키트 지도 그림의 SHA-256. 지도를 일부러 바꿀 때만 같이 고친다
 KIT_MAP_SHA256 = {
-    "arena_v7.pgm": "c15b977c0bb54ab23384f51490fe793c66769cfc214bec5e4fdd529aee2b3c9a",
-    "arena_v7_a.pgm": "230d14c5b0270a90eebc877b61cbcba2cb3e5551e055468aa282dd645a7e882d",
-    "arena_v7_a1.pgm": "4b03fbae00706f05f9e83f0f0fef397209a66fb687c813c168c11b914e08661c",
-    "arena_v7_fine.pgm": "4b03fbae00706f05f9e83f0f0fef397209a66fb687c813c168c11b914e08661c",
-    "arena_v7_keepout.pgm": "8264da45295e58127495d811d8c5d1635d72244d83c6441689279ad1f5d6e1f6",
+    "arena_v7.pgm": "6435e48dd37ec706cbb932955d23e069d9c3bdaa09e22dbe14ebc65aaf7545c3",
+    "arena_v7_a.pgm": "c81b10325779080bfcc38970dbc7d84e63eeff39e1e1fdc8a3380e09b2ecc8df",
+    "arena_v7_a1.pgm": "feac937f80c535fdd37d1397181b57a69a721f662285fca957c7e8d7aceb4e51",
+    "arena_v7_fine.pgm": "feac937f80c535fdd37d1397181b57a69a721f662285fca957c7e8d7aceb4e51",
+    "arena_v7_keepout.pgm": "6783b8bc1de5c1cb4e4efec931234910119381d30e6b3cc9af92566a9b83246c",
     "arena_real_slam.pgm": "553e4be9dee15d25f480b5b5dfbb29c94b8f9d981cf7859d4f6a213ec78643d1",
 }
 
@@ -246,8 +247,8 @@ def test_launch_declares_dock_aside_default_false():
     assert "".join(t.text for t in decl[0].default_value) == "false"
 
 
-def test_launch_declares_plan_keep_default_false():
-    # 길 유지 노드(해결안 A)는 실물에서 기본 꺼짐
+def test_launch_declares_plan_keep_default_true():
+    # 길 유지 노드(해결안 A)는 실물에서 기본 켬(11-26 실물 확인 뒤)
     import importlib.util
     _need_launch()
     from launch.actions import DeclareLaunchArgument
@@ -258,7 +259,7 @@ def test_launch_declares_plan_keep_default_false():
     decl = [a for a in mod.generate_launch_description().entities
             if isinstance(a, DeclareLaunchArgument) and a.name == "plan_keep"]
     assert len(decl) == 1
-    assert "".join(t.text for t in decl[0].default_value) == "false"
+    assert "".join(t.text for t in decl[0].default_value) == "true"
 
 
 # ---- deploy.sh: 복사하는 패키지가 기대는 저장소 패키지도 함께 복사한다 ----
@@ -290,7 +291,7 @@ def test_deploy_copies_every_repo_dependency():
                 assert repo[dep] in deployed, f"{rel} needs {dep} ({repo[dep]})"
 
 
-# ---- start.sh: PLAN_KEEP=1이면 launch에 plan_keep:=true ----
+# ---- start.sh: PLAN_KEEP 기본 켬, 0이면 launch에 plan_keep:=false ----
 def _start_args(tmp_path, extra):
     """start.sh는 진짜, 대역 ros2가 받은 인자를 한 줄에 하나씩 적는다."""
     kit = tmp_path / "kit"
@@ -313,14 +314,15 @@ def _start_args(tmp_path, extra):
     return run, seen.read_text().split("\n") if seen.exists() else None
 
 
-@pytest.mark.parametrize("extra, want", [({}, False), ({"PLAN_KEEP": "0"}, False),
-                                         ({"PLAN_KEEP": "1"}, True)])
+@pytest.mark.parametrize("extra, want", [({}, "true"), ({"PLAN_KEEP": ""}, "true"),
+                                         ({"PLAN_KEEP": "0"}, "false"),
+                                         ({"PLAN_KEEP": "1"}, "true")])
 def test_start_plan_keep(tmp_path, extra, want):
+    # launch 기본이 켬이라 끌 때도 값을 늘 넘긴다
     run, args = _start_args(tmp_path, extra)
     assert run.returncode == 0, run.stdout + run.stderr
     assert args is not None and "namespace:=pode1" in args
-    assert ("plan_keep:=true" in args) == want
-    assert not any(a.startswith("plan_keep:=") and a != "plan_keep:=true" for a in args)
+    assert [a for a in args if a.startswith("plan_keep:=")] == [f"plan_keep:={want}"]
 
 
 def test_start_refuses_bad_plan_keep(tmp_path):
@@ -461,16 +463,17 @@ def test_launch_keeps_shutdown():
     assert 'MAPS / "arena_v7.yaml"' not in text  # 5 cm 지도는 기본이 아니다
 
 
-def test_amcl_reads_the_real_slam_map():
+def test_amcl_reads_the_drawing_fine_map():
     text = (KIT / "real_pode.launch.py").read_text(encoding="utf-8")
     line = next(t for t in text.splitlines() if '"map_fine"' in t and "DeclareLaunchArgument" in t)
-    assert f'MAPS / "{REAL_MAP}.yaml"' in line
+    assert f'MAPS / "{AMCL_MAP}.yaml"' in line
 
 
-def test_real_slam_map_file():
+def test_old_slam_map_file_is_kept():
+    # 되돌릴 때 쓰도록 남긴다(map_fine:=.../arena_real_slam.yaml)
     from PIL import Image
-    meta = _load(KIT / "maps" / f"{REAL_MAP}.yaml")
-    assert meta["image"] == f"{REAL_MAP}.pgm" and meta["mode"] == "trinary"
+    meta = _load(KIT / "maps" / f"{OLD_SLAM_MAP}.yaml")
+    assert meta["image"] == f"{OLD_SLAM_MAP}.pgm" and meta["mode"] == "trinary"
     assert meta["resolution"] == 0.005 and meta["origin"] == [-0.1, -0.1, 0.0]
     # 205(미지)는 미지로 남아야 한다
     p_unknown = (255 - 205) / 255.0
@@ -497,8 +500,8 @@ def test_real_slam_map_file():
 
 # 옛 진열대 끝으로 그린 채 둘 키트 그림. 키트 지도를 다시 만들면 비운다
 KIT_PENDING_TAPE_2026_11_23 = set()
-OLD_SHELF_ENDS = (("  - [0.65, 0.735, 1.56, 0.775]", "  - [0.63, 0.735, 1.56, 0.775]"),
-                  ("  - [0.70, 0.3475, 0.99, 0.3875]", "  - [0.68, 0.3475, 0.99, 0.3875]"))
+OLD_SHELF_ENDS = (("  - [0.654, 0.754, 1.574, 0.794]", "  - [0.634, 0.754, 1.574, 0.794]"),
+                  ("  - [0.704, 0.364, 1.014, 0.404]", "  - [0.684, 0.364, 1.014, 0.404]"))
 
 
 def test_kit_maps_are_drawn_from_the_real_shelves(tmp_path):
@@ -535,7 +538,7 @@ def test_kit_map_images_are_the_pinned_measured_maps():
 
 
 def test_kit_and_sim_maps_draw_shelf_a_north_face_at_the_measured_height():
-    # 키트와 시뮬 1 cm 지도 모두 진열대 A 북쪽 면이 0.775다(x 1.0)
+    # 키트와 시뮬 1 cm 지도 모두 진열대 A 북쪽 면이 0.794다(x 1.0)
     from PIL import Image
 
     def cell(path, x, y):
@@ -546,7 +549,7 @@ def test_kit_and_sim_maps_draw_shelf_a_north_face_at_the_measured_height():
         return img.getpixel((int((x - ox) / res), img.height - 1 - int((y - oy) / res)))
     for path in (KIT / "maps" / "arena_v7_fine.yaml",
                  ROOT / "sim" / "fleet_gz_sim" / "maps" / "arena_v7_fine.yaml"):
-        assert cell(path, 1.0, 0.772) == 0 and cell(path, 1.0, 0.785) == 254, path
+        assert cell(path, 1.0, 0.792) == 0 and cell(path, 1.0, 0.805) == 254, path
 
 
 # ---- cmd_watchdog.py ----
@@ -910,20 +913,22 @@ def _start_with_fake_ros2(tmp_path, peer_robots, dock_stub=None, fixed_line=None
 # 예전 start.sh가 ros2에 넘기던 인자 그대로
 OLD_ARGV = ["launch", "./real_pode.launch.py", "namespace:=pode1", "initial_x:=0.12",
             "initial_y:=0.10", "initial_yaw:=1.5708"]
+# 길 유지는 기본 켬이라 start.sh가 늘 끝에 넘긴다
+KEEP = ["plan_keep:=true"]
 
 
 @pytest.mark.parametrize("value", ["pode1,pode2", "pode2,pode3", "pode_a"])
 def test_start_peer_robots_adds_peer_arguments(tmp_path, value):
     run, argv = _start_with_fake_ros2(tmp_path, value)
     assert run.returncode == 0, run.stdout + run.stderr
-    assert argv == OLD_ARGV + ["peer_obstacles:=true", f"peer_robots:={value}"]
+    assert argv == OLD_ARGV + ["peer_obstacles:=true", f"peer_robots:={value}"] + KEEP
 
 
 @pytest.mark.parametrize("value", [None, ""])
 def test_start_without_peer_robots_has_no_peer_arguments(tmp_path, value):
     run, argv = _start_with_fake_ros2(tmp_path, value)
     assert run.returncode == 0, run.stdout + run.stderr
-    assert argv == OLD_ARGV
+    assert argv == OLD_ARGV + KEEP
 
 
 @pytest.mark.parametrize("value", ["pode1;rm", "pode1,,pode2", "Pode1", "pode1,", ",pode1", "a b",
@@ -939,21 +944,21 @@ def test_start_refuses_bad_peer_robots_before_make_params(tmp_path, value):
 def test_start_dock_stub_adds_dock_aside(tmp_path):
     run, argv = _start_with_fake_ros2(tmp_path, None, "1")
     assert run.returncode == 0, run.stdout + run.stderr
-    assert argv == OLD_ARGV + ["dock_aside:=true"]
+    assert argv == OLD_ARGV + ["dock_aside:=true"] + KEEP
 
 
 def test_start_dock_stub_with_peers_order(tmp_path):
     run, argv = _start_with_fake_ros2(tmp_path, "pode1,pode2", "1")
     assert run.returncode == 0, run.stdout + run.stderr
     assert argv == OLD_ARGV + ["peer_obstacles:=true", "peer_robots:=pode1,pode2",
-                               "dock_aside:=true"]
+                               "dock_aside:=true"] + KEEP
 
 
 @pytest.mark.parametrize("value", [None, "", "0"])
 def test_start_dock_stub_off_keeps_old_argv(tmp_path, value):
     run, argv = _start_with_fake_ros2(tmp_path, None, value)
     assert run.returncode == 0, run.stdout + run.stderr
-    assert argv == OLD_ARGV
+    assert argv == OLD_ARGV + KEEP
 
 
 @pytest.mark.parametrize("value", ["yes", "true", "2", "1;rm", " 1"])
@@ -970,7 +975,7 @@ def test_start_fixed_line_check_passes_flag(tmp_path, value, flag):
     run, argv = _start_with_fake_ros2(tmp_path, None, None, value)
     assert run.returncode == 0, run.stdout + run.stderr
     assert ("--fixed-line-check" in run.stdout) is flag
-    assert argv == OLD_ARGV  # launch 인자는 그대로
+    assert argv == OLD_ARGV + KEEP  # launch 인자는 그대로
 
 
 @pytest.mark.parametrize("value", ["yes", "true", "2", "1;rm", " 1"])
@@ -1269,7 +1274,7 @@ def test_start_refuses_bad_no_motion(tmp_path, value):
 def test_start_no_motion_off_keeps_old_argv(tmp_path, value):
     run, argv = _no_motion_start(tmp_path, ["pode1", "0.12", "0.10", "1.5708"], NO_MOTION=value)
     assert run.returncode == 0, run.stdout + run.stderr
-    assert argv == OLD_ARGV
+    assert argv == OLD_ARGV + KEEP
 
 
 @pytest.mark.parametrize("value", [{"DOCK_STUB": "0"}, {"FIXED_LINE_CHECK": "0"},

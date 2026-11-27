@@ -31,14 +31,21 @@ from fleet_interfaces.msg import (  # noqa: E402
     OrderItem,
     RobotState,
     RobotStatusArray,
+    SystemMode,
     ZoneStateArray,
 )
-from fleet_interfaces.srv import ConfirmClear, Reinstate, ReportOrder, TripCommand  # noqa: E402
-from fleet_manager.fleet_manager_node import FleetManagerNode  # noqa: E402
+from fleet_interfaces.srv import (  # noqa: E402
+    ConfirmClear,
+    Reinstate,
+    ReportOrder,
+    SetMode,
+    TripCommand,
+)
+from fleet_manager.fleet_manager_node import FleetManagerNode, make_executor  # noqa: E402
 from fleet_manager.goal_tracker import GoalTracker, ReportOutbox  # noqa: E402
 from rclpy.action import ActionServer, CancelResponse  # noqa: E402
 from rclpy.callback_groups import ReentrantCallbackGroup  # noqa: E402
-from rclpy.executors import MultiThreadedExecutor, SingleThreadedExecutor  # noqa: E402
+from rclpy.executors import MultiThreadedExecutor  # noqa: E402
 from rclpy.node import Node  # noqa: E402
 from rclpy.task import Future  # noqa: E402
 from std_msgs.msg import Header  # noqa: E402
@@ -58,12 +65,13 @@ def items(counts):
 class World(Node):
     """시키는 대로 즉시 하는 로봇 하나, 팔 서버 둘, central."""
 
-    def __init__(self, contract, site, node, robot="pode1", robot_servers=True):
+    def __init__(self, contract, site, node, robot="pode1", robot_servers=True, arms=True):
         super().__init__("wiring_world")
         self.robot = robot
         group = ReentrantCallbackGroup()
         self.site = site
         self.pose = site.node_pose(node)
+        self.mode = ""
         self.fills = []
         self.swaps = []
         self.reports = []
@@ -100,6 +108,13 @@ class World(Node):
             Header, name("heartbeat"), lambda _m: self.beats.append(time.monotonic()),
             to_ros_qos(contract.qos("heartbeat")))
         self.create_timer(0.02, self._publish_state, callback_group=group)
+        # 작업대 두 팔도 실물처럼 상태를 낸다 (3 s 없으면 상태 모름으로 작업대가 막힘)
+        self.arm_mode = ""
+        self.arm_states = {"arm_left", "arm_right"} if arms else set()
+        self._arm_pubs = {arm: self.create_publisher(ArmState, name("arm_state", arm=arm),
+                                                     to_ros_qos(contract.qos("arm_state")))
+                          for arm in ("arm_left", "arm_right")}
+        self.create_timer(0.1, self._publish_arms, callback_group=group)
         self.create_service(ReportOrder, name("report_order"), self._on_report,
                             callback_group=group)
         self._servers = [
@@ -124,9 +139,16 @@ class World(Node):
         ]
 
     def _publish_state(self):
-        msg = RobotState(robot_id=self.robot, state=RobotState.STATE_IDLE)
+        msg = RobotState(robot_id=self.robot, state=RobotState.STATE_IDLE, mode=self.mode,
+                         boot_id="w1")
         msg.pose.x, msg.pose.y = self.pose
         self.state.publish(msg)
+
+    def _publish_arms(self):
+        for arm, pub in self._arm_pubs.items():
+            if arm in self.arm_states:
+                pub.publish(ArmState(arm_id=arm, state="IDLE", lock=True, boot_id="b-1",
+                                     mode=self.arm_mode))
 
     def _on_move(self, handle):
         self.pose = (handle.request.target_pose.x, handle.request.target_pose.y)
@@ -178,10 +200,12 @@ class World(Node):
 
 
 @pytest.fixture
-def graph():
+def graph(request):
+    # indirect param {"arms": False}: 작업대 팔 상태를 처음부터 내지 않는다
+    opts = getattr(request, "param", {})
     rclpy.init(args=["--ros-args", "-p", "robots:=[pode1]", "-p", "tick_hz:=50.0"])
     node = FleetManagerNode()
-    world = World(node.contract, load_fleet_map("d2"), "P-1")
+    world = World(node.contract, load_fleet_map("d2"), "P-1", arms=opts.get("arms", True))
     world.fms = node
     executor = MultiThreadedExecutor(num_threads=4)
     executor.add_node(node)
@@ -236,7 +260,9 @@ def test_the_status_of_every_robot_comes_out_about_five_times_a_second(graph):
     assert (robot.x, robot.y) != (0.0, 0.0)
 
 
+@pytest.mark.parametrize("graph", [{"arms": False}], indirect=True)
 def test_the_status_lists_the_three_arms_after_the_podes(graph):
+    # arm_left는 이 시험이 직접 내고, arm_right는 상태 없음을 본다
     pub = graph.create_publisher(ArmState, graph.fms.contract.name("arm_state", arm="arm_left"),
                                  to_ros_qos(graph.fms.contract.qos("arm_state")))
     graph.create_timer(0.1, lambda: pub.publish(ArmState(arm_id="arm_left", state="PICKING",
@@ -336,12 +362,12 @@ def test_a_robot_counts_only_once_its_goals_can_reach_it():
 
 
 def test_a_record_of_the_running_node_plays_back_to_the_same_commands(tmp_path):
-    """main()처럼 노드에 스레드 하나를 쓴다."""
+    """main()과 같은 실행기(make_executor)로 노드를 돌린다."""
     record = tmp_path / "fms.jsonl"
     rclpy.init(args=["--ros-args", "-p", "robots:=[pode1]", "-p", "tick_hz:=50.0"])
     node = FleetManagerNode(record=record)
     world = World(node.contract, load_fleet_map("d2"), "P-1")
-    executors = [SingleThreadedExecutor(), MultiThreadedExecutor(num_threads=4)]
+    executors = [make_executor(), MultiThreadedExecutor(num_threads=4)]
     executors[0].add_node(node)
     executors[1].add_node(world)
     threads = [threading.Thread(target=e.spin, daemon=True) for e in executors]
@@ -388,7 +414,7 @@ def test_a_bad_clear_gives_a_reason_and_input_rejected_and_the_ticks_go_on(graph
         robot_id="pode1", zone_ids=["NOPE"], note="typo"))
     assert wait_for(future.done, 10.0), "no reply: the callback raised"
     result = future.result()
-    assert not result.accepted and "NOPE" in result.reason
+    assert not result.accepted and result.reason == "NOT_FOUND" and "NOPE" in result.detail
     assert wait_for(lambda: any(e.code == "INPUT_REJECTED" for e in graph.events), 10.0)
     rejected = [e for e in graph.events if e.code == "INPUT_REJECTED"]
     assert len(rejected) == 1 and rejected[0].level == "WARN"
@@ -398,7 +424,8 @@ def test_a_bad_clear_gives_a_reason_and_input_rejected_and_the_ticks_go_on(graph
     assert wait_for(lambda: len(graph.status) >= 2, 10.0), "no /fleet/robots after the call"
     second = client.call_async(ConfirmClear.Request(robot_id="pode9", zone_ids=[], note="x"))
     assert wait_for(second.done, 10.0)
-    assert not second.result().accepted and "pode9" in second.result().reason
+    assert not second.result().accepted and second.result().reason == "UNKNOWN_TARGET"
+    assert "pode9" in second.result().detail
     publish(graph, "RUN", {"A": 1, "C": 2})
     assert wait_for(lambda: graph.reports), "the node stopped working orders"
 
@@ -413,13 +440,15 @@ def test_reinstate_takes_a_cleared_robot_back_and_refuses_a_bad_call_with_a_reas
     graph.events.clear()
     early = back.call_async(Reinstate.Request(robot_id="pode1", basket="EMPTY", note="x"))
     assert wait_for(early.done, 10.0), "no reply: the callback raised"
-    assert not early.result().accepted and "OUT_OF_SERVICE" in early.result().reason
+    assert not early.result().accepted and early.result().reason == "NOT_READY"
+    assert "OUT_OF_SERVICE" in early.result().detail
     cleared = clear.call_async(ConfirmClear.Request(
         robot_id="pode1", zone_ids=fms.core.zones.held_by("pode1"), note="lifted"))
     assert wait_for(cleared.done, 10.0) and cleared.result().accepted
     wrong = back.call_async(Reinstate.Request(robot_id="pode1", basket="FULL", note="x"))
     assert wait_for(wrong.done, 10.0)
-    assert not wrong.result().accepted and "basket" in wrong.result().reason
+    assert not wrong.result().accepted and wrong.result().reason == "ORDER_STATE"
+    assert "basket" in wrong.result().detail
     good = back.call_async(Reinstate.Request(
         robot_id="pode1", basket=Reinstate.Request.BASKET_EMPTY, note="back"))
     assert wait_for(good.done, 10.0)
@@ -431,18 +460,18 @@ def test_reinstate_takes_a_cleared_robot_back_and_refuses_a_bad_call_with_a_reas
 
 
 def test_force_ship_refuses_an_order_it_does_not_know_with_the_reason(graph):
-    """강제 출고 창구(TripCommand). 모르는 주문은 UNKNOWN_ORDER로 거절한다."""
+    """강제 출고 창구(TripCommand). 모르는 주문은 NOT_FOUND로 거절한다."""
     fms = graph.fms
     client = graph.create_client(TripCommand, fms.contract.name("force_ship"))
     assert client.wait_for_service(timeout_sec=10.0)
     reply = client.call_async(TripCommand.Request(request_id="r-9", trip_id="O-NOPE"))
     assert wait_for(reply.done, 10.0), "no reply: the callback raised"
     assert not reply.result().accepted
-    assert reply.result().reason == "UNKNOWN_ORDER"
+    assert reply.result().reason == "NOT_FOUND"
     assert reply.result().request_id == "r-9"
 
 
-@pytest.mark.parametrize("answer", [(True, ""), (False, "ROBOT_FAULT"), (False, "NOT_HELD")])
+@pytest.mark.parametrize("answer", [(True, ""), (False, "NOT_READY"), (False, "ORDER_STATE")])
 def test_force_ship_passes_the_order_to_the_core_and_returns_its_answer(graph, monkeypatch,
                                                                          answer):
     fms = graph.fms
@@ -757,7 +786,8 @@ def report_node(limit=4):
         core=SimpleNamespace(params=SimpleNamespace(report_retry_s=2.0,
                                                     report_max_in_flight=limit)),
         get_logger=lambda: SimpleNamespace(warning=print),
-        _now=lambda: 0.0, _dispatch=lambda command, now: events.append(command.code))
+        _now=lambda: 0.0, _dispatch=lambda command, now: events.append(command.code),
+        _post=lambda handler, *args: handler(*args))  # 받은 편지함을 바로 비운 것과 같다
     node._report_answered = partial(FleetManagerNode._report_answered, node)
     return node, events
 
@@ -821,3 +851,67 @@ def test_the_node_keeps_reports_over_the_limit_for_a_later_flush():
     answer(client.sent[0], True)
     FleetManagerNode._flush_reports(node, 0.1)
     assert len(client.sent) == 2
+
+
+# ---- 운영 모드 (IR-73) ----
+def serve_set_mode(world, accept=True):
+    """pode1의 set_mode 서버. 받아들이면 그 모드를 상태에 싣는다."""
+    asked = []
+
+    def on_set_mode(request, response):
+        asked.append(request.mode)
+        if accept:
+            world.mode = request.mode
+        response.accepted, response.request_id = accept, request.request_id
+        response.reason = "" if accept else "MODE_MISMATCH"
+        return response
+
+    contract = world.fms.contract
+    world.create_service(SetMode, contract.name("robot_set_mode", robot="pode1"), on_set_mode,
+                         callback_group=world._group)
+    return asked
+
+
+def send_system_mode(world, mode):
+    contract = world.fms.contract
+    pub = world.create_publisher(SystemMode, contract.name("system_mode"),
+                                 to_ros_qos(contract.qos("system_mode")))
+    pub.publish(SystemMode(mode=mode))
+    return pub
+
+
+def arms_report_mode(world, mode):
+    """작업대 두 팔이 그 모드를 보고한다 (담기는 팔이 모드를 보고한 뒤 나간다)."""
+    world.arm_mode = mode
+
+
+def event_codes(world):
+    return [e.code for e in list(world.events)]
+
+
+def test_nothing_is_asked_before_the_system_mode_comes(graph):
+    asked = serve_set_mode(graph)
+    publish(graph, "RUN", {"A": 1})
+    assert wait_for(lambda: graph.fills, 20.0), "the robot still takes trips without a mode"
+    assert asked == []
+
+
+def test_the_system_mode_is_sent_to_the_robot_and_it_keeps_working(graph):
+    asked = serve_set_mode(graph)
+    arms_report_mode(graph, "TEST")
+    send_system_mode(graph, "TEST")
+    assert wait_for(lambda: asked == ["TEST"], 10.0), asked
+    assert wait_for(lambda: graph.mode == "TEST", 5.0)
+    publish(graph, "RUN", {"A": 1})
+    assert wait_for(lambda: graph.fills, 20.0)
+    assert "ROBOT_MODE_MISMATCH" not in event_codes(graph)
+
+
+def test_a_robot_that_refuses_the_mode_gets_no_new_trip(graph):
+    asked = serve_set_mode(graph, accept=False)
+    send_system_mode(graph, "TEST")
+    assert wait_for(lambda: "ROBOT_MODE_MISMATCH" in event_codes(graph), 15.0), asked
+    assert len(asked) >= 2
+    publish(graph, "RUN", {"A": 1})
+    time.sleep(3.0)
+    assert graph.fills == []

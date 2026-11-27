@@ -22,6 +22,26 @@ from .robots import Dispatch
 
 # ---- 운행 모드 바꾸기와 배차 받기 ----
 class Calls:
+    # ---- 운영 모드가 다른 로봇은 새 호출을 받지 않는다. 하던 일은 그대로 ----
+    def set_mode_blocked(self, robot, blocked: bool) -> bool:
+        m = self._robots.get(robot)
+        if m is None or m.mode_blocked == blocked:
+            return False
+        m.mode_blocked = blocked
+        return True
+
+    # ---- 락이 풀린 로봇도 새 호출을 받지 않는다 (W-34) ----
+    def set_lock_released(self, robot, released: bool) -> bool:
+        m = self._robots.get(robot)
+        if m is None or m.lock_released == released:
+            return False
+        m.lock_released = released
+        return True
+
+    def lock_released(self, robot) -> bool:
+        m = self._robots.get(robot)
+        return m is not None and m.lock_released
+
     def on_run_mode(self, run_mode) -> None:
         if run_mode == STOP and self._run_mode != STOP:
             for m in self._robots.values():
@@ -95,7 +115,9 @@ class Calls:
 
     def _robot_info(self, m, stopped: bool) -> RobotInfo:
         node = m.route.goal if m.route is not None and m.phase == TO_PARK else m.node
-        eligible = (self.available(m.name) and not m.hold and m.dispatch is None and not stopped
+        eligible = (self.available(m.name) and not m.hold and not m.mode_blocked
+                    and not m.lock_released
+                    and m.dispatch is None and not stopped
                     and not self._localizing(m)
                     and (not m.report.charge or (m.called and self._committed(m))))
         return RobotInfo(m.name, node, m.called or self._committed(m), eligible)
