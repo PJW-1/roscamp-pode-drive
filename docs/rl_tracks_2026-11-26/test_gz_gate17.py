@@ -35,3 +35,10 @@ def test_gate_says_worse_when_collisions_rise():
     cells[("g_demo", gg.SYM)]["col"] = 5
     cells[("k_cross", gg.SYM)]["col"] = 5
     assert gg.gate(cells)[4] == "Gazebo에서는 나빠졌다"
+
+
+def test_f_cart_needs_the_planned_five_runs():
+    cells = {(s, c): {"n": 5, "ok": 3, "corridor": 5, "col": 0}
+             for s in gg.SCENARIOS for c in (gg.CTRL, gg.SYM)}
+    cells[("f_cart", gg.SYM)].update(n=4, corridor=4)
+    assert not gg.gate(cells)[0]

@@ -17,6 +17,7 @@ SYM, CTRL = "FollowPathRLShimDemoHistSym", "FollowPathRLShimDemoHist"
 SHORT = {CTRL: "t_demo_hist", SYM: "t_demo_hist_sym"}
 SCENARIOS = ("f_cart", "g_demo", "k_cross", "j_cross")
 GAP = 4  # 합계 문턱(판). 39절에 미리 적은 값
+F_CART_RUNS, F_CART_CORRIDOR = 5, 4  # f_cart 조건: 계획한 5판이 모두 있고 통로 판 4판 이상
 
 
 # ---- 읽기 ----
@@ -75,7 +76,7 @@ def meet_counts(meets):
 def gate(cells):
     """39절의 판정: f_cart 조건, 합계 판정, 저장소에 넣는가."""
     f = cells[("f_cart", SYM)]
-    f_ok = f["corridor"] >= 4 and f["col"] == 0
+    f_ok = f["n"] == F_CART_RUNS and f["corridor"] >= F_CART_CORRIDOR and f["col"] == 0
     tot = {c: [sum(cells[(s, c)][k] for s in SCENARIOS) for k in ("n", "ok", "col")]
            for c in (CTRL, SYM)}
     d_arr, d_col = tot[SYM][1] - tot[CTRL][1], tot[SYM][2] - tot[CTRL][2]
