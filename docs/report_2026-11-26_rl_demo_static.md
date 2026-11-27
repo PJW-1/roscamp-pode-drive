@@ -92,4 +92,4 @@ demo1, demo2 의 mover (사람) 와 로봇 설정은 오케스트레이터가 �
 
 ## 결과
 
-(비어 있음: Isaac 평가는 오케스트레이터가 돌린다.)
+(21:34에 채움.) 이 설정은 평가 칸 demo1, demo2, aisle과 시연 조건 학습(t_demo 계열)에 쓰였다. 숫자와 판정은 작업 기록 8c절 끝, 12, 13, 15, 22, 38절과 `docs/rl_tracks_2026-11-26/results/tables.md`에 있다. 대표값(성공 %, demo1 / aisle): acd3 43.65 / 56.62, t_demo_hist 52.81 / 72.19, t_demo_hist_sym 59.45 / 82.32.

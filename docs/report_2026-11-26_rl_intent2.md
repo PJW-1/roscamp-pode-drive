@@ -195,7 +195,7 @@ INIT=<넓힌 체크포인트> bash learning/store_arena/run_train.sh /d/isaac/ru
 
 ## 6. 학습 결과
 
-(오케스트레이터가 채운다)
+(21:34에 채움.) 의도 갈래의 본 학습은 돌리지 않았다. Isaac에서 돌린 것은 둘이다. (1) 새 시나리오의 acd3 기준(작업 기록 4절): corner, tee, entry 모두 로봇 충돌률이 무작위 칸(8.7 %)보다 2 SE 넘게 높아(36.2, 29.9, 86.3 %) "의도 실험의 평가 칸으로 쓴다"였다. (2) 연결 확인(작업 기록 6절): `c_ghost`(pass=True, `pair_done_desync 0`), `smoke_ghost`, `smoke_social`이 종료 코드 0으로 끝났다. 의도를 넣은 학습은 다음 후보로 남아 있다.
 
 ## 7. 열린 점
 

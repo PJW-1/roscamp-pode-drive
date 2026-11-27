@@ -164,12 +164,16 @@ t_ctrl보다 높고, 이상 응답 두 칸(rand, head)에서는 t_ctrl보다 낮
 
 판정에 쓰지 않고 같이 적는 것:
 
-- t_sysid도 real 칸에서 자기 rand 칸보다 −1.56 %p(SE 0.34) 낮다. 응답을 무작위로 섞어 학습해도 이 지연에서의 손해가 줄지
-  않았다.
+- t_sysid도 real 칸에서 자기 rand 칸보다 −1.56 %p(SE 0.34) 낮다(t_ctrl은 −2.03). 두 손해의 짝 차이는 +0.46 %p(SE 0.43)로
+  2 SE 안이라, 응답을 섞어 학습한 것이 이 지연에서의 손해를 줄였다고도 줄이지 못했다고도 말하지 못한다.
+  (21:34에 고침: 처음에는 "손해가 줄지 않았다"고 적었다. 검토에서 두 손해의 차이를 재지 않은 문장이라는 지적을 받았다.)
 - head에서 바뀐 것(건수, t_ctrl → t_sysid): 로봇과의 충돌 1486 → 1614, 시간 초과 0.68 → 0.12 %. 성공 시간 비는 head 1.348 →
   1.245, rand 1.142 → 1.133이다.
 - head의 −3.20 %p는 22절에서 잰 seed만의 성공 차이(최대 3.25 %p)와 같은 크기라, "head에서 낮아진다"도 한 seed로는 설정의
-  효과라고 말하기에 모자라다. 결론(기본 설정에 넣지 않는다)은 real 칸의 이득이 없다는 데서 나오므로 이 크기와 상관없다.
+  효과라고 말하기에 모자라다. 결론(기본 설정에 넣지 않는다)은 미리 적은 셋째 갈래(real 칸 차이 없음과 head에서 낮아짐)에서
+  나왔으므로 그 무게도 같이 낮다. 다만 real 칸의 이득이 없어 (b)의 "효과 있음"에 들지 않는다는 것은 head 값과 상관없다.
+  (21:34에 고침: 처음에는 결론이 real 칸의 이득이 없다는 것만으로 나온다고 적었다. 검토에서 셋째 갈래는 head의 낮아짐도
+  요구한다는 지적을 받았다.)
 - w 부호 바뀜(t_sysid − t_ctrl, 회/분): rand +0.38 (0.58), head −1.04 (0.60), real −0.52 (0.31)로 모두 2 SE 안이다.
 - 학습 곡선의 끝 10번 성공률은 t_sysid 0.722, t_ctrl 0.752다(t_sysid의 학습 환경은 응답이 무작위라 같은 조건의 비교가
   아니다).
@@ -4571,6 +4575,19 @@ plan_keep:=false nav_log_level:=info`, 평활 없음, 도메인 72). 빌드는 �
 다음 단계: 등록 브랜치 `feat/rl-demohistsym-policy-2026-11-27`(ce413a8b, 내보낸 파일과 바이트가 같은 onnx)을 통합 브랜치에
 합치고, 빌드·시험과 새 사본 확인을 한다. 건너는 사람과 닿은 뒤 멈추는 행동은 보고서의 사용자 결정 거리에 적는다.
 
+
+### 39a. 새 사본 확인 (21:34)
+
+GitHub에서 통합 브랜치를 새로 받은 사본(9eacb359. 등록 병합 dbd86410을 담고 있다)만으로 확인했다. 스크립트는 17d절과 같다
+(`run_clone_final.sh rl_demohistsym:store_arena_demohistsym`, 도메인 74). 결과 파일은 `results/gz_fleet_demohistsym/`에 있다.
+
+- 빌드: 18개 패키지, 84 s. 설치된 정책 폴더에 `store_arena_demohistsym`이 있고 onnx sha256 앞 12자가 `441f44fab3d2`다.
+- 시험: `pode_rl_controller` ctest 12/12, `test_parity_store_arena_demohistsym`의 onnxruntime C++ 대 torch 최대 차이 9.54e-07,
+  launch 연결 시험 93 passed.
+- 플릿 시뮬(`gz.launch.py layout:=v7 gui:=false rviz:=none … nav_rl:=rl_demohistsym`): 세 로봇의 `FollowPathRL.policy` 값이
+  `store_arena_demohistsym`이었고, 정책 읽기 줄이 로봇마다 2줄, RL 추론 로그가 pode1 31줄, pode2 52줄, pode3 31줄이다.
+  시나리오는 PASS(주문 8건 모두 출고, 215.6 s, 위반 없음)이고 로봇 사이 최소 거리는 0.224 m다.
+- 17d절에서 본 것처럼 선택 명령이 닿기 전에 시작된 첫 주행은 RPP일 수 있다. 이번에는 따로 가르지 않았다.
 
 ## 9a. 큐 순서 조정 (08:36)
 

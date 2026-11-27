@@ -120,4 +120,4 @@ python -m pytest learning -q -p no:cacheprovider
 
 ## 학습 결과
 
-(오케스트레이터가 채운다.)
+(21:34에 채움. 숫자와 판정은 `docs/worklog_rl_tracks_2026-11-26.md` 3절.) `n26/t_sysid`(acd3에서 300번, sysid_v1)를 t_ctrl과 같은 에피소드로 견주었다. real 칸(지연 1스텝 + 1차 지연 0.065 s)의 성공은 74.29 % 대 73.93 %(+0.37 %p, SE 0.36)로 차이가 보이지 않고, head는 −3.20 %p(SE 0.47)로 낮다. 미리 정한 판정대로 다음 후보 학습의 기본 설정에 넣지 않는다. 이 지연에서 지금 정책들은 rand보다 2 %p쯤 낮다(acd3 −1.86, t_ctrl −2.03 %p, 둘 다 2 SE 밖).
