@@ -60,7 +60,9 @@ def test_a_policy_override_file_differs_from_the_default_only_in_its_policy():
     base = yaml.safe_load((OVERRIDES / "follow_path_rl.yaml").read_text(encoding="utf-8"))
     others = sorted(OVERRIDES.glob("follow_path_rl_*.yaml"))
     assert [p.name for p in others] == ["follow_path_rl_acd3.yaml", "follow_path_rl_demohist.yaml",
-                                        "follow_path_rl_demohist2.yaml", "follow_path_rl_std.yaml"]
+                                        "follow_path_rl_demohist2.yaml",
+                                        "follow_path_rl_demohistsym.yaml",
+                                        "follow_path_rl_std.yaml"]
     for path in others:
         policy = "store_arena_" + path.stem.removeprefix("follow_path_rl_")
         assert policy in _names()

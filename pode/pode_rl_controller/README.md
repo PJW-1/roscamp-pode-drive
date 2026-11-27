@@ -157,6 +157,7 @@ Policies in this repository (the lineage, training settings and results of each 
 | `store_arena_demohist` | 116 | 3 | `t_demo_hist/model_2044.pt` | `49747b8717d7` | acd3 with two earlier lidar frames added, action std reset to 0.3, continued 300 iterations with the demo conditions mixed in (training code `51b51d39`) |
 | `store_arena_std` | 44 | 3 | `t_std/model_2044.pt` | `60c4ac704736` | acd3 with action std reset to 0.3, continued 300 iterations (training code `52719475`) |
 | `store_arena_demohist2` | 116 | 3 | `t_demo_hist2/model_2643.pt` | `2b58f8fbb442` | demohist continued 600 more iterations with the same settings (training code `74e82c53`); checked in the sim only, never run on the real robot |
+| `store_arena_demohistsym` | 116 | 3 | `t_demo_hist_sym/model_2044.pt` | `441f44fab3d2` | t_demo_hist settings with left-right mirror augmentation (`--symmetry aug`) added, trained 300 iterations (training code `51b51d39`); in Isaac, success above its parent t_demo_hist by +6.64 pp (demo1) and +10.13 pp (aisle) with fewer w sign flips; checked in the sim only |
 
 To drive another policy in the sim, pass its overrides file: `nav_overrides:=<share>/nav_overrides/follow_path_rl_acd3.yaml`
 runs `store_arena_acd3` under both RL controller names. A new policy needs its folder here (spec + onnx), its

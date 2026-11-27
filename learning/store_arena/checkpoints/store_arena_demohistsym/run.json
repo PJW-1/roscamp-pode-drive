@@ -1,0 +1,49 @@
+{
+ "num_envs": 4096,
+ "max_iterations": 300,
+ "num_steps_per_env": 24,
+ "seed": 3,
+ "resume": "",
+ "init": "D:/isaac/runs/store_arena/n26/init_acd3_hist3.pt",
+ "init_std": [
+  0.3,
+  0.3
+ ],
+ "symmetry": "aug",
+ "caps": {
+  "enabled": false,
+  "temporal": 0.0,
+  "spatial": 0.0,
+  "sigma": 0.0
+ },
+ "run_config_sha256": "f8a7c4dfefe93fbd8ff6a63cc7a5d1ef05b3f9f79573b7c69f80f70affbd6d30",
+ "spec_overrides": {
+  "prev_action_obs": 1,
+  "critic_privileged": 1,
+  "speed_cap_obs": 1,
+  "speed_cap_range": [
+   0.08,
+   0.16
+  ],
+  "w_action_rate": -0.05,
+  "w_w_flip": -0.5,
+  "lidar_frames": 3,
+  "lidar_stride_steps": 4
+ },
+ "arena_overrides": {
+  "robot_max": 2,
+  "robot_priority_prob": 0.5,
+  "handover_start_prob": 0.15,
+  "near_wall_m": 0.08,
+  "w_near_wall": -0.2,
+  "obstacle_demo_share": 0.5,
+  "mover_cross_prob": 0.5,
+  "robot_cleaner_prob": 0.5
+ },
+ "routes": 4224,
+ "env_build_s": 21.8,
+ "learn_s": 2227.1,
+ "env_steps": 29491200,
+ "env_steps_per_s_incl_update": 13242.0,
+ "cuda_max_mem_alloc_MB": 1105.6
+}

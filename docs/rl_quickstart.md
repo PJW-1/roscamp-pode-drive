@@ -11,7 +11,7 @@
 |---|---|---|
 | `feat/rl-policy-onnx-2026-11-26` | main + 정책 다섯(`store_arena_4b`, `c`, `acd`, `acd2`, `acd3`) + 시뮬 인자 `nav_rl:=rl_acd3` | 시뮬만. main과 가장 가깝다 |
 | `feat/rl-real-optin-2026-11-26` | 위 + 실물 배포·시작 스크립트의 RL 켜기(`WITH_RL`, `RL_POLICY`). 플러그인 코드는 위와 같다 | 시뮬과 실물 |
-| `feat/rl-tracks-2026-11-26` | 위 전부 + 11-26 작업(플러그인 출력 평활 옵션, 학습 코드, 측정 도구, 문서) + 시연 조건 후보 정책 `store_arena_demohist`(`nav_rl:=rl_demohist`) + 시뮬 비교용 정책 `store_arena_std`(`nav_rl:=rl_std`) + demohist를 600번 더 학습한 정책 `store_arena_demohist2`(`nav_rl:=rl_demohist2`) + 시뮬 시제품 `aisle_first` | 전부. 새 옵션은 기본값에서 꺼져 있다 |
+| `feat/rl-tracks-2026-11-26` | 위 전부 + 11-26 작업(플러그인 출력 평활 옵션, 학습 코드, 측정 도구, 문서) + 시연 조건 후보 정책 `store_arena_demohist`(`nav_rl:=rl_demohist`) + 시뮬 비교용 정책 `store_arena_std`(`nav_rl:=rl_std`) + demohist를 600번 더 학습한 정책 `store_arena_demohist2`(`nav_rl:=rl_demohist2`) + demohist 설정에 좌우 거울 증강을 더해 학습한 정책 `store_arena_demohistsym`(`nav_rl:=rl_demohistsym`) + 시뮬 시제품 `aisle_first` | 전부. 새 옵션은 기본값에서 꺼져 있다 |
 
 ```bash
 git fetch origin
@@ -59,6 +59,7 @@ ros2 topic pub --times 3 --rate 2 --keep-alive 1 --qos-durability transient_loca
 - `nav_rl:=rl`은 정책 `store_arena_4b`, `nav_rl:=rl_acd3`은 `store_arena_acd3`다.
 - `nav_rl:=rl_demohist`는 `store_arena_demohist`다(`follow_path_rl_demohist.yaml`).
 - `nav_rl:=rl_demohist2`는 `store_arena_demohist2`다(`follow_path_rl_demohist2.yaml`).
+- `nav_rl:=rl_demohistsym`은 `store_arena_demohistsym`이다(`follow_path_rl_demohistsym.yaml`).
 - `nav_rl:=rl_std`는 `store_arena_std`다(`follow_path_rl_std.yaml`). 시뮬 비교용이다: 미리 정한 기준(w 부호 바뀜)에 걸려 실물
   후보로는 올리지 않았다(작업 기록 17a절).
 - `store_arena_demohist`는 시연 조건 후보다: 시뮬에서만 확인했고 실물에서는 돌려 본 적 없다
@@ -67,6 +68,8 @@ ros2 topic pub --times 3 --rate 2 --keep-alive 1 --qos-durability transient_loca
   돌려 본 적 없다. Gazebo 열한째 묶음에서 미리 적은 기준을 채워 넣었다(근거는 작업 기록 15절, 17절, 17c절). 건너는 사람
   앞에서 서지 못하는 것은 `store_arena_demohist`와 같다. Isaac의 마주 오는 로봇 칸(head)은 `store_arena_demohist`보다
   낮았다(성공 49.3 대 51.1 %, 작업 기록 15절).
+- `store_arena_demohistsym`은 t_demo_hist의 설정에 좌우 거울 증강(`--symmetry aug`)을 더해 300번 학습한 정책이다. Isaac에서
+  부모(t_demo_hist)보다 성공이 demo1 +6.64 %p, aisle +10.13 %p 높고 w 부호 바뀜이 낮다. 시뮬에서만 확인했다.
 - 로봇 한 대로 컨트롤러를 견주는 묶음은 `tools/nav_bench/run_bench.sh`다. RL 컨트롤러 설정은
   `sim/fleet_gz_sim/nav_overrides/follow_path_rl_acd3.yaml`을 `BENCH_OVERRIDES`로 준다.
 - 인자 설명: `sim/fleet_gz_sim/README.md`.
