@@ -1,0 +1,3 @@
+g_demo start 2026-11-27T13:12:05+09:00 avail 15311MB domain 72 args aisle_first:=true plan_keep:=false nav_log_level:=info
+g_demo: exit 0, bench g_demo: 10/10 repeats, 19 resets
+g_demo end 2026-11-27T13:38:22+09:00

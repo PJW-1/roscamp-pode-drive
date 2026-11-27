@@ -1,0 +1,10 @@
+## g_demo/launch_1.out
+      1 FollowPathRL FollowPathRL: policy /home/pjw/gg_build/pd-rl-int/install/pode_rl_controller/share/pode_rl_controller/policies/store_arena_acd3
+      1 FollowPathRL FollowPathRLShimACD3: policy /home/pjw/gg_build/pd-rl-int/install/pode_rl_controller/share/pode_rl_controller/policies/store_arena_acd3
+      1 FollowPathRL FollowPathRLShimDemoHist2: policy /home/pjw/gg_build/pd-rl-int/install/pode_rl_controller/share/pode_rl_controller/policies/store_arena_demohist2
+      1 FollowPathRL FollowPathRLShimDemoHist: policy /home/pjw/gg_build/pd-rl-int/install/pode_rl_controller/share/pode_rl_controller/policies/store_arena_demohist
+      1 FollowPathRL FollowPathRLShimDemoHistFill: policy /home/pjw/gg_build/pd-rl-int/install/pode_rl_controller/share/pode_rl_controller/policies/store_arena_demohist
+      1 FollowPathRL FollowPathRLShimDemoHistMask: policy /home/pjw/gg_build/pd-rl-int/install/pode_rl_controller/share/pode_rl_controller/policies/store_arena_demohist
+      1 FollowPathRL FollowPathRLShimDemoHistStop: policy /home/pjw/gg_build/pd-rl-int/install/pode_rl_controller/share/pode_rl_controller/policies/store_arena_demohist
+      1 FollowPathRL FollowPathRLShimDemoHistSym: policy /home/pjw/gg_build/pd-rl-int/install/pode_rl_controller/share/pode_rl_controller/policies/store_arena_demohistsym
+      1 FollowPathRL FollowPathRLShimStd: policy /home/pjw/gg_build/pd-rl-int/install/pode_rl_controller/share/pode_rl_controller/policies/store_arena_std

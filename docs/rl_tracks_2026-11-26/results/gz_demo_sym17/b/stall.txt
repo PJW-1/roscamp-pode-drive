@@ -1,0 +1,22 @@
+g_demo   RLShimDemoHistSym 0 SUCC  12.7s cart_min 0.031 person_min 0.046 plan_in_band True truth_in_band True end (1.61,0.56) stalls -
+g_demo   RLShimDemoHistSym 1 SUCC  12.4s cart_min 0.034 person_min 0.018 plan_in_band True truth_in_band True end (1.60,0.57) stalls -
+g_demo   RLShimDemoHistSym 2 SUCC  12.6s cart_min 0.031 person_min 0.012 plan_in_band True truth_in_band True end (1.61,0.58) stalls -
+g_demo   RLShimDemoHistSym 3 SUCC  12.6s cart_min 0.037 person_min 0.042 plan_in_band True truth_in_band True end (1.60,0.56) stalls -
+g_demo   RLShimDemoHistSym 4 SUCC  12.1s cart_min 0.025 person_min 0.066 plan_in_band True truth_in_band True end (1.60,0.56) stalls -
+g_demo   RLShimDemoHistSym 5 SUCC  13.0s cart_min 0.037 person_min 0.041 plan_in_band True truth_in_band True end (1.59,0.55) stalls -
+g_demo   RLShimDemoHistSym 6 SUCC  12.1s cart_min 0.029 person_min 0.054 plan_in_band True truth_in_band True end (1.59,0.57) stalls -
+g_demo   RLShimDemoHistSym 7 SUCC  12.4s cart_min 0.039 person_min 0.019 plan_in_band True truth_in_band True end (1.60,0.57) stalls -
+g_demo   RLShimDemoHistSym 8 SUCC  12.4s cart_min 0.035 person_min 0.041 plan_in_band True truth_in_band True end (1.60,0.56) stalls -
+g_demo   RLShimDemoHistSym 9 SUCC  13.3s cart_min 0.036 person_min 0.046 plan_in_band True truth_in_band True end (1.61,0.57) stalls -
+g_demo   RLShimDemoHist 0 ABOR  34.8s cart_min 0.000@8s person_min 0.293 plan_in_band True truth_in_band True end (0.73,0.58) stalls 10~36s(0.75,0.59)
+g_demo   RLShimDemoHist 1 ABOR  89.1s cart_min 0.000@8s person_min 0.302 plan_in_band False truth_in_band False end (0.38,0.76) stalls 65~90s(0.39,0.76)
+g_demo   RLShimDemoHist 2 ABOR  34.4s cart_min 0.000@6s person_min 0.339 plan_in_band True truth_in_band True end (0.61,0.59) stalls 10~35s(0.63,0.61)
+g_demo   RLShimDemoHist 3 ABOR  35.5s cart_min 0.000@9s person_min 0.268 plan_in_band True truth_in_band True end (0.74,0.59) stalls 11~36s(0.75,0.58)
+g_demo   RLShimDemoHist 4 SUCC  19.0s cart_min 0.030 person_min 0.000 plan_in_band True truth_in_band True end (1.58,0.55) stalls -
+g_demo   RLShimDemoHist 5 SUCC  20.7s cart_min 0.021 person_min 0.007 plan_in_band True truth_in_band True end (1.59,0.56) stalls -
+g_demo   RLShimDemoHist 6 SUCC  46.5s cart_min 0.000@8s person_min 0.300 plan_in_band False truth_in_band False end (0.29,0.88) stalls -
+g_demo   RLShimDemoHist 7 SUCC  19.6s cart_min 0.013 person_min 0.024 plan_in_band True truth_in_band True end (1.61,0.56) stalls -
+g_demo   RLShimDemoHist 8 ABOR  35.4s cart_min 0.000@8s person_min 0.309 plan_in_band True truth_in_band True end (0.70,0.60) stalls 11~36s(0.72,0.60)
+g_demo   RLShimDemoHist 9 SUCC  37.6s cart_min 0.000@5s person_min 0.328 plan_in_band True truth_in_band False end (0.44,0.67) stalls -
+== g_demo RLShimDemoHist: n 10 ok 5 stalled 5 cart_contact 7 person_contact 1 detour_planned 2 detour_driven 3 failed_and_stalled 5 failed_and_cart_contact 5
+== g_demo RLShimDemoHistSym: n 10 ok 10 stalled 0 cart_contact 0 person_contact 0 detour_planned 0 detour_driven 0 failed_and_stalled 0 failed_and_cart_contact 0

@@ -1,0 +1,9 @@
+f_cart start 2026-11-27T12:34:37+09:00 avail 15331MB domain 72 args aisle_first:=true plan_keep:=false nav_log_level:=info
+f_cart: exit 0, bench f_cart: 5/5 repeats, 9 resets
+f_cart end 2026-11-27T12:42:12+09:00
+k_cross start 2026-11-27T12:45:12+09:00 avail 15319MB domain 72 args aisle_first:=true plan_keep:=false nav_log_level:=info
+k_cross: exit 0, bench k_cross: 5/5 repeats, 10 resets
+k_cross end 2026-11-27T12:58:19+09:00
+j_cross start 2026-11-27T13:01:19+09:00 avail 15316MB domain 72 args aisle_first:=true plan_keep:=false nav_log_level:=info
+j_cross: exit 0, bench j_cross: 5/5 repeats, 9 resets
+j_cross end 2026-11-27T13:12:04+09:00

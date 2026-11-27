@@ -1,0 +1,22 @@
+g_demo   RLShimDemoHistSym 0 SUCC ok True person_started True meet True zone_min 0.046 slowed_before False no contact
+g_demo   RLShimDemoHistSym 1 SUCC ok True person_started True meet True zone_min 0.018 slowed_before False no contact
+g_demo   RLShimDemoHistSym 2 SUCC ok True person_started True meet True zone_min 0.012 slowed_before False no contact
+g_demo   RLShimDemoHistSym 3 SUCC ok True person_started True meet True zone_min 0.042 slowed_before False no contact
+g_demo   RLShimDemoHistSym 4 SUCC ok True person_started True meet True zone_min 0.066 slowed_before False no contact
+g_demo   RLShimDemoHistSym 5 SUCC ok True person_started True meet True zone_min 0.041 slowed_before False no contact
+g_demo   RLShimDemoHistSym 6 SUCC ok True person_started True meet True zone_min 0.054 slowed_before False no contact
+g_demo   RLShimDemoHistSym 7 SUCC ok True person_started True meet True zone_min 0.019 slowed_before False no contact
+g_demo   RLShimDemoHistSym 8 SUCC ok True person_started True meet True zone_min 0.041 slowed_before False no contact
+g_demo   RLShimDemoHistSym 9 SUCC ok True person_started True meet True zone_min 0.046 slowed_before False no contact
+g_demo   RLShimDemoHist   0 ABOR ok False person_started True meet False zone_min inf slowed_before True no contact
+g_demo   RLShimDemoHist   1 ABOR ok False person_started True meet False zone_min inf slowed_before False no contact
+g_demo   RLShimDemoHist   2 ABOR ok False person_started True meet False zone_min inf slowed_before False no contact
+g_demo   RLShimDemoHist   3 ABOR ok False person_started True meet False zone_min inf slowed_before True no contact
+g_demo   RLShimDemoHist   4 SUCC ok True person_started True meet True zone_min 0.000 slowed_before True first contact 13.0s robot (1.08,0.48) v_1s 0.012 person (1.14,0.54)
+g_demo   RLShimDemoHist   5 SUCC ok True person_started True meet True zone_min 0.007 slowed_before True no contact
+g_demo   RLShimDemoHist   6 SUCC ok False person_started True meet False zone_min inf slowed_before True no contact
+g_demo   RLShimDemoHist   7 SUCC ok True person_started True meet True zone_min 0.024 slowed_before True no contact
+g_demo   RLShimDemoHist   8 ABOR ok False person_started True meet False zone_min inf slowed_before False no contact
+g_demo   RLShimDemoHist   9 SUCC ok False person_started True meet False zone_min inf slowed_before False no contact
+== g_demo RLShimDemoHist: n 10 person_started 10 meet 3 meet_and_contact 1 meet_clean_arrived 2 meet_fail 1 slowed_before_contact 6 ok 3
+== g_demo RLShimDemoHistSym: n 10 person_started 10 meet 10 meet_and_contact 0 meet_clean_arrived 10 meet_fail 0 slowed_before_contact 0 ok 10

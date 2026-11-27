@@ -1,0 +1,5 @@
+aisle gz start 2026-11-27T13:12:05+09:00 repeats 10 controllers FollowPathRLShimDemoHist FollowPathRLShimDemoHistSym args aisle_first:=true plan_keep:=false nav_log_level:=info
+fleet_gz_sim from: /home/pjw/gg_build/pd-rl-int/install/fleet_gz_sim
+source commit of the build: 2db17d36 (uncommitted files: 2)
+aisle gz bench rc=0 2026-11-27T13:38:22+09:00
+aisle_first log lines: 65
