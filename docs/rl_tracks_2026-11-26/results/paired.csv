@@ -2,8 +2,10 @@ policy,cell,vs_policy,vs_cell,n,same_episodes,success_diff_pp,success_se_pp,succ
 std,rand,ctrl,rand,4096,yes (16 tracked envs),3.3203,0.4642,outside,-2.8076,0.4593,outside,-0.5127,0.1442,outside,,,,,,,,,,,,
 ctrl,rand,acd3,rand,4096,yes (16 tracked envs),-0.3662,0.3427,inside,0.0244,0.3679,inside,0.3418,0.1543,outside,,,,,,,,,,,,
 sysid,rand,ctrl,rand,4096,yes (16 tracked envs),-0.0977,0.3418,inside,0.6348,0.3587,inside,-0.5371,0.1421,outside,,,,,,,,,,,,
+dyn,rand,ctrl,rand,4096,yes (16 tracked envs),0.4395,0.3311,inside,-0.4883,0.3238,inside,0.0488,0.1337,inside,,,,,,,,,,,,
 std,rand,acd3,rand,4096,yes (16 tracked envs),2.9541,0.468,outside,-2.7832,0.4702,outside,-0.1709,0.1119,inside,,,,,,,,,,,,
 sysid,rand,acd3,rand,4096,yes (16 tracked envs),-0.4639,0.3596,inside,0.6592,0.3694,inside,-0.1953,0.1092,inside,,,,,,,,,,,,
+dyn,rand,acd3,rand,4096,yes (16 tracked envs),0.0732,0.3679,inside,-0.4639,0.379,inside,0.3906,0.1581,outside,,,,,,,,,,,,
 std,head,acd3,head,4096,yes (16 tracked envs),5.127,0.6105,outside,-5.0781,0.6097,outside,-0.0488,0.1381,inside,,,,,,,,,,,,
 acd3,realrand,acd3,rand,4096,yes (16 tracked envs),-1.8555,0.3819,outside,1.5869,0.3997,outside,0.2686,0.1402,inside,,,,,,,,,,,,
 sysid,realrand,sysid,rand,4096,yes (16 tracked envs),-1.5625,0.3392,outside,1.5869,0.3418,outside,-0.0244,0.088,inside,,,,,,,,,,,,
@@ -40,6 +42,8 @@ demostd,demo2,acd3,demo2,4096,yes (16 tracked envs),7.4951,0.5941,outside,-2.368
 ctrl,demo2,acd3,demo2,4096,yes (16 tracked envs),-0.6104,0.3726,inside,2.124,0.5023,outside,-1.5137,0.3869,outside,-0.0244,0.4222,inside,2.71,0.4932,outside,-1.0254,0.3235,outside,0.4639,0.3989,inside
 std,demo2,acd3,demo2,4096,yes (16 tracked envs),8.1787,0.6058,outside,-6.6895,0.7184,outside,-1.4893,0.4503,outside,0.0488,0.5416,inside,-4.1748,0.694,outside,-1.4893,0.4101,outside,-1.0742,0.538,inside
 std,demo2,ctrl,demo2,4096,yes (16 tracked envs),8.7891,0.6022,outside,-8.8135,0.6954,outside,0.0244,0.4108,inside,0.0732,0.5231,inside,-6.8848,0.6778,outside,-0.4639,0.3883,inside,-1.5381,0.5327,outside
+sym,rand,ctrl,rand,4096,yes (16 tracked envs),2.6855,0.5163,outside,-2.0264,0.521,outside,-0.6592,0.1441,outside,,,,,,,,,,,,
+sym,rand,acd3,rand,4096,yes (16 tracked envs),2.3193,0.523,outside,-2.002,0.5262,outside,-0.3174,0.1063,outside,,,,,,,,,,,,
 demohist,demo1,demostd,demo1,4096,yes (16 tracked envs),1.5625,0.5552,outside,-2.2705,0.5783,outside,0.708,0.1706,outside,1.001,0.4061,outside,-3.1494,0.5679,outside,-1.0742,0.3534,outside,0.9521,0.4726,outside
 demohist,demo1,acd3,demo1,4096,yes (16 tracked envs),9.1553,0.684,outside,-6.7139,0.7368,outside,-2.4414,0.3217,outside,-1.2695,0.4564,outside,-3.2471,0.6969,outside,-2.7344,0.4574,outside,0.5371,0.5259,inside
 demohist,demo1,std,demo1,4096,yes (16 tracked envs),0.3174,0.6006,inside,2.2217,0.6638,outside,-2.5391,0.3233,outside,-0.5371,0.4421,inside,1.7334,0.6205,outside,-1.3428,0.3878,outside,2.3682,0.4996,outside

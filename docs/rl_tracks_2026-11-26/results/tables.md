@@ -1,6 +1,6 @@
 # n26 표
 
-실행 폴더 `D:/isaac/runs/store_arena/n26`, 끝난 실행(exit=0): c_clean, c_cross, c_demo_box, e_acd3_aisle, e_acd3_aislet, e_acd3_corner, e_acd3_demo1, e_acd3_demo1c08, e_acd3_demo1t, e_acd3_demo2, e_acd3_entry, e_acd3_head, e_acd3_rand, e_acd3_rand_chk, e_acd3_rand_chk2, e_acd3_realrand, e_acd3_tee, e_ctrl_aisle, e_ctrl_demo1, e_ctrl_demo2, e_ctrl_rand, e_demo_aisle, e_demo_demo1, e_demo_demo2, e_demo_head, e_demo_rand, e_demohist2_aisle, e_demohist2_demo1, e_demohist2_demo2, e_demohist2_head, e_demohist2_rand, e_demohist2m_demo1, e_demohist_aisle, e_demohist_aislel958, e_demohist_aislepost, e_demohist_aislepostm, e_demohist_aislepostmf, e_demohist_aislepostn, e_demohist_aislet, e_demohist_demo1, e_demohist_demo1c08, e_demohist_demo1l958, e_demohist_demo1maskw, e_demohist_demo1post, e_demohist_demo1postm, e_demohist_demo1postmf, e_demohist_demo1postn, e_demohist_demo1t, e_demohist_demo1tc26a60, e_demohist_demo1tc26a90, e_demohist_demo1tf15a60, e_demohist_demo1tf20a30, e_demohist_demo1tf20a60, e_demohist_demo1tp30a60, e_demohist_demo1tp30a90, e_demohist_demo1tw26a60, e_demohist_demo1tw26a60n, e_demohist_demo2, e_demohist_head, e_demohist_rand, e_demohistdyn_aisle, e_demohistdyn_demo1, e_demohistdyn_demo2, e_demohistdyn_rand, e_demohists4_aisle, e_demohists4_demo1, e_demohists4_head, e_demohists4_rand, e_demostd2_aisle, e_demostd2_demo1, e_demostd2_demo2, e_demostd2_rand, e_demostd2m_demo1, e_demostd_aisle, e_demostd_demo1, e_demostd_demo2, e_demostd_head, e_demostd_rand, e_histstd_aisle, e_histstd_demo1, e_histstd_demo2, e_histstd_head, e_histstd_rand, e_std_aisle, e_std_aislet, e_std_demo1, e_std_demo1c08, e_std_demo1t, e_std_demo2, e_std_head, e_std_rand, e_stds4_aisle, e_stds4_demo1, e_stds4_head, e_stds4_rand, e_sysid_rand, e_sysid_realrand, smoke_b11, smoke_b4, smoke_demo, smoke_hist, smoke_hstd, smoke_resume, smoke_std, smoke_sysid, t_ctrl, t_demo, t_demo_hist, t_demo_hist2, t_demo_hist_dyn, t_demo_hist_s4, t_demo_std, t_demo_std2, t_dyn, t_gam, t_hist_std, t_std, t_std_s4, t_sym, t_sysid
+실행 폴더 `D:/isaac/runs/store_arena/n26`, 끝난 실행(exit=0): c_clean, c_cross, c_demo_box, e_acd3_aisle, e_acd3_aislet, e_acd3_corner, e_acd3_demo1, e_acd3_demo1c08, e_acd3_demo1t, e_acd3_demo2, e_acd3_entry, e_acd3_head, e_acd3_rand, e_acd3_rand_chk, e_acd3_rand_chk2, e_acd3_rand_chkb, e_acd3_realrand, e_acd3_tee, e_ctrl_aisle, e_ctrl_demo1, e_ctrl_demo2, e_ctrl_rand, e_demo_aisle, e_demo_demo1, e_demo_demo2, e_demo_head, e_demo_rand, e_demohist2_aisle, e_demohist2_demo1, e_demohist2_demo2, e_demohist2_head, e_demohist2_rand, e_demohist2m_demo1, e_demohist_aisle, e_demohist_aislel958, e_demohist_aislepost, e_demohist_aislepostm, e_demohist_aislepostmf, e_demohist_aislepostn, e_demohist_aislet, e_demohist_demo1, e_demohist_demo1c08, e_demohist_demo1l958, e_demohist_demo1maskw, e_demohist_demo1post, e_demohist_demo1postm, e_demohist_demo1postmf, e_demohist_demo1postn, e_demohist_demo1t, e_demohist_demo1tc26a60, e_demohist_demo1tc26a90, e_demohist_demo1tf15a60, e_demohist_demo1tf20a30, e_demohist_demo1tf20a60, e_demohist_demo1tp30a60, e_demohist_demo1tp30a90, e_demohist_demo1tw26a60, e_demohist_demo1tw26a60n, e_demohist_demo2, e_demohist_head, e_demohist_rand, e_demohistdyn_aisle, e_demohistdyn_demo1, e_demohistdyn_demo2, e_demohistdyn_rand, e_demohists4_aisle, e_demohists4_demo1, e_demohists4_head, e_demohists4_rand, e_demostd2_aisle, e_demostd2_demo1, e_demostd2_demo2, e_demostd2_rand, e_demostd2m_demo1, e_demostd_aisle, e_demostd_demo1, e_demostd_demo2, e_demostd_head, e_demostd_rand, e_dyn_rand, e_histstd_aisle, e_histstd_demo1, e_histstd_demo2, e_histstd_head, e_histstd_rand, e_std_aisle, e_std_aislet, e_std_demo1, e_std_demo1c08, e_std_demo1t, e_std_demo2, e_std_head, e_std_rand, e_stds4_aisle, e_stds4_demo1, e_stds4_head, e_stds4_rand, e_sym_rand, e_sysid_rand, e_sysid_realrand, smoke_b11, smoke_b4, smoke_demo, smoke_hist, smoke_hstd, smoke_resume, smoke_std, smoke_sysid, t_ctrl, t_demo, t_demo_hist, t_demo_hist2, t_demo_hist_dyn, t_demo_hist_s4, t_demo_std, t_demo_std2, t_dyn, t_gam, t_hist_std, t_std, t_std_s4, t_sym, t_sysid
 
 ## 1. 평가 칸
 
@@ -19,6 +19,7 @@
 | acd3 | rand | 4096 | 76.32 | 23.27 | 0.42 | 114 | 45 | 436 | 358 | 896 | 43.3 | 1.158 |
 | acd3 | rand_chk | 4096 | 76.49 | 23.19 | 0.32 | 115 | 47 | 435 | 353 | 894 | 43.22 | 1.161 |
 | acd3 | rand_chk2 | 4096 | 76.29 | 23.34 | 0.37 | 114 | 46 | 442 | 354 | 902 | 43.21 | 1.159 |
+| acd3 | rand_chkb | 4096 | 76.32 | 23.27 | 0.42 | 113 | 46 | 438 | 356 | 899 | 43.25 | 1.158 |
 | acd3 | realrand | 4096 | 74.46 | 24.85 | 0.68 | 128 | 51 | 450 | 389 | 937 | 37.07 | 1.185 |
 | acd3 | tee | 4096 | 69.09 | 30.88 | 0.02 | 42 | 0 | 0 | 1223 | 1046 | 64.77 | 1.251 |
 | ctrl | aisle | 4096 | 55.35 | 35.28 | 9.38 | 214 | 1231 | 0 | 0 | 1386 | 60.49 | 1.478 |
@@ -82,6 +83,7 @@
 | demostd2 | demo2 | 4096 | 49.27 | 49.0 | 1.73 | 296 | 863 | 365 | 483 | 1870 | 38.29 | 1.296 |
 | demostd2 | rand | 4096 | 78.61 | 21.34 | 0.05 | 55 | 28 | 437 | 354 | 802 | 49.27 | 1.121 |
 | demostd2m | demo1 | 4096 | 51.73 | 47.49 | 0.78 | 202 | 885 | 356 | 502 | 1788 | 38.04 | 1.276 |
+| dyn | rand | 4096 | 76.39 | 22.8 | 0.81 | 86 | 49 | 424 | 375 | 836 | 42.28 | 1.147 |
 | histstd | aisle | 4096 | 68.65 | 27.34 | 4.0 | 161 | 959 | 0 | 0 | 1004 | 48.32 | 1.353 |
 | histstd | demo1 | 4096 | 51.27 | 47.44 | 1.29 | 238 | 826 | 407 | 472 | 1788 | 40.64 | 1.428 |
 | histstd | demo2 | 4096 | 47.12 | 51.1 | 1.78 | 362 | 883 | 373 | 475 | 1930 | 41.61 | 1.421 |
@@ -99,6 +101,7 @@
 | stds4 | demo1 | 4096 | 52.2 | 45.07 | 2.73 | 376 | 646 | 419 | 405 | 1755 | 40.52 | 1.426 |
 | stds4 | head | 4096 | 53.78 | 45.97 | 0.24 | 287 | 25 | 366 | 1205 | 1769 | 43.78 | 1.378 |
 | stds4 | rand | 4096 | 78.71 | 21.09 | 0.2 | 103 | 30 | 375 | 356 | 815 | 47.83 | 1.146 |
+| sym | rand | 4096 | 78.64 | 21.26 | 0.1 | 150 | 24 | 362 | 335 | 833 | 38.3 | 1.124 |
 | sysid | rand | 4096 | 75.85 | 23.93 | 0.22 | 112 | 48 | 441 | 379 | 912 | 40.19 | 1.133 |
 | sysid | realrand | 4096 | 74.29 | 25.51 | 0.2 | 111 | 58 | 478 | 398 | 938 | 34.25 | 1.155 |
 
@@ -111,8 +114,10 @@
 | std | rand | ctrl | rand | 4096 | yes (16 tracked envs) | 3.3203 | 0.4642 | outside | -2.8076 | 0.4593 | outside | -0.5127 | 0.1442 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
 | ctrl | rand | acd3 | rand | 4096 | yes (16 tracked envs) | -0.3662 | 0.3427 | inside | 0.0244 | 0.3679 | inside | 0.3418 | 0.1543 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
 | sysid | rand | ctrl | rand | 4096 | yes (16 tracked envs) | -0.0977 | 0.3418 | inside | 0.6348 | 0.3587 | inside | -0.5371 | 0.1421 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
+| dyn | rand | ctrl | rand | 4096 | yes (16 tracked envs) | 0.4395 | 0.3311 | inside | -0.4883 | 0.3238 | inside | 0.0488 | 0.1337 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | std | rand | acd3 | rand | 4096 | yes (16 tracked envs) | 2.9541 | 0.468 | outside | -2.7832 | 0.4702 | outside | -0.1709 | 0.1119 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | sysid | rand | acd3 | rand | 4096 | yes (16 tracked envs) | -0.4639 | 0.3596 | inside | 0.6592 | 0.3694 | inside | -0.1953 | 0.1092 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
+| dyn | rand | acd3 | rand | 4096 | yes (16 tracked envs) | 0.0732 | 0.3679 | inside | -0.4639 | 0.379 | inside | 0.3906 | 0.1581 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
 | std | head | acd3 | head | 4096 | yes (16 tracked envs) | 5.127 | 0.6105 | outside | -5.0781 | 0.6097 | outside | -0.0488 | 0.1381 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | acd3 | realrand | acd3 | rand | 4096 | yes (16 tracked envs) | -1.8555 | 0.3819 | outside | 1.5869 | 0.3997 | outside | 0.2686 | 0.1402 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | sysid | realrand | sysid | rand | 4096 | yes (16 tracked envs) | -1.5625 | 0.3392 | outside | 1.5869 | 0.3418 | outside | -0.0244 | 0.088 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
@@ -149,6 +154,8 @@
 | ctrl | demo2 | acd3 | demo2 | 4096 | yes (16 tracked envs) | -0.6104 | 0.3726 | inside | 2.124 | 0.5023 | outside | -1.5137 | 0.3869 | outside | -0.0244 | 0.4222 | inside | 2.71 | 0.4932 | outside | -1.0254 | 0.3235 | outside | 0.4639 | 0.3989 | inside |
 | std | demo2 | acd3 | demo2 | 4096 | yes (16 tracked envs) | 8.1787 | 0.6058 | outside | -6.6895 | 0.7184 | outside | -1.4893 | 0.4503 | outside | 0.0488 | 0.5416 | inside | -4.1748 | 0.694 | outside | -1.4893 | 0.4101 | outside | -1.0742 | 0.538 | inside |
 | std | demo2 | ctrl | demo2 | 4096 | yes (16 tracked envs) | 8.7891 | 0.6022 | outside | -8.8135 | 0.6954 | outside | 0.0244 | 0.4108 | inside | 0.0732 | 0.5231 | inside | -6.8848 | 0.6778 | outside | -0.4639 | 0.3883 | inside | -1.5381 | 0.5327 | outside |
+| sym | rand | ctrl | rand | 4096 | yes (16 tracked envs) | 2.6855 | 0.5163 | outside | -2.0264 | 0.521 | outside | -0.6592 | 0.1441 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
+| sym | rand | acd3 | rand | 4096 | yes (16 tracked envs) | 2.3193 | 0.523 | outside | -2.002 | 0.5262 | outside | -0.3174 | 0.1063 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
 | demohist | demo1 | demostd | demo1 | 4096 | yes (16 tracked envs) | 1.5625 | 0.5552 | outside | -2.2705 | 0.5783 | outside | 0.708 | 0.1706 | outside | 1.001 | 0.4061 | outside | -3.1494 | 0.5679 | outside | -1.0742 | 0.3534 | outside | 0.9521 | 0.4726 | outside |
 | demohist | demo1 | acd3 | demo1 | 4096 | yes (16 tracked envs) | 9.1553 | 0.684 | outside | -6.7139 | 0.7368 | outside | -2.4414 | 0.3217 | outside | -1.2695 | 0.4564 | outside | -3.2471 | 0.6969 | outside | -2.7344 | 0.4574 | outside | 0.5371 | 0.5259 | inside |
 | demohist | demo1 | std | demo1 | 4096 | yes (16 tracked envs) | 0.3174 | 0.6006 | inside | 2.2217 | 0.6638 | outside | -2.5391 | 0.3233 | outside | -0.5371 | 0.4421 | inside | 1.7334 | 0.6205 | outside | -1.3428 | 0.3878 | outside | 2.3682 | 0.4996 | outside |
@@ -256,6 +263,7 @@
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | e_acd3_rand_chk | e_acd3_rand | yes (16 tracked envs) | 4096 | 16 | 291 | 0.1709 | 0.088 | inside | 3 | 9 | 0 | 4 |
 | e_acd3_rand_chk2 | e_acd3_rand | yes (16 tracked envs) | 4096 | 18 | 282 | -0.0244 | 0.0946 | inside | 8 | 7 | 0 | 3 |
+| e_acd3_rand_chkb | e_acd3_rand_chk | yes (16 tracked envs) | 4096 | 18 | 289 | -0.1709 | 0.0945 | inside | 11 | 7 | 0 | 0 |
 
 ## 4. 학습 설정
 
@@ -516,6 +524,7 @@
 | stds4 | demo1 | 2792 | 35.28 | 0.9043 | 0 |  | 691 | 4.05 | 757 | 29.72 | 751 | 51.66 | 593 | 58.01 | 0 |  |
 | stds4 | head | 49 | 32.65 | 6.699 | 0 |  | 5 | 0.0 | 21 | 28.57 | 12 | 50.0 | 11 | 36.36 | 0 |  |
 | stds4 | rand | 49 | 59.18 | 7.0214 | 0 |  | 5 | 0.0 | 21 | 47.62 | 12 | 91.67 | 11 | 72.73 | 0 |  |
+| sym | rand | 49 | 57.14 | 7.0697 | 0 |  | 5 | 0.0 | 21 | 47.62 | 12 | 75.0 | 11 | 81.82 | 0 |  |
 
 ## 6b. 통로 상자 에피소드 짝 비교 (a - 대조)
 
@@ -1192,3 +1201,4 @@ eval.json의 by_crossing: 나온 사람의 건넘 구간이 전역 경로를 덮
 | stds4 | demo1 | 2122 | 35.58 | 60.65 | 3.77 | 1140 | 90.0 | 9.82 | 0.18 | 834 | 42.81 | 53.6 | 3.6 | 50.83 | 1.3789 | outside |
 | stds4 | head | 0 |  |  |  | 0 |  |  |  | 4096 | 53.78 | 45.97 | 0.24 |  |  |  |
 | stds4 | rand | 0 |  |  |  | 0 |  |  |  | 4096 | 78.71 | 21.09 | 0.2 |  |  |  |
+| sym | rand | 0 |  |  |  | 0 |  |  |  | 4096 | 78.64 | 21.26 | 0.1 |  |  |  |

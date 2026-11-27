@@ -148,7 +148,7 @@ corner·tee·entry(`robot_scenario=<이름> mover_prob=0`). 같은 칸의 판끼
 |---|---|---|---|---|
 | e_acd3_rand | acd3 | rand | 성공 76.32 %, 충돌 23.27 %, 시간 초과 0.42 %. 충돌의 가까운 것: 벽·진열대 114, 상자 45, 움직이는 물체 436, 로봇 358. w 부호 바뀜 43.3회/분 | 끝 |
 | e_acd3_head | acd3 | head | 성공 47.41 %, 충돌 52.17 %. 가까운 것: 벽·진열대 195, 상자 40, 움직이는 물체 414, 로봇 1488. 45.1회/분 | 끝 |
-| e_acd3_realrand, e_acd3_rand_chk, e_acd3_rand_chk2, e_acd3_corner, e_acd3_tee, e_acd3_entry | acd3 | 이름대로 | 성공 realrand 74.46 %, rand_chk 76.49 %(기준과 결과가 다른 에피소드 16개), rand_chk2 76.29 %(18개), corner 51.27 %(로봇 충돌 36.18 %), tee 69.09 %(29.86 %), entry 4.98 %(86.30 %). 판정은 작업 기록 3, 4, 6절 | 끝 |
+| e_acd3_realrand, e_acd3_rand_chk, e_acd3_rand_chk2, e_acd3_corner, e_acd3_tee, e_acd3_entry | acd3 | 이름대로 | 성공 realrand 74.46 %, rand_chk 76.49 %(기준과 결과가 다른 에피소드 16개), rand_chk2 76.29 %(18개), rand_chkb 76.32 %(rand_chk와 같은 코드를 한 번 더 돌린 것. rand_chk와 18개가 다르다), corner 51.27 %(로봇 충돌 36.18 %), tee 69.09 %(29.86 %), entry 4.98 %(86.30 %). 판정은 작업 기록 3, 4, 6절 | 끝 |
 | e_ctrl_rand | t_ctrl | rand | 성공 75.95 %, 충돌 23.29 %, 시간 초과 0.76 %(acd3와 짝 차이 -0.37 %p, SE 0.34) | 끝 |
 | e_ctrl_head, e_std_rand, e_std_head, e_sysid_*, e_dyn_*, e_gam_* | 위 학습의 마지막 모델 | rand, head(+ sysid·ctrl은 realrand) | (진행) | 진행(e_std_rand, e_std_head는 끝났다: 작업 기록 17a절) |
 | e_{acd3, ctrl, std, demo, demostd, demohist}_{aisle, demo1, demo2} | acd3 또는 위 학습의 마지막 모델 | aisle(통로 상자 하나, 사람·로봇 없음), demo1·demo2(상자 1·2 + 틈을 건너는 사람 + 운반 1·청소 1). 설정은 작업 기록 8절 | 성공 %는 아래 표. 짝 차이와 충돌 종류는 작업 기록 8c절 끝, 12절 | 끝 |
