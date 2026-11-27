@@ -1,8 +1,12 @@
 policy,cell,vs_policy,vs_cell,n,same_episodes,success_diff_pp,success_se_pp,success_noise,collision_diff_pp,collision_se_pp,collision_noise,timeout_diff_pp,timeout_se_pp,timeout_noise,coll_wall_shelf_diff_pp,coll_wall_shelf_se_pp,coll_wall_shelf_noise,coll_box_diff_pp,coll_box_se_pp,coll_box_noise,coll_mover_diff_pp,coll_mover_se_pp,coll_mover_noise,coll_robot_diff_pp,coll_robot_se_pp,coll_robot_noise
 std,rand,ctrl,rand,4096,yes (16 tracked envs),3.3203,0.4642,outside,-2.8076,0.4593,outside,-0.5127,0.1442,outside,,,,,,,,,,,,
 ctrl,rand,acd3,rand,4096,yes (16 tracked envs),-0.3662,0.3427,inside,0.0244,0.3679,inside,0.3418,0.1543,outside,,,,,,,,,,,,
+sysid,rand,ctrl,rand,4096,yes (16 tracked envs),-0.0977,0.3418,inside,0.6348,0.3587,inside,-0.5371,0.1421,outside,,,,,,,,,,,,
 std,rand,acd3,rand,4096,yes (16 tracked envs),2.9541,0.468,outside,-2.7832,0.4702,outside,-0.1709,0.1119,inside,,,,,,,,,,,,
+sysid,rand,acd3,rand,4096,yes (16 tracked envs),-0.4639,0.3596,inside,0.6592,0.3694,inside,-0.1953,0.1092,inside,,,,,,,,,,,,
 std,head,acd3,head,4096,yes (16 tracked envs),5.127,0.6105,outside,-5.0781,0.6097,outside,-0.0488,0.1381,inside,,,,,,,,,,,,
+acd3,realrand,acd3,rand,4096,yes (16 tracked envs),-1.8555,0.3819,outside,1.5869,0.3997,outside,0.2686,0.1402,inside,,,,,,,,,,,,
+sysid,realrand,sysid,rand,4096,yes (16 tracked envs),-1.5625,0.3392,outside,1.5869,0.3418,outside,-0.0244,0.088,inside,,,,,,,,,,,,
 demo,rand,ctrl,rand,4096,yes (16 tracked envs),-0.9277,0.3502,outside,1.2939,0.3507,outside,-0.3662,0.1314,outside,,,,,,,,,,,,
 demostd,rand,std,rand,4096,yes (16 tracked envs),-1.7578,0.4373,outside,1.9287,0.4405,outside,-0.1709,0.0809,outside,,,,,,,,,,,,
 demostd,rand,demo,rand,4096,yes (16 tracked envs),2.4902,0.4551,outside,-2.1729,0.4536,outside,-0.3174,0.1063,outside,-0.7568,0.2638,outside,-0.5859,0.1542,outside,-0.6348,0.3734,inside,-0.1953,0.2584,inside

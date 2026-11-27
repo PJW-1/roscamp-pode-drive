@@ -1,2 +1,3 @@
 run,vs,same_episodes,episodes,code_differs,length_differs,success_diff_pp,success_se_pp,success_noise,from_success_changed,from_collision_changed,from_oob_changed,from_timeout_changed
+e_acd3_rand_chk,e_acd3_rand,yes (16 tracked envs),4096,16,291,0.1709,0.088,inside,3,9,0,4
 e_acd3_rand_chk2,e_acd3_rand,yes (16 tracked envs),4096,18,282,-0.0244,0.0946,inside,8,7,0,3

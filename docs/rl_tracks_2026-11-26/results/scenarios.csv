@@ -1,1 +1,5 @@
-
+policy,cell,episodes,success_pct,collision_pct,timeout_pct,coll_wall_shelf,coll_box,coll_mover,coll_robot,robot_coll_pct,gap_episodes,gap_mean_m,gap_p10_m,gap_p50_m,gap_min_m,share_touching,encounter_episodes,encounter_s_mean,deadlocks,deadlock_rate,robot_coll_vs_rand_pp,robot_coll_vs_rand_se_pp,robot_coll_vs_rand_noise
+acd3,rand,4096,76.32,23.27,0.42,114,45,436,358,8.74,,,,,,,,,,,,,
+acd3,corner,4096,51.27,48.68,0.05,512,0,0,1482,36.18,4096,0.0613,0.0011,0.0291,0.0,0.0566,3456,3.219,10,0.0024,27.44,0.8709,outside
+acd3,tee,4096,69.09,30.88,0.02,42,0,0,1223,29.86,4096,0.1017,0.0023,0.0838,0.0,0.0493,2912,2.728,7,0.0017,21.12,0.8403,outside
+acd3,entry,4096,4.98,94.95,0.07,354,0,0,3535,86.3,4096,0.0082,0.0008,0.0041,0.0,0.075,4096,2.784,7,0.0017,77.56,0.6953,outside

@@ -1,6 +1,6 @@
 # n26 표
 
-실행 폴더 `D:/isaac/runs/store_arena/n26`, 끝난 실행(exit=0): c_clean, c_cross, c_demo_box, e_acd3_aisle, e_acd3_aislet, e_acd3_demo1, e_acd3_demo1c08, e_acd3_demo1t, e_acd3_demo2, e_acd3_head, e_acd3_rand, e_acd3_rand_chk2, e_ctrl_aisle, e_ctrl_demo1, e_ctrl_demo2, e_ctrl_rand, e_demo_aisle, e_demo_demo1, e_demo_demo2, e_demo_head, e_demo_rand, e_demohist2_aisle, e_demohist2_demo1, e_demohist2_demo2, e_demohist2_head, e_demohist2_rand, e_demohist2m_demo1, e_demohist_aisle, e_demohist_aislel958, e_demohist_aislepost, e_demohist_aislepostm, e_demohist_aislepostmf, e_demohist_aislepostn, e_demohist_aislet, e_demohist_demo1, e_demohist_demo1c08, e_demohist_demo1l958, e_demohist_demo1maskw, e_demohist_demo1post, e_demohist_demo1postm, e_demohist_demo1postmf, e_demohist_demo1postn, e_demohist_demo1t, e_demohist_demo1tc26a60, e_demohist_demo1tc26a90, e_demohist_demo1tf15a60, e_demohist_demo1tf20a30, e_demohist_demo1tf20a60, e_demohist_demo1tp30a60, e_demohist_demo1tp30a90, e_demohist_demo1tw26a60, e_demohist_demo1tw26a60n, e_demohist_demo2, e_demohist_head, e_demohist_rand, e_demohistdyn_aisle, e_demohistdyn_demo1, e_demohistdyn_demo2, e_demohistdyn_rand, e_demohists4_aisle, e_demohists4_demo1, e_demohists4_head, e_demohists4_rand, e_demostd2_aisle, e_demostd2_demo1, e_demostd2_demo2, e_demostd2_rand, e_demostd2m_demo1, e_demostd_aisle, e_demostd_demo1, e_demostd_demo2, e_demostd_head, e_demostd_rand, e_histstd_aisle, e_histstd_demo1, e_histstd_demo2, e_histstd_head, e_histstd_rand, e_std_aisle, e_std_aislet, e_std_demo1, e_std_demo1c08, e_std_demo1t, e_std_demo2, e_std_head, e_std_rand, e_stds4_aisle, e_stds4_demo1, e_stds4_head, e_stds4_rand, smoke_b11, smoke_b4, smoke_demo, smoke_hist, smoke_hstd, smoke_resume, smoke_std, smoke_sysid, t_ctrl, t_demo, t_demo_hist, t_demo_hist2, t_demo_hist_dyn, t_demo_hist_s4, t_demo_std, t_demo_std2, t_dyn, t_hist_std, t_std, t_std_s4
+실행 폴더 `D:/isaac/runs/store_arena/n26`, 끝난 실행(exit=0): c_clean, c_cross, c_demo_box, e_acd3_aisle, e_acd3_aislet, e_acd3_corner, e_acd3_demo1, e_acd3_demo1c08, e_acd3_demo1t, e_acd3_demo2, e_acd3_entry, e_acd3_head, e_acd3_rand, e_acd3_rand_chk, e_acd3_rand_chk2, e_acd3_realrand, e_acd3_tee, e_ctrl_aisle, e_ctrl_demo1, e_ctrl_demo2, e_ctrl_rand, e_demo_aisle, e_demo_demo1, e_demo_demo2, e_demo_head, e_demo_rand, e_demohist2_aisle, e_demohist2_demo1, e_demohist2_demo2, e_demohist2_head, e_demohist2_rand, e_demohist2m_demo1, e_demohist_aisle, e_demohist_aislel958, e_demohist_aislepost, e_demohist_aislepostm, e_demohist_aislepostmf, e_demohist_aislepostn, e_demohist_aislet, e_demohist_demo1, e_demohist_demo1c08, e_demohist_demo1l958, e_demohist_demo1maskw, e_demohist_demo1post, e_demohist_demo1postm, e_demohist_demo1postmf, e_demohist_demo1postn, e_demohist_demo1t, e_demohist_demo1tc26a60, e_demohist_demo1tc26a90, e_demohist_demo1tf15a60, e_demohist_demo1tf20a30, e_demohist_demo1tf20a60, e_demohist_demo1tp30a60, e_demohist_demo1tp30a90, e_demohist_demo1tw26a60, e_demohist_demo1tw26a60n, e_demohist_demo2, e_demohist_head, e_demohist_rand, e_demohistdyn_aisle, e_demohistdyn_demo1, e_demohistdyn_demo2, e_demohistdyn_rand, e_demohists4_aisle, e_demohists4_demo1, e_demohists4_head, e_demohists4_rand, e_demostd2_aisle, e_demostd2_demo1, e_demostd2_demo2, e_demostd2_rand, e_demostd2m_demo1, e_demostd_aisle, e_demostd_demo1, e_demostd_demo2, e_demostd_head, e_demostd_rand, e_histstd_aisle, e_histstd_demo1, e_histstd_demo2, e_histstd_head, e_histstd_rand, e_std_aisle, e_std_aislet, e_std_demo1, e_std_demo1c08, e_std_demo1t, e_std_demo2, e_std_head, e_std_rand, e_stds4_aisle, e_stds4_demo1, e_stds4_head, e_stds4_rand, e_sysid_rand, e_sysid_realrand, smoke_b11, smoke_b4, smoke_demo, smoke_hist, smoke_hstd, smoke_resume, smoke_std, smoke_sysid, t_ctrl, t_demo, t_demo_hist, t_demo_hist2, t_demo_hist_dyn, t_demo_hist_s4, t_demo_std, t_demo_std2, t_dyn, t_gam, t_hist_std, t_std, t_std_s4, t_sym, t_sysid
 
 ## 1. 평가 칸
 
@@ -9,13 +9,18 @@
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | acd3 | aisle | 4096 | 56.62 | 35.62 | 7.76 | 221 | 1238 | 0 | 0 | 1375 | 55.65 | 1.476 |
 | acd3 | aislet | 4096 | 56.64 | 35.52 | 7.84 | 219 | 1236 | 0 | 0 | 1368 | 55.9 | 1.476 |
+| acd3 | corner | 4096 | 51.27 | 48.68 | 0.05 | 512 | 0 | 0 | 1482 | 1874 | 55.89 | 1.599 |
 | acd3 | demo1 | 4096 | 43.65 | 52.73 | 3.61 | 284 | 907 | 436 | 533 | 2088 | 51.5 | 1.558 |
 | acd3 | demo1c08 | 4096 | 44.63 | 50.05 | 5.32 | 253 | 849 | 490 | 458 | 2020 | 71.71 | 1.386 |
 | acd3 | demo1t | 4096 | 43.8 | 52.56 | 3.64 | 281 | 909 | 447 | 516 | 2084 | 51.42 | 1.561 |
 | acd3 | demo2 | 4096 | 40.31 | 53.61 | 6.08 | 370 | 895 | 403 | 528 | 2131 | 56.2 | 1.522 |
+| acd3 | entry | 4096 | 4.98 | 94.95 | 0.07 | 354 | 0 | 0 | 3535 | 3782 | 56.9 | 1.855 |
 | acd3 | head | 4096 | 47.41 | 52.17 | 0.42 | 195 | 40 | 414 | 1488 | 1970 | 45.15 | 1.407 |
 | acd3 | rand | 4096 | 76.32 | 23.27 | 0.42 | 114 | 45 | 436 | 358 | 896 | 43.3 | 1.158 |
+| acd3 | rand_chk | 4096 | 76.49 | 23.19 | 0.32 | 115 | 47 | 435 | 353 | 894 | 43.22 | 1.161 |
 | acd3 | rand_chk2 | 4096 | 76.29 | 23.34 | 0.37 | 114 | 46 | 442 | 354 | 902 | 43.21 | 1.159 |
+| acd3 | realrand | 4096 | 74.46 | 24.85 | 0.68 | 128 | 51 | 450 | 389 | 937 | 37.07 | 1.185 |
+| acd3 | tee | 4096 | 69.09 | 30.88 | 0.02 | 42 | 0 | 0 | 1223 | 1046 | 64.77 | 1.251 |
 | ctrl | aisle | 4096 | 55.35 | 35.28 | 9.38 | 214 | 1231 | 0 | 0 | 1386 | 60.49 | 1.478 |
 | ctrl | demo1 | 4096 | 43.33 | 53.39 | 3.27 | 258 | 1035 | 390 | 504 | 2103 | 51.23 | 1.512 |
 | ctrl | demo2 | 4096 | 39.7 | 55.74 | 4.57 | 369 | 1006 | 361 | 547 | 2190 | 53.81 | 1.481 |
@@ -94,6 +99,8 @@
 | stds4 | demo1 | 4096 | 52.2 | 45.07 | 2.73 | 376 | 646 | 419 | 405 | 1755 | 40.52 | 1.426 |
 | stds4 | head | 4096 | 53.78 | 45.97 | 0.24 | 287 | 25 | 366 | 1205 | 1769 | 43.78 | 1.378 |
 | stds4 | rand | 4096 | 78.71 | 21.09 | 0.2 | 103 | 30 | 375 | 356 | 815 | 47.83 | 1.146 |
+| sysid | rand | 4096 | 75.85 | 23.93 | 0.22 | 112 | 48 | 441 | 379 | 912 | 40.19 | 1.133 |
+| sysid | realrand | 4096 | 74.29 | 25.51 | 0.2 | 111 | 58 | 478 | 398 | 938 | 34.25 | 1.155 |
 
 ## 2. 짝 비교 (a - 대조)
 
@@ -103,8 +110,12 @@
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | std | rand | ctrl | rand | 4096 | yes (16 tracked envs) | 3.3203 | 0.4642 | outside | -2.8076 | 0.4593 | outside | -0.5127 | 0.1442 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
 | ctrl | rand | acd3 | rand | 4096 | yes (16 tracked envs) | -0.3662 | 0.3427 | inside | 0.0244 | 0.3679 | inside | 0.3418 | 0.1543 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
+| sysid | rand | ctrl | rand | 4096 | yes (16 tracked envs) | -0.0977 | 0.3418 | inside | 0.6348 | 0.3587 | inside | -0.5371 | 0.1421 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
 | std | rand | acd3 | rand | 4096 | yes (16 tracked envs) | 2.9541 | 0.468 | outside | -2.7832 | 0.4702 | outside | -0.1709 | 0.1119 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
+| sysid | rand | acd3 | rand | 4096 | yes (16 tracked envs) | -0.4639 | 0.3596 | inside | 0.6592 | 0.3694 | inside | -0.1953 | 0.1092 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | std | head | acd3 | head | 4096 | yes (16 tracked envs) | 5.127 | 0.6105 | outside | -5.0781 | 0.6097 | outside | -0.0488 | 0.1381 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
+| acd3 | realrand | acd3 | rand | 4096 | yes (16 tracked envs) | -1.8555 | 0.3819 | outside | 1.5869 | 0.3997 | outside | 0.2686 | 0.1402 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
+| sysid | realrand | sysid | rand | 4096 | yes (16 tracked envs) | -1.5625 | 0.3392 | outside | 1.5869 | 0.3418 | outside | -0.0244 | 0.088 | inside |  |  |  |  |  |  |  |  |  |  |  |  |
 | demo | rand | ctrl | rand | 4096 | yes (16 tracked envs) | -0.9277 | 0.3502 | outside | 1.2939 | 0.3507 | outside | -0.3662 | 0.1314 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
 | demostd | rand | std | rand | 4096 | yes (16 tracked envs) | -1.7578 | 0.4373 | outside | 1.9287 | 0.4405 | outside | -0.1709 | 0.0809 | outside |  |  |  |  |  |  |  |  |  |  |  |  |
 | demostd | rand | demo | rand | 4096 | yes (16 tracked envs) | 2.4902 | 0.4551 | outside | -2.1729 | 0.4536 | outside | -0.3174 | 0.1063 | outside | -0.7568 | 0.2638 | outside | -0.5859 | 0.1542 | outside | -0.6348 | 0.3734 | inside | -0.1953 | 0.2584 | inside |
@@ -243,6 +254,7 @@
 
 | 실행 | 기준 | 같은 에피소드 | 에피소드 | 결과 다른 수 | 길이 다른 수 | 성공 차 %p | 성공 SE | 성공 2SE | from_success_changed | from_collision_changed | from_oob_changed | from_timeout_changed |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
+| e_acd3_rand_chk | e_acd3_rand | yes (16 tracked envs) | 4096 | 16 | 291 | 0.1709 | 0.088 | inside | 3 | 9 | 0 | 4 |
 | e_acd3_rand_chk2 | e_acd3_rand | yes (16 tracked envs) | 4096 | 18 | 282 | -0.0244 | 0.0946 | inside | 8 | 7 | 0 | 3 |
 
 ## 4. 학습 설정
@@ -260,9 +272,12 @@
 | t_demo_std | run_config.json | 2244 | arena_spec.block_m=0.0 (ctrl -); arena_spec.block_v_mps=0.02 (ctrl -); arena_spec.ghost_headon_prob=0.25 (ctrl -); arena_spec.ghost_pairs=0 (ctrl -); arena_spec.ghost_scenario_prob=0.25 (ctrl -); arena_spec.mover_cross_prob=0.5 (ctrl -); arena_spec.mover_kinds= (ctrl -); arena_spec.near_dyn_m=0.0 (ctrl -); arena_spec.obstacle_demo_aisle_min_m=0.3 (ctrl -); arena_spec.obstacle_demo_aisle_prob=0.7 (ctrl -); arena_spec.obstacle_demo_counts=[1, 2] (ctrl -); arena_spec.obstacle_demo_gap_m=[0.13, 0.25] (ctrl -); arena_spec.obstacle_demo_keep_path=1 (ctrl -); arena_spec.obstacle_demo_share=0.5 (ctrl -); arena_spec.robot_cleaner_prob=0.5 (ctrl -); arena_spec.robot_cleaner_wait_s=10.0 (ctrl -); arena_spec.robot_cleaner_yield_m=0.3 (ctrl -); arena_spec.robot_min=0 (ctrl -); arena_spec.robot_scenario= (ctrl -); arena_spec.w_block=0.0 (ctrl -); arena_spec.w_near_dyn=0.0 (ctrl -); arena_spec.w_yield=0.0 (ctrl -); arena_spec.yield_m=0.0 (ctrl -); caps.enabled=False (ctrl -); caps.sigma=0.0 (ctrl -); caps.spatial=0.0 (ctrl -); caps.temporal=0.0 (ctrl -); init_std=[0.3, 0.3] (ctrl [0.0, 0.0]); symmetry.mode=off (ctrl -); task_spec.cmd_delay_steps_range=[0, 0] (ctrl -); task_spec.cmd_gain_v_range=[1.0, 1.0] (ctrl -); task_spec.cmd_gain_w_range=[1.0, 1.0] (ctrl -); task_spec.cmd_lag_tau_range=[0.0, 0.0] (ctrl -) |
 | t_demo_std2 | run_config.json | 4474 | agent.max_iterations=600 (ctrl 300); arena_spec.block_m=0.0 (ctrl -); arena_spec.block_v_mps=0.02 (ctrl -); arena_spec.ghost_headon_prob=0.25 (ctrl -); arena_spec.ghost_pairs=0 (ctrl -); arena_spec.ghost_scenario_prob=0.25 (ctrl -); arena_spec.mover_cross_prob=0.5 (ctrl -); arena_spec.mover_kinds= (ctrl -); arena_spec.near_dyn_m=0.0 (ctrl -); arena_spec.obstacle_demo_aisle_min_m=0.3 (ctrl -); arena_spec.obstacle_demo_aisle_prob=0.7 (ctrl -); arena_spec.obstacle_demo_counts=[1, 2] (ctrl -); arena_spec.obstacle_demo_gap_m=[0.13, 0.25] (ctrl -); arena_spec.obstacle_demo_keep_path=1 (ctrl -); arena_spec.obstacle_demo_share=0.5 (ctrl -); arena_spec.robot_cleaner_prob=0.5 (ctrl -); arena_spec.robot_cleaner_wait_s=10.0 (ctrl -); arena_spec.robot_cleaner_yield_m=0.3 (ctrl -); arena_spec.robot_min=0 (ctrl -); arena_spec.robot_scenario= (ctrl -); arena_spec.w_block=0.0 (ctrl -); arena_spec.w_near_dyn=0.0 (ctrl -); arena_spec.w_yield=0.0 (ctrl -); arena_spec.yield_m=0.0 (ctrl -); caps.enabled=False (ctrl -); caps.sigma=0.0 (ctrl -); caps.spatial=0.0 (ctrl -); caps.temporal=0.0 (ctrl -); init= (ctrl D:/isaac/runs/store_arena/acd3/t_wall/model_1745.pt); max_iterations=600 (ctrl 300); symmetry.mode=off (ctrl -); task_spec.cmd_delay_steps_range=[0, 0] (ctrl -); task_spec.cmd_gain_v_range=[1.0, 1.0] (ctrl -); task_spec.cmd_gain_w_range=[1.0, 1.0] (ctrl -); task_spec.cmd_lag_tau_range=[0.0, 0.0] (ctrl -) |
 | t_dyn | run_config.json | 2100 | arena_spec.block_m=0.0 (ctrl -); arena_spec.block_v_mps=0.02 (ctrl -); arena_spec.near_dyn_m=0.1 (ctrl -); arena_spec.robot_scenario= (ctrl -); arena_spec.w_block=0.0 (ctrl -); arena_spec.w_near_dyn=-1.0 (ctrl -); arena_spec.w_yield=0.0 (ctrl -); arena_spec.yield_m=0.0 (ctrl -); task_spec.cmd_delay_steps_range=[0, 0] (ctrl -); task_spec.cmd_gain_v_range=[1.0, 1.0] (ctrl -); task_spec.cmd_gain_w_range=[1.0, 1.0] (ctrl -); task_spec.cmd_lag_tau_range=[0.0, 0.0] (ctrl -) |
+| t_gam | run_config.json | 2090 | agent.algorithm.gamma=0.995 (ctrl 0.99); arena_spec.block_m=0.0 (ctrl -); arena_spec.block_v_mps=0.02 (ctrl -); arena_spec.near_dyn_m=0.0 (ctrl -); arena_spec.robot_scenario= (ctrl -); arena_spec.w_block=0.0 (ctrl -); arena_spec.w_near_dyn=0.0 (ctrl -); arena_spec.w_yield=0.0 (ctrl -); arena_spec.yield_m=0.0 (ctrl -); init_std=[0.3, 0.3] (ctrl [0.0, 0.0]); task_spec.cmd_delay_steps_range=[0, 0] (ctrl -); task_spec.cmd_gain_v_range=[1.0, 1.0] (ctrl -); task_spec.cmd_gain_w_range=[1.0, 1.0] (ctrl -); task_spec.cmd_lag_tau_range=[0.0, 0.0] (ctrl -) |
 | t_hist_std | run_config.json | 2122 | arena_spec.block_m=0.0 (ctrl -); arena_spec.block_v_mps=0.02 (ctrl -); arena_spec.ghost_headon_prob=0.25 (ctrl -); arena_spec.ghost_pairs=0 (ctrl -); arena_spec.ghost_scenario_prob=0.25 (ctrl -); arena_spec.mover_cross_prob=0.0 (ctrl -); arena_spec.mover_kinds= (ctrl -); arena_spec.near_dyn_m=0.0 (ctrl -); arena_spec.obstacle_demo_aisle_min_m=0.3 (ctrl -); arena_spec.obstacle_demo_aisle_prob=0.7 (ctrl -); arena_spec.obstacle_demo_counts=[1, 2] (ctrl -); arena_spec.obstacle_demo_gap_m=[0.13, 0.25] (ctrl -); arena_spec.obstacle_demo_keep_path=1 (ctrl -); arena_spec.obstacle_demo_share=0.0 (ctrl -); arena_spec.robot_cleaner_prob=0.0 (ctrl -); arena_spec.robot_cleaner_wait_s=10.0 (ctrl -); arena_spec.robot_cleaner_yield_m=0.3 (ctrl -); arena_spec.robot_min=0 (ctrl -); arena_spec.robot_scenario= (ctrl -); arena_spec.w_block=0.0 (ctrl -); arena_spec.w_near_dyn=0.0 (ctrl -); arena_spec.w_yield=0.0 (ctrl -); arena_spec.yield_m=0.0 (ctrl -); caps.enabled=False (ctrl -); caps.sigma=0.0 (ctrl -); caps.spatial=0.0 (ctrl -); caps.temporal=0.0 (ctrl -); init=D:/isaac/runs/store_arena/n26/init_acd3_hist3.pt (ctrl D:/isaac/runs/store_arena/acd3/t_wall/model_1745.pt); init_std=[0.3, 0.3] (ctrl [0.0, 0.0]); symmetry.mode=off (ctrl -); task_spec.cmd_delay_steps_range=[0, 0] (ctrl -); task_spec.cmd_gain_v_range=[1.0, 1.0] (ctrl -); task_spec.cmd_gain_w_range=[1.0, 1.0] (ctrl -); task_spec.cmd_lag_tau_range=[0.0, 0.0] (ctrl -); task_spec.lidar_frames=3 (ctrl 1) |
 | t_std | run_config.json | 2061 | init_std=[0.3, 0.3] (ctrl [0.0, 0.0]) |
 | t_std_s4 | run_config.json | 2095 | agent.seed=4 (ctrl 3); init_std=[0.3, 0.3] (ctrl [0.0, 0.0]); seed=4 (ctrl 3) |
+| t_sym | run_config.json | 2116 | agent.algorithm.symmetry_cfg.data_augmentation_func=symmetry:augment (ctrl -); agent.algorithm.symmetry_cfg.mirror_loss_coeff=0.0 (ctrl -); agent.algorithm.symmetry_cfg.use_data_augmentation=True (ctrl -); agent.algorithm.symmetry_cfg.use_mirror_loss=False (ctrl -); arena_spec.block_m=0.0 (ctrl -); arena_spec.block_v_mps=0.02 (ctrl -); arena_spec.ghost_headon_prob=0.25 (ctrl -); arena_spec.ghost_pairs=0 (ctrl -); arena_spec.ghost_scenario_prob=0.25 (ctrl -); arena_spec.mover_cross_prob=0.0 (ctrl -); arena_spec.mover_kinds= (ctrl -); arena_spec.near_dyn_m=0.0 (ctrl -); arena_spec.obstacle_demo_aisle_min_m=0.3 (ctrl -); arena_spec.obstacle_demo_aisle_prob=0.7 (ctrl -); arena_spec.obstacle_demo_counts=[1, 2] (ctrl -); arena_spec.obstacle_demo_gap_m=[0.13, 0.25] (ctrl -); arena_spec.obstacle_demo_keep_path=1 (ctrl -); arena_spec.obstacle_demo_share=0.0 (ctrl -); arena_spec.robot_cleaner_prob=0.0 (ctrl -); arena_spec.robot_cleaner_wait_s=10.0 (ctrl -); arena_spec.robot_cleaner_yield_m=0.3 (ctrl -); arena_spec.robot_min=0 (ctrl -); arena_spec.robot_scenario= (ctrl -); arena_spec.w_block=0.0 (ctrl -); arena_spec.w_near_dyn=0.0 (ctrl -); arena_spec.w_yield=0.0 (ctrl -); arena_spec.yield_m=0.0 (ctrl -); caps.enabled=False (ctrl -); caps.sigma=0.0 (ctrl -); caps.spatial=0.0 (ctrl -); caps.temporal=0.0 (ctrl -); symmetry.mirror_loss_coeff=0.0 (ctrl -); symmetry.mode=aug (ctrl -); symmetry.use_data_augmentation=True (ctrl -); symmetry.use_mirror_loss=False (ctrl -); task_spec.cmd_delay_steps_range=[0, 0] (ctrl -); task_spec.cmd_gain_v_range=[1.0, 1.0] (ctrl -); task_spec.cmd_gain_w_range=[1.0, 1.0] (ctrl -); task_spec.cmd_lag_tau_range=[0.0, 0.0] (ctrl -) |
+| t_sysid | run_config.json | 2068 | task_spec.cmd_delay_steps_range=[0, 2] (ctrl -); task_spec.cmd_gain_v_range=[0.95, 1.05] (ctrl -); task_spec.cmd_gain_w_range=[0.85, 1.15] (ctrl -); task_spec.cmd_lag_tau_range=[0.0, 0.12] (ctrl -) |
 
 ## 4b. 학습 곡선
 
@@ -354,6 +369,14 @@
 | t_dyn | 205 | 1950 | 0.7465 | 0.2535 | 0.0 | 11.392 | 0.0678 | 0.0336 |
 | t_dyn | 255 | 2000 | 0.7637 | 0.2338 | 0.0025 | 12.543 | 0.0654 | 0.0324 |
 | t_dyn | 299 | 2044 | 0.7286 | 0.2641 | 0.0073 | 12.127 | 0.0696 | 0.0312 |
+| t_gam | 0 | 1745 |  |  |  |  | 0.3 | 0.3 |
+| t_gam | 5 | 1750 | 0.7323 | 0.1777 | 0.0899 | 25.982 | 0.2715 | 0.2782 |
+| t_gam | 55 | 1800 | 0.7842 | 0.2158 | 0.0 | 12.411 | 0.2107 | 0.1949 |
+| t_gam | 105 | 1850 | 0.7656 | 0.2344 | 0.0 | 13.043 | 0.1855 | 0.1504 |
+| t_gam | 155 | 1900 | 0.7872 | 0.2104 | 0.0024 | 12.042 | 0.1656 | 0.1243 |
+| t_gam | 205 | 1950 | 0.7557 | 0.2443 | 0.0 | 12.211 | 0.155 | 0.1152 |
+| t_gam | 255 | 2000 | 0.7892 | 0.2082 | 0.0026 | 12.636 | 0.1525 | 0.1124 |
+| t_gam | 299 | 2044 | 0.7536 | 0.244 | 0.0024 | 12.53 | 0.1594 | 0.1036 |
 | t_hist_std | 0 | 0 |  |  |  |  | 0.3 | 0.3 |
 | t_hist_std | 1750 | 1750 |  |  |  |  | 0.2722 | 0.2756 |
 | t_hist_std | 1800 | 1800 |  |  |  |  | 0.1994 | 0.1875 |
@@ -378,12 +401,33 @@
 | t_std_s4 | 205 | 1950 | 0.7531 | 0.2469 | 0.0 | 12.167 | 0.1631 | 0.1185 |
 | t_std_s4 | 255 | 2000 | 0.7885 | 0.2115 | 0.0 | 12.634 | 0.1526 | 0.105 |
 | t_std_s4 | 299 | 2044 | 0.7593 | 0.2407 | 0.0 | 12.71 | 0.1463 | 0.1061 |
+| t_sym | 0 | 1745 |  |  |  |  | 0.0566 | 0.0294 |
+| t_sym | 5 | 1750 | 0.745 | 0.1663 | 0.0887 | 25.517 | 0.0648 | 0.0382 |
+| t_sym | 55 | 1800 | 0.756 | 0.2416 | 0.0024 | 11.584 | 0.1549 | 0.2333 |
+| t_sym | 105 | 1850 | 0.7264 | 0.2736 | 0.0 | 12.416 | 0.168 | 0.2183 |
+| t_sym | 155 | 1900 | 0.7736 | 0.2264 | 0.0 | 11.955 | 0.157 | 0.192 |
+| t_sym | 205 | 1950 | 0.7616 | 0.2384 | 0.0 | 11.582 | 0.1541 | 0.146 |
+| t_sym | 255 | 2000 | 0.8009 | 0.1991 | 0.0 | 12.606 | 0.152 | 0.1311 |
+| t_sym | 299 | 2044 | 0.7474 | 0.2526 | 0.0 | 12.074 | 0.1522 | 0.1228 |
+| t_sysid | 0 | 1745 |  |  |  |  | 0.0566 | 0.0294 |
+| t_sysid | 5 | 1750 | 0.6811 | 0.2169 | 0.102 | 24.422 | 0.0573 | 0.0328 |
+| t_sysid | 55 | 1800 | 0.7296 | 0.2704 | 0.0 | 12.206 | 0.0559 | 0.0332 |
+| t_sysid | 105 | 1850 | 0.7315 | 0.2662 | 0.0022 | 12.276 | 0.0554 | 0.0309 |
+| t_sysid | 155 | 1900 | 0.6984 | 0.3016 | 0.0 | 11.469 | 0.0553 | 0.0275 |
+| t_sysid | 205 | 1950 | 0.7453 | 0.2524 | 0.0024 | 12.235 | 0.0544 | 0.0261 |
+| t_sysid | 255 | 2000 | 0.7332 | 0.2668 | 0.0 | 12.04 | 0.0529 | 0.0239 |
+| t_sysid | 299 | 2044 | 0.7458 | 0.2494 | 0.0048 | 12.362 | 0.0521 | 0.0238 |
 
 ## 5. 시나리오
 
 로봇 충돌 rand 대비 차이는 다른 에피소드라 짝이 아니며, SE는 두 비율의 독립 SE다.
 
-(해당하는 끝난 실행 없음)
+| 정책 | 칸 | 에피소드 | 성공 % | 충돌 % | 시간 초과 % | 충돌 벽·선반 | 충돌 상자 | 충돌 사람·카트 | 충돌 로봇 | 로봇 충돌 % | 로봇 있던 에피소드 | 최소 간격 평균 m | p10 m | p50 m | 최소 m | 닿은 비율 | 만남 에피소드 | 만남 시각 평균 s | 교착 | 교착률 | 로봇 충돌 rand 대비 %p | 그 SE | 2SE |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| acd3 | rand | 4096 | 76.32 | 23.27 | 0.42 | 114 | 45 | 436 | 358 | 8.74 |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| acd3 | corner | 4096 | 51.27 | 48.68 | 0.05 | 512 | 0 | 0 | 1482 | 36.18 | 4096 | 0.0613 | 0.0011 | 0.0291 | 0.0 | 0.0566 | 3456 | 3.219 | 10 | 0.0024 | 27.44 | 0.8709 | outside |
+| acd3 | tee | 4096 | 69.09 | 30.88 | 0.02 | 42 | 0 | 0 | 1223 | 29.86 | 4096 | 0.1017 | 0.0023 | 0.0838 | 0.0 | 0.0493 | 2912 | 2.728 | 7 | 0.0017 | 21.12 | 0.8403 | outside |
+| acd3 | entry | 4096 | 4.98 | 94.95 | 0.07 | 354 | 0 | 0 | 3535 | 86.3 | 4096 | 0.0082 | 0.0008 | 0.0041 | 0.0 | 0.075 | 4096 | 2.784 | 7 | 0.0017 | 77.56 | 0.6953 | outside |
 
 ## 6. 통로 상자 틈별 통과
 
